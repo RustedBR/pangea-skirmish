@@ -1,0 +1,5 @@
+﻿<Solution>
+  <Project Path="PangeaSkirmish.csproj" />
+  <Project Path="PangeaSkirmish.Editor.csproj" />
+  <Project Path="Tests.csproj" />
+</Solution>
