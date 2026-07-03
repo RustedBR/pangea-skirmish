@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ffd278c54770a061887da11565a2e7d, type: 3}
+  m_Name: archer
+  m_EditorClassIdentifier: PangeaSkirmish::PangeaSkirmish.UnitDefinition
+  unitId: archer
+  displayName: Arqueiro
+  description: "Unidade de longo alcance. Alto AGI e DEX para esquiva e cr\xEDticos."
+  baseStats:
+    STR: 2
+    VIT: 2
+    DEX: 5
+    AGI: 4
+    INT: 2
+    WIS: 2
+    Footprint: 2
+    AttackRange: 4
+  defaultWeaponId: ShortBow
+  spriteResourcePath: 
+  teamTint: {r: 1, g: 1, b: 1, a: 1}
+  aiAggression: 0.6
+  aiAttackPreference: 0.7
+  aiIntelligence: 0.7
+  aiSurvivalInstinct: 0.7
+  aiUseSpells: 0

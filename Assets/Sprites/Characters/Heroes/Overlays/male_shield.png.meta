@@ -1,0 +1,1950 @@
+fileFormatVersion: 2
+guid: 5841867a8055ca35db709d01c28bb254
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 1158897465906839469
+    second: male_shield_0
+  - first:
+      213: 6418213348712719405
+    second: male_shield_1
+  - first:
+      213: -4999216948848134473
+    second: male_shield_2
+  - first:
+      213: -3594139673781002899
+    second: male_shield_3
+  - first:
+      213: -3334155666945766359
+    second: male_shield_4
+  - first:
+      213: 6661900224764765957
+    second: male_shield_5
+  - first:
+      213: -531854203058087689
+    second: male_shield_6
+  - first:
+      213: -5625638510169290886
+    second: male_shield_7
+  - first:
+      213: 177924488926013470
+    second: male_shield_8
+  - first:
+      213: 5649852131092651894
+    second: male_shield_9
+  - first:
+      213: -6900512135495585294
+    second: male_shield_10
+  - first:
+      213: -6006161556985914444
+    second: male_shield_11
+  - first:
+      213: 2159934912952938227
+    second: male_shield_12
+  - first:
+      213: -5567872828292362418
+    second: male_shield_13
+  - first:
+      213: -8753187415099992730
+    second: male_shield_14
+  - first:
+      213: -8583604951901112221
+    second: male_shield_15
+  - first:
+      213: -2800365428636939169
+    second: male_shield_16
+  - first:
+      213: -5288611354718561553
+    second: male_shield_17
+  - first:
+      213: 8585419848193346413
+    second: male_shield_18
+  - first:
+      213: -4533723371641657585
+    second: male_shield_19
+  - first:
+      213: -2698681393152957753
+    second: male_shield_20
+  - first:
+      213: -1621566502947143069
+    second: male_shield_21
+  - first:
+      213: -7016646914548375684
+    second: male_shield_22
+  - first:
+      213: 8632569645314006382
+    second: male_shield_23
+  - first:
+      213: -8440569108448481431
+    second: male_shield_24
+  - first:
+      213: -5963127754136876086
+    second: male_shield_25
+  - first:
+      213: 248363556656899235
+    second: male_shield_26
+  - first:
+      213: -6378828030943801000
+    second: male_shield_27
+  - first:
+      213: 984313426049260798
+    second: male_shield_28
+  - first:
+      213: -7229449515124745450
+    second: male_shield_29
+  - first:
+      213: -5169437527835407169
+    second: male_shield_30
+  - first:
+      213: 601345484118829701
+    second: male_shield_31
+  - first:
+      213: 740363867711853443
+    second: male_shield_32
+  - first:
+      213: 9014753373741174533
+    second: male_shield_33
+  - first:
+      213: 4242312302290957546
+    second: male_shield_34
+  - first:
+      213: -431389479233323355
+    second: male_shield_35
+  - first:
+      213: 8183262067849281564
+    second: male_shield_36
+  - first:
+      213: -3930943966282085703
+    second: male_shield_37
+  - first:
+      213: -7638770386758457766
+    second: male_shield_38
+  - first:
+      213: -5046227101198539659
+    second: male_shield_39
+  - first:
+      213: 4183312737341348181
+    second: male_shield_40
+  - first:
+      213: -2161872267659732505
+    second: male_shield_41
+  - first:
+      213: 4205887063221482154
+    second: male_shield_42
+  - first:
+      213: 2915827317744969898
+    second: male_shield_43
+  - first:
+      213: -2458834992693992663
+    second: male_shield_44
+  - first:
+      213: 5699526105134917293
+    second: male_shield_45
+  - first:
+      213: -4613621901309913490
+    second: male_shield_46
+  - first:
+      213: 437418784994174718
+    second: male_shield_47
+  - first:
+      213: 1046060313401500236
+    second: male_shield_48
+  - first:
+      213: 7314757310560015609
+    second: male_shield_49
+  - first:
+      213: -6001755272497926401
+    second: male_shield_50
+  - first:
+      213: 7829046785915030913
+    second: male_shield_51
+  - first:
+      213: -8346308461765458729
+    second: male_shield_52
+  - first:
+      213: -8702824582181819961
+    second: male_shield_53
+  - first:
+      213: 3198225891209029516
+    second: male_shield_54
+  - first:
+      213: 5774175363395815827
+    second: male_shield_55
+  - first:
+      213: 2261206104534360528
+    second: male_shield_56
+  - first:
+      213: 6218683378051234357
+    second: male_shield_57
+  - first:
+      213: 8481085908669956321
+    second: male_shield_58
+  - first:
+      213: -7902488770217823268
+    second: male_shield_59
+  - first:
+      213: -2743427936824736663
+    second: male_shield_60
+  - first:
+      213: 4050485795606257419
+    second: male_shield_61
+  - first:
+      213: -7886698111017986555
+    second: male_shield_62
+  - first:
+      213: -1202820835549899437
+    second: male_shield_63
+  - first:
+      213: -8132719264706786616
+    second: male_shield_64
+  - first:
+      213: 8177677967803953552
+    second: male_shield_65
+  - first:
+      213: -2240948889759796281
+    second: male_shield_66
+  - first:
+      213: -6797899841478326495
+    second: male_shield_67
+  - first:
+      213: -8963891016221233431
+    second: male_shield_68
+  - first:
+      213: 3571699040603070934
+    second: male_shield_69
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: male_shield_0
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 1889
+        width: 22
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: daf3a7aea1b351010800000000000000
+      internalID: 1158897465906839469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_1
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 1891
+        width: 23
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2421b61903121950800000000000000
+      internalID: 6418213348712719405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_2
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 1893
+        width: 23
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b67bc80ca63f9ab0800000000000000
+      internalID: -4999216948848134473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_3
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 1891
+        width: 23
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6d152f520d0f1ec0800000000000000
+      internalID: -3594139673781002899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_4
+      rect:
+        serializedVersion: 2
+        x: 1129
+        y: 1891
+        width: 51
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92c87d50613bab1d0800000000000000
+      internalID: -3334155666945766359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_5
+      rect:
+        serializedVersion: 2
+        x: 1358
+        y: 1919
+        width: 34
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 507e23a45f2d37c50800000000000000
+      internalID: 6661900224764765957
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_6
+      rect:
+        serializedVersion: 2
+        x: 1624
+        y: 1881
+        width: 36
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f89c629b697e98f0800000000000000
+      internalID: -531854203058087689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_7
+      rect:
+        serializedVersion: 2
+        x: 1866
+        y: 1859
+        width: 27
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a770a96b497bde1b0800000000000000
+      internalID: -5625638510169290886
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_8
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 1644
+        width: 18
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e182747416d187200800000000000000
+      internalID: 177924488926013470
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_9
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 1648
+        width: 19
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67fd24b349e486e40800000000000000
+      internalID: 5649852131092651894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_10
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 1649
+        width: 20
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f17383f5c47c30a0800000000000000
+      internalID: -6900512135495585294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_11
+      rect:
+        serializedVersion: 2
+        x: 865
+        y: 1648
+        width: 19
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bb5f3cc2e3d5aca0800000000000000
+      internalID: -6006161556985914444
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_12
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 1642
+        width: 41
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fe26880c51a9fd10800000000000000
+      internalID: 2159934912952938227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_13
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 1678
+        width: 11
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4f851b9921fab2b0800000000000000
+      internalID: -5567872828292362418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_14
+      rect:
+        serializedVersion: 2
+        x: 1634
+        y: 1632
+        width: 9
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6659b8e1c6e668680800000000000000
+      internalID: -8753187415099992730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_15
+      rect:
+        serializedVersion: 2
+        x: 1871
+        y: 1621
+        width: 45
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36876ad26c8e0e880800000000000000
+      internalID: -8583604951901112221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_16
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 1397
+        width: 35
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5c8fc8ca7a1329d0800000000000000
+      internalID: -2800365428636939169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_17
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 1400
+        width: 19
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fea17ee3ef31b96b0800000000000000
+      internalID: -5288611354718561553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_18
+      rect:
+        serializedVersion: 2
+        x: 388
+        y: 1428
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6b072b4dd9852770800000000000000
+      internalID: 8585419848193346413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_19
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 1402
+        width: 18
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f07a96b3d9af411c0800000000000000
+      internalID: -4533723371641657585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_20
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 1429
+        width: 10
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c26927329b5c8ad0800000000000000
+      internalID: -2698681393152957753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_21
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 1400
+        width: 19
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 362c9246bd90f79e0800000000000000
+      internalID: -1621566502947143069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_22
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 1428
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7fd0089eccdf9e90800000000000000
+      internalID: -7016646914548375684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_23
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 1391
+        width: 22
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6dd2c7ea5c0dc770800000000000000
+      internalID: 8632569645314006382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_24
+      rect:
+        serializedVersion: 2
+        x: 1396
+        y: 1435
+        width: 26
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96feaccad131dda80800000000000000
+      internalID: -8440569108448481431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_25
+      rect:
+        serializedVersion: 2
+        x: 1630
+        y: 1388
+        width: 37
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acb0660d6e6be3da0800000000000000
+      internalID: -5963127754136876086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_26
+      rect:
+        serializedVersion: 2
+        x: 1889
+        y: 1376
+        width: 57
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a4efa1c65d527300800000000000000
+      internalID: 248363556656899235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_27
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 1141
+        width: 28
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8515a4cc3b9d977a0800000000000000
+      internalID: -6378828030943801000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_28
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 1143
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: efc505b88dbf8ad00800000000000000
+      internalID: 984313426049260798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_29
+      rect:
+        serializedVersion: 2
+        x: 643
+        y: 1144
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61b9e5128f5dbab90800000000000000
+      internalID: -7229449515124745450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_30
+      rect:
+        serializedVersion: 2
+        x: 899
+        y: 1143
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbc0cc015f77248b0800000000000000
+      internalID: -5169437527835407169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_31
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 1147
+        width: 39
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58a20302888685800800000000000000
+      internalID: 601345484118829701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_32
+      rect:
+        serializedVersion: 2
+        x: 1412
+        y: 1163
+        width: 41
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 383df7bd30d464a00800000000000000
+      internalID: 740363867711853443
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_33
+      rect:
+        serializedVersion: 2
+        x: 1643
+        y: 1143
+        width: 25
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50fc8936e66da1d70800000000000000
+      internalID: 9014753373741174533
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_34
+      rect:
+        serializedVersion: 2
+        x: 1674
+        y: 1136
+        width: 19
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae4725cef88bfda30800000000000000
+      internalID: 4242312302290957546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_35
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 1111
+        width: 43
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5aef472ed85630af0800000000000000
+      internalID: -431389479233323355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_36
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 877
+        width: 22
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c10c5127e79c09170800000000000000
+      internalID: 8183262067849281564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_37
+      rect:
+        serializedVersion: 2
+        x: 394
+        y: 878
+        width: 23
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ba8ac92a4b7279c0800000000000000
+      internalID: -3930943966282085703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_38
+      rect:
+        serializedVersion: 2
+        x: 650
+        y: 878
+        width: 23
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a562d702ec2adf590800000000000000
+      internalID: -7638770386758457766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_39
+      rect:
+        serializedVersion: 2
+        x: 906
+        y: 878
+        width: 23
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 574ac11003338f9b0800000000000000
+      internalID: -5046227101198539659
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_40
+      rect:
+        serializedVersion: 2
+        x: 1124
+        y: 904
+        width: 51
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 559199d35cc1e0a30800000000000000
+      internalID: 4183312737341348181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_41
+      rect:
+        serializedVersion: 2
+        x: 1425
+        y: 889
+        width: 33
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e99f5c60ac7ff1e0800000000000000
+      internalID: -2161872267659732505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_42
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 870
+        width: 20
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa23ab010005e5a30800000000000000
+      internalID: 4205887063221482154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_43
+      rect:
+        serializedVersion: 2
+        x: 1671
+        y: 882
+        width: 16
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa8a19c2f79177820800000000000000
+      internalID: 2915827317744969898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_44
+      rect:
+        serializedVersion: 2
+        x: 1947
+        y: 834
+        width: 27
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 923ac230a9670edd0800000000000000
+      internalID: -2458834992693992663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_45
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 609
+        width: 18
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da6e1a49bc8c81f40800000000000000
+      internalID: 5699526105134917293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_46
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 609
+        width: 19
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e66d574235f19ffb0800000000000000
+      internalID: -4613621901309913490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_47
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 610
+        width: 20
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef629a14116021600800000000000000
+      internalID: 437418784994174718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_48
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 609
+        width: 19
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c422ee1105a548e00800000000000000
+      internalID: 1046060313401500236
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_49
+      rect:
+        serializedVersion: 2
+        x: 1149
+        y: 654
+        width: 17
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f41f1ac40d338560800000000000000
+      internalID: 7314757310560015609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_50
+      rect:
+        serializedVersion: 2
+        x: 1176
+        y: 639
+        width: 14
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffeeee9d06b75bca0800000000000000
+      internalID: -6001755272497926401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_51
+      rect:
+        serializedVersion: 2
+        x: 1427
+        y: 618
+        width: 11
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18d016c529c56ac60800000000000000
+      internalID: 7829046785915030913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_52
+      rect:
+        serializedVersion: 2
+        x: 1685
+        y: 605
+        width: 9
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d402a6bca4fb2c80800000000000000
+      internalID: -8346308461765458729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_53
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 560
+        width: 45
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c9e38ce62b593780800000000000000
+      internalID: -8702824582181819961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_54
+      rect:
+        serializedVersion: 2
+        x: 115
+        y: 345
+        width: 35
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c87a8fcc081626c20800000000000000
+      internalID: 3198225891209029516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_55
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 345
+        width: 35
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 399050e66edf12050800000000000000
+      internalID: 5774175363395815827
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_56
+      rect:
+        serializedVersion: 2
+        x: 625
+        y: 346
+        width: 35
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d127b0c8fa616f10800000000000000
+      internalID: 2261206104534360528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_57
+      rect:
+        serializedVersion: 2
+        x: 882
+        y: 345
+        width: 35
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53abe5795933d4650800000000000000
+      internalID: 6218683378051234357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_58
+      rect:
+        serializedVersion: 2
+        x: 1168
+        y: 371
+        width: 22
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e008dff2bed2b570800000000000000
+      internalID: 8481085908669956321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_59
+      rect:
+        serializedVersion: 2
+        x: 1394
+        y: 357
+        width: 26
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd337a92558b45290800000000000000
+      internalID: -7902488770217823268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_60
+      rect:
+        serializedVersion: 2
+        x: 1661
+        y: 343
+        width: 37
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 964cda6a3d26de9d0800000000000000
+      internalID: -2743427936824736663
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_61
+      rect:
+        serializedVersion: 2
+        x: 1894
+        y: 299
+        width: 57
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0f50e6ee57363830800000000000000
+      internalID: 4050485795606257419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_62
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 89
+        width: 36
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50657028ad1dc8290800000000000000
+      internalID: -7886698111017986555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_63
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 90
+        width: 36
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3551c98a2d8be4fe0800000000000000
+      internalID: -1202820835549899437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_64
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 91
+        width: 36
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ca0d21fae6c22f80800000000000000
+      internalID: -8132719264706786616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_65
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 90
+        width: 36
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0913e76d8c2fc7170800000000000000
+      internalID: 8177677967803953552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_66
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 102
+        width: 39
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c3bf0a9bdc86e0e0800000000000000
+      internalID: -2240948889759796281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_67
+      rect:
+        serializedVersion: 2
+        x: 1363
+        y: 110
+        width: 41
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 127000a6c1209a1a0800000000000000
+      internalID: -6797899841478326495
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_68
+      rect:
+        serializedVersion: 2
+        x: 1635
+        y: 90
+        width: 50
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ee61dc0d9cd99380800000000000000
+      internalID: -8963891016221233431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_shield_69
+      rect:
+        serializedVersion: 2
+        x: 1873
+        y: 51
+        width: 43
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d1efbf8a59319130800000000000000
+      internalID: 3571699040603070934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      male_shield_0: 1158897465906839469
+      male_shield_1: 6418213348712719405
+      male_shield_10: -6900512135495585294
+      male_shield_11: -6006161556985914444
+      male_shield_12: 2159934912952938227
+      male_shield_13: -5567872828292362418
+      male_shield_14: -8753187415099992730
+      male_shield_15: -8583604951901112221
+      male_shield_16: -2800365428636939169
+      male_shield_17: -5288611354718561553
+      male_shield_18: 8585419848193346413
+      male_shield_19: -4533723371641657585
+      male_shield_2: -4999216948848134473
+      male_shield_20: -2698681393152957753
+      male_shield_21: -1621566502947143069
+      male_shield_22: -7016646914548375684
+      male_shield_23: 8632569645314006382
+      male_shield_24: -8440569108448481431
+      male_shield_25: -5963127754136876086
+      male_shield_26: 248363556656899235
+      male_shield_27: -6378828030943801000
+      male_shield_28: 984313426049260798
+      male_shield_29: -7229449515124745450
+      male_shield_3: -3594139673781002899
+      male_shield_30: -5169437527835407169
+      male_shield_31: 601345484118829701
+      male_shield_32: 740363867711853443
+      male_shield_33: 9014753373741174533
+      male_shield_34: 4242312302290957546
+      male_shield_35: -431389479233323355
+      male_shield_36: 8183262067849281564
+      male_shield_37: -3930943966282085703
+      male_shield_38: -7638770386758457766
+      male_shield_39: -5046227101198539659
+      male_shield_4: -3334155666945766359
+      male_shield_40: 4183312737341348181
+      male_shield_41: -2161872267659732505
+      male_shield_42: 4205887063221482154
+      male_shield_43: 2915827317744969898
+      male_shield_44: -2458834992693992663
+      male_shield_45: 5699526105134917293
+      male_shield_46: -4613621901309913490
+      male_shield_47: 437418784994174718
+      male_shield_48: 1046060313401500236
+      male_shield_49: 7314757310560015609
+      male_shield_5: 6661900224764765957
+      male_shield_50: -6001755272497926401
+      male_shield_51: 7829046785915030913
+      male_shield_52: -8346308461765458729
+      male_shield_53: -8702824582181819961
+      male_shield_54: 3198225891209029516
+      male_shield_55: 5774175363395815827
+      male_shield_56: 2261206104534360528
+      male_shield_57: 6218683378051234357
+      male_shield_58: 8481085908669956321
+      male_shield_59: -7902488770217823268
+      male_shield_6: -531854203058087689
+      male_shield_60: -2743427936824736663
+      male_shield_61: 4050485795606257419
+      male_shield_62: -7886698111017986555
+      male_shield_63: -1202820835549899437
+      male_shield_64: -8132719264706786616
+      male_shield_65: 8177677967803953552
+      male_shield_66: -2240948889759796281
+      male_shield_67: -6797899841478326495
+      male_shield_68: -8963891016221233431
+      male_shield_69: 3571699040603070934
+      male_shield_7: -5625638510169290886
+      male_shield_8: 177924488926013470
+      male_shield_9: 5649852131092651894
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,6994 @@
+fileFormatVersion: 2
+guid: 10b77af13e5268e4a8233dff84a76631
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7344162459392627384
+    second: Bullet 24x24 Free Part 3B_0
+  - first:
+      213: -4984524020428381532
+    second: Bullet 24x24 Free Part 3B_1
+  - first:
+      213: 47315709874097925
+    second: Bullet 24x24 Free Part 3B_2
+  - first:
+      213: 286371063645132276
+    second: Bullet 24x24 Free Part 3B_3
+  - first:
+      213: 2495539875998164128
+    second: Bullet 24x24 Free Part 3B_4
+  - first:
+      213: -1106434742462209240
+    second: Bullet 24x24 Free Part 3B_5
+  - first:
+      213: 5333281228696387072
+    second: Bullet 24x24 Free Part 3B_6
+  - first:
+      213: 6594616659972824900
+    second: Bullet 24x24 Free Part 3B_7
+  - first:
+      213: -4801320553298477911
+    second: Bullet 24x24 Free Part 3B_8
+  - first:
+      213: 3723224150373631792
+    second: Bullet 24x24 Free Part 3B_9
+  - first:
+      213: -6456850168671085216
+    second: Bullet 24x24 Free Part 3B_10
+  - first:
+      213: -2982485564023730497
+    second: Bullet 24x24 Free Part 3B_11
+  - first:
+      213: 6969516546146215946
+    second: Bullet 24x24 Free Part 3B_12
+  - first:
+      213: 3168548654475222920
+    second: Bullet 24x24 Free Part 3B_13
+  - first:
+      213: 6343422293720404793
+    second: Bullet 24x24 Free Part 3B_14
+  - first:
+      213: 7026303742805717541
+    second: Bullet 24x24 Free Part 3B_15
+  - first:
+      213: -6809939580912286243
+    second: Bullet 24x24 Free Part 3B_16
+  - first:
+      213: -495563582706583243
+    second: Bullet 24x24 Free Part 3B_17
+  - first:
+      213: -117390678190539488
+    second: Bullet 24x24 Free Part 3B_18
+  - first:
+      213: 5045741064208394254
+    second: Bullet 24x24 Free Part 3B_19
+  - first:
+      213: -5859567260606979976
+    second: Bullet 24x24 Free Part 3B_20
+  - first:
+      213: 592033676202523387
+    second: Bullet 24x24 Free Part 3B_21
+  - first:
+      213: 8803136747213223667
+    second: Bullet 24x24 Free Part 3B_22
+  - first:
+      213: -5955173430245322037
+    second: Bullet 24x24 Free Part 3B_23
+  - first:
+      213: -1461673785685516016
+    second: Bullet 24x24 Free Part 3B_24
+  - first:
+      213: 1609526378113324998
+    second: Bullet 24x24 Free Part 3B_25
+  - first:
+      213: 6823640933186554457
+    second: Bullet 24x24 Free Part 3B_26
+  - first:
+      213: 4951848422428277964
+    second: Bullet 24x24 Free Part 3B_27
+  - first:
+      213: 3693132921297394002
+    second: Bullet 24x24 Free Part 3B_28
+  - first:
+      213: 2366352353859667326
+    second: Bullet 24x24 Free Part 3B_29
+  - first:
+      213: 8842298750827495273
+    second: Bullet 24x24 Free Part 3B_30
+  - first:
+      213: -1403421252785268839
+    second: Bullet 24x24 Free Part 3B_31
+  - first:
+      213: -4061815628751393413
+    second: Bullet 24x24 Free Part 3B_32
+  - first:
+      213: 3262727688990421633
+    second: Bullet 24x24 Free Part 3B_33
+  - first:
+      213: -3063196076920161414
+    second: Bullet 24x24 Free Part 3B_34
+  - first:
+      213: -2178037839039850998
+    second: Bullet 24x24 Free Part 3B_35
+  - first:
+      213: -2257257726635383779
+    second: Bullet 24x24 Free Part 3B_36
+  - first:
+      213: -1044870891787495503
+    second: Bullet 24x24 Free Part 3B_37
+  - first:
+      213: -3734450683244648367
+    second: Bullet 24x24 Free Part 3B_38
+  - first:
+      213: -4931820698477056913
+    second: Bullet 24x24 Free Part 3B_39
+  - first:
+      213: 1000747340488888592
+    second: Bullet 24x24 Free Part 3B_40
+  - first:
+      213: 6064339868454979223
+    second: Bullet 24x24 Free Part 3B_41
+  - first:
+      213: 7518304127256416831
+    second: Bullet 24x24 Free Part 3B_42
+  - first:
+      213: -3509660186564624361
+    second: Bullet 24x24 Free Part 3B_43
+  - first:
+      213: -3989948702249213026
+    second: Bullet 24x24 Free Part 3B_44
+  - first:
+      213: -7266759126667922863
+    second: Bullet 24x24 Free Part 3B_45
+  - first:
+      213: -394129383346865202
+    second: Bullet 24x24 Free Part 3B_46
+  - first:
+      213: 1537867518623157437
+    second: Bullet 24x24 Free Part 3B_47
+  - first:
+      213: 3501831668949430293
+    second: Bullet 24x24 Free Part 3B_48
+  - first:
+      213: 4286635622312794227
+    second: Bullet 24x24 Free Part 3B_49
+  - first:
+      213: 5577656857619759174
+    second: Bullet 24x24 Free Part 3B_50
+  - first:
+      213: 4283872029670278735
+    second: Bullet 24x24 Free Part 3B_51
+  - first:
+      213: -1896939782062351332
+    second: Bullet 24x24 Free Part 3B_52
+  - first:
+      213: 5360317360794658457
+    second: Bullet 24x24 Free Part 3B_53
+  - first:
+      213: -2411825223187313259
+    second: Bullet 24x24 Free Part 3B_54
+  - first:
+      213: -7253879876904522330
+    second: Bullet 24x24 Free Part 3B_55
+  - first:
+      213: 8375433747985084975
+    second: Bullet 24x24 Free Part 3B_56
+  - first:
+      213: -2434705373603383565
+    second: Bullet 24x24 Free Part 3B_57
+  - first:
+      213: -6518627261974478426
+    second: Bullet 24x24 Free Part 3B_58
+  - first:
+      213: -4424873858997880624
+    second: Bullet 24x24 Free Part 3B_59
+  - first:
+      213: -5964239086588029308
+    second: Bullet 24x24 Free Part 3B_60
+  - first:
+      213: 2136455623711296366
+    second: Bullet 24x24 Free Part 3B_61
+  - first:
+      213: 3835016030805919298
+    second: Bullet 24x24 Free Part 3B_62
+  - first:
+      213: 8162582398938252783
+    second: Bullet 24x24 Free Part 3B_63
+  - first:
+      213: -2060094510757630818
+    second: Bullet 24x24 Free Part 3B_64
+  - first:
+      213: -6244979519271536410
+    second: Bullet 24x24 Free Part 3B_65
+  - first:
+      213: -5330372331628544379
+    second: Bullet 24x24 Free Part 3B_66
+  - first:
+      213: -2680697025326919782
+    second: Bullet 24x24 Free Part 3B_67
+  - first:
+      213: -89935798201577055
+    second: Bullet 24x24 Free Part 3B_68
+  - first:
+      213: 3398750750641435167
+    second: Bullet 24x24 Free Part 3B_69
+  - first:
+      213: 5415062951382782616
+    second: Bullet 24x24 Free Part 3B_70
+  - first:
+      213: -6506071342503425400
+    second: Bullet 24x24 Free Part 3B_71
+  - first:
+      213: -5715709420126387837
+    second: Bullet 24x24 Free Part 3B_72
+  - first:
+      213: -8466137053899447230
+    second: Bullet 24x24 Free Part 3B_73
+  - first:
+      213: -1702894440710562844
+    second: Bullet 24x24 Free Part 3B_74
+  - first:
+      213: 1557547059552097863
+    second: Bullet 24x24 Free Part 3B_75
+  - first:
+      213: -2974210003966633971
+    second: Bullet 24x24 Free Part 3B_76
+  - first:
+      213: -8352830936319618632
+    second: Bullet 24x24 Free Part 3B_77
+  - first:
+      213: 5408849582317696921
+    second: Bullet 24x24 Free Part 3B_78
+  - first:
+      213: -9176363833164691466
+    second: Bullet 24x24 Free Part 3B_79
+  - first:
+      213: -6171087490611064617
+    second: Bullet 24x24 Free Part 3B_80
+  - first:
+      213: -5806796433120615472
+    second: Bullet 24x24 Free Part 3B_81
+  - first:
+      213: -7814174368406177029
+    second: Bullet 24x24 Free Part 3B_82
+  - first:
+      213: -8806775946170628507
+    second: Bullet 24x24 Free Part 3B_83
+  - first:
+      213: -2746866417607910355
+    second: Bullet 24x24 Free Part 3B_84
+  - first:
+      213: -1716976087703213480
+    second: Bullet 24x24 Free Part 3B_85
+  - first:
+      213: 3853601472194852641
+    second: Bullet 24x24 Free Part 3B_86
+  - first:
+      213: -2921889388593925097
+    second: Bullet 24x24 Free Part 3B_87
+  - first:
+      213: 6474769731536659390
+    second: Bullet 24x24 Free Part 3B_88
+  - first:
+      213: -8580124491756578404
+    second: Bullet 24x24 Free Part 3B_89
+  - first:
+      213: 9151223351651647647
+    second: Bullet 24x24 Free Part 3B_90
+  - first:
+      213: 3273668925035765253
+    second: Bullet 24x24 Free Part 3B_91
+  - first:
+      213: -7107744548970355426
+    second: Bullet 24x24 Free Part 3B_92
+  - first:
+      213: -3527339210319599770
+    second: Bullet 24x24 Free Part 3B_93
+  - first:
+      213: 839800403907254574
+    second: Bullet 24x24 Free Part 3B_94
+  - first:
+      213: 3511075331874629783
+    second: Bullet 24x24 Free Part 3B_95
+  - first:
+      213: -6493198341269778713
+    second: Bullet 24x24 Free Part 3B_96
+  - first:
+      213: 1125185971231066649
+    second: Bullet 24x24 Free Part 3B_97
+  - first:
+      213: 3701678029946969461
+    second: Bullet 24x24 Free Part 3B_98
+  - first:
+      213: 3342281491285236738
+    second: Bullet 24x24 Free Part 3B_99
+  - first:
+      213: -7727794913238224895
+    second: Bullet 24x24 Free Part 3B_100
+  - first:
+      213: -1310065813706283081
+    second: Bullet 24x24 Free Part 3B_101
+  - first:
+      213: -4243089577367319171
+    second: Bullet 24x24 Free Part 3B_102
+  - first:
+      213: -8828709435548119844
+    second: Bullet 24x24 Free Part 3B_103
+  - first:
+      213: 2105505177192275755
+    second: Bullet 24x24 Free Part 3B_104
+  - first:
+      213: 7949570481120953005
+    second: Bullet 24x24 Free Part 3B_105
+  - first:
+      213: -7238201952217003210
+    second: Bullet 24x24 Free Part 3B_106
+  - first:
+      213: -1234054017025431217
+    second: Bullet 24x24 Free Part 3B_107
+  - first:
+      213: 3524644394322380905
+    second: Bullet 24x24 Free Part 3B_108
+  - first:
+      213: -4858312258240726555
+    second: Bullet 24x24 Free Part 3B_109
+  - first:
+      213: 9119684542417774415
+    second: Bullet 24x24 Free Part 3B_110
+  - first:
+      213: 4241259565249845789
+    second: Bullet 24x24 Free Part 3B_111
+  - first:
+      213: -4645496219410699315
+    second: Bullet 24x24 Free Part 3B_112
+  - first:
+      213: 5258091926617390682
+    second: Bullet 24x24 Free Part 3B_113
+  - first:
+      213: -1391177515633052684
+    second: Bullet 24x24 Free Part 3B_114
+  - first:
+      213: 1932107110490285380
+    second: Bullet 24x24 Free Part 3B_115
+  - first:
+      213: 1591447822576355003
+    second: Bullet 24x24 Free Part 3B_116
+  - first:
+      213: -6681008877977914182
+    second: Bullet 24x24 Free Part 3B_117
+  - first:
+      213: 3697890376300309033
+    second: Bullet 24x24 Free Part 3B_118
+  - first:
+      213: 1198257352101942729
+    second: Bullet 24x24 Free Part 3B_119
+  - first:
+      213: -2588725910584950455
+    second: Bullet 24x24 Free Part 3B_120
+  - first:
+      213: 4564386115990315245
+    second: Bullet 24x24 Free Part 3B_121
+  - first:
+      213: 634996426524995274
+    second: Bullet 24x24 Free Part 3B_122
+  - first:
+      213: -8567492361279034665
+    second: Bullet 24x24 Free Part 3B_123
+  - first:
+      213: 1130971002647560097
+    second: Bullet 24x24 Free Part 3B_124
+  - first:
+      213: -5564642615749770652
+    second: Bullet 24x24 Free Part 3B_125
+  - first:
+      213: 1314346564470549205
+    second: Bullet 24x24 Free Part 3B_126
+  - first:
+      213: -4727770154700745452
+    second: Bullet 24x24 Free Part 3B_127
+  - first:
+      213: -2471461360137989310
+    second: Bullet 24x24 Free Part 3B_128
+  - first:
+      213: -7376406093748088307
+    second: Bullet 24x24 Free Part 3B_129
+  - first:
+      213: 7424846738300397367
+    second: Bullet 24x24 Free Part 3B_130
+  - first:
+      213: -488300907902558954
+    second: Bullet 24x24 Free Part 3B_131
+  - first:
+      213: -2652177708780482964
+    second: Bullet 24x24 Free Part 3B_132
+  - first:
+      213: 343353906387170364
+    second: Bullet 24x24 Free Part 3B_133
+  - first:
+      213: 5819011111596945058
+    second: Bullet 24x24 Free Part 3B_134
+  - first:
+      213: 3948562010070359959
+    second: Bullet 24x24 Free Part 3B_135
+  - first:
+      213: -6793512127432991183
+    second: Bullet 24x24 Free Part 3B_136
+  - first:
+      213: -1101058725910253945
+    second: Bullet 24x24 Free Part 3B_137
+  - first:
+      213: -1853107633745435620
+    second: Bullet 24x24 Free Part 3B_138
+  - first:
+      213: -5706782478456466581
+    second: Bullet 24x24 Free Part 3B_139
+  - first:
+      213: -6745200290738975379
+    second: Bullet 24x24 Free Part 3B_140
+  - first:
+      213: -4890802281437304013
+    second: Bullet 24x24 Free Part 3B_141
+  - first:
+      213: -6524430308629108265
+    second: Bullet 24x24 Free Part 3B_142
+  - first:
+      213: 8932288723126352454
+    second: Bullet 24x24 Free Part 3B_143
+  - first:
+      213: 576092487648956353
+    second: Bullet 24x24 Free Part 3B_144
+  - first:
+      213: 7550077762625403530
+    second: Bullet 24x24 Free Part 3B_145
+  - first:
+      213: 4768537299895548993
+    second: Bullet 24x24 Free Part 3B_146
+  - first:
+      213: -682113158357880507
+    second: Bullet 24x24 Free Part 3B_147
+  - first:
+      213: -5747126043417928384
+    second: Bullet 24x24 Free Part 3B_148
+  - first:
+      213: -4312823197467987306
+    second: Bullet 24x24 Free Part 3B_149
+  - first:
+      213: -1968011580933461793
+    second: Bullet 24x24 Free Part 3B_150
+  - first:
+      213: 9137776289625164593
+    second: Bullet 24x24 Free Part 3B_151
+  - first:
+      213: 6001397524186727976
+    second: Bullet 24x24 Free Part 3B_152
+  - first:
+      213: -4593125989929357240
+    second: Bullet 24x24 Free Part 3B_153
+  - first:
+      213: -5731187607863601515
+    second: Bullet 24x24 Free Part 3B_154
+  - first:
+      213: 2882597325117612564
+    second: Bullet 24x24 Free Part 3B_155
+  - first:
+      213: 8927160228524758530
+    second: Bullet 24x24 Free Part 3B_156
+  - first:
+      213: 7439199837708165684
+    second: Bullet 24x24 Free Part 3B_157
+  - first:
+      213: -156097416836987971
+    second: Bullet 24x24 Free Part 3B_158
+  - first:
+      213: -929364558282355354
+    second: Bullet 24x24 Free Part 3B_159
+  - first:
+      213: -6890473266910607498
+    second: Bullet 24x24 Free Part 3B_160
+  - first:
+      213: 3802839946452221950
+    second: Bullet 24x24 Free Part 3B_161
+  - first:
+      213: -6091803082178862440
+    second: Bullet 24x24 Free Part 3B_162
+  - first:
+      213: -4009109144753603568
+    second: Bullet 24x24 Free Part 3B_163
+  - first:
+      213: -6412192455712082450
+    second: Bullet 24x24 Free Part 3B_164
+  - first:
+      213: -4049292135077798890
+    second: Bullet 24x24 Free Part 3B_165
+  - first:
+      213: -6054516808713479248
+    second: Bullet 24x24 Free Part 3B_166
+  - first:
+      213: -6190526042147145358
+    second: Bullet 24x24 Free Part 3B_167
+  - first:
+      213: 2948536940538028186
+    second: Bullet 24x24 Free Part 3B_168
+  - first:
+      213: -3919228000506395527
+    second: Bullet 24x24 Free Part 3B_169
+  - first:
+      213: -3334750216409000069
+    second: Bullet 24x24 Free Part 3B_170
+  - first:
+      213: 246989117944750836
+    second: Bullet 24x24 Free Part 3B_171
+  - first:
+      213: -6742334278635471917
+    second: Bullet 24x24 Free Part 3B_172
+  - first:
+      213: 7827971738722738921
+    second: Bullet 24x24 Free Part 3B_173
+  - first:
+      213: -930879095561877038
+    second: Bullet 24x24 Free Part 3B_174
+  - first:
+      213: 6817816544716223271
+    second: Bullet 24x24 Free Part 3B_175
+  - first:
+      213: -5996007214073830880
+    second: Bullet 24x24 Free Part 3B_176
+  - first:
+      213: 6703243649122221724
+    second: Bullet 24x24 Free Part 3B_177
+  - first:
+      213: -2313930355414316291
+    second: Bullet 24x24 Free Part 3B_178
+  - first:
+      213: -7536385930067516688
+    second: Bullet 24x24 Free Part 3B_179
+  - first:
+      213: 6649247152555785674
+    second: Bullet 24x24 Free Part 3B_180
+  - first:
+      213: 5031445360337557091
+    second: Bullet 24x24 Free Part 3B_181
+  - first:
+      213: -6079008289576731220
+    second: Bullet 24x24 Free Part 3B_182
+  - first:
+      213: 4965280503546343543
+    second: Bullet 24x24 Free Part 3B_183
+  - first:
+      213: -5641286725538445887
+    second: Bullet 24x24 Free Part 3B_184
+  - first:
+      213: 1445854210873985047
+    second: Bullet 24x24 Free Part 3B_185
+  - first:
+      213: -7548063017797580242
+    second: Bullet 24x24 Free Part 3B_186
+  - first:
+      213: -8769476464450936623
+    second: Bullet 24x24 Free Part 3B_187
+  - first:
+      213: -5590361232018742113
+    second: Bullet 24x24 Free Part 3B_188
+  - first:
+      213: 2591100741194904667
+    second: Bullet 24x24 Free Part 3B_189
+  - first:
+      213: -8077070614867595182
+    second: Bullet 24x24 Free Part 3B_190
+  - first:
+      213: 3045576655967186772
+    second: Bullet 24x24 Free Part 3B_191
+  - first:
+      213: -8484229381991309918
+    second: Bullet 24x24 Free Part 3B_192
+  - first:
+      213: 7636241446222038624
+    second: Bullet 24x24 Free Part 3B_193
+  - first:
+      213: -542404375658356701
+    second: Bullet 24x24 Free Part 3B_194
+  - first:
+      213: 7837212075647280475
+    second: Bullet 24x24 Free Part 3B_195
+  - first:
+      213: -3408625282614810591
+    second: Bullet 24x24 Free Part 3B_196
+  - first:
+      213: -7742150907751155150
+    second: Bullet 24x24 Free Part 3B_197
+  - first:
+      213: -6938642334182475206
+    second: Bullet 24x24 Free Part 3B_198
+  - first:
+      213: -6017689731409418603
+    second: Bullet 24x24 Free Part 3B_199
+  - first:
+      213: -1177078556570849145
+    second: Bullet 24x24 Free Part 3B_200
+  - first:
+      213: -8449587611453073402
+    second: Bullet 24x24 Free Part 3B_201
+  - first:
+      213: -8796470927062042707
+    second: Bullet 24x24 Free Part 3B_202
+  - first:
+      213: 8241528501414529262
+    second: Bullet 24x24 Free Part 3B_203
+  - first:
+      213: -1276453538923030090
+    second: Bullet 24x24 Free Part 3B_204
+  - first:
+      213: -8105054146693149025
+    second: Bullet 24x24 Free Part 3B_205
+  - first:
+      213: 5437958502351216543
+    second: Bullet 24x24 Free Part 3B_206
+  - first:
+      213: 3995686171055193020
+    second: Bullet 24x24 Free Part 3B_207
+  - first:
+      213: 8004165085014315907
+    second: Bullet 24x24 Free Part 3B_208
+  - first:
+      213: -9173574739822953761
+    second: Bullet 24x24 Free Part 3B_209
+  - first:
+      213: 1516132106562386297
+    second: Bullet 24x24 Free Part 3B_210
+  - first:
+      213: 3662080331617280128
+    second: Bullet 24x24 Free Part 3B_211
+  - first:
+      213: 2028331684053027048
+    second: Bullet 24x24 Free Part 3B_212
+  - first:
+      213: -4040799744024053011
+    second: Bullet 24x24 Free Part 3B_213
+  - first:
+      213: -8541604638006680592
+    second: Bullet 24x24 Free Part 3B_214
+  - first:
+      213: 4633347006697860990
+    second: Bullet 24x24 Free Part 3B_215
+  - first:
+      213: 710826944748801135
+    second: Bullet 24x24 Free Part 3B_216
+  - first:
+      213: 5307192258911895481
+    second: Bullet 24x24 Free Part 3B_217
+  - first:
+      213: 6690650621005531846
+    second: Bullet 24x24 Free Part 3B_218
+  - first:
+      213: 8256295732016634288
+    second: Bullet 24x24 Free Part 3B_219
+  - first:
+      213: -8950215167956115219
+    second: Bullet 24x24 Free Part 3B_220
+  - first:
+      213: -7247521656635509002
+    second: Bullet 24x24 Free Part 3B_221
+  - first:
+      213: 1438183264552683756
+    second: Bullet 24x24 Free Part 3B_222
+  - first:
+      213: -5262934915692917037
+    second: Bullet 24x24 Free Part 3B_223
+  - first:
+      213: -9188878854126260815
+    second: Bullet 24x24 Free Part 3B_224
+  - first:
+      213: 8020175610280356947
+    second: Bullet 24x24 Free Part 3B_225
+  - first:
+      213: -6533207883383456706
+    second: Bullet 24x24 Free Part 3B_226
+  - first:
+      213: 6204506329571421468
+    second: Bullet 24x24 Free Part 3B_227
+  - first:
+      213: -9076097909071465605
+    second: Bullet 24x24 Free Part 3B_228
+  - first:
+      213: -7372331301510556585
+    second: Bullet 24x24 Free Part 3B_229
+  - first:
+      213: -7465700363348364055
+    second: Bullet 24x24 Free Part 3B_230
+  - first:
+      213: -6411847797498911442
+    second: Bullet 24x24 Free Part 3B_231
+  - first:
+      213: 8586729033968051583
+    second: Bullet 24x24 Free Part 3B_232
+  - first:
+      213: 4841418752779124271
+    second: Bullet 24x24 Free Part 3B_233
+  - first:
+      213: -1857134291491867878
+    second: Bullet 24x24 Free Part 3B_234
+  - first:
+      213: 5704920562650328483
+    second: Bullet 24x24 Free Part 3B_235
+  - first:
+      213: 3566849774459228489
+    second: Bullet 24x24 Free Part 3B_236
+  - first:
+      213: 7663951692202757685
+    second: Bullet 24x24 Free Part 3B_237
+  - first:
+      213: -2405843560946897530
+    second: Bullet 24x24 Free Part 3B_238
+  - first:
+      213: 1963354228777559656
+    second: Bullet 24x24 Free Part 3B_239
+  - first:
+      213: -1076691122537611276
+    second: Bullet 24x24 Free Part 3B_240
+  - first:
+      213: -5126239800889090875
+    second: Bullet 24x24 Free Part 3B_241
+  - first:
+      213: 7451006327286277345
+    second: Bullet 24x24 Free Part 3B_242
+  - first:
+      213: 97915717623473347
+    second: Bullet 24x24 Free Part 3B_243
+  - first:
+      213: 672034300788288608
+    second: Bullet 24x24 Free Part 3B_244
+  - first:
+      213: -8938183274134656336
+    second: Bullet 24x24 Free Part 3B_245
+  - first:
+      213: -6317075261189400228
+    second: Bullet 24x24 Free Part 3B_246
+  - first:
+      213: 6546754863146864693
+    second: Bullet 24x24 Free Part 3B_247
+  - first:
+      213: -1924932671368230910
+    second: Bullet 24x24 Free Part 3B_248
+  - first:
+      213: -7452998011342760301
+    second: Bullet 24x24 Free Part 3B_249
+  - first:
+      213: -4724421707111576946
+    second: Bullet 24x24 Free Part 3B_250
+  - first:
+      213: 6920388291222319254
+    second: Bullet 24x24 Free Part 3B_251
+  - first:
+      213: -2779432652053419041
+    second: Bullet 24x24 Free Part 3B_252
+  - first:
+      213: 8307203289642519714
+    second: Bullet 24x24 Free Part 3B_253
+  - first:
+      213: -1299882108451307870
+    second: Bullet 24x24 Free Part 3B_254
+  - first:
+      213: 7116187243953471660
+    second: Bullet 24x24 Free Part 3B_255
+  - first:
+      213: 3882016219698465200
+    second: Bullet 24x24 Free Part 3B_256
+  - first:
+      213: -5508708297758399171
+    second: Bullet 24x24 Free Part 3B_257
+  - first:
+      213: -2051942380121581704
+    second: Bullet 24x24 Free Part 3B_258
+  - first:
+      213: 6610576114088986702
+    second: Bullet 24x24 Free Part 3B_259
+  - first:
+      213: -1681363949453518932
+    second: Bullet 24x24 Free Part 3B_260
+  - first:
+      213: -7169757886516479048
+    second: Bullet 24x24 Free Part 3B_261
+  - first:
+      213: -1318794488840423055
+    second: Bullet 24x24 Free Part 3B_262
+  - first:
+      213: 5588023524589992418
+    second: Bullet 24x24 Free Part 3B_263
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 343
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b25bd488d4bbe560800000000000000
+      internalID: 7344162459392627384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_1
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 344
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a2e6f300d963dab0800000000000000
+      internalID: -4984524020428381532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_2
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 344
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50f475f236918a000800000000000000
+      internalID: 47315709874097925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_3
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 345
+        width: 18
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f5d48217f469f300800000000000000
+      internalID: 286371063645132276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_4
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 345
+        width: 40
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a461b79b40f1a220800000000000000
+      internalID: 2495539875998164128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_5
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 344
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 823a360c67725a0f0800000000000000
+      internalID: -1106434742462209240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_6
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 344
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00ef4b3450f930a40800000000000000
+      internalID: 5333281228696387072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_7
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 343
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44f9d8799e8c48b50800000000000000
+      internalID: 6594616659972824900
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_8
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 344
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9acbcdf25684e5db0800000000000000
+      internalID: -4801320553298477911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_9
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 321
+        width: 67
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0370d2663ac8ba330800000000000000
+      internalID: 3723224150373631792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_10
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 345
+        width: 46
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06d50704bf8a466a0800000000000000
+      internalID: -6456850168671085216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_11
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 344
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbe82a07e251c96d0800000000000000
+      internalID: -2982485564023730497
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_12
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 342
+        width: 21
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a08a0456f52b8b060800000000000000
+      internalID: 6969516546146215946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_13
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 343
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88f998ba632f8fb20800000000000000
+      internalID: 3168548654475222920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_14
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 344
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9339f7d97fc580850800000000000000
+      internalID: 6343422293720404793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_15
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 345
+        width: 43
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 522bee1f602728160800000000000000
+      internalID: 7026303742805717541
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_16
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 345
+        width: 20
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd5c9d1280c3e71a0800000000000000
+      internalID: -6809939580912286243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_17
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 344
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53977211c876f19f0800000000000000
+      internalID: -495563582706583243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_18
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 343
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02db286dcc1fe5ef0800000000000000
+      internalID: -117390678190539488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_19
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 319
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e082eb0b3c2160640800000000000000
+      internalID: 5045741064208394254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_20
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 320
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 870230e2f92aeaea0800000000000000
+      internalID: -5859567260606979976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_21
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 320
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfabe15ed73573800800000000000000
+      internalID: 592033676202523387
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_22
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 321
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f6f4d60b360b2a70800000000000000
+      internalID: 8803136747213223667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_23
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 297
+        width: 41
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc2126a2159fa5da0800000000000000
+      internalID: -5955173430245322037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_24
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 320
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 011e6baaf6717bbe0800000000000000
+      internalID: -1461673785685516016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_25
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 320
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c7d01896bf265610800000000000000
+      internalID: 1609526378113324998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_26
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 319
+        width: 19
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95a4669864172be50800000000000000
+      internalID: 6823640933186554457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_27
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 320
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccc7a6877ef78b440800000000000000
+      internalID: 4951848422428277964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_28
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 321
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2595b3a23d4a04330800000000000000
+      internalID: 3693132921297394002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_29
+      rect:
+        serializedVersion: 2
+        x: 317
+        y: 321
+        width: 38
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e750739ade8f6d020800000000000000
+      internalID: 2366352353859667326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_30
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 320
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96ff3f88dd726ba70800000000000000
+      internalID: 8842298750827495273
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_31
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 317
+        width: 23
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99710856ecb068ce0800000000000000
+      internalID: -1403421252785268839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_32
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 318
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7da421c43881a7c0800000000000000
+      internalID: -4061815628751393413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_33
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 319
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 182fa15eb89874d20800000000000000
+      internalID: 3262727688990421633
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_34
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 320
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7bbdc5c5675d75d0800000000000000
+      internalID: -3063196076920161414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_35
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 320
+        width: 45
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a069ba8002e06c1e0800000000000000
+      internalID: -2178037839039850998
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_36
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 319
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d14646d9e0c9ca0e0800000000000000
+      internalID: -2257257726635383779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_37
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 318
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b75cdab57fdf71f0800000000000000
+      internalID: -1044870891787495503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_38
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 296
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 158ecf9b3e09c2cc0800000000000000
+      internalID: -3734450683244648367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_39
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 296
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6c2b536437ae8bb0800000000000000
+      internalID: -4931820698477056913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_40
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 297
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 011d1cb676e53ed00800000000000000
+      internalID: 1000747340488888592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_41
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 297
+        width: 21
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7968f78eafcd82450800000000000000
+      internalID: 6064339868454979223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_42
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 296
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f32d87225c1665860800000000000000
+      internalID: 7518304127256416831
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_43
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 294
+        width: 24
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7100c71c7ae2b4fc0800000000000000
+      internalID: -3509660186564624361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_44
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 295
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e93a7628bcad0a8c0800000000000000
+      internalID: -3989948702249213026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_45
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 296
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15271a24319472b90800000000000000
+      internalID: -7266759126667922863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_46
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 297
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecbf01ef965c78af0800000000000000
+      internalID: -394129383346865202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_47
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 297
+        width: 23
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbc05273c5a975510800000000000000
+      internalID: 1537867518623157437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_48
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 296
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 510b1f27951099030800000000000000
+      internalID: 3501831668949430293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_49
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 295
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3785d7d03603d7b30800000000000000
+      internalID: 4286635622312794227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_50
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 294
+        width: 21
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 640827d3c51d76d40800000000000000
+      internalID: 5577656857619759174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_51
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 295
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f468abff9ee537b30800000000000000
+      internalID: 4283872029670278735
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_52
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 296
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1cddd19157bca5e0800000000000000
+      internalID: -1896939782062351332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_53
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 273
+        width: 42
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 996668d4d3ca36a40800000000000000
+      internalID: 5360317360794658457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_54
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 297
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59dc797ecb9778ed0800000000000000
+      internalID: -2411825223187313259
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_55
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 296
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ad60c54faa055b90800000000000000
+      internalID: -7253879876904522330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_56
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 295
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f22387c6e948b3470800000000000000
+      internalID: 8375433747985084975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_57
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 270
+        width: 72
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f6b2a1cc50363ed0800000000000000
+      internalID: -2434705373603383565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_58
+      rect:
+        serializedVersion: 2
+        x: 71
+        y: 249
+        width: 46
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a185dada0f2985a0800000000000000
+      internalID: -6518627261974478426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_59
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 273
+        width: 25
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d8f4825ba0b792c0800000000000000
+      internalID: -4424873858997880624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_60
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 272
+        width: 25
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4869b609624ca3da0800000000000000
+      internalID: -5964239086588029308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_61
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 271
+        width: 48
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6b82b1021736ad10800000000000000
+      internalID: 2136455623711296366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_62
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 271
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2468d10e2c6b83530800000000000000
+      internalID: 3835016030805919298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_63
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 272
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe50292d171574170800000000000000
+      internalID: 8162582398938252783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_64
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 273
+        width: 44
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9c2f8215f21963e0800000000000000
+      internalID: -2060094510757630818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_65
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 273
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e8fa3ce6306559a0800000000000000
+      internalID: -6244979519271536410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_66
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 272
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58eb5bc1b96b606b0800000000000000
+      internalID: -5330372331628544379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_67
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 271
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9f41f622404ccad0800000000000000
+      internalID: -2680697025326919782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_68
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 271
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a19a973edb70cef0800000000000000
+      internalID: -89935798201577055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_69
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 272
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f123314ecc9ca2f20800000000000000
+      internalID: 3398750750641435167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_70
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 273
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8929c85601b262b40800000000000000
+      internalID: 5415062951382782616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_71
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 273
+        width: 38
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88a0cbaa59ac5b5a0800000000000000
+      internalID: -6506071342503425400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_72
+      rect:
+        serializedVersion: 2
+        x: 557
+        y: 272
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3814306c098bda0b0800000000000000
+      internalID: -5715709420126387837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_73
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 247
+        width: 22
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2442d8a743d328a80800000000000000
+      internalID: -8466137053899447230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_74
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 248
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4eb957b478a1e58e0800000000000000
+      internalID: -1702894440710562844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_75
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 249
+        width: 21
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7469e856cc48d9510800000000000000
+      internalID: 1557547059552097863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_76
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 249
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d08d72a62cb79b6d0800000000000000
+      internalID: -2974210003966633971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_77
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 248
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b196c3c488c41c80800000000000000
+      internalID: -8352830936319618632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_78
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 247
+        width: 74
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 997f09da908101b40800000000000000
+      internalID: 5408849582317696921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_79
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 201
+        width: 69
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f70a7256b107a080800000000000000
+      internalID: -9176363833164691466
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_80
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 249
+        width: 24
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d055448f94eb5aa0800000000000000
+      internalID: -6171087490611064617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_81
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 247
+        width: 73
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d327d8e86d1a6fa0800000000000000
+      internalID: -5806796433120615472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_82
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 248
+        width: 24
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfaff2e20d97e8390800000000000000
+      internalID: -7814174368406177029
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_83
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 248
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5668b00ffeb08c580800000000000000
+      internalID: -8806775946170628507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_84
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 249
+        width: 24
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2cd705fb8b21e9d0800000000000000
+      internalID: -2746866417607910355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_85
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 249
+        width: 44
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85a2c9c58531c28e0800000000000000
+      internalID: -1716976087703213480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_86
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 248
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 127b8182f1eba7530800000000000000
+      internalID: 3853601472194852641
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_87
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 248
+        width: 24
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71430e7f41d5377d0800000000000000
+      internalID: -2921889388593925097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_88
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 223
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb3a1ba14c00bd950800000000000000
+      internalID: 6474769731536659390
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_89
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 224
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c995834fb364de880800000000000000
+      internalID: -8580124491756578404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_90
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 224
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f90c47f272daffe70800000000000000
+      internalID: 9151223351651647647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_91
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 225
+        width: 18
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50eddfcea886e6d20800000000000000
+      internalID: 3273668925035765253
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_92
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 225
+        width: 40
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e15276cbdf73c5d90800000000000000
+      internalID: -7107744548970355426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_93
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 224
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 667e7964daf5c0fc0800000000000000
+      internalID: -3527339210319599770
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_94
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 224
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e291f15940297ab00800000000000000
+      internalID: 839800403907254574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_95
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 223
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79826007968d9b030800000000000000
+      internalID: 3511075331874629783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_96
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 224
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ee8574d28683e5a0800000000000000
+      internalID: -6493198341269778713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_97
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 225
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91a0b79eda67d9f00800000000000000
+      internalID: 1125185971231066649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_98
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 225
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57d5bdf4e800f5330800000000000000
+      internalID: 3701678029946969461
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_99
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 224
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20c5b63ee4b226e20800000000000000
+      internalID: 3342281491285236738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_100
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 222
+        width: 21
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1007d53587b51c490800000000000000
+      internalID: -7727794913238224895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_101
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 223
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b767ad5516b1dde0800000000000000
+      internalID: -1310065813706283081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_102
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 224
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7dcbde92848d15c0800000000000000
+      internalID: -4243089577367319171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_103
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 225
+        width: 43
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdcc30d7b8f1a7580800000000000000
+      internalID: -8828709435548119844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_104
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 225
+        width: 20
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2f9a4f9dc1483d10800000000000000
+      internalID: 2105505177192275755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_105
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 224
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da24524eb3c825e60800000000000000
+      internalID: 7949570481120953005
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_106
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 223
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63b01919cadbc8b90800000000000000
+      internalID: -7238201952217003210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_107
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 199
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f492e89e862cfdee0800000000000000
+      internalID: -1234054017025431217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_108
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 200
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 968482bf66d0ae030800000000000000
+      internalID: 3524644394322380905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_109
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 200
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e9b2a7ddbec39cb0800000000000000
+      internalID: -4858312258240726555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_110
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 201
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f47ae6ee5c0af8e70800000000000000
+      internalID: 9119684542417774415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_111
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 177
+        width: 41
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d1ad1fa7a1bfbda30800000000000000
+      internalID: 4241259565249845789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_112
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 200
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dcbea942dc1e78fb0800000000000000
+      internalID: -4645496219410699315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_113
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 200
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a5ef06aafbe78f840800000000000000
+      internalID: 5258091926617390682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_114
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 199
+        width: 19
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f37e299b6b81bce0800000000000000
+      internalID: -1391177515633052684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_115
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 200
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 445a7c42e2930da10800000000000000
+      internalID: 1932107110490285380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_116
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 201
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb68b3fdc55f51610800000000000000
+      internalID: 1591447822576355003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_117
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 201
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab435eea2d94843a0800000000000000
+      internalID: -6681008877977914182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_118
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 200
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92a27b974bb815330800000000000000
+      internalID: 3697890376300309033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_119
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 197
+        width: 23
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c5598d86b011a010800000000000000
+      internalID: 1198257352101942729
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_120
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 198
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9410cbeff7ff21cd0800000000000000
+      internalID: -2588725910584950455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_121
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 199
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de0e3554df4f75f30800000000000000
+      internalID: 4564386115990315245
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_122
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 200
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ace2aa4b2e5ffc800800000000000000
+      internalID: 634996426524995274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_123
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 200
+        width: 45
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7da271607172a1980800000000000000
+      internalID: -8567492361279034665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_124
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 199
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1af3310822402bf00800000000000000
+      internalID: 1130971002647560097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_125
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 198
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4620c32160b66c2b0800000000000000
+      internalID: -5564642615749770652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_126
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 176
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5daa5079c3f7d3210800000000000000
+      internalID: 1314346564470549205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_127
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 176
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4155e55d716936eb0800000000000000
+      internalID: -4727770154700745452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_128
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 177
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2431fd0ccfa93bdd0800000000000000
+      internalID: -2471461360137989310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_129
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 177
+        width: 21
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d025e175dbdb1a990800000000000000
+      internalID: -7376406093748088307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_130
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 176
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 737ec1c15ca5a0760800000000000000
+      internalID: 7424846738300397367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_131
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 174
+        width: 24
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61d97f059e43939f0800000000000000
+      internalID: -488300907902558954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_132
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 175
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6e0eeafc62913bd0800000000000000
+      internalID: -2652177708780482964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_133
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 176
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3433760f86d3c400800000000000000
+      internalID: 343353906387170364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_134
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 177
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ae69ca86c741c050800000000000000
+      internalID: 5819011111596945058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_135
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 177
+        width: 23
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79f98df4a3c1cc630800000000000000
+      internalID: 3948562010070359959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_136
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 176
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13e5c03b6b898b1a0800000000000000
+      internalID: -6793512127432991183
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_137
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 175
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78e66452ce048b0f0800000000000000
+      internalID: -1101058725910253945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_138
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 174
+        width: 21
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c14e900ec607846e0800000000000000
+      internalID: -1853107633745435620
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_139
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 175
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b63dd29529f6dc0b0800000000000000
+      internalID: -5706782478456466581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_140
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 176
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6d44abb21c3462a0800000000000000
+      internalID: -6745200290738975379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_141
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 153
+        width: 42
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33b6244dc31602cb0800000000000000
+      internalID: -4890802281437304013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_142
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 177
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d9ae54c3319475a0800000000000000
+      internalID: -6524430308629108265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_143
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 176
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64a7c25b44dd5fb70800000000000000
+      internalID: 8932288723126352454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_144
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 175
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cf4614b011bef700800000000000000
+      internalID: 576092487648956353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_145
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 150
+        width: 72
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8afcdb19b347c860800000000000000
+      internalID: 7550077762625403530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_146
+      rect:
+        serializedVersion: 2
+        x: 71
+        y: 129
+        width: 46
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14c7972d86f3d2240800000000000000
+      internalID: 4768537299895548993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_147
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 153
+        width: 25
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 541757b42b5a886f0800000000000000
+      internalID: -682113158357880507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_148
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 152
+        width: 25
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04d9da6205b1e30b0800000000000000
+      internalID: -5747126043417928384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_149
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 151
+        width: 48
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6923bd7f626c524c0800000000000000
+      internalID: -4312823197467987306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_150
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 151
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd82b94e4e730b4e0800000000000000
+      internalID: -1968011580933461793
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_151
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 152
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13b48141f17efce70800000000000000
+      internalID: 9137776289625164593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_152
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 153
+        width: 44
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8260f01604f394350800000000000000
+      internalID: 6001397524186727976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_153
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 153
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84075a16f30f140c0800000000000000
+      internalID: -4593125989929357240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_154
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 152
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5965b2c5c3bb670b0800000000000000
+      internalID: -5731187607863601515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_155
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 151
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 412602a9efa010820800000000000000
+      internalID: 2882597325117612564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_156
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 151
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20696320ee4a3eb70800000000000000
+      internalID: 8927160228524758530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_157
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 152
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4322dbb76d85d3760800000000000000
+      internalID: 7439199837708165684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_158
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 153
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: db34317f93e65ddf0800000000000000
+      internalID: -156097416836987971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_159
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 153
+        width: 38
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66d0eb4bbdb3a13f0800000000000000
+      internalID: -929364558282355354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_160
+      rect:
+        serializedVersion: 2
+        x: 557
+        y: 152
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 677c77f221f1060a0800000000000000
+      internalID: -6890473266910607498
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_161
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 127
+        width: 22
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eff33f178c666c430800000000000000
+      internalID: 3802839946452221950
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_162
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 128
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 892691d5f51957ba0800000000000000
+      internalID: -6091803082178862440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_163
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 129
+        width: 21
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01cf0395978cc58c0800000000000000
+      internalID: -4009109144753603568
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_164
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 129
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee577dd4fe05307a0800000000000000
+      internalID: -6412192455712082450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_165
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 128
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61c97e8d1460ec7c0800000000000000
+      internalID: -4049292135077798890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_166
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 127
+        width: 74
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bb500a6a090afba0800000000000000
+      internalID: -6054516808713479248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_167
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 81
+        width: 69
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 279b30d0d55d61aa0800000000000000
+      internalID: -6190526042147145358
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_168
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 129
+        width: 24
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a90e2e3b9be4be820800000000000000
+      internalID: 2948536940538028186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_169
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 127
+        width: 73
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9744d0406ea1c99c0800000000000000
+      internalID: -3919228000506395527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_170
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 128
+        width: 24
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b77d840b85698b1d0800000000000000
+      internalID: -3334750216409000069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_171
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 128
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f2eb7e4b4b7d6300800000000000000
+      internalID: 246989117944750836
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_172
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 129
+        width: 24
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3db3efc22ba6e62a0800000000000000
+      internalID: -6742334278635471917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_173
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 129
+        width: 44
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e2ad5e62da82ac60800000000000000
+      internalID: 7827971738722738921
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_174
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 128
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d98234056ad413f0800000000000000
+      internalID: -930879095561877038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_175
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 128
+        width: 24
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 723779b6600cd9e50800000000000000
+      internalID: 6817816544716223271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_176
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 103
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 022237ef437e9cca0800000000000000
+      internalID: -5996007214073830880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_177
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 104
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9eb2d46594b60d50800000000000000
+      internalID: 6703243649122221724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_178
+      rect:
+        serializedVersion: 2
+        x: 52
+        y: 104
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfa498af99443efd0800000000000000
+      internalID: -2313930355414316291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_179
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 105
+        width: 18
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f2e2141de0696790800000000000000
+      internalID: -7536385930067516688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_180
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 105
+        width: 40
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: acd7dd75e0fd64c50800000000000000
+      internalID: 6649247152555785674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_181
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 104
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36615b1c5e843d540800000000000000
+      internalID: 5031445360337557091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_182
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 104
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cadbf192b2603aba0800000000000000
+      internalID: -6079008289576731220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_183
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 103
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7707d009f4838e440800000000000000
+      internalID: 4965280503546343543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_184
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 104
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c58728ac9f16b1b0800000000000000
+      internalID: -5641286725538445887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_185
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 105
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 718852c8eb4b01410800000000000000
+      internalID: 1445854210873985047
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_186
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 105
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2a89e93da4ef3790800000000000000
+      internalID: -7548063017797580242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_187
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 104
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d0e0464e9f8c4680800000000000000
+      internalID: -8769476464450936623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_188
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 102
+        width: 21
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f946867141c0b62b0800000000000000
+      internalID: -5590361232018742113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_189
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 103
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b547c28556075f320800000000000000
+      internalID: 2591100741194904667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_190
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 104
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2503217e11b78ef80800000000000000
+      internalID: -8077070614867595182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_191
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 105
+        width: 43
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45f652b15df044a20800000000000000
+      internalID: 3045576655967186772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_192
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 105
+        width: 20
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2add9751456f14a80800000000000000
+      internalID: -8484229381991309918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_193
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 104
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0660e25032169f960800000000000000
+      internalID: 7636241446222038624
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_194
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 103
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3202448181ef878f0800000000000000
+      internalID: -542404375658356701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_195
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 79
+        width: 22
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b55ab560cde53cc60800000000000000
+      internalID: 7837212075647280475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_196
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 80
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12824597d5122b0d0800000000000000
+      internalID: -3408625282614810591
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_197
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 80
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23a3602e4ca5e8490800000000000000
+      internalID: -7742150907751155150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_198
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 81
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3af09f3f8df4bf90800000000000000
+      internalID: -6938642334182475206
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_199
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 57
+        width: 41
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59663d6821fdc7ca0800000000000000
+      internalID: -6017689731409418603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_200
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 80
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7807dda0a4d2aafe0800000000000000
+      internalID: -1177078556570849145
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_201
+      rect:
+        serializedVersion: 2
+        x: 170
+        y: 80
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6085cc0d5d80dba80800000000000000
+      internalID: -8449587611453073402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_202
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 79
+        width: 19
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da77a6b2c48ace580800000000000000
+      internalID: -8796470927062042707
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_203
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 80
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee8021da18acf5270800000000000000
+      internalID: 8241528501414529262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_204
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 81
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b9d330f440294ee0800000000000000
+      internalID: -1276453538923030090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_205
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 81
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9e4c0d2230158f80800000000000000
+      internalID: -8105054146693149025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_206
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 80
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9f95f34272877b40800000000000000
+      internalID: 5437958502351216543
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_207
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 77
+        width: 23
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cbb7fab0767837730800000000000000
+      internalID: 3995686171055193020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_208
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 78
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 383dcd7acb1841f60800000000000000
+      internalID: 8004165085014315907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_209
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 79
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fda3b58b06ae0b080800000000000000
+      internalID: -9173574739822953761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_210
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 80
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 979373c3e126a0510800000000000000
+      internalID: 1516132106562386297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_211
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 80
+        width: 45
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0802ef8b8a252d230800000000000000
+      internalID: 3662080331617280128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_212
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 79
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e886aa8be4162c10800000000000000
+      internalID: 2028331684053027048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_213
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 78
+        width: 23
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deaf4f8ba023ce7c0800000000000000
+      internalID: -4040799744024053011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_214
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 56
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f368cb46df167980800000000000000
+      internalID: -8541604638006680592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_215
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 56
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7f6857dd84fc4040800000000000000
+      internalID: 4633347006697860990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_216
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 57
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f6c4782175d5dd900800000000000000
+      internalID: 710826944748801135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_217
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 57
+        width: 21
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bf7523ad3fe6a940800000000000000
+      internalID: 5307192258911895481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_218
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 56
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ca084d8a47f9dc50800000000000000
+      internalID: 6690650621005531846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_219
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 54
+        width: 24
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b9dc6b7931449270800000000000000
+      internalID: 8256295732016634288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_220
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 55
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de0a9aa99b27ac380800000000000000
+      internalID: -8950215167956115219
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_221
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 56
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f63a4ac371ab6b90800000000000000
+      internalID: -7247521656635509002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_222
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 57
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce8039d2f0475f310800000000000000
+      internalID: 1438183264552683756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_223
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 57
+        width: 23
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3de8f12149c46f6b0800000000000000
+      internalID: -5262934915692917037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_224
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 56
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bda4bfed5b8a7080800000000000000
+      internalID: -9188878854126260815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_225
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 55
+        width: 24
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35c230f89336d4f60800000000000000
+      internalID: 8020175610280356947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_226
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 54
+        width: 21
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3cb5236b026555a0800000000000000
+      internalID: -6533207883383456706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_227
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 55
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1d64c442a5da1650800000000000000
+      internalID: 6204506329571421468
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_228
+      rect:
+        serializedVersion: 2
+        x: 433
+        y: 56
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b733127f9093b0280800000000000000
+      internalID: -9076097909071465605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_229
+      rect:
+        serializedVersion: 2
+        x: 457
+        y: 33
+        width: 42
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75458f6ddb730b990800000000000000
+      internalID: -7372331301510556585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_230
+      rect:
+        serializedVersion: 2
+        x: 505
+        y: 57
+        width: 19
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e4bd131311846890800000000000000
+      internalID: -7465700363348364055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_231
+      rect:
+        serializedVersion: 2
+        x: 529
+        y: 56
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e25e43c466a8407a0800000000000000
+      internalID: -6411847797498911442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_232
+      rect:
+        serializedVersion: 2
+        x: 553
+        y: 55
+        width: 21
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f75e23cdf803a2770800000000000000
+      internalID: 8586729033968051583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_233
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 30
+        width: 72
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2e705864bc203340800000000000000
+      internalID: 4841418752779124271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_234
+      rect:
+        serializedVersion: 2
+        x: 71
+        y: 9
+        width: 46
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a133e6f83322a36e0800000000000000
+      internalID: -1857134291491867878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_235
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 33
+        width: 25
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ad28989603fb2f40800000000000000
+      internalID: 5704920562650328483
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_236
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 32
+        width: 25
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94113ddc8feff7130800000000000000
+      internalID: 3566849774459228489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_237
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 31
+        width: 48
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 53ecf7d6573db5a60800000000000000
+      internalID: 7663951692202757685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_238
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 31
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68d699c270abc9ed0800000000000000
+      internalID: -2405843560946897530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_239
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 32
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8662c8ec44c3f3b10800000000000000
+      internalID: 1963354228777559656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_240
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 33
+        width: 44
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ff345ce023de01f0800000000000000
+      internalID: -1076691122537611276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_241
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 33
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cc5982af00fbd8b0800000000000000
+      internalID: -5126239800889090875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_242
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 32
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e4261d07ca476760800000000000000
+      internalID: 7451006327286277345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_243
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 31
+        width: 24
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c4efde83dddb5100800000000000000
+      internalID: 97915717623473347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_244
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 31
+        width: 14
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06c2d5fc2ab835900800000000000000
+      internalID: 672034300788288608
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_245
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 32
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0baaddf2ba135f380800000000000000
+      internalID: -8938183274134656336
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_246
+      rect:
+        serializedVersion: 2
+        x: 437
+        y: 33
+        width: 14
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c59d56de48d3558a0800000000000000
+      internalID: -6317075261189400228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_247
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 33
+        width: 38
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5301e61acdebada50800000000000000
+      internalID: 6546754863146864693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_248
+      rect:
+        serializedVersion: 2
+        x: 557
+        y: 32
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2088d822fe34945e0800000000000000
+      internalID: -1924932671368230910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_249
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 7
+        width: 22
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 396d83edbc1a19890800000000000000
+      internalID: -7452998011342760301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_250
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 8
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8a487a0d7b7f6eb0800000000000000
+      internalID: -4724421707111576946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_251
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 9
+        width: 21
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 690341e2c782a0060800000000000000
+      internalID: 6920388291222319254
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_252
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 9
+        width: 45
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fdbeb31aab87d69d0800000000000000
+      internalID: -2779432652053419041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_253
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 8
+        width: 22
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ac4914e06d194370800000000000000
+      internalID: 8307203289642519714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_254
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 7
+        width: 74
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2aebfd30c14e5fde0800000000000000
+      internalID: -1299882108451307870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_255
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 9
+        width: 47
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca0430f5896c1c260800000000000000
+      internalID: 7116187243953471660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_256
+      rect:
+        serializedVersion: 2
+        x: 312
+        y: 9
+        width: 24
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b98e6b1f21bfd530800000000000000
+      internalID: 3882016219698465200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_257
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 7
+        width: 73
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d352dd45df22d83b0800000000000000
+      internalID: -5508708297758399171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_258
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 8
+        width: 24
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8779845e6490683e0800000000000000
+      internalID: -2051942380121581704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_259
+      rect:
+        serializedVersion: 2
+        x: 432
+        y: 8
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e48c4f093fb7dbb50800000000000000
+      internalID: 6610576114088986702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_260
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 9
+        width: 24
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca7dcae65689aa8e0800000000000000
+      internalID: -1681363949453518932
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_261
+      rect:
+        serializedVersion: 2
+        x: 484
+        y: 9
+        width: 44
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bb31a07037ef7c90800000000000000
+      internalID: -7169757886516479048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_262
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 8
+        width: 24
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1797ce05663b2bde0800000000000000
+      internalID: -1318794488840423055
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Bullet 24x24 Free Part 3B_263
+      rect:
+        serializedVersion: 2
+        x: 552
+        y: 8
+        width: 24
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e976bbf9c5ac8d40800000000000000
+      internalID: 5588023524589992418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Bullet 24x24 Free Part 3B_0: 7344162459392627384
+      Bullet 24x24 Free Part 3B_1: -4984524020428381532
+      Bullet 24x24 Free Part 3B_10: -6456850168671085216
+      Bullet 24x24 Free Part 3B_100: -7727794913238224895
+      Bullet 24x24 Free Part 3B_101: -1310065813706283081
+      Bullet 24x24 Free Part 3B_102: -4243089577367319171
+      Bullet 24x24 Free Part 3B_103: -8828709435548119844
+      Bullet 24x24 Free Part 3B_104: 2105505177192275755
+      Bullet 24x24 Free Part 3B_105: 7949570481120953005
+      Bullet 24x24 Free Part 3B_106: -7238201952217003210
+      Bullet 24x24 Free Part 3B_107: -1234054017025431217
+      Bullet 24x24 Free Part 3B_108: 3524644394322380905
+      Bullet 24x24 Free Part 3B_109: -4858312258240726555
+      Bullet 24x24 Free Part 3B_11: -2982485564023730497
+      Bullet 24x24 Free Part 3B_110: 9119684542417774415
+      Bullet 24x24 Free Part 3B_111: 4241259565249845789
+      Bullet 24x24 Free Part 3B_112: -4645496219410699315
+      Bullet 24x24 Free Part 3B_113: 5258091926617390682
+      Bullet 24x24 Free Part 3B_114: -1391177515633052684
+      Bullet 24x24 Free Part 3B_115: 1932107110490285380
+      Bullet 24x24 Free Part 3B_116: 1591447822576355003
+      Bullet 24x24 Free Part 3B_117: -6681008877977914182
+      Bullet 24x24 Free Part 3B_118: 3697890376300309033
+      Bullet 24x24 Free Part 3B_119: 1198257352101942729
+      Bullet 24x24 Free Part 3B_12: 6969516546146215946
+      Bullet 24x24 Free Part 3B_120: -2588725910584950455
+      Bullet 24x24 Free Part 3B_121: 4564386115990315245
+      Bullet 24x24 Free Part 3B_122: 634996426524995274
+      Bullet 24x24 Free Part 3B_123: -8567492361279034665
+      Bullet 24x24 Free Part 3B_124: 1130971002647560097
+      Bullet 24x24 Free Part 3B_125: -5564642615749770652
+      Bullet 24x24 Free Part 3B_126: 1314346564470549205
+      Bullet 24x24 Free Part 3B_127: -4727770154700745452
+      Bullet 24x24 Free Part 3B_128: -2471461360137989310
+      Bullet 24x24 Free Part 3B_129: -7376406093748088307
+      Bullet 24x24 Free Part 3B_13: 3168548654475222920
+      Bullet 24x24 Free Part 3B_130: 7424846738300397367
+      Bullet 24x24 Free Part 3B_131: -488300907902558954
+      Bullet 24x24 Free Part 3B_132: -2652177708780482964
+      Bullet 24x24 Free Part 3B_133: 343353906387170364
+      Bullet 24x24 Free Part 3B_134: 5819011111596945058
+      Bullet 24x24 Free Part 3B_135: 3948562010070359959
+      Bullet 24x24 Free Part 3B_136: -6793512127432991183
+      Bullet 24x24 Free Part 3B_137: -1101058725910253945
+      Bullet 24x24 Free Part 3B_138: -1853107633745435620
+      Bullet 24x24 Free Part 3B_139: -5706782478456466581
+      Bullet 24x24 Free Part 3B_14: 6343422293720404793
+      Bullet 24x24 Free Part 3B_140: -6745200290738975379
+      Bullet 24x24 Free Part 3B_141: -4890802281437304013
+      Bullet 24x24 Free Part 3B_142: -6524430308629108265
+      Bullet 24x24 Free Part 3B_143: 8932288723126352454
+      Bullet 24x24 Free Part 3B_144: 576092487648956353
+      Bullet 24x24 Free Part 3B_145: 7550077762625403530
+      Bullet 24x24 Free Part 3B_146: 4768537299895548993
+      Bullet 24x24 Free Part 3B_147: -682113158357880507
+      Bullet 24x24 Free Part 3B_148: -5747126043417928384
+      Bullet 24x24 Free Part 3B_149: -4312823197467987306
+      Bullet 24x24 Free Part 3B_15: 7026303742805717541
+      Bullet 24x24 Free Part 3B_150: -1968011580933461793
+      Bullet 24x24 Free Part 3B_151: 9137776289625164593
+      Bullet 24x24 Free Part 3B_152: 6001397524186727976
+      Bullet 24x24 Free Part 3B_153: -4593125989929357240
+      Bullet 24x24 Free Part 3B_154: -5731187607863601515
+      Bullet 24x24 Free Part 3B_155: 2882597325117612564
+      Bullet 24x24 Free Part 3B_156: 8927160228524758530
+      Bullet 24x24 Free Part 3B_157: 7439199837708165684
+      Bullet 24x24 Free Part 3B_158: -156097416836987971
+      Bullet 24x24 Free Part 3B_159: -929364558282355354
+      Bullet 24x24 Free Part 3B_16: -6809939580912286243
+      Bullet 24x24 Free Part 3B_160: -6890473266910607498
+      Bullet 24x24 Free Part 3B_161: 3802839946452221950
+      Bullet 24x24 Free Part 3B_162: -6091803082178862440
+      Bullet 24x24 Free Part 3B_163: -4009109144753603568
+      Bullet 24x24 Free Part 3B_164: -6412192455712082450
+      Bullet 24x24 Free Part 3B_165: -4049292135077798890
+      Bullet 24x24 Free Part 3B_166: -6054516808713479248
+      Bullet 24x24 Free Part 3B_167: -6190526042147145358
+      Bullet 24x24 Free Part 3B_168: 2948536940538028186
+      Bullet 24x24 Free Part 3B_169: -3919228000506395527
+      Bullet 24x24 Free Part 3B_17: -495563582706583243
+      Bullet 24x24 Free Part 3B_170: -3334750216409000069
+      Bullet 24x24 Free Part 3B_171: 246989117944750836
+      Bullet 24x24 Free Part 3B_172: -6742334278635471917
+      Bullet 24x24 Free Part 3B_173: 7827971738722738921
+      Bullet 24x24 Free Part 3B_174: -930879095561877038
+      Bullet 24x24 Free Part 3B_175: 6817816544716223271
+      Bullet 24x24 Free Part 3B_176: -5996007214073830880
+      Bullet 24x24 Free Part 3B_177: 6703243649122221724
+      Bullet 24x24 Free Part 3B_178: -2313930355414316291
+      Bullet 24x24 Free Part 3B_179: -7536385930067516688
+      Bullet 24x24 Free Part 3B_18: -117390678190539488
+      Bullet 24x24 Free Part 3B_180: 6649247152555785674
+      Bullet 24x24 Free Part 3B_181: 5031445360337557091
+      Bullet 24x24 Free Part 3B_182: -6079008289576731220
+      Bullet 24x24 Free Part 3B_183: 4965280503546343543
+      Bullet 24x24 Free Part 3B_184: -5641286725538445887
+      Bullet 24x24 Free Part 3B_185: 1445854210873985047
+      Bullet 24x24 Free Part 3B_186: -7548063017797580242
+      Bullet 24x24 Free Part 3B_187: -8769476464450936623
+      Bullet 24x24 Free Part 3B_188: -5590361232018742113
+      Bullet 24x24 Free Part 3B_189: 2591100741194904667
+      Bullet 24x24 Free Part 3B_19: 5045741064208394254
+      Bullet 24x24 Free Part 3B_190: -8077070614867595182
+      Bullet 24x24 Free Part 3B_191: 3045576655967186772
+      Bullet 24x24 Free Part 3B_192: -8484229381991309918
+      Bullet 24x24 Free Part 3B_193: 7636241446222038624
+      Bullet 24x24 Free Part 3B_194: -542404375658356701
+      Bullet 24x24 Free Part 3B_195: 7837212075647280475
+      Bullet 24x24 Free Part 3B_196: -3408625282614810591
+      Bullet 24x24 Free Part 3B_197: -7742150907751155150
+      Bullet 24x24 Free Part 3B_198: -6938642334182475206
+      Bullet 24x24 Free Part 3B_199: -6017689731409418603
+      Bullet 24x24 Free Part 3B_2: 47315709874097925
+      Bullet 24x24 Free Part 3B_20: -5859567260606979976
+      Bullet 24x24 Free Part 3B_200: -1177078556570849145
+      Bullet 24x24 Free Part 3B_201: -8449587611453073402
+      Bullet 24x24 Free Part 3B_202: -8796470927062042707
+      Bullet 24x24 Free Part 3B_203: 8241528501414529262
+      Bullet 24x24 Free Part 3B_204: -1276453538923030090
+      Bullet 24x24 Free Part 3B_205: -8105054146693149025
+      Bullet 24x24 Free Part 3B_206: 5437958502351216543
+      Bullet 24x24 Free Part 3B_207: 3995686171055193020
+      Bullet 24x24 Free Part 3B_208: 8004165085014315907
+      Bullet 24x24 Free Part 3B_209: -9173574739822953761
+      Bullet 24x24 Free Part 3B_21: 592033676202523387
+      Bullet 24x24 Free Part 3B_210: 1516132106562386297
+      Bullet 24x24 Free Part 3B_211: 3662080331617280128
+      Bullet 24x24 Free Part 3B_212: 2028331684053027048
+      Bullet 24x24 Free Part 3B_213: -4040799744024053011
+      Bullet 24x24 Free Part 3B_214: -8541604638006680592
+      Bullet 24x24 Free Part 3B_215: 4633347006697860990
+      Bullet 24x24 Free Part 3B_216: 710826944748801135
+      Bullet 24x24 Free Part 3B_217: 5307192258911895481
+      Bullet 24x24 Free Part 3B_218: 6690650621005531846
+      Bullet 24x24 Free Part 3B_219: 8256295732016634288
+      Bullet 24x24 Free Part 3B_22: 8803136747213223667
+      Bullet 24x24 Free Part 3B_220: -8950215167956115219
+      Bullet 24x24 Free Part 3B_221: -7247521656635509002
+      Bullet 24x24 Free Part 3B_222: 1438183264552683756
+      Bullet 24x24 Free Part 3B_223: -5262934915692917037
+      Bullet 24x24 Free Part 3B_224: -9188878854126260815
+      Bullet 24x24 Free Part 3B_225: 8020175610280356947
+      Bullet 24x24 Free Part 3B_226: -6533207883383456706
+      Bullet 24x24 Free Part 3B_227: 6204506329571421468
+      Bullet 24x24 Free Part 3B_228: -9076097909071465605
+      Bullet 24x24 Free Part 3B_229: -7372331301510556585
+      Bullet 24x24 Free Part 3B_23: -5955173430245322037
+      Bullet 24x24 Free Part 3B_230: -7465700363348364055
+      Bullet 24x24 Free Part 3B_231: -6411847797498911442
+      Bullet 24x24 Free Part 3B_232: 8586729033968051583
+      Bullet 24x24 Free Part 3B_233: 4841418752779124271
+      Bullet 24x24 Free Part 3B_234: -1857134291491867878
+      Bullet 24x24 Free Part 3B_235: 5704920562650328483
+      Bullet 24x24 Free Part 3B_236: 3566849774459228489
+      Bullet 24x24 Free Part 3B_237: 7663951692202757685
+      Bullet 24x24 Free Part 3B_238: -2405843560946897530
+      Bullet 24x24 Free Part 3B_239: 1963354228777559656
+      Bullet 24x24 Free Part 3B_24: -1461673785685516016
+      Bullet 24x24 Free Part 3B_240: -1076691122537611276
+      Bullet 24x24 Free Part 3B_241: -5126239800889090875
+      Bullet 24x24 Free Part 3B_242: 7451006327286277345
+      Bullet 24x24 Free Part 3B_243: 97915717623473347
+      Bullet 24x24 Free Part 3B_244: 672034300788288608
+      Bullet 24x24 Free Part 3B_245: -8938183274134656336
+      Bullet 24x24 Free Part 3B_246: -6317075261189400228
+      Bullet 24x24 Free Part 3B_247: 6546754863146864693
+      Bullet 24x24 Free Part 3B_248: -1924932671368230910
+      Bullet 24x24 Free Part 3B_249: -7452998011342760301
+      Bullet 24x24 Free Part 3B_25: 1609526378113324998
+      Bullet 24x24 Free Part 3B_250: -4724421707111576946
+      Bullet 24x24 Free Part 3B_251: 6920388291222319254
+      Bullet 24x24 Free Part 3B_252: -2779432652053419041
+      Bullet 24x24 Free Part 3B_253: 8307203289642519714
+      Bullet 24x24 Free Part 3B_254: -1299882108451307870
+      Bullet 24x24 Free Part 3B_255: 7116187243953471660
+      Bullet 24x24 Free Part 3B_256: 3882016219698465200
+      Bullet 24x24 Free Part 3B_257: -5508708297758399171
+      Bullet 24x24 Free Part 3B_258: -2051942380121581704
+      Bullet 24x24 Free Part 3B_259: 6610576114088986702
+      Bullet 24x24 Free Part 3B_26: 6823640933186554457
+      Bullet 24x24 Free Part 3B_260: -1681363949453518932
+      Bullet 24x24 Free Part 3B_261: -7169757886516479048
+      Bullet 24x24 Free Part 3B_262: -1318794488840423055
+      Bullet 24x24 Free Part 3B_263: 5588023524589992418
+      Bullet 24x24 Free Part 3B_27: 4951848422428277964
+      Bullet 24x24 Free Part 3B_28: 3693132921297394002
+      Bullet 24x24 Free Part 3B_29: 2366352353859667326
+      Bullet 24x24 Free Part 3B_3: 286371063645132276
+      Bullet 24x24 Free Part 3B_30: 8842298750827495273
+      Bullet 24x24 Free Part 3B_31: -1403421252785268839
+      Bullet 24x24 Free Part 3B_32: -4061815628751393413
+      Bullet 24x24 Free Part 3B_33: 3262727688990421633
+      Bullet 24x24 Free Part 3B_34: -3063196076920161414
+      Bullet 24x24 Free Part 3B_35: -2178037839039850998
+      Bullet 24x24 Free Part 3B_36: -2257257726635383779
+      Bullet 24x24 Free Part 3B_37: -1044870891787495503
+      Bullet 24x24 Free Part 3B_38: -3734450683244648367
+      Bullet 24x24 Free Part 3B_39: -4931820698477056913
+      Bullet 24x24 Free Part 3B_4: 2495539875998164128
+      Bullet 24x24 Free Part 3B_40: 1000747340488888592
+      Bullet 24x24 Free Part 3B_41: 6064339868454979223
+      Bullet 24x24 Free Part 3B_42: 7518304127256416831
+      Bullet 24x24 Free Part 3B_43: -3509660186564624361
+      Bullet 24x24 Free Part 3B_44: -3989948702249213026
+      Bullet 24x24 Free Part 3B_45: -7266759126667922863
+      Bullet 24x24 Free Part 3B_46: -394129383346865202
+      Bullet 24x24 Free Part 3B_47: 1537867518623157437
+      Bullet 24x24 Free Part 3B_48: 3501831668949430293
+      Bullet 24x24 Free Part 3B_49: 4286635622312794227
+      Bullet 24x24 Free Part 3B_5: -1106434742462209240
+      Bullet 24x24 Free Part 3B_50: 5577656857619759174
+      Bullet 24x24 Free Part 3B_51: 4283872029670278735
+      Bullet 24x24 Free Part 3B_52: -1896939782062351332
+      Bullet 24x24 Free Part 3B_53: 5360317360794658457
+      Bullet 24x24 Free Part 3B_54: -2411825223187313259
+      Bullet 24x24 Free Part 3B_55: -7253879876904522330
+      Bullet 24x24 Free Part 3B_56: 8375433747985084975
+      Bullet 24x24 Free Part 3B_57: -2434705373603383565
+      Bullet 24x24 Free Part 3B_58: -6518627261974478426
+      Bullet 24x24 Free Part 3B_59: -4424873858997880624
+      Bullet 24x24 Free Part 3B_6: 5333281228696387072
+      Bullet 24x24 Free Part 3B_60: -5964239086588029308
+      Bullet 24x24 Free Part 3B_61: 2136455623711296366
+      Bullet 24x24 Free Part 3B_62: 3835016030805919298
+      Bullet 24x24 Free Part 3B_63: 8162582398938252783
+      Bullet 24x24 Free Part 3B_64: -2060094510757630818
+      Bullet 24x24 Free Part 3B_65: -6244979519271536410
+      Bullet 24x24 Free Part 3B_66: -5330372331628544379
+      Bullet 24x24 Free Part 3B_67: -2680697025326919782
+      Bullet 24x24 Free Part 3B_68: -89935798201577055
+      Bullet 24x24 Free Part 3B_69: 3398750750641435167
+      Bullet 24x24 Free Part 3B_7: 6594616659972824900
+      Bullet 24x24 Free Part 3B_70: 5415062951382782616
+      Bullet 24x24 Free Part 3B_71: -6506071342503425400
+      Bullet 24x24 Free Part 3B_72: -5715709420126387837
+      Bullet 24x24 Free Part 3B_73: -8466137053899447230
+      Bullet 24x24 Free Part 3B_74: -1702894440710562844
+      Bullet 24x24 Free Part 3B_75: 1557547059552097863
+      Bullet 24x24 Free Part 3B_76: -2974210003966633971
+      Bullet 24x24 Free Part 3B_77: -8352830936319618632
+      Bullet 24x24 Free Part 3B_78: 5408849582317696921
+      Bullet 24x24 Free Part 3B_79: -9176363833164691466
+      Bullet 24x24 Free Part 3B_8: -4801320553298477911
+      Bullet 24x24 Free Part 3B_80: -6171087490611064617
+      Bullet 24x24 Free Part 3B_81: -5806796433120615472
+      Bullet 24x24 Free Part 3B_82: -7814174368406177029
+      Bullet 24x24 Free Part 3B_83: -8806775946170628507
+      Bullet 24x24 Free Part 3B_84: -2746866417607910355
+      Bullet 24x24 Free Part 3B_85: -1716976087703213480
+      Bullet 24x24 Free Part 3B_86: 3853601472194852641
+      Bullet 24x24 Free Part 3B_87: -2921889388593925097
+      Bullet 24x24 Free Part 3B_88: 6474769731536659390
+      Bullet 24x24 Free Part 3B_89: -8580124491756578404
+      Bullet 24x24 Free Part 3B_9: 3723224150373631792
+      Bullet 24x24 Free Part 3B_90: 9151223351651647647
+      Bullet 24x24 Free Part 3B_91: 3273668925035765253
+      Bullet 24x24 Free Part 3B_92: -7107744548970355426
+      Bullet 24x24 Free Part 3B_93: -3527339210319599770
+      Bullet 24x24 Free Part 3B_94: 839800403907254574
+      Bullet 24x24 Free Part 3B_95: 3511075331874629783
+      Bullet 24x24 Free Part 3B_96: -6493198341269778713
+      Bullet 24x24 Free Part 3B_97: 1125185971231066649
+      Bullet 24x24 Free Part 3B_98: 3701678029946969461
+      Bullet 24x24 Free Part 3B_99: 3342281491285236738
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

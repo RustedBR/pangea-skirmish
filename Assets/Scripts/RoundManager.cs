@@ -1,0 +1,1046 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace PangeaSkirmish
+{
+    /// <summary>
+    /// Máquina de estados do round (combate semi-action):
+    /// Iniciativa (rola 1d20 + AGI+DEX, com zoom em cada unidade) ->
+    /// Planning (timer 10s) -> ActionMovement -> ActionAttack -> vitória -> próximo round.
+    /// Movimentos resolvem simultaneamente; ataques resolvem em ordem da iniciativa rolada.
+    /// </summary>
+    public class RoundManager : MonoBehaviour
+    {
+        public float planningTime = 15f;
+        public float zoomSize = 5.0f;      // tamanho ortográfico durante o "pequeno zoom"
+        // Zoom do enquadramento automático e demais ritmos extras: GameTuning (Tuning.Get()).
+
+        [Header("Ritmo das ações (pausas para acompanhar)")]
+        public float camMoveDuration   = 0.45f; // duração-alvo dos movimentos de câmera
+        public float preActionPause     = 0.35f; // antes de cada ação resolver
+        public float postActionPause    = 0.55f; // depois de cada ação resolver
+        public float initiativeHold      = 1.1f;  // tempo mostrando as rolagens de iniciativa
+        public float slotPause           = 0.3f;  // entre slots de ação
+        public float bonusConfirmTime    = 3f;    // tempo do prompt de confirmar incremento de ataque
+        public float bonusStepTime       = 5f;    // tempo de escolher o passo extra (incr. de movimento)
+
+        private GridManager _grid;
+        private PlanningController _planner;
+        private BattleHUD _hud;
+        private Canvas _canvas;
+        private Camera _cam;
+        private CameraController _camCtrl;
+        private List<Unit> _units;
+        private Unit _playerUnit;
+        private ScreenFlash _screenFlash;
+        private TileEffectManager _tileFx;
+
+        private RoundPhase _phase = RoundPhase.Resolving;
+        private float _timer;
+        private int _round;
+        private bool _gracePeriodUsed;
+
+        // pose-base da câmera (alvo do overview entre rounds)
+        private float _camBaseSize;
+        private Vector3 _camBaseCenter = new Vector3(0f, 0f, 10f);
+
+
+        public RoundPhase Phase => _phase;
+
+        public void Setup(GridManager grid, PlanningController planner, BattleHUD hud, Canvas canvas,
+                          Camera cam, CameraController camCtrl, List<Unit> units, Unit playerUnit,
+                          TileEffectManager tileFx = null)
+        {
+            _grid = grid;
+            _planner = planner;
+            _hud = hud;
+            _canvas = canvas;
+            _cam = cam;
+            _camCtrl = camCtrl;
+            _units = units;
+            _playerUnit = playerUnit;
+            _tileFx = tileFx;
+            _camBaseSize = cam.orthographicSize;
+            _camBaseCenter = _grid.CellToWorld(new Vector2Int(_grid.width / 2, _grid.height / 2));
+            _planner.SetHUD(hud);
+            _hud.BindConfirm(ConfirmPlan);
+            Unit.OnDamageTaken += SpawnDamageLabel;
+            _screenFlash = ScreenFlash.Create(canvas);
+
+            // Indicador de modo câmera
+            if (_camCtrl != null)
+            {
+                _camCtrl.OnModeChanged += mode => _hud.SetCameraMode(mode);
+                _hud.SetCameraMode(_camCtrl.Mode);
+            }
+
+            // Clique numa linha do log: apenas inspeciona (não mexe na câmera), em qualquer fase.
+            _hud.OnLogLineClicked = unit =>
+            {
+                if (unit != null && !unit.IsDead) _hud.ShowUnitInfo(unit);
+            };
+        }
+
+        private void OnDisable()
+        {
+            Unit.OnDamageTaken -= SpawnDamageLabel;
+        }
+
+        private void SpawnDamageLabel(Unit unit, int damage, bool isCritical)
+        {
+            if (_cam == null || unit == null) return;
+            BattleLabel.CreateDamage(_cam, unit.HeadWorld, damage, isCritical);
+            // Label animates and self-destructs
+
+            // Flash de tela quando o JOGADOR toma dano crítico
+            if (isCritical && unit == _playerUnit)
+            {
+                var t = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+                _screenFlash?.FlashRed(t.flashDurationCrit, t.flashIntensityCrit);
+            }
+        }
+
+        public void Begin() => StartCoroutine(StartRound());
+
+        private IEnumerator StartRound()
+        {
+            _round++;
+            AudioManager.I?.Play(AudioManager.I.sfxRound);
+            _hud.SetPhase($"Round {_round}");
+            _hud.SetTimerVisible(false);
+            _hud.SetConfirmVisible(false);
+            _hud.LogRound(_round);
+            yield return new WaitForSeconds(Tuning.Get().roundBannerHold);
+            EnterPlanning();
+        }
+
+        /// <summary>Foco automático suave: pede o alvo ao CameraController e espera assentar.</summary>
+        private IEnumerator FocusCamera(Vector3 center, float size, float duration)
+        {
+            if (_camCtrl != null)
+            {
+                var T = Tuning.Get();
+                _camCtrl.FocusOn(center, size);
+                yield return _camCtrl.WaitUntilSettled(Mathf.Max(duration, T.camSettleMinDuration) + T.camSettleExtra);
+            }
+            else yield return null;
+        }
+
+        /// <summary>Calcula o zoom necessário para mostrar todas as posições dadas.</summary>
+        private float CalcZoomForPositions(Vector3[] positions, float padding = -1f)
+        {
+            if (padding < 0f) padding = Tuning.Get().autoFramePadding;
+            if (positions == null || positions.Length == 0) return zoomSize;
+            if (positions.Length == 1) return zoomSize;
+
+            float minX = float.MaxValue, maxX = float.MinValue;
+            float minY = float.MaxValue, maxY = float.MinValue;
+            foreach (var p in positions)
+            {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            }
+
+            float width  = (maxX - minX) + padding * 2f;
+            float height = (maxY - minY) + padding * 2f;
+            float aspect = (float)Screen.width / Mathf.Max(1, Screen.height);
+
+            // Para câmera ortográfica: size controla metade da altura visível
+            float requiredHeight = height;
+            float requiredWidth  = width / aspect;
+            float required = Mathf.Max(requiredHeight, requiredWidth) * 0.5f;
+
+            var T = Tuning.Get();
+            return Mathf.Clamp(required, T.autoFrameZoomMin, T.autoFrameZoomMax);
+        }
+
+        /// <summary>Foca na área de um ataque (atacante + alvo), respeitando modo Auto.</summary>
+        private IEnumerator FocusOnAttackArea(Unit attacker, Unit target, float duration)
+        {
+            if (_camCtrl == null) yield break;
+            if (_camCtrl.Mode == CameraMode.Manual) yield break;
+
+            Vector3 atkPos = attacker.transform.position;
+            Vector3 tgtPos = target != null && !target.IsDead ? target.transform.position : atkPos;
+            Vector3 center = (atkPos + tgtPos) * 0.5f;
+            float size = CalcZoomForPositions(new[] { atkPos, tgtPos });
+
+            _camCtrl.FocusOnArea(center, size);
+            yield return _camCtrl.WaitUntilSettled(duration + Tuning.Get().attackFocusSettleExtra);
+        }
+
+        // -------------------- FASE DE PLANEJAMENTO --------------------
+        private void EnterPlanning()
+        {
+            _phase = RoundPhase.Planning;
+            _gracePeriodUsed = false;
+
+            foreach (var u in _units)
+                if (!u.IsDead) u.ResetPlan();
+
+            // IA para todos os inimigos
+            foreach (var u in _units)
+                if (!u.IsDead && u.team == Team.Enemy)
+                    SimpleEnemyAI.Plan(u, _units, _grid);
+
+            // IA para aliados não controlados pelo jogador (ex: Ladino)
+            foreach (var u in _units)
+                if (!u.IsDead && u.team == Team.Player && u != _playerUnit)
+                    SimpleEnemyAI.Plan(u, _units, _grid);
+
+            _hud.SetPhase($"Round {_round} — Planejamento");
+
+            // Se o jogador estiver morto, pula direto para a fase de ação
+            if (_playerUnit == null || _playerUnit.IsDead)
+            {
+                _hud.SetTimerVisible(false);
+                _hud.SetConfirmVisible(false);
+                _hud.LogAction("<color=#ff7a7a>Guerreiro eliminado — rodada automática.</color>");
+                StartCoroutine(ActionRoutine());
+                return;
+            }
+
+            _timer = planningTime;
+            _hud.SetTimerVisible(true);
+            _hud.SetTimerWarning(false);
+            _planner.Begin(_playerUnit);
+            _hud.ShowUnitInfo(_playerUnit);
+            _hud.SetConfirmVisible(true);
+        }
+
+        private void Update()
+        {
+            HandleInspectClick();
+
+            if (_phase != RoundPhase.Planning) return;
+            _timer -= Time.deltaTime;
+            _hud.SetTimer(Mathf.Max(0f, _timer));
+
+            if (_timer <= 0f)
+            {
+                // grace period de 2s se o jogador ainda tem PA para gastar
+                if (!_gracePeriodUsed
+                    && _playerUnit != null && !_playerUnit.IsDead
+                    && _playerUnit.remainingAP > 0)
+                {
+                    _gracePeriodUsed = true;
+                    float grace = Tuning.Get().planningGraceSeconds;
+                    _timer = grace;
+                    _hud.SetTimerWarning(true);
+                    AudioManager.I?.Play(AudioManager.I.sfxTimerWarning);
+                    _hud.Log($"⚠ Tempo esgotado — {grace:0.#}s extras para gastar PA restantes!");
+                }
+                else
+                {
+                    _hud.SetTimerWarning(false);
+                    ConfirmPlan();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Inspeção global: clicar numa unidade no mapa mostra sua info em qualquer fase,
+        /// sem mexer na câmera. Não dispara durante picking de planejamento, prompts de
+        /// bônus, ou quando o cursor está sobre a UI.
+        /// </summary>
+        private void HandleInspectClick()
+        {
+            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
+            if (_planner != null && _planner.IsPicking) return; // o planner usa o clique
+            if (_hud != null && _hud.IsPromptVisible) return;    // escolha de passo bônus
+            if (PointerOverUI()) return;
+
+            var u = UnitUnderMouse();
+            if (u != null) _hud.ShowUnitInfo(u);
+        }
+
+        private bool PointerOverUI()
+        {
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            return es != null && es.IsPointerOverGameObject();
+        }
+
+        private Unit UnitUnderMouse()
+        {
+            if (_cam == null || Mouse.current == null) return null;
+            Vector2 screen = Mouse.current.position.ReadValue();
+            var world = RaycastGround(screen);
+            // Seleção por collider (footprint + corpo) — mais fácil de acertar que por célula.
+            return Unit.PickAtWorld(new Vector2(world.x, world.y));
+        }
+
+        public void ConfirmPlan()
+        {
+            if (_phase != RoundPhase.Planning) return;
+            AudioManager.I?.Play(AudioManager.I.sfxUIConfirm);
+            _planner.End();
+            _hud.SetTimerVisible(false);
+            _hud.SetConfirmVisible(false);
+            StartCoroutine(ActionRoutine());
+        }
+
+        // -------------------- FASE DE AÇÃO (slot a slot) --------------------
+
+        private IEnumerator ActionRoutine()
+        {
+            // Descobre o maior número de ações planejadas entre todas as unidades vivas
+            int maxSlots = 0;
+            foreach (var u in _units)
+                if (!u.IsDead) maxSlots = Mathf.Max(maxSlots, u.actionSequence.Count);
+
+            var burstMoves = new Dictionary<Unit, int>();
+
+            for (int slot = 0; slot < maxSlots; slot++)
+            {
+                var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
+                var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr)>();
+                var spellsThisSlot  = new List<(Unit u, PlannedSpell spell, bool incr)>();
+
+                foreach (var u in _units)
+                {
+                    if (u.IsDead || slot >= u.actionSequence.Count) continue;
+                    var act = u.actionSequence[slot];
+                    if (act.Type == ActionType.Move && act.Index < u.plannedPath.Count)
+                        movesThisSlot.Add((u, u.plannedPath[act.Index], act.IsBonus));
+                    else if (act.Type == ActionType.Attack && act.Index < u.plannedAttacks.Count)
+                        attacksThisSlot.Add((u, u.plannedAttacks[act.Index], act.IsBonus));
+                    else if (act.Type == ActionType.Spell && act.Index < u.plannedSpells.Count)
+                        spellsThisSlot.Add((u, u.plannedSpells[act.Index], act.IsBonus));
+                    // Concentrate: skip — resolved at end of round
+                }
+
+                // Guarda âncoras antes do movimento para detectar tiles efetivamente percorridos
+                var beforeAnchor = new Dictionary<Unit, Vector2Int>();
+                if (movesThisSlot.Count > 0)
+                {
+                    foreach (var (u, _, _) in movesThisSlot)
+                        beforeAnchor[u] = u.anchor;
+                    yield return ResolveMovementSlot(movesThisSlot);
+                }
+
+                // Acumula tiles efetivamente percorridos neste slot
+                foreach (var (u, _, _) in movesThisSlot)
+                {
+                    if (u.IsDead) continue;
+                    if (!beforeAnchor.TryGetValue(u, out var before)) continue;
+                    int moved = Mathf.Abs(u.anchor.x - before.x) + Mathf.Abs(u.anchor.y - before.y);
+                    if (moved <= 0) continue;
+                    if (!burstMoves.ContainsKey(u)) burstMoves[u] = 0;
+                    burstMoves[u] += moved;
+                }
+
+                // Finaliza bursts cujo próximo slot NÃO é movimento (interrupção ou fim)
+                foreach (var u in new List<Unit>(burstMoves.Keys))
+                {
+                    int ns = slot + 1;
+                    bool willMoveNext = ns < maxSlots && ns < u.actionSequence.Count
+                                     && u.actionSequence[ns].Type == ActionType.Move
+                                     && u.actionSequence[ns].Index < u.plannedPath.Count;
+                    if (willMoveNext) continue;
+
+                    int tiles = burstMoves[u];
+                    _hud.LogAction($">> {u.unitName} avancou {tiles} tile{(tiles > 1 ? "s" : "")} -> {NearestUnitName(u)}", u);
+                    burstMoves.Remove(u);
+                }
+
+                if (attacksThisSlot.Count > 0)
+                    yield return ResolveAttackSlot(attacksThisSlot);
+
+                if (spellsThisSlot.Count > 0)
+                    yield return ResolveSpellSlot(spellsThisSlot);
+
+                if (!AnyAlive(Team.Player) || !AnyAlive(Team.Enemy)) break;
+
+                // pausa entre slots para o jogador acompanhar o encadeamento
+                if ((movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) && slot < maxSlots - 1)
+                    yield return new WaitForSeconds(slotPause);
+            }
+
+            // Passo bônus da IA: valida e executa o destino pré-planejado contra posições atuais
+            foreach (var u in _units)
+            {
+                if (u.IsDead || !u.hasPlannedBonus || u == _playerUnit) continue;
+                int fp = u.stats.Footprint;
+                var blockers = new List<Unit>();
+                foreach (var other in _units)
+                    if (other != u && !other.IsDead) blockers.Add(other);
+                var reachable = _grid.GetReachableAnchors(u.anchor, 1, fp, blockers);
+                reachable.RemoveAll(a => a == u.anchor);
+                if (reachable.Contains(u.plannedBonusAnchor))
+                    yield return u.MoveToDestination(u.plannedBonusAnchor);
+                else
+                    _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra bloqueado", u);
+                u.hasPlannedBonus = false;
+            }
+
+            yield return FocusCamera(_camBaseCenter, _camBaseSize, camMoveDuration);
+
+            // ── FIM DE ROUND: concentração, status effects, tile effects ──
+            foreach (var u in _units)
+            {
+                if (u.IsDead || !u.plannedConcentration) continue;
+                int regen = u.stats.ManaRegen;
+                u.currentMana = Mathf.Min(u.currentMana + regen, u.stats.MaxMana);
+                _hud.LogAction($"✦ {u.unitName} concentrou +{regen} mana", u);
+                u.plannedConcentration = false;
+            }
+            foreach (var u in _units)
+                if (!u.IsDead) StatusEffectSystem.TickEndOfRound(u.statusEffects);
+            yield return _tileFx.EndOfRoundTick(_units, null);
+
+            if (!AnyAlive(Team.Player)) { GameOver("Derrota! Inimigos venceram."); yield break; }
+            if (!AnyAlive(Team.Enemy))  { GameOver("Vitória! Todos os inimigos eliminados."); yield break; }
+
+            yield return new WaitForSeconds(Tuning.Get().roundEndPause);
+            yield return StartRound();
+        }
+
+        /// <summary>Resolve um slot de movimento: sem colisão = simultâneo; com colisão = iniciativa decide.
+        /// Após cada movimento com IsBonus, executa o passo extra se válido.</summary>
+        private IEnumerator ResolveMovementSlot(List<(Unit u, Vector2Int dest, bool incr)> moves)
+        {
+            _phase = RoundPhase.ActionMovement;
+            _hud.SetPhase($"Round {_round} — Ação: Movimento");
+
+            var startAnchors = new Dictionary<Unit, Vector2Int>();
+            foreach (var (u, _, _) in moves)
+                startAnchors[u] = u.anchor;
+
+            // Posições já ocupadas por quem NÃO se move neste slot
+            var occupied = new List<(Vector2Int anchor, int fp)>();
+            foreach (var u in _units)
+            {
+                if (u.IsDead) continue;
+                if (!moves.Exists(m => m.u == u)) occupied.Add((u.anchor, u.stats.Footprint));
+            }
+
+            // Detecta colisão entre os que se movem
+            bool hasCollision = false;
+            foreach (var (u, dest, _) in moves)
+            {
+                foreach (var (oAnchor, ofp) in occupied)
+                {
+                    if (GridManager.FootprintsOverlap(dest, u.stats.Footprint, oAnchor, ofp))
+                    { hasCollision = true; break; }
+                }
+                if (hasCollision) break;
+            }
+            if (!hasCollision)
+            {
+                for (int i = 0; i < moves.Count && !hasCollision; i++)
+                for (int j = i + 1; j < moves.Count; j++)
+                {
+                    if (GridManager.FootprintsOverlap(moves[i].dest, moves[i].u.stats.Footprint,
+                                                      moves[j].dest, moves[j].u.stats.Footprint))
+                    { hasCollision = true; break; }
+                }
+            }
+
+            var toMove = new List<(Unit u, Vector2Int dest, bool hasBonus)>();
+            foreach (var (u, dest, incr) in moves)
+                toMove.Add((u, dest, incr));
+
+            if (hasCollision)
+            {
+                // Rola iniciativa fresca para cada um (decomposta) — guardada para exibir e ordenar
+                var rolls  = new Dictionary<Unit, int>();
+                var decomp = new Dictionary<Unit, (int d20, int agi, int dex, int total)>();
+                foreach (var (u, _, _) in moves)
+                {
+                    var ini = RollInitiative(u);
+                    rolls[u]  = ini.total;
+                    decomp[u] = (ini.d20, ini.agiPart, ini.dexPart, ini.total);
+                }
+                // Determina vencedor e mostra disputa visual
+                Unit moveWinner = null;
+                int  topMoveRoll = int.MinValue;
+                foreach (var kv in rolls) if (kv.Value > topMoveRoll) { topMoveRoll = kv.Value; moveWinner = kv.Key; }
+                var moveContestants = moves.ConvertAll(m =>
+                    (m.u, decomp[m.u].d20, decomp[m.u].agi, decomp[m.u].dex, decomp[m.u].total));
+                yield return ShowInitiativeContest(moveContestants, moveWinner, "Colisão de movimento");
+
+                toMove.Sort((a, b) => rolls[b.u].CompareTo(rolls[a.u]));
+
+                var finalMoves = new List<(Unit u, Vector2Int dest, bool hasBonus)>();
+                foreach (var (u, dest, hasBonus) in toMove)
+                {
+                    bool conflict = false;
+                    foreach (var (oAnchor, ofp) in occupied)
+                    {
+                        if (GridManager.FootprintsOverlap(dest, u.stats.Footprint, oAnchor, ofp))
+                        { conflict = true; break; }
+                    }
+
+                    if (!conflict)
+                    {
+                        occupied.Add((dest, u.stats.Footprint));
+                        finalMoves.Add((u, dest, hasBonus));
+                    }
+                    else
+                    {
+                        var partial = FindPartialDestination(u, dest, occupied);
+                        if (partial != u.anchor)
+                        {
+                            occupied.Add((partial, u.stats.Footprint));
+                            finalMoves.Add((u, partial, hasBonus));
+                            _hud.LogAction($"! {u.unitName} avanca parcialmente", u);
+                        }
+                        else
+                        {
+                            _hud.LogAction($"x {u.unitName} bloqueado", u);
+                        }
+                    }
+                }
+                toMove = finalMoves;
+            }
+
+            // 1) Movimentos normais, simultâneos
+            // Delay de reação para inimigos
+            if (toMove.Exists(e => e.u.team == Team.Enemy))
+            {
+                var t = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+                if (t != null && t.aiReactionDelay > 0f)
+                    yield return new WaitForSeconds(t.aiReactionDelay);
+            }
+
+            int moving = 0;
+            foreach (var (u, dest, _) in toMove)
+            {
+                moving++;
+                StartCoroutine(MoveOneStep(u, dest, () => moving--));
+            }
+            while (moving > 0) yield return null;
+
+            // Tile effects: unidades atravessaram tiles (fogo, orbe, vento)
+            foreach (var (u, _, _) in toMove)
+                if (!u.IsDead && startAnchors.TryGetValue(u, out var start) && _tileFx != null)
+                    yield return _tileFx.OnUnitMoved(u, start, null);
+
+            // 2) Passo Rápido: o jogador escolhe o destino do passo AGORA (fase de ação),
+            //    depois do movimento. Sequencial (um de cada vez).
+            foreach (var (u, _, hasBonus) in toMove)
+                if (hasBonus && !u.IsDead)
+                {
+                    yield return DoBonusStep(u);
+                    if (_tileFx != null)
+                        yield return _tileFx.OnUnitMoved(u, startAnchors.TryGetValue(u, out var s) ? s : u.anchor, null);
+                }
+        }
+
+        /// <summary>
+        /// Encontra o tile mais próximo do destino no caminho de <c>u.anchor</c> → <c>dest</c>
+        /// que não colida com nenhuma posição já ocupada. Retorna <c>u.anchor</c> se não há nenhum tile livre.
+        /// </summary>
+        private Vector2Int FindPartialDestination(Unit u, Vector2Int dest,
+            List<(Vector2Int anchor, int fp)> occupied)
+        {
+            var from = u.anchor;
+            int fp   = u.stats.Footprint;
+            if (from == dest) return from;
+
+            int dx    = dest.x - from.x;
+            int dy    = dest.y - from.y;
+            int steps = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+
+            Vector2Int best = from;
+            for (int i = 1; i <= steps; i++)
+            {
+                float t = (float)i / steps;
+                var candidate = new Vector2Int(
+                    from.x + Mathf.RoundToInt(dx * t),
+                    from.y + Mathf.RoundToInt(dy * t));
+
+                if (!_grid.IsAnchorInBounds(candidate, fp)) break;
+                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveBudget) break;
+
+                bool free = true;
+                foreach (var (oAnchor, ofp) in occupied)
+                {
+                    if (GridManager.FootprintsOverlap(candidate, fp, oAnchor, ofp))
+                    { free = false; break; }
+                }
+
+                if (!free) break;
+                best = candidate;
+            }
+
+            return best;
+        }
+
+        /// <summary>Decompõe a rolagem de iniciativa em d20 + AGI + DEX.</summary>
+        private (int d20, int agiPart, int dexPart, int total) RollInitiative(Unit u)
+        {
+            int d20 = Random.Range(1, 21);
+            int agiPart = Mathf.RoundToInt(u.stats.AGI * AttributeStats.Formulas.iniPerAGI);
+            int dexPart = Mathf.RoundToInt(u.stats.DEX * AttributeStats.Formulas.iniPerDEX);
+            int total = d20 + agiPart + dexPart;
+            AudioManager.I?.Play(AudioManager.I.sfxDice);
+            return (d20, agiPart, dexPart, total);
+        }
+
+        /// <summary>
+        /// Zoom para enquadrar os disputantes, mostra a rolagem decomposta acima de cada um,
+        /// colapsando no resultado final.
+        /// </summary>
+        private IEnumerator ShowInitiativeContest(
+            List<(Unit u, int d20, int agi, int dex, int total)> contestants, Unit winner, string context)
+        {
+            if (contestants.Count < 2) yield break;
+
+            // Enquadra todos os disputantes
+            Vector3 center = Vector3.zero;
+            foreach (var c in contestants) center += c.u.transform.position;
+            center /= contestants.Count;
+
+            var Tini = Tuning.Get();
+            float radius = Tini.initiativeContestMinRadius;
+            foreach (var c in contestants)
+                radius = Mathf.Max(radius, Vector3.Distance(center, c.u.transform.position));
+
+            yield return FocusCamera(center, radius + Tini.initiativeContestZoomPadding, camMoveDuration);
+            yield return new WaitForSeconds(preActionPause);
+
+            // Fase 1: tag com a decomposição já rolada (NÃO re-rola — bate com o vencedor)
+            var tags = new List<InitiativeTag>();
+            foreach (var c in contestants)
+            {
+                var tag = InitiativeTag.Create(_cam, c.u, c.d20, c.agi, c.dex, c.total,
+                    c.u == winner, initiativeHold + postActionPause);
+                tags.Add(tag);
+            }
+
+            yield return new WaitForSeconds(initiativeHold);
+
+            // Fase 2: colapsa no resultado final (vencedor verde, perdedores cinza)
+            for (int i = 0; i < tags.Count; i++)
+                if (tags[i] != null)
+                    StartCoroutine(tags[i].ShowPhase2(contestants[i].total, contestants[i].u == winner, postActionPause));
+
+            _hud.LogAction(
+                $"<color=#aad4ff>INI {context}:</color> " +
+                string.Join(" vs ", contestants.ConvertAll(c => $"{c.u.unitName}({c.total})")) +
+                $" -> <color=#60ff70>{winner.unitName}</color> vence",
+                winner);
+
+            yield return new WaitForSeconds(postActionPause + Tini.initiativeCollapseExtraPause);
+        }
+
+        /// <summary>Resolve um slot de ataque: rola iniciativa fresca, executa em ordem desc.</summary>
+        private IEnumerator ResolveAttackSlot(List<(Unit u, PlannedAttack atk, bool incr)> attacks)
+        {
+            _phase = RoundPhase.ActionAttack;
+            _hud.SetPhase($"Round {_round} — Ação: Ataque");
+
+            var rolls  = new Dictionary<Unit, int>();
+            var decomp = new Dictionary<Unit, (int d20, int agi, int dex, int total)>();
+            foreach (var (u, _, _) in attacks)
+            {
+                var ini = RollInitiative(u);
+                rolls[u]  = ini.total;
+                decomp[u] = (ini.d20, ini.agiPart, ini.dexPart, ini.total);
+            }
+
+            if (attacks.Count > 1)
+            {
+                Unit atkWinner = null;
+                int  topAtkRoll = int.MinValue;
+                foreach (var kv in rolls) if (kv.Value > topAtkRoll) { topAtkRoll = kv.Value; atkWinner = kv.Key; }
+                var atkContestants = attacks.ConvertAll(a =>
+                    (a.u, decomp[a.u].d20, decomp[a.u].agi, decomp[a.u].dex, decomp[a.u].total));
+                yield return ShowInitiativeContest(atkContestants, atkWinner, "Ataques simultâneos");
+            }
+
+            var sorted = new List<(Unit u, PlannedAttack atk, bool incr)>(attacks);
+            sorted.Sort((a, b) => rolls[b.u].CompareTo(rolls[a.u]));
+
+            foreach (var (u, atk, incr) in sorted)
+            {
+                if (u.IsDead) continue;
+
+                // Delay de reação para inimigos
+                if (u.team == Team.Enemy)
+                {
+                    var t = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+                    if (t != null && t.aiReactionDelay > 0f)
+                        yield return new WaitForSeconds(t.aiReactionDelay);
+                }
+
+                bool willHit = WillAttackHit(u, atk);
+
+                yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
+                yield return new WaitForSeconds(preActionPause);
+
+                // Ataque a UNIDADE sem alcance: PULA a ação (não toca a animação — não "ataca o
+                // chão"), só avisa. O PA já foi gasto; o PAB do Golpe Poderoso é devolvido.
+                if (atk.Mode == AttackMode.Unit && !willHit)
+                {
+                    string alvo = atk.TargetUnit != null ? atk.TargetUnit.unitName : "alvo";
+                    AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
+                    BattleLabel.CreateMiss(_cam, u.HeadWorld);
+                    // Label animates and self-destructs
+                    _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
+                    if (incr) { u.remainingBAP++; _hud.RefreshUnitInfo(); }
+                    yield return new WaitForSeconds(slotPause);
+                    continue;
+                }
+
+                // Golpe Poderoso: dano extra (só quando vai acertar)
+                if (incr && willHit)
+                {
+                    u.bonusDamageThisAttack = true;
+                }
+
+                Vector3 aimPos;
+                if (atk.Mode == AttackMode.Tile)
+                    aimPos = _grid.AnchorToWorldCenter(atk.TargetTile);
+                else if (atk.TargetUnit != null && !atk.TargetUnit.IsDead)
+                    aimPos = atk.TargetUnit.transform.position;
+                else
+                {
+                    var nearest = AttackResolver.FindTargetInRange(u, _units);
+                    aimPos = nearest != null ? nearest.transform.position : u.transform.position;
+                }
+
+                var label = BattleLabel.CreateAttack(_cam, u.HeadWorld, u.unitName);
+                yield return new WaitForSeconds(Tuning.Get().attackLabelLeadPause);
+
+                // Transição de câmera: mostra atacante + alvo durante o ataque
+                Unit attackTarget = (atk.Mode == AttackMode.Unit && atk.TargetUnit != null && !atk.TargetUnit.IsDead)
+                    ? atk.TargetUnit : null;
+                if (attackTarget != null)
+                    yield return FocusOnAttackArea(u, attackTarget, Tuning.Get().attackAreaFocusDuration);
+
+                yield return u.PlayAttackAnim(aimPos);
+
+                if (incr && willHit)
+                    AudioManager.I?.PlayAtPoint(AudioManager.I.sfxCritical, aimPos);
+
+                // Ações que erram/falham continuam executando (logam o miss)
+                string log = AttackResolver.ResolveAttack(u, atk, _units);
+                // label auto-destroys via animation
+                if (log != null)
+                {
+                    _hud.LogAction(log, u);
+                    _hud.RefreshUnitInfo(); // atualiza HP sem trocar a unidade inspecionada
+
+                    // Screen shake: mais forte se crit, leve se acertou
+                    var Tfx = Tuning.Get();
+                    if (incr && willHit)
+                        _camCtrl?.Shake(Tfx.shakeDurationCrit, Tfx.shakeMagnitudeCrit);
+                    else if (willHit)
+                        _camCtrl?.Shake(Tfx.shakeDurationNormal, Tfx.shakeMagnitudeNormal);
+
+                    yield return new WaitForSeconds(postActionPause);
+                }
+            }
+        }
+
+        /// <summary>Resolve um slot de magia: foco no conjurador, resolve, coleta pushes, aplica após todas.</summary>
+        private IEnumerator ResolveSpellSlot(List<(Unit u, PlannedSpell spell, bool incr)> spells)
+        {
+            _phase = RoundPhase.ActionSpell;
+            _hud.SetPhase($"Round {_round} — Ação: Magia");
+
+            var pendingPushes = new List<(PendingPush push, Unit pusher)>();
+
+            foreach (var (u, spell, _) in spells)
+            {
+                if (u.IsDead) continue;
+
+                yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
+                yield return new WaitForSeconds(preActionPause);
+
+                bool willResolve = SpellResolver.WillResolve(u, spell, _units);
+                if (!willResolve)
+                {
+                    _hud.LogAction($"<color=#888888>x</color> {u.unitName}: magia falhou (fora de alcance/sem mana)", u);
+                    yield return new WaitForSeconds(slotPause);
+                    continue;
+                }
+
+                var (log, push) = SpellResolver.Resolve(u, spell, _units, _grid, _tileFx);
+
+                switch (spell.Target)
+                {
+                    case SpellTargetKind.Self:
+                        yield return SpellVfx.PlaySelfBuff(u, spell.Element, null);
+                        break;
+                    case SpellTargetKind.Unit when spell.TargetUnit != null:
+                        yield return SpellVfx.PlayProjectile(u, spell.TargetUnit, spell.Element, null);
+                        yield return SpellVfx.PlayImpact(spell.TargetUnit, spell.Element, null);
+                        break;
+                    case SpellTargetKind.Tile:
+                        yield return SpellVfx.PlayTileVfx(
+                            _grid.AnchorToWorldCenter(spell.TargetTile, u.stats.Footprint),
+                            spell.Element, null);
+                        break;
+                }
+
+                if (push.HasValue)
+                    pendingPushes.Add((push.Value, u));
+
+                if (log != null)
+                    _hud.LogAction(log, u);
+                _hud.RefreshUnitInfo();
+                yield return new WaitForSeconds(postActionPause);
+            }
+
+            // Aplica pushes DEPOIS de todas as magias do slot
+            if (pendingPushes.Count > 0)
+            {
+                yield return new WaitForSeconds(preActionPause);
+                foreach (var (push, pusher) in pendingPushes)
+                {
+                    var target = push.Target;
+                    if (target == null || target.IsDead) continue;
+
+                    Vector2Int fromAnchor = target.anchor;
+                    Vector2Int pushDest = fromAnchor + push.Direction * push.Tiles;
+                    int fp = target.stats.Footprint;
+
+                    if (_grid.IsAnchorInBounds(pushDest, fp) && !_grid.IsVoid(pushDest.x, pushDest.y))
+                    {
+                        target.anchor = pushDest;
+                        target.SnapToAnchor();
+                        if (_tileFx != null)
+                            yield return _tileFx.OnUnitMoved(target, fromAnchor, null);
+                        _hud.LogAction($"💨 {pusher.unitName} empurrou {target.unitName} para {pushDest}", pusher);
+                        _hud.RefreshUnitInfo();
+                    }
+                    else
+                    {
+                        target.TakeDamage(Tuning.Get().wallImpactDamage);
+                        _hud.LogAction($"💥 {target.unitName} bateu na parede!", target);
+                        _hud.RefreshUnitInfo();
+                    }
+                    yield return new WaitForSeconds(postActionPause * 0.5f);
+                }
+            }
+        }
+
+        /// <summary>Prevê se o ataque vai causar dano (há alvo válido dentro do alcance).</summary>
+        private bool WillAttackHit(Unit u, PlannedAttack atk)
+        {
+            if (atk.Mode == AttackMode.Auto)
+                return AttackResolver.FindTargetInRange(u, _units) != null;
+
+            if (atk.Mode == AttackMode.Unit)
+            {
+                var t = atk.TargetUnit;
+                if (t == null || t.IsDead) return false;
+                return GridManager.FootprintGap(u.anchor, u.stats.Footprint,
+                                                t.anchor, t.stats.Footprint) <= u.stats.AttackRange;
+            }
+
+            // Tile: precisa estar no alcance E ter um inimigo ocupando o tile
+            int afp = u.stats.Footprint;
+            if (GridManager.FootprintGap(u.anchor, afp, atk.TargetTile, afp) > u.stats.AttackRange)
+                return false;
+            foreach (var other in _units)
+            {
+                if (other == u || other.IsDead || other.team == u.team) continue;
+                if (GridManager.FootprintsOverlap(other.anchor, other.stats.Footprint, atk.TargetTile, afp))
+                    return true;
+            }
+            return false;
+        }
+
+
+        private Vector2Int? HitAnchorFromMouse()
+        {
+            if (Mouse.current == null) return null;
+            Vector2 screen = Mouse.current.position.ReadValue();
+            var world = RaycastGround(screen);
+            var cell = _grid.WorldToCell(world);
+            return new Vector2Int(cell.x - 1, cell.y - 1);
+        }
+
+        private Vector3 RaycastGround(Vector2 screenPos)
+        {
+            // Câmera 2D: converte tela → mundo no plano z=0.
+            return _cam.ScreenToWorldPoint(
+                new Vector3(screenPos.x, screenPos.y, -_cam.transform.position.z));
+        }
+
+        private IEnumerator MoveOneStep(Unit u, Vector2Int dest, System.Action onDone)
+        {
+            yield return u.MoveToDestination(dest);
+            onDone();
+        }
+
+        /// <summary>
+        /// Passo Rápido na FASE DE AÇÃO: depois do movimento, o jogador escolhe um tile a 1 de
+        /// distância do footprint (em volta) para onde dar o passo extra. Esc / tempo esgotado pula.
+        /// Para IA, valida o destino pré-planejado (plannedBonusAnchor) contra posições atuais.
+        /// </summary>
+        private IEnumerator DoBonusStep(Unit u)
+        {
+            int fp = u.stats.Footprint;
+            var blockers = new List<Unit>();
+            foreach (var other in _units)
+                if (other != u && !other.IsDead) blockers.Add(other);
+
+            var reachable = _grid.GetReachableAnchors(u.anchor, 1, fp, blockers);
+            reachable.RemoveAll(a => a == u.anchor);
+
+            // IA: valida o passo bônus pré-planejado e executa se ainda válido
+            if (u != _playerUnit)
+            {
+                if (!u.hasPlannedBonus) yield break;
+                if (reachable.Contains(u.plannedBonusAnchor))
+                    yield return u.MoveToDestination(u.plannedBonusAnchor);
+                else
+                    _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra bloqueado", u);
+                u.hasPlannedBonus = false;
+                yield break;
+            }
+
+            if (reachable.Count == 0)
+            {
+                _hud.LogAction($"<color=#888888>~</color> {u.unitName}: sem espaço para o passo extra", u);
+                yield break;
+            }
+
+            yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
+
+            // Destaque dos tiles alcançáveis (mesma cor da seleção de movimento) + cursor losango.
+            _grid.HighlightAnchors(reachable, _grid.highlightColor);
+            var ghost = BuildStepGhost(fp);
+            _hud.ShowPrompt("Passo extra: clique num tile  •  Esc = pular");
+
+            float timer = bonusStepTime;
+            Vector2Int? chosen = null;
+            bool skip = false;
+            while (timer > 0f && chosen == null && !skip)
+            {
+                timer -= Time.deltaTime;
+                _hud.UpdateBonusTimer(timer);
+
+                var hover = HitAnchorFromMouse();
+                if (hover.HasValue && reachable.Contains(hover.Value))
+                {
+                    ghost.transform.position = _grid.AnchorToWorldCenter(hover.Value, fp);
+                    ghost.SetActive(true);
+                }
+                else ghost.SetActive(false);
+
+                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                {
+                    var h = HitAnchorFromMouse();
+                    if (h.HasValue && reachable.Contains(h.Value)) chosen = h.Value;
+                }
+                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                    skip = true;
+
+                yield return null;
+            }
+
+            _grid.ClearHighlight();
+            if (ghost != null) Destroy(ghost);
+            _hud.HidePrompt();
+            _hud.UpdateBonusTimer(0f);
+
+            if (chosen.HasValue)
+            {
+                AudioManager.I?.PlayAtPoint(AudioManager.I.sfxDash, u.transform.position);
+                yield return u.MoveToDestination(chosen.Value);
+                _hud.LogAction($"<color=#ffd700>*</color> {u.unitName}: passo extra", u);
+            }
+            else
+            {
+                _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra pulado", u);
+            }
+        }
+
+        private GameObject BuildStepGhost(int fp)
+        {
+            var ghost = new GameObject("StepGhost");
+            var sr = ghost.AddComponent<SpriteRenderer>();
+            sr.sprite = StepGhostSprite();
+            sr.sortingOrder = 9000;
+            float gs = fp * Tuning.Get().stepGhostScale; // mesma escala do footprint da unidade (alinha com o tile)
+            ghost.transform.localScale = new Vector3(gs, gs, 1f);
+            ghost.SetActive(false);
+            return ghost;
+        }
+
+        private static Sprite _stepGhostSprite;
+        // Losango isométrico amarelo — MESMA forma/pivot do footprint da unidade, p/ alinhar ao tile.
+        private static Sprite StepGhostSprite()
+        {
+            if (_stepGhostSprite != null) return _stepGhostSprite;
+            const int W = 64, H = 32;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false)
+            { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            var col = Tuning.Get().stepGhostColor;
+            for (int y = 0; y < H; y++)
+            for (int x = 0; x < W; x++)
+            {
+                float dx = Mathf.Abs(x - 32) / 32f;
+                float dy = Mathf.Abs(y - 16) / 16f;
+                bool inside = (dx + dy) <= 0.95f;
+                tex.SetPixel(x, y, inside ? col : Color.clear);
+            }
+            tex.Apply();
+            _stepGhostSprite = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 32);
+            return _stepGhostSprite;
+        }
+
+        private string NearestUnitName(Unit self)
+        {
+            Unit best = null;
+            int bestGap = int.MaxValue;
+            foreach (var u in _units)
+            {
+                if (u == self || u.IsDead) continue;
+                int gap = GridManager.FootprintGap(self.anchor, self.stats.Footprint,
+                                                   u.anchor, u.stats.Footprint);
+                if (gap < bestGap) { bestGap = gap; best = u; }
+            }
+            return best != null ? best.unitName : "---";
+        }
+
+        private Unit NearestEnemy(Unit self)
+        {
+            Unit best    = null;
+            int  bestGap = int.MaxValue;
+            foreach (var u in _units)
+            {
+                if (u == self || u.IsDead || u.team == self.team) continue;
+                int gap = GridManager.FootprintGap(self.anchor, self.stats.Footprint,
+                                                   u.anchor,   u.stats.Footprint);
+                if (gap < bestGap) { bestGap = gap; best = u; }
+            }
+            return best;
+        }
+
+
+        private bool AnyAlive(Team team)
+        {
+            foreach (var u in _units) if (u.team == team && !u.IsDead) return true;
+            return false;
+        }
+
+        private void GameOver(string message)
+        {
+            _phase = RoundPhase.GameOver;
+            bool victory = message.StartsWith("Vitória");
+            AudioManager.I?.Play(victory ? AudioManager.I.sfxVictory : AudioManager.I.sfxDefeat);
+            _hud.SetPhase("Fim de jogo");
+            _hud.ShowEndScreen(message);
+        }
+
+        private static void Shuffle<T>(IList<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+    }
+}

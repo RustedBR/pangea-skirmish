@@ -1,0 +1,3380 @@
+fileFormatVersion: 2
+guid: c0f216fb688c27a65bd39241de3cd3c7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2196601267497979506
+    second: male_longbow_0
+  - first:
+      213: -1357702042731484952
+    second: male_longbow_1
+  - first:
+      213: 9107870318795929605
+    second: male_longbow_2
+  - first:
+      213: 9180284166349314994
+    second: male_longbow_3
+  - first:
+      213: 5300561500975130469
+    second: male_longbow_4
+  - first:
+      213: -5550314347175342048
+    second: male_longbow_5
+  - first:
+      213: -4420434815912672488
+    second: male_longbow_6
+  - first:
+      213: -6005807775701139730
+    second: male_longbow_7
+  - first:
+      213: 9190999607832057023
+    second: male_longbow_8
+  - first:
+      213: -137515388464044054
+    second: male_longbow_9
+  - first:
+      213: 1591525545136999540
+    second: male_longbow_10
+  - first:
+      213: 8271202742431686249
+    second: male_longbow_11
+  - first:
+      213: 2436092792049842319
+    second: male_longbow_12
+  - first:
+      213: -1362969730459538652
+    second: male_longbow_13
+  - first:
+      213: 2795236324113434842
+    second: male_longbow_14
+  - first:
+      213: 3726879777638974330
+    second: male_longbow_15
+  - first:
+      213: 1758601306367733613
+    second: male_longbow_16
+  - first:
+      213: 4378498173571233068
+    second: male_longbow_17
+  - first:
+      213: -7404531140950132622
+    second: male_longbow_18
+  - first:
+      213: -7863299704546111060
+    second: male_longbow_19
+  - first:
+      213: -4704231024384063589
+    second: male_longbow_20
+  - first:
+      213: -5048217154802769247
+    second: male_longbow_21
+  - first:
+      213: 8851092455832744490
+    second: male_longbow_22
+  - first:
+      213: -4207137406406688968
+    second: male_longbow_23
+  - first:
+      213: -9189861115869537697
+    second: male_longbow_24
+  - first:
+      213: 1357779345721115588
+    second: male_longbow_25
+  - first:
+      213: 398013014315643702
+    second: male_longbow_26
+  - first:
+      213: 7132117727044289153
+    second: male_longbow_27
+  - first:
+      213: -1444765510224747035
+    second: male_longbow_28
+  - first:
+      213: -6260912863494465065
+    second: male_longbow_29
+  - first:
+      213: -8531034996711186224
+    second: male_longbow_30
+  - first:
+      213: 1941234367835709191
+    second: male_longbow_31
+  - first:
+      213: -252117300844152776
+    second: male_longbow_32
+  - first:
+      213: -4227764227945515002
+    second: male_longbow_33
+  - first:
+      213: 8818925255974247054
+    second: male_longbow_34
+  - first:
+      213: -8629602590478646507
+    second: male_longbow_35
+  - first:
+      213: 3075670308186371192
+    second: male_longbow_36
+  - first:
+      213: -5895713677273504118
+    second: male_longbow_37
+  - first:
+      213: -2787754983632227310
+    second: male_longbow_38
+  - first:
+      213: -8765880310242918885
+    second: male_longbow_39
+  - first:
+      213: -4712301897304308539
+    second: male_longbow_40
+  - first:
+      213: -8106812856713063601
+    second: male_longbow_41
+  - first:
+      213: 2514777032180695706
+    second: male_longbow_42
+  - first:
+      213: -3275501587828828251
+    second: male_longbow_43
+  - first:
+      213: 5954481694689952619
+    second: male_longbow_44
+  - first:
+      213: 7384695325236782051
+    second: male_longbow_45
+  - first:
+      213: -5091643224458910569
+    second: male_longbow_46
+  - first:
+      213: 4443453732232003745
+    second: male_longbow_47
+  - first:
+      213: -231663153237315095
+    second: male_longbow_48
+  - first:
+      213: 1465226522420368457
+    second: male_longbow_49
+  - first:
+      213: 6549328372243286210
+    second: male_longbow_50
+  - first:
+      213: -7481775639690944079
+    second: male_longbow_51
+  - first:
+      213: -182689213905255166
+    second: male_longbow_52
+  - first:
+      213: -576467666589274036
+    second: male_longbow_53
+  - first:
+      213: 570784178690902907
+    second: male_longbow_54
+  - first:
+      213: -7334877376441249888
+    second: male_longbow_55
+  - first:
+      213: 4329543530839602448
+    second: male_longbow_56
+  - first:
+      213: -6787108398130686093
+    second: male_longbow_57
+  - first:
+      213: 8893045897084764514
+    second: male_longbow_58
+  - first:
+      213: -995554516252639765
+    second: male_longbow_59
+  - first:
+      213: 2945343197559898181
+    second: male_longbow_60
+  - first:
+      213: -7458288199096863260
+    second: male_longbow_61
+  - first:
+      213: 191242953638173869
+    second: male_longbow_62
+  - first:
+      213: -163238519245031391
+    second: male_longbow_63
+  - first:
+      213: 3355184323284401337
+    second: male_longbow_64
+  - first:
+      213: -675574635338005657
+    second: male_longbow_65
+  - first:
+      213: -266184722685155307
+    second: male_longbow_66
+  - first:
+      213: 6317600693186720811
+    second: male_longbow_67
+  - first:
+      213: 7362786579049345724
+    second: male_longbow_68
+  - first:
+      213: 3384540495137606332
+    second: male_longbow_69
+  - first:
+      213: -4318236008550903810
+    second: male_longbow_70
+  - first:
+      213: 8321998591109099675
+    second: male_longbow_71
+  - first:
+      213: -260704084820519458
+    second: male_longbow_72
+  - first:
+      213: -3164336066417832308
+    second: male_longbow_73
+  - first:
+      213: -6710087545900570653
+    second: male_longbow_74
+  - first:
+      213: -9034112335277867464
+    second: male_longbow_75
+  - first:
+      213: 1033784121900103685
+    second: male_longbow_76
+  - first:
+      213: 6441948603599371512
+    second: male_longbow_77
+  - first:
+      213: -4680996553338580132
+    second: male_longbow_78
+  - first:
+      213: -76526615682630931
+    second: male_longbow_79
+  - first:
+      213: -2714646427458518382
+    second: male_longbow_80
+  - first:
+      213: 5793375851414248700
+    second: male_longbow_81
+  - first:
+      213: -7696373733413301871
+    second: male_longbow_82
+  - first:
+      213: 6836298048503356988
+    second: male_longbow_83
+  - first:
+      213: -5967205584209924713
+    second: male_longbow_84
+  - first:
+      213: -5950859288344380552
+    second: male_longbow_85
+  - first:
+      213: 3487085629400410974
+    second: male_longbow_86
+  - first:
+      213: 3853794125363795374
+    second: male_longbow_87
+  - first:
+      213: 2948754581788134741
+    second: male_longbow_88
+  - first:
+      213: 8869206922100372637
+    second: male_longbow_89
+  - first:
+      213: 1046818062873488161
+    second: male_longbow_90
+  - first:
+      213: 8302592514346672816
+    second: male_longbow_91
+  - first:
+      213: 8266145676035042022
+    second: male_longbow_92
+  - first:
+      213: -7789302497784209233
+    second: male_longbow_93
+  - first:
+      213: 12121304909050762
+    second: male_longbow_94
+  - first:
+      213: 3082343701407478001
+    second: male_longbow_95
+  - first:
+      213: -1240944167338308897
+    second: male_longbow_96
+  - first:
+      213: 1329030055764894911
+    second: male_longbow_97
+  - first:
+      213: -3149994818895179988
+    second: male_longbow_98
+  - first:
+      213: -8788093836795790917
+    second: male_longbow_99
+  - first:
+      213: -4129159971486777090
+    second: male_longbow_100
+  - first:
+      213: 2122940754282528380
+    second: male_longbow_101
+  - first:
+      213: -1381355375556678256
+    second: male_longbow_102
+  - first:
+      213: -8592737276279216340
+    second: male_longbow_103
+  - first:
+      213: 7095764538135950593
+    second: male_longbow_104
+  - first:
+      213: 3298346687318137938
+    second: male_longbow_105
+  - first:
+      213: -8499201316305343114
+    second: male_longbow_106
+  - first:
+      213: 4331352138500359599
+    second: male_longbow_107
+  - first:
+      213: 2580253161206553808
+    second: male_longbow_108
+  - first:
+      213: -5957345879239411936
+    second: male_longbow_109
+  - first:
+      213: 6825238618892935308
+    second: male_longbow_110
+  - first:
+      213: -2783944731668674481
+    second: male_longbow_111
+  - first:
+      213: -3311108321632642528
+    second: male_longbow_112
+  - first:
+      213: -2654767650016029212
+    second: male_longbow_113
+  - first:
+      213: 4228249455630446788
+    second: male_longbow_114
+  - first:
+      213: -931367831558703903
+    second: male_longbow_115
+  - first:
+      213: 416367727757044888
+    second: male_longbow_116
+  - first:
+      213: 1652942114495074094
+    second: male_longbow_117
+  - first:
+      213: -6589579624761802715
+    second: male_longbow_118
+  - first:
+      213: 3990887877538849288
+    second: male_longbow_119
+  - first:
+      213: -5898523012290172714
+    second: male_longbow_120
+  - first:
+      213: -2624997481421869611
+    second: male_longbow_121
+  - first:
+      213: -1332141469656805008
+    second: male_longbow_122
+  - first:
+      213: 6496118526122053255
+    second: male_longbow_123
+  - first:
+      213: 6409695452115342035
+    second: male_longbow_124
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: male_longbow_0
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 1921
+        width: 17
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27ec366f635eb7e10800000000000000
+      internalID: 2196601267497979506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_1
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 1925
+        width: 18
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e8ea208f29782de0800000000000000
+      internalID: -1357702042731484952
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_2
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 1926
+        width: 19
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 508b724acc7a56e70800000000000000
+      internalID: 9107870318795929605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_3
+      rect:
+        serializedVersion: 2
+        x: 865
+        y: 1925
+        width: 18
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bbd4606fcbe66f70800000000000000
+      internalID: 9180284166349314994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_4
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 1947
+        width: 20
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 567ebbff9906f8940800000000000000
+      internalID: 5300561500975130469
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_5
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 1874
+        width: 18
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0201cd0128259f2b0800000000000000
+      internalID: -5550314347175342048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_6
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 1876
+        width: 17
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81381c494f577a2c0800000000000000
+      internalID: -4420434815912672488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_7
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 1877
+        width: 17
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eeefd0ce5a517aca0800000000000000
+      internalID: -6005807775701139730
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_8
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 1876
+        width: 17
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb49593827dfc8f70800000000000000
+      internalID: 9190999607832057023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_9
+      rect:
+        serializedVersion: 2
+        x: 1104
+        y: 1897
+        width: 44
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae763779b72771ef0800000000000000
+      internalID: -137515388464044054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_10
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 1899
+        width: 39
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47cc9d01d0c361610800000000000000
+      internalID: 1591525545136999540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_11
+      rect:
+        serializedVersion: 2
+        x: 1361
+        y: 1906
+        width: 20
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96e90ef421739c270800000000000000
+      internalID: 8271202742431686249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_12
+      rect:
+        serializedVersion: 2
+        x: 1613
+        y: 1899
+        width: 43
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f883506cc7dbec120800000000000000
+      internalID: 2436092792049842319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_13
+      rect:
+        serializedVersion: 2
+        x: 1642
+        y: 1883
+        width: 36
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42b69506042c51de0800000000000000
+      internalID: -1362969730459538652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_14
+      rect:
+        serializedVersion: 2
+        x: 1866
+        y: 1870
+        width: 16
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad8cc0280acaac620800000000000000
+      internalID: 2795236324113434842
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_15
+      rect:
+        serializedVersion: 2
+        x: 1876
+        y: 1857
+        width: 27
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7302c2796988b330800000000000000
+      internalID: 3726879777638974330
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_16
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 1675
+        width: 11
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6f2697129ec76810800000000000000
+      internalID: 1758601306367733613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_17
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 1704
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c25f86df3ec83cc30800000000000000
+      internalID: 4378498173571233068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_18
+      rect:
+        serializedVersion: 2
+        x: 365
+        y: 1675
+        width: 11
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 278795f7822dd3990800000000000000
+      internalID: -7404531140950132622
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_19
+      rect:
+        serializedVersion: 2
+        x: 375
+        y: 1705
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca1581c8492ffd290800000000000000
+      internalID: -7863299704546111060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_20
+      rect:
+        serializedVersion: 2
+        x: 622
+        y: 1676
+        width: 10
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b974732bec637beb0800000000000000
+      internalID: -4704231024384063589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_21
+      rect:
+        serializedVersion: 2
+        x: 631
+        y: 1705
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a2a2fa8e3121f9b0800000000000000
+      internalID: -5048217154802769247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_22
+      rect:
+        serializedVersion: 2
+        x: 877
+        y: 1675
+        width: 11
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a22fc0881b565da70800000000000000
+      internalID: 8851092455832744490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_23
+      rect:
+        serializedVersion: 2
+        x: 887
+        y: 1705
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83ffed9b1de3d95c0800000000000000
+      internalID: -4207137406406688968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_24
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 1704
+        width: 15
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5adb6d410e077080800000000000000
+      internalID: -9189861115869537697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_25
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 1626
+        width: 13
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c3c1110f1dc7d210800000000000000
+      internalID: 1357779345721115588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_26
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 1629
+        width: 13
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 633344e4ab6068500800000000000000
+      internalID: 398013014315643702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_27
+      rect:
+        serializedVersion: 2
+        x: 612
+        y: 1630
+        width: 13
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 182cdb0094f5af260800000000000000
+      internalID: 7132117727044289153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_28
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 1629
+        width: 13
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e561535c6923fbe0800000000000000
+      internalID: -1444765510224747035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_29
+      rect:
+        serializedVersion: 2
+        x: 1094
+        y: 1653
+        width: 53
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d91db12ce4cc19a0800000000000000
+      internalID: -6260912863494465065
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_30
+      rect:
+        serializedVersion: 2
+        x: 1131
+        y: 1642
+        width: 44
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d0aa9eaedcab9980800000000000000
+      internalID: -8531034996711186224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_31
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 1435
+        width: 38
+        height: 265
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70f90a85f56a0fa10800000000000000
+      internalID: 1941234367835709191
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_32
+      rect:
+        serializedVersion: 2
+        x: 1638
+        y: 1655
+        width: 11
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 838347196ac408cf0800000000000000
+      internalID: -252117300844152776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_33
+      rect:
+        serializedVersion: 2
+        x: 1638
+        y: 1632
+        width: 10
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 608343795d6f355c0800000000000000
+      internalID: -4227764227945515002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_34
+      rect:
+        serializedVersion: 2
+        x: 1874
+        y: 1615
+        width: 36
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8ad01fabcd136a70800000000000000
+      internalID: 8818925255974247054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_35
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 1431
+        width: 8
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 513cab16a2e7d3880800000000000000
+      internalID: -8629602590478646507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_36
+      rect:
+        serializedVersion: 2
+        x: 388
+        y: 1432
+        width: 8
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8743aa589d9feaa20800000000000000
+      internalID: 3075670308186371192
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_37
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 1432
+        width: 8
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a8663b8b5a73e2ea0800000000000000
+      internalID: -5895713677273504118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_38
+      rect:
+        serializedVersion: 2
+        x: 900
+        y: 1432
+        width: 8
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 214b6cfcc97ef49d0800000000000000
+      internalID: -2787754983632227310
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_39
+      rect:
+        serializedVersion: 2
+        x: 1113
+        y: 1410
+        width: 21
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1e316c2d46595680800000000000000
+      internalID: -8765880310242918885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_40
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 1424
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c407c8246a8a9eb0800000000000000
+      internalID: -4712301897304308539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_41
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 1380
+        width: 15
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f435c0798a0de7f80800000000000000
+      internalID: -8106812856713063601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_42
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 1382
+        width: 14
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a92017c036846e220800000000000000
+      internalID: 2514777032180695706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_43
+      rect:
+        serializedVersion: 2
+        x: 620
+        y: 1383
+        width: 13
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a71c3409a41b82d0800000000000000
+      internalID: -3275501587828828251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_44
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 1382
+        width: 14
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b638f899d8192a250800000000000000
+      internalID: 5954481694689952619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_45
+      rect:
+        serializedVersion: 2
+        x: 1122
+        y: 1389
+        width: 25
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e3e933c545bb7660800000000000000
+      internalID: 7384695325236782051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_46
+      rect:
+        serializedVersion: 2
+        x: 1625
+        y: 1387
+        width: 39
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7942a1bc679d659b0800000000000000
+      internalID: -5091643224458910569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_47
+      rect:
+        serializedVersion: 2
+        x: 1880
+        y: 1375
+        width: 51
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a0829580a15aad30800000000000000
+      internalID: 4443453732232003745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_48
+      rect:
+        serializedVersion: 2
+        x: 135
+        y: 1140
+        width: 21
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e13ebbe697f8ccf0800000000000000
+      internalID: -231663153237315095
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_49
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 1162
+        width: 21
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 944d85052c7855410800000000000000
+      internalID: 1465226522420368457
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_50
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 1139
+        width: 26
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c8c2f86473e3ea50800000000000000
+      internalID: 6549328372243286210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_51
+      rect:
+        serializedVersion: 2
+        x: 903
+        y: 1162
+        width: 21
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b1ec0322b46b2890800000000000000
+      internalID: -7481775639690944079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_52
+      rect:
+        serializedVersion: 2
+        x: 1145
+        y: 1176
+        width: 19
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 205c1ecb025f67df0800000000000000
+      internalID: -182689213905255166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_53
+      rect:
+        serializedVersion: 2
+        x: 1431
+        y: 1143
+        width: 15
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c40b27426b9fff7f0800000000000000
+      internalID: -576467666589274036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_54
+      rect:
+        serializedVersion: 2
+        x: 1118
+        y: 1141
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7bc846bf25dbe700800000000000000
+      internalID: 570784178690902907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_55
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 1165
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0af8b2253e7453a90800000000000000
+      internalID: -7334877376441249888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_56
+      rect:
+        serializedVersion: 2
+        x: 380
+        y: 1131
+        width: 25
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 015f84307e0a51c30800000000000000
+      internalID: 4329543530839602448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_57
+      rect:
+        serializedVersion: 2
+        x: 902
+        y: 1139
+        width: 15
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 377995d1fd85fc1a0800000000000000
+      internalID: -6787108398130686093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_58
+      rect:
+        serializedVersion: 2
+        x: 1628
+        y: 1141
+        width: 28
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2618bf240227a6b70800000000000000
+      internalID: 8893045897084764514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_59
+      rect:
+        serializedVersion: 2
+        x: 1671
+        y: 1143
+        width: 47
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bedb93031741f22f0800000000000000
+      internalID: -995554516252639765
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_60
+      rect:
+        serializedVersion: 2
+        x: 1905
+        y: 1117
+        width: 40
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 540cb287806ffd820800000000000000
+      internalID: 2945343197559898181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_61
+      rect:
+        serializedVersion: 2
+        x: 1958
+        y: 1111
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e5f75c0666de7890800000000000000
+      internalID: -7458288199096863260
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_62
+      rect:
+        serializedVersion: 2
+        x: 1975
+        y: 1101
+        width: 11
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dac566df37e67a200800000000000000
+      internalID: 191242953638173869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_63
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 895
+        width: 17
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1283dbe7e6f0cbdf0800000000000000
+      internalID: -163238519245031391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_64
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 895
+        width: 18
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bc73519d52009e20800000000000000
+      internalID: 3355184323284401337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_65
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 898
+        width: 19
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7630a61d270ef96f0800000000000000
+      internalID: -675574635338005657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_66
+      rect:
+        serializedVersion: 2
+        x: 909
+        y: 895
+        width: 18
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51827bfa7625e4cf0800000000000000
+      internalID: -266184722685155307
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_67
+      rect:
+        serializedVersion: 2
+        x: 1176
+        y: 912
+        width: 24
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b24f72ebb50aca750800000000000000
+      internalID: 6317600693186720811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_68
+      rect:
+        serializedVersion: 2
+        x: 1435
+        y: 917
+        width: 20
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb2ff39426fdd2660800000000000000
+      internalID: 7362786579049345724
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_69
+      rect:
+        serializedVersion: 2
+        x: 1435
+        y: 876
+        width: 20
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cba0a94f5ad48fe20800000000000000
+      internalID: 3384540495137606332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_70
+      rect:
+        serializedVersion: 2
+        x: 1113
+        y: 899
+        width: 44
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: effc50eaa3b8214c0800000000000000
+      internalID: -4318236008550903810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_71
+      rect:
+        serializedVersion: 2
+        x: 1650
+        y: 898
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b90fb5470adad7370800000000000000
+      internalID: 8321998591109099675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_72
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 874
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed597c0240bc16cf0800000000000000
+      internalID: -260704084820519458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_73
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 871
+        width: 16
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8e453bec150614d0800000000000000
+      internalID: -3164336066417832308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_74
+      rect:
+        serializedVersion: 2
+        x: 656
+        y: 871
+        width: 16
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e7e2d6bdeaf0e2a0800000000000000
+      internalID: -6710087545900570653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_75
+      rect:
+        serializedVersion: 2
+        x: 912
+        y: 871
+        width: 16
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83eb9c222b260a280800000000000000
+      internalID: -9034112335277867464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_76
+      rect:
+        serializedVersion: 2
+        x: 1674
+        y: 874
+        width: 41
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5087b408e2db85e00800000000000000
+      internalID: 1033784121900103685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_77
+      rect:
+        serializedVersion: 2
+        x: 1937
+        y: 834
+        width: 26
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fc3dd2cf16666950800000000000000
+      internalID: 6441948603599371512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_78
+      rect:
+        serializedVersion: 2
+        x: 1960
+        y: 822
+        width: 14
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c531d6b8f62c90fb0800000000000000
+      internalID: -4680996553338580132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_79
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 631
+        width: 16
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: deabf50d27f10fef0800000000000000
+      internalID: -76526615682630931
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_80
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 632
+        width: 16
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2924d800573a35ad0800000000000000
+      internalID: -2714646427458518382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_81
+      rect:
+        serializedVersion: 2
+        x: 642
+        y: 633
+        width: 17
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfc5fd964a4366050800000000000000
+      internalID: 5793375851414248700
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_82
+      rect:
+        serializedVersion: 2
+        x: 899
+        y: 632
+        width: 16
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 191d049dddcf03590800000000000000
+      internalID: -7696373733413301871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_83
+      rect:
+        serializedVersion: 2
+        x: 1129
+        y: 650
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3e1db7dad86fde50800000000000000
+      internalID: 6836298048503356988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_84
+      rect:
+        serializedVersion: 2
+        x: 1175
+        y: 642
+        width: 35
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79da073032a303da0800000000000000
+      internalID: -5967205584209924713
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_85
+      rect:
+        serializedVersion: 2
+        x: 1423
+        y: 647
+        width: 15
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87b36e9910d4a6da0800000000000000
+      internalID: -5950859288344380552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_86
+      rect:
+        serializedVersion: 2
+        x: 1400
+        y: 352
+        width: 38
+        height: 291
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e5be7c197ed946030800000000000000
+      internalID: 3487085629400410974
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_87
+      rect:
+        serializedVersion: 2
+        x: 1680
+        y: 636
+        width: 6
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ea5dbc7b65d6b7530800000000000000
+      internalID: 3853794125363795374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_88
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 607
+        width: 11
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55d89414ba41ce820800000000000000
+      internalID: 2948754581788134741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_89
+      rect:
+        serializedVersion: 2
+        x: 401
+        y: 606
+        width: 11
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d947a3f54b0c51b70800000000000000
+      internalID: 8869206922100372637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_90
+      rect:
+        serializedVersion: 2
+        x: 656
+        y: 606
+        width: 12
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12b690e5b7b078e00800000000000000
+      internalID: 1046818062873488161
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_91
+      rect:
+        serializedVersion: 2
+        x: 913
+        y: 606
+        width: 11
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b2637c17ebb83370800000000000000
+      internalID: 8302592514346672816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_92
+      rect:
+        serializedVersion: 2
+        x: 1679
+        y: 605
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ea23b942bf37b270800000000000000
+      internalID: 8266145676035042022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_93
+      rect:
+        serializedVersion: 2
+        x: 1938
+        y: 577
+        width: 27
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa06283d5a6d6e390800000000000000
+      internalID: -7789302497784209233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_94
+      rect:
+        serializedVersion: 2
+        x: 1919
+        y: 556
+        width: 32
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a83715933401b2000800000000000000
+      internalID: 12121304909050762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_95
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 372
+        width: 18
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f03e06f34fa6ca20800000000000000
+      internalID: 3082343701407478001
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_96
+      rect:
+        serializedVersion: 2
+        x: 372
+        y: 372
+        width: 21
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fda05b7cad747cee0800000000000000
+      internalID: -1240944167338308897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_97
+      rect:
+        serializedVersion: 2
+        x: 628
+        y: 374
+        width: 20
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb42fa15bc9a17210800000000000000
+      internalID: 1329030055764894911
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_98
+      rect:
+        serializedVersion: 2
+        x: 884
+        y: 372
+        width: 21
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2f8e6fc668f844d0800000000000000
+      internalID: -3149994818895179988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_99
+      rect:
+        serializedVersion: 2
+        x: 1157
+        y: 382
+        width: 19
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb9bcfc773b6a0680800000000000000
+      internalID: -8788093836795790917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_100
+      rect:
+        serializedVersion: 2
+        x: 1175
+        y: 368
+        width: 16
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef0c4c612e642b6c0800000000000000
+      internalID: -4129159971486777090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_101
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 341
+        width: 23
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7eb5324e53367d10800000000000000
+      internalID: 2122940754282528380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_102
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 341
+        width: 23
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09d2e5bca9074dce0800000000000000
+      internalID: -1381355375556678256
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_103
+      rect:
+        serializedVersion: 2
+        x: 638
+        y: 341
+        width: 23
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c27ae1739f670c880800000000000000
+      internalID: -8592737276279216340
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_104
+      rect:
+        serializedVersion: 2
+        x: 895
+        y: 341
+        width: 23
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1053861a048397260800000000000000
+      internalID: 7095764538135950593
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_105
+      rect:
+        serializedVersion: 2
+        x: 1637
+        y: 346
+        width: 34
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 25c1fa336d416cd20800000000000000
+      internalID: 3298346687318137938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_106
+      rect:
+        serializedVersion: 2
+        x: 1675
+        y: 353
+        width: 28
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67d661bfe65cc0a80800000000000000
+      internalID: -8499201316305343114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_107
+      rect:
+        serializedVersion: 2
+        x: 1874
+        y: 303
+        width: 45
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa5417c42dd0c1c30800000000000000
+      internalID: 4331352138500359599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_108
+      rect:
+        serializedVersion: 2
+        x: 1922
+        y: 312
+        width: 38
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0dc9b405496eec320800000000000000
+      internalID: 2580253161206553808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_109
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 122
+        width: 21
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0273cc77c71435da0800000000000000
+      internalID: -5957345879239411936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_110
+      rect:
+        serializedVersion: 2
+        x: 356
+        y: 123
+        width: 21
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c80246abc5e18be50800000000000000
+      internalID: 6825238618892935308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_111
+      rect:
+        serializedVersion: 2
+        x: 612
+        y: 123
+        width: 20
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f48819a34017d59d0800000000000000
+      internalID: -2783944731668674481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_112
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 123
+        width: 21
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02a1f3446849c02d0800000000000000
+      internalID: -3311108321632642528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_113
+      rect:
+        serializedVersion: 2
+        x: 1166
+        y: 115
+        width: 20
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e5989b43ee582bd0800000000000000
+      internalID: -2654767650016029212
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_114
+      rect:
+        serializedVersion: 2
+        x: 1370
+        y: 139
+        width: 15
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c077984a72cdaa30800000000000000
+      internalID: 4228249455630446788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_115
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 80
+        width: 26
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e4b7bc44ed1313f0800000000000000
+      internalID: -931367831558703903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_116
+      rect:
+        serializedVersion: 2
+        x: 363
+        y: 80
+        width: 25
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89c25ec0e3c37c500800000000000000
+      internalID: 416367727757044888
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_117
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 81
+        width: 24
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2f03c0781e60f610800000000000000
+      internalID: 1652942114495074094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_118
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 80
+        width: 25
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 520cbee8e3c1d84a0800000000000000
+      internalID: -6589579624761802715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_119
+      rect:
+        serializedVersion: 2
+        x: 1140
+        y: 103
+        width: 30
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 802ad17416b726730800000000000000
+      internalID: 3990887877538849288
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_120
+      rect:
+        serializedVersion: 2
+        x: 1370
+        y: 102
+        width: 15
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d82af0729c342ea0800000000000000
+      internalID: -5898523012290172714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_121
+      rect:
+        serializedVersion: 2
+        x: 1610
+        y: 95
+        width: 42
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dded8fc2b2229bd0800000000000000
+      internalID: -2624997481421869611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_122
+      rect:
+        serializedVersion: 2
+        x: 1656
+        y: 92
+        width: 44
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0711a8e2468438de0800000000000000
+      internalID: -1332141469656805008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_123
+      rect:
+        serializedVersion: 2
+        x: 1854
+        y: 59
+        width: 37
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78ec650b169d62a50800000000000000
+      internalID: 6496118526122053255
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longbow_124
+      rect:
+        serializedVersion: 2
+        x: 1892
+        y: 56
+        width: 43
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d295cdbd00d3f850800000000000000
+      internalID: 6409695452115342035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      male_longbow_0: 2196601267497979506
+      male_longbow_1: -1357702042731484952
+      male_longbow_10: 1591525545136999540
+      male_longbow_100: -4129159971486777090
+      male_longbow_101: 2122940754282528380
+      male_longbow_102: -1381355375556678256
+      male_longbow_103: -8592737276279216340
+      male_longbow_104: 7095764538135950593
+      male_longbow_105: 3298346687318137938
+      male_longbow_106: -8499201316305343114
+      male_longbow_107: 4331352138500359599
+      male_longbow_108: 2580253161206553808
+      male_longbow_109: -5957345879239411936
+      male_longbow_11: 8271202742431686249
+      male_longbow_110: 6825238618892935308
+      male_longbow_111: -2783944731668674481
+      male_longbow_112: -3311108321632642528
+      male_longbow_113: -2654767650016029212
+      male_longbow_114: 4228249455630446788
+      male_longbow_115: -931367831558703903
+      male_longbow_116: 416367727757044888
+      male_longbow_117: 1652942114495074094
+      male_longbow_118: -6589579624761802715
+      male_longbow_119: 3990887877538849288
+      male_longbow_12: 2436092792049842319
+      male_longbow_120: -5898523012290172714
+      male_longbow_121: -2624997481421869611
+      male_longbow_122: -1332141469656805008
+      male_longbow_123: 6496118526122053255
+      male_longbow_124: 6409695452115342035
+      male_longbow_13: -1362969730459538652
+      male_longbow_14: 2795236324113434842
+      male_longbow_15: 3726879777638974330
+      male_longbow_16: 1758601306367733613
+      male_longbow_17: 4378498173571233068
+      male_longbow_18: -7404531140950132622
+      male_longbow_19: -7863299704546111060
+      male_longbow_2: 9107870318795929605
+      male_longbow_20: -4704231024384063589
+      male_longbow_21: -5048217154802769247
+      male_longbow_22: 8851092455832744490
+      male_longbow_23: -4207137406406688968
+      male_longbow_24: -9189861115869537697
+      male_longbow_25: 1357779345721115588
+      male_longbow_26: 398013014315643702
+      male_longbow_27: 7132117727044289153
+      male_longbow_28: -1444765510224747035
+      male_longbow_29: -6260912863494465065
+      male_longbow_3: 9180284166349314994
+      male_longbow_30: -8531034996711186224
+      male_longbow_31: 1941234367835709191
+      male_longbow_32: -252117300844152776
+      male_longbow_33: -4227764227945515002
+      male_longbow_34: 8818925255974247054
+      male_longbow_35: -8629602590478646507
+      male_longbow_36: 3075670308186371192
+      male_longbow_37: -5895713677273504118
+      male_longbow_38: -2787754983632227310
+      male_longbow_39: -8765880310242918885
+      male_longbow_4: 5300561500975130469
+      male_longbow_40: -4712301897304308539
+      male_longbow_41: -8106812856713063601
+      male_longbow_42: 2514777032180695706
+      male_longbow_43: -3275501587828828251
+      male_longbow_44: 5954481694689952619
+      male_longbow_45: 7384695325236782051
+      male_longbow_46: -5091643224458910569
+      male_longbow_47: 4443453732232003745
+      male_longbow_48: -231663153237315095
+      male_longbow_49: 1465226522420368457
+      male_longbow_5: -5550314347175342048
+      male_longbow_50: 6549328372243286210
+      male_longbow_51: -7481775639690944079
+      male_longbow_52: -182689213905255166
+      male_longbow_53: -576467666589274036
+      male_longbow_54: 570784178690902907
+      male_longbow_55: -7334877376441249888
+      male_longbow_56: 4329543530839602448
+      male_longbow_57: -6787108398130686093
+      male_longbow_58: 8893045897084764514
+      male_longbow_59: -995554516252639765
+      male_longbow_6: -4420434815912672488
+      male_longbow_60: 2945343197559898181
+      male_longbow_61: -7458288199096863260
+      male_longbow_62: 191242953638173869
+      male_longbow_63: -163238519245031391
+      male_longbow_64: 3355184323284401337
+      male_longbow_65: -675574635338005657
+      male_longbow_66: -266184722685155307
+      male_longbow_67: 6317600693186720811
+      male_longbow_68: 7362786579049345724
+      male_longbow_69: 3384540495137606332
+      male_longbow_7: -6005807775701139730
+      male_longbow_70: -4318236008550903810
+      male_longbow_71: 8321998591109099675
+      male_longbow_72: -260704084820519458
+      male_longbow_73: -3164336066417832308
+      male_longbow_74: -6710087545900570653
+      male_longbow_75: -9034112335277867464
+      male_longbow_76: 1033784121900103685
+      male_longbow_77: 6441948603599371512
+      male_longbow_78: -4680996553338580132
+      male_longbow_79: -76526615682630931
+      male_longbow_8: 9190999607832057023
+      male_longbow_80: -2714646427458518382
+      male_longbow_81: 5793375851414248700
+      male_longbow_82: -7696373733413301871
+      male_longbow_83: 6836298048503356988
+      male_longbow_84: -5967205584209924713
+      male_longbow_85: -5950859288344380552
+      male_longbow_86: 3487085629400410974
+      male_longbow_87: 3853794125363795374
+      male_longbow_88: 2948754581788134741
+      male_longbow_89: 8869206922100372637
+      male_longbow_9: -137515388464044054
+      male_longbow_90: 1046818062873488161
+      male_longbow_91: 8302592514346672816
+      male_longbow_92: 8266145676035042022
+      male_longbow_93: -7789302497784209233
+      male_longbow_94: 12121304909050762
+      male_longbow_95: 3082343701407478001
+      male_longbow_96: -1240944167338308897
+      male_longbow_97: 1329030055764894911
+      male_longbow_98: -3149994818895179988
+      male_longbow_99: -8788093836795790917
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

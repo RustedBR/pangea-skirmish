@@ -1,0 +1,2834 @@
+fileFormatVersion: 2
+guid: 92a929ac50d48563eae15cb605a9579f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -4305211270252047118
+    second: male_longsword_0
+  - first:
+      213: -8235935713020379216
+    second: male_longsword_1
+  - first:
+      213: -4173470690548310023
+    second: male_longsword_2
+  - first:
+      213: 8407754760821622894
+    second: male_longsword_3
+  - first:
+      213: -8431295789281871637
+    second: male_longsword_4
+  - first:
+      213: -2064614947507172864
+    second: male_longsword_5
+  - first:
+      213: 5559012478996732100
+    second: male_longsword_6
+  - first:
+      213: -3584296412844450530
+    second: male_longsword_7
+  - first:
+      213: 2012373429396071728
+    second: male_longsword_8
+  - first:
+      213: 5611017219671004351
+    second: male_longsword_9
+  - first:
+      213: -7679997146352566248
+    second: male_longsword_10
+  - first:
+      213: 7781154466254971746
+    second: male_longsword_11
+  - first:
+      213: 419073619133901263
+    second: male_longsword_12
+  - first:
+      213: -5524835301283242226
+    second: male_longsword_13
+  - first:
+      213: -2104751615147390652
+    second: male_longsword_14
+  - first:
+      213: -4455673601867742710
+    second: male_longsword_15
+  - first:
+      213: -6903926742784486592
+    second: male_longsword_16
+  - first:
+      213: -5059301761771519941
+    second: male_longsword_17
+  - first:
+      213: 3679519627979228901
+    second: male_longsword_18
+  - first:
+      213: 4215272513681394954
+    second: male_longsword_19
+  - first:
+      213: -7121529794466067027
+    second: male_longsword_20
+  - first:
+      213: -2661781585423173746
+    second: male_longsword_21
+  - first:
+      213: 7873471876858440185
+    second: male_longsword_22
+  - first:
+      213: 3965060893481853875
+    second: male_longsword_23
+  - first:
+      213: 8717960250714352727
+    second: male_longsword_24
+  - first:
+      213: -9203888965951580324
+    second: male_longsword_25
+  - first:
+      213: 5487818720841034710
+    second: male_longsword_26
+  - first:
+      213: -4469508011640368304
+    second: male_longsword_27
+  - first:
+      213: 5416559051094884264
+    second: male_longsword_28
+  - first:
+      213: -1233147069913126678
+    second: male_longsword_29
+  - first:
+      213: -3609079360468774146
+    second: male_longsword_30
+  - first:
+      213: 4733446592045509556
+    second: male_longsword_31
+  - first:
+      213: 1657640217433216963
+    second: male_longsword_32
+  - first:
+      213: -6254785200894601094
+    second: male_longsword_33
+  - first:
+      213: 1467696081714436445
+    second: male_longsword_34
+  - first:
+      213: 8655933548537326577
+    second: male_longsword_35
+  - first:
+      213: 8603667344867463721
+    second: male_longsword_36
+  - first:
+      213: -501681608577441391
+    second: male_longsword_37
+  - first:
+      213: -399331388012353109
+    second: male_longsword_38
+  - first:
+      213: 9119936216657660855
+    second: male_longsword_39
+  - first:
+      213: -5091088169993162887
+    second: male_longsword_40
+  - first:
+      213: -3122635464351174082
+    second: male_longsword_41
+  - first:
+      213: -3989003845939836693
+    second: male_longsword_42
+  - first:
+      213: -3010583671589869101
+    second: male_longsword_43
+  - first:
+      213: 1705059996529246650
+    second: male_longsword_44
+  - first:
+      213: 1041161007171804866
+    second: male_longsword_45
+  - first:
+      213: -5840639085765561929
+    second: male_longsword_46
+  - first:
+      213: 3470767650190780427
+    second: male_longsword_47
+  - first:
+      213: 7056126326692970854
+    second: male_longsword_48
+  - first:
+      213: 7848838012498394050
+    second: male_longsword_49
+  - first:
+      213: -701587230979459516
+    second: male_longsword_50
+  - first:
+      213: -7195078553617365056
+    second: male_longsword_51
+  - first:
+      213: 3561225920882864225
+    second: male_longsword_52
+  - first:
+      213: 1707082264308982807
+    second: male_longsword_53
+  - first:
+      213: -4536155815753832559
+    second: male_longsword_54
+  - first:
+      213: -2475137569983490882
+    second: male_longsword_55
+  - first:
+      213: 1650858090101471118
+    second: male_longsword_56
+  - first:
+      213: -8729780582718485778
+    second: male_longsword_57
+  - first:
+      213: 5776025757513662059
+    second: male_longsword_58
+  - first:
+      213: -2449735248299333151
+    second: male_longsword_59
+  - first:
+      213: -7026428330301533706
+    second: male_longsword_60
+  - first:
+      213: 3689460524641971063
+    second: male_longsword_61
+  - first:
+      213: -8670039879873466110
+    second: male_longsword_62
+  - first:
+      213: 3478957857358891616
+    second: male_longsword_63
+  - first:
+      213: -3986502558793989400
+    second: male_longsword_64
+  - first:
+      213: -9158231098277985574
+    second: male_longsword_65
+  - first:
+      213: 9163449917194591321
+    second: male_longsword_66
+  - first:
+      213: 5239673613686341538
+    second: male_longsword_67
+  - first:
+      213: -877147830863903193
+    second: male_longsword_68
+  - first:
+      213: -4590839662592148760
+    second: male_longsword_69
+  - first:
+      213: 199327701507427694
+    second: male_longsword_70
+  - first:
+      213: 5713043553991517995
+    second: male_longsword_71
+  - first:
+      213: 4852790215473298323
+    second: male_longsword_72
+  - first:
+      213: -6857702856239367588
+    second: male_longsword_73
+  - first:
+      213: -6509370582656421478
+    second: male_longsword_74
+  - first:
+      213: -7258731977486650926
+    second: male_longsword_75
+  - first:
+      213: 2979229224013955924
+    second: male_longsword_76
+  - first:
+      213: -4910059506795522205
+    second: male_longsword_77
+  - first:
+      213: 3964441854711129930
+    second: male_longsword_78
+  - first:
+      213: -8556528749082867327
+    second: male_longsword_79
+  - first:
+      213: 2692025504420746423
+    second: male_longsword_80
+  - first:
+      213: 4656191082880309738
+    second: male_longsword_81
+  - first:
+      213: 5388712143584614102
+    second: male_longsword_82
+  - first:
+      213: 6891515351294388111
+    second: male_longsword_83
+  - first:
+      213: -2507101548711557435
+    second: male_longsword_84
+  - first:
+      213: 4647301164718822951
+    second: male_longsword_85
+  - first:
+      213: -2589849373731840560
+    second: male_longsword_86
+  - first:
+      213: 3338731496145435367
+    second: male_longsword_87
+  - first:
+      213: 9153714462976126883
+    second: male_longsword_88
+  - first:
+      213: -1930769920695835249
+    second: male_longsword_89
+  - first:
+      213: 2172102253524374755
+    second: male_longsword_90
+  - first:
+      213: -7553866585883620733
+    second: male_longsword_91
+  - first:
+      213: -2956028053433209643
+    second: male_longsword_92
+  - first:
+      213: -2576619840887015348
+    second: male_longsword_93
+  - first:
+      213: 8735374450384914566
+    second: male_longsword_94
+  - first:
+      213: 7571958271610291123
+    second: male_longsword_95
+  - first:
+      213: 3148154201163420238
+    second: male_longsword_96
+  - first:
+      213: 7645929572981900902
+    second: male_longsword_97
+  - first:
+      213: 5351554473485036989
+    second: male_longsword_98
+  - first:
+      213: -6425838702956431654
+    second: male_longsword_99
+  - first:
+      213: -5494398598900170471
+    second: male_longsword_100
+  - first:
+      213: -5051777585112232989
+    second: male_longsword_101
+  - first:
+      213: -7575404494478434081
+    second: male_longsword_102
+  - first:
+      213: 2873473178603329709
+    second: male_longsword_103
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: male_longsword_0
+      rect:
+        serializedVersion: 2
+        x: 90
+        y: 1941
+        width: 35
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f45e91e821d044c0800000000000000
+      internalID: -4305211270252047118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_1
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 1940
+        width: 32
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bf7778da1414bd80800000000000000
+      internalID: -8235935713020379216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_2
+      rect:
+        serializedVersion: 2
+        x: 860
+        y: 1940
+        width: 32
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ff1d59d48ad416c0800000000000000
+      internalID: -4173470690548310023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_3
+      rect:
+        serializedVersion: 2
+        x: 1406
+        y: 1953
+        width: 17
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e684f55a8685ea470800000000000000
+      internalID: 8407754760821622894
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_4
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 1928
+        width: 17
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be87b9b86250efa80800000000000000
+      internalID: -8431295789281871637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_5
+      rect:
+        serializedVersion: 2
+        x: 604
+        y: 1939
+        width: 32
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 00a8fdfd4a30953e0800000000000000
+      internalID: -2064614947507172864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_6
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 1930
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c850909564952d40800000000000000
+      internalID: 5559012478996732100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_7
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 1928
+        width: 17
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e1d13b62765024ec0800000000000000
+      internalID: -3584296412844450530
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_8
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 1927
+        width: 13
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0356696d8f26deb10800000000000000
+      internalID: 2012373429396071728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_9
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 1928
+        width: 16
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb4171fce665edd40800000000000000
+      internalID: 5611017219671004351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_10
+      rect:
+        serializedVersion: 2
+        x: 1061
+        y: 1913
+        width: 55
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81044a7294b2b6590800000000000000
+      internalID: -7679997146352566248
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_11
+      rect:
+        serializedVersion: 2
+        x: 1113
+        y: 1914
+        width: 16
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 263629fb2c63cfb60800000000000000
+      internalID: 7781154466254971746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_12
+      rect:
+        serializedVersion: 2
+        x: 1645
+        y: 1913
+        width: 18
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc9a63b7c39d0d500800000000000000
+      internalID: 419073619133901263
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_13
+      rect:
+        serializedVersion: 2
+        x: 1674
+        y: 1913
+        width: 15
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0f5978b097d353b0800000000000000
+      internalID: -5524835301283242226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_14
+      rect:
+        serializedVersion: 2
+        x: 1933
+        y: 1879
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 449c5b6be8b6ac2e0800000000000000
+      internalID: -2104751615147390652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_15
+      rect:
+        serializedVersion: 2
+        x: 1940
+        y: 1883
+        width: 46
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a02869d57744a22c0800000000000000
+      internalID: -4455673601867742710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_16
+      rect:
+        serializedVersion: 2
+        x: 127
+        y: 1680
+        width: 24
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 043d20db4335030a0800000000000000
+      internalID: -6903926742784486592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_17
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 1689
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b30c91e5adfb9c9b0800000000000000
+      internalID: -5059301761771519941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_18
+      rect:
+        serializedVersion: 2
+        x: 643
+        y: 1691
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e687c15b97401330800000000000000
+      internalID: 3679519627979228901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_19
+      rect:
+        serializedVersion: 2
+        x: 899
+        y: 1689
+        width: 10
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0d82798408af7a30800000000000000
+      internalID: 4215272513681394954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_20
+      rect:
+        serializedVersion: 2
+        x: 1097
+        y: 1441
+        width: 69
+        height: 268
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dad4d77226e3b2d90800000000000000
+      internalID: -7121529794466067027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_21
+      rect:
+        serializedVersion: 2
+        x: 1409
+        y: 1691
+        width: 19
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e87fc2330c37f0bd0800000000000000
+      internalID: -2661781585423173746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_22
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 1659
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9f9ec21e4f0344d60800000000000000
+      internalID: 7873471876858440185
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_23
+      rect:
+        serializedVersion: 2
+        x: 416
+        y: 1658
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b367c4ffd9b60730800000000000000
+      internalID: 3965060893481853875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_24
+      rect:
+        serializedVersion: 2
+        x: 667
+        y: 1658
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75cedc588aa6cf870800000000000000
+      internalID: 8717960250714352727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_25
+      rect:
+        serializedVersion: 2
+        x: 928
+        y: 1658
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c579150ffb7354080800000000000000
+      internalID: -9203888965951580324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_26
+      rect:
+        serializedVersion: 2
+        x: 1685
+        y: 1647
+        width: 8
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dbe7770d06a82c40800000000000000
+      internalID: 5487818720841034710
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_27
+      rect:
+        serializedVersion: 2
+        x: 1937
+        y: 1616
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 053d965d42e19f1c0800000000000000
+      internalID: -4469508011640368304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_28
+      rect:
+        serializedVersion: 2
+        x: 1950
+        y: 1614
+        width: 56
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8afff6142cb7b2b40800000000000000
+      internalID: 5416559051094884264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_29
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 1398
+        width: 13
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae8a30ef54bf2eee0800000000000000
+      internalID: -1233147069913126678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_30
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 1396
+        width: 14
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef290118179f9edc0800000000000000
+      internalID: -3609079360468774146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_31
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 1401
+        width: 15
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4bbe72ab89490b140800000000000000
+      internalID: 4733446592045509556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_32
+      rect:
+        serializedVersion: 2
+        x: 920
+        y: 1396
+        width: 14
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c71285cefe110710800000000000000
+      internalID: 1657640217433216963
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_33
+      rect:
+        serializedVersion: 2
+        x: 1410
+        y: 1420
+        width: 17
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a789e42cff98239a0800000000000000
+      internalID: -6254785200894601094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_34
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 1389
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5952d46fcd4e5410800000000000000
+      internalID: 1467696081714436445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_35
+      rect:
+        serializedVersion: 2
+        x: 408
+        y: 1389
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fb24f783bd002870800000000000000
+      internalID: 8655933548537326577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_36
+      rect:
+        serializedVersion: 2
+        x: 662
+        y: 1389
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9221470bddd566770800000000000000
+      internalID: 8603667344867463721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_37
+      rect:
+        serializedVersion: 2
+        x: 920
+        y: 1389
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 191256a2c3ba909f0800000000000000
+      internalID: -501681608577441391
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_38
+      rect:
+        serializedVersion: 2
+        x: 1675
+        y: 1387
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba92cd5e73a457af0800000000000000
+      internalID: -399331388012353109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_39
+      rect:
+        serializedVersion: 2
+        x: 1684
+        y: 1381
+        width: 35
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7bb89186ba5809e70800000000000000
+      internalID: 9119936216657660855
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_40
+      rect:
+        serializedVersion: 2
+        x: 1929
+        y: 1353
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97f2d5b7842d859b0800000000000000
+      internalID: -5091088169993162887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_41
+      rect:
+        serializedVersion: 2
+        x: 1933
+        y: 1334
+        width: 43
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e32bf40f69b2aa4d0800000000000000
+      internalID: -3122635464351174082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_42
+      rect:
+        serializedVersion: 2
+        x: 136
+        y: 1131
+        width: 45
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be8c613032634a8c0800000000000000
+      internalID: -3989003845939836693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_43
+      rect:
+        serializedVersion: 2
+        x: 1182
+        y: 1154
+        width: 44
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d96b48f9124836d0800000000000000
+      internalID: -3010583671589869101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_44
+      rect:
+        serializedVersion: 2
+        x: 1406
+        y: 1172
+        width: 14
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab1cad5780799a710800000000000000
+      internalID: 1705059996529246650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_45
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 1130
+        width: 47
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ce96727b62f27e00800000000000000
+      internalID: 1041161007171804866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_46
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 1130
+        width: 47
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b17eaf42b1e1fea0800000000000000
+      internalID: -5840639085765561929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_47
+      rect:
+        serializedVersion: 2
+        x: 901
+        y: 1130
+        width: 47
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b08e987f9c4aa2030800000000000000
+      internalID: 3470767650190780427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_48
+      rect:
+        serializedVersion: 2
+        x: 1411
+        y: 1160
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66101d852856ce160800000000000000
+      internalID: 7056126326692970854
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_49
+      rect:
+        serializedVersion: 2
+        x: 1172
+        y: 1151
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2cbbc82669cacec60800000000000000
+      internalID: 7848838012498394050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_50
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 1126
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 446f48e61267346f0800000000000000
+      internalID: -701587230979459516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_51
+      rect:
+        serializedVersion: 2
+        x: 382
+        y: 1127
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c70b983d22f52c90800000000000000
+      internalID: -7195078553617365056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_52
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 1128
+        width: 10
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 160f22b5b140c6130800000000000000
+      internalID: 3561225920882864225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_53
+      rect:
+        serializedVersion: 2
+        x: 894
+        y: 1127
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 714a18e5646c0b710800000000000000
+      internalID: 1707082264308982807
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_54
+      rect:
+        serializedVersion: 2
+        x: 1655
+        y: 1128
+        width: 10
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 197ab24b1565c01c0800000000000000
+      internalID: -4536155815753832559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_55
+      rect:
+        serializedVersion: 2
+        x: 1665
+        y: 1108
+        width: 54
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb419e27e7b86add0800000000000000
+      internalID: -2475137569983490882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_56
+      rect:
+        serializedVersion: 2
+        x: 1908
+        y: 1068
+        width: 17
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e87f313bfa609e610800000000000000
+      internalID: 1650858090101471118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_57
+      rect:
+        serializedVersion: 2
+        x: 1393
+        y: 916
+        width: 17
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eea46f7ffc699d680800000000000000
+      internalID: -8729780582718485778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_58
+      rect:
+        serializedVersion: 2
+        x: 1396
+        y: 904
+        width: 7
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6ebb12e2d0982050800000000000000
+      internalID: 5776025757513662059
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_59
+      rect:
+        serializedVersion: 2
+        x: 114
+        y: 873
+        width: 52
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e96d5b55cac00ed0800000000000000
+      internalID: -2449735248299333151
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_60
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 874
+        width: 54
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f1d2a449ac1d7e90800000000000000
+      internalID: -7026428330301533706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_61
+      rect:
+        serializedVersion: 2
+        x: 622
+        y: 875
+        width: 54
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77b6c10bcc8933330800000000000000
+      internalID: 3689460524641971063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_62
+      rect:
+        serializedVersion: 2
+        x: 879
+        y: 874
+        width: 54
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 201fba34aa4dda780800000000000000
+      internalID: -8670039879873466110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_63
+      rect:
+        serializedVersion: 2
+        x: 1175
+        y: 885
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06a4e6c2dbdb74030800000000000000
+      internalID: 3478957857358891616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_64
+      rect:
+        serializedVersion: 2
+        x: 1187
+        y: 883
+        width: 56
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e206ee4b091da8c0800000000000000
+      internalID: -3986502558793989400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_65
+      rect:
+        serializedVersion: 2
+        x: 1639
+        y: 877
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad28438a65d67e080800000000000000
+      internalID: -9158231098277985574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_66
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 874
+        width: 9
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 95c577f462d1b2f70800000000000000
+      internalID: 9163449917194591321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_67
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 876
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2aff2c2046f07b840800000000000000
+      internalID: 5239673613686341538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_68
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 878
+        width: 10
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7264ad5f1beb3d3f0800000000000000
+      internalID: -877147830863903193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_69
+      rect:
+        serializedVersion: 2
+        x: 867
+        y: 876
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8eabb6276af0a40c0800000000000000
+      internalID: -4590839662592148760
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_70
+      rect:
+        serializedVersion: 2
+        x: 1645
+        y: 837
+        width: 42
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e6dce3a0d7724c200800000000000000
+      internalID: 199327701507427694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_71
+      rect:
+        serializedVersion: 2
+        x: 1854
+        y: 827
+        width: 47
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b27eff5e7dec84f40800000000000000
+      internalID: 5713043553991517995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_72
+      rect:
+        serializedVersion: 2
+        x: 1900
+        y: 843
+        width: 7
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 39bf6c26df2985340800000000000000
+      internalID: 4852790215473298323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_73
+      rect:
+        serializedVersion: 2
+        x: 1388
+        y: 663
+        width: 19
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c5abbaef59b84d0a0800000000000000
+      internalID: -6857702856239367588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_74
+      rect:
+        serializedVersion: 2
+        x: 1387
+        y: 654
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a91f26571f11aa5a0800000000000000
+      internalID: -6509370582656421478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_75
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 630
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d1b32299bdc34b90800000000000000
+      internalID: -7258731977486650926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_76
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 625
+        width: 35
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45380d1d139585920800000000000000
+      internalID: 2979229224013955924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_77
+      rect:
+        serializedVersion: 2
+        x: 343
+        y: 633
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3675c67a4e6fbdbb0800000000000000
+      internalID: -4910059506795522205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_78
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 627
+        width: 35
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a476fb2ccd6840730800000000000000
+      internalID: 3964441854711129930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_79
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 625
+        width: 41
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1898f78ef6a114980800000000000000
+      internalID: -8556528749082867327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_80
+      rect:
+        serializedVersion: 2
+        x: 855
+        y: 633
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b45a4deeeefb5520800000000000000
+      internalID: 2692025504420746423
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_81
+      rect:
+        serializedVersion: 2
+        x: 862
+        y: 627
+        width: 35
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae91c6dce1d1e9040800000000000000
+      internalID: 4656191082880309738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_82
+      rect:
+        serializedVersion: 2
+        x: 1635
+        y: 581
+        width: 8
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d6d13bd42d88ca40800000000000000
+      internalID: 5388712143584614102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_83
+      rect:
+        serializedVersion: 2
+        x: 1163
+        y: 620
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f87ad0ef2b493af50800000000000000
+      internalID: 6891515351294388111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_84
+      rect:
+        serializedVersion: 2
+        x: 1171
+        y: 609
+        width: 36
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c64735bc6cf43dd0800000000000000
+      internalID: -2507101548711557435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_85
+      rect:
+        serializedVersion: 2
+        x: 1835
+        y: 594
+        width: 68
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 726135f69c78e7040800000000000000
+      internalID: 4647301164718822951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_86
+      rect:
+        serializedVersion: 2
+        x: 1389
+        y: 405
+        width: 17
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0dd12f857b10f0cd0800000000000000
+      internalID: -2589849373731840560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_87
+      rect:
+        serializedVersion: 2
+        x: 91
+        y: 383
+        width: 12
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ea382c3b9e855e20800000000000000
+      internalID: 3338731496145435367
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_88
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 380
+        width: 14
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3af2c0d3ec6880f70800000000000000
+      internalID: 9153714462976126883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_89
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 377
+        width: 15
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f856aed9cf68435e0800000000000000
+      internalID: -1930769920695835249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_90
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 380
+        width: 14
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3e45525cd7bd42e10800000000000000
+      internalID: 2172102253524374755
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_91
+      rect:
+        serializedVersion: 2
+        x: 1609
+        y: 340
+        width: 41
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38ac6bbbc564b2790800000000000000
+      internalID: -7553866585883620733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_92
+      rect:
+        serializedVersion: 2
+        x: 1138
+        y: 345
+        width: 10
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dc2609a5241af6d0800000000000000
+      internalID: -2956028053433209643
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_93
+      rect:
+        serializedVersion: 2
+        x: 1864
+        y: 348
+        width: 44
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c48b4bef7e10e3cd0800000000000000
+      internalID: -2576619840887015348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_94
+      rect:
+        serializedVersion: 2
+        x: 1400
+        y: 153
+        width: 8
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6884737d7c84a3970800000000000000
+      internalID: 8735374450384914566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_95
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 138
+        width: 47
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b389691eeff41960800000000000000
+      internalID: 7571958271610291123
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_96
+      rect:
+        serializedVersion: 2
+        x: 332
+        y: 138
+        width: 46
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e42df7af09d70bb20800000000000000
+      internalID: 3148154201163420238
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_97
+      rect:
+        serializedVersion: 2
+        x: 590
+        y: 138
+        width: 45
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6668d3fcf6ccb1a60800000000000000
+      internalID: 7645929572981900902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_98
+      rect:
+        serializedVersion: 2
+        x: 844
+        y: 138
+        width: 46
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbd6a3c907a844a40800000000000000
+      internalID: 5351554473485036989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_99
+      rect:
+        serializedVersion: 2
+        x: 1667
+        y: 131
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad63356ceb5d2d6a0800000000000000
+      internalID: -6425838702956431654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_100
+      rect:
+        serializedVersion: 2
+        x: 1915
+        y: 94
+        width: 17
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 911c62ab599ffb3b0800000000000000
+      internalID: -5494398598900170471
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_101
+      rect:
+        serializedVersion: 2
+        x: 1078
+        y: 106
+        width: 44
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ebca134d0b74e9b0800000000000000
+      internalID: -5051777585112232989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_102
+      rect:
+        serializedVersion: 2
+        x: 1120
+        y: 112
+        width: 12
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd027bc9fb1ced690800000000000000
+      internalID: -7575404494478434081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_longsword_103
+      rect:
+        serializedVersion: 2
+        x: 1610
+        y: 107
+        width: 40
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da89342b1a0a0e720800000000000000
+      internalID: 2873473178603329709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      male_longsword_0: -4305211270252047118
+      male_longsword_1: -8235935713020379216
+      male_longsword_10: -7679997146352566248
+      male_longsword_100: -5494398598900170471
+      male_longsword_101: -5051777585112232989
+      male_longsword_102: -7575404494478434081
+      male_longsword_103: 2873473178603329709
+      male_longsword_11: 7781154466254971746
+      male_longsword_12: 419073619133901263
+      male_longsword_13: -5524835301283242226
+      male_longsword_14: -2104751615147390652
+      male_longsword_15: -4455673601867742710
+      male_longsword_16: -6903926742784486592
+      male_longsword_17: -5059301761771519941
+      male_longsword_18: 3679519627979228901
+      male_longsword_19: 4215272513681394954
+      male_longsword_2: -4173470690548310023
+      male_longsword_20: -7121529794466067027
+      male_longsword_21: -2661781585423173746
+      male_longsword_22: 7873471876858440185
+      male_longsword_23: 3965060893481853875
+      male_longsword_24: 8717960250714352727
+      male_longsword_25: -9203888965951580324
+      male_longsword_26: 5487818720841034710
+      male_longsword_27: -4469508011640368304
+      male_longsword_28: 5416559051094884264
+      male_longsword_29: -1233147069913126678
+      male_longsword_3: 8407754760821622894
+      male_longsword_30: -3609079360468774146
+      male_longsword_31: 4733446592045509556
+      male_longsword_32: 1657640217433216963
+      male_longsword_33: -6254785200894601094
+      male_longsword_34: 1467696081714436445
+      male_longsword_35: 8655933548537326577
+      male_longsword_36: 8603667344867463721
+      male_longsword_37: -501681608577441391
+      male_longsword_38: -399331388012353109
+      male_longsword_39: 9119936216657660855
+      male_longsword_4: -8431295789281871637
+      male_longsword_40: -5091088169993162887
+      male_longsword_41: -3122635464351174082
+      male_longsword_42: -3989003845939836693
+      male_longsword_43: -3010583671589869101
+      male_longsword_44: 1705059996529246650
+      male_longsword_45: 1041161007171804866
+      male_longsword_46: -5840639085765561929
+      male_longsword_47: 3470767650190780427
+      male_longsword_48: 7056126326692970854
+      male_longsword_49: 7848838012498394050
+      male_longsword_5: -2064614947507172864
+      male_longsword_50: -701587230979459516
+      male_longsword_51: -7195078553617365056
+      male_longsword_52: 3561225920882864225
+      male_longsword_53: 1707082264308982807
+      male_longsword_54: -4536155815753832559
+      male_longsword_55: -2475137569983490882
+      male_longsword_56: 1650858090101471118
+      male_longsword_57: -8729780582718485778
+      male_longsword_58: 5776025757513662059
+      male_longsword_59: -2449735248299333151
+      male_longsword_6: 5559012478996732100
+      male_longsword_60: -7026428330301533706
+      male_longsword_61: 3689460524641971063
+      male_longsword_62: -8670039879873466110
+      male_longsword_63: 3478957857358891616
+      male_longsword_64: -3986502558793989400
+      male_longsword_65: -9158231098277985574
+      male_longsword_66: 9163449917194591321
+      male_longsword_67: 5239673613686341538
+      male_longsword_68: -877147830863903193
+      male_longsword_69: -4590839662592148760
+      male_longsword_7: -3584296412844450530
+      male_longsword_70: 199327701507427694
+      male_longsword_71: 5713043553991517995
+      male_longsword_72: 4852790215473298323
+      male_longsword_73: -6857702856239367588
+      male_longsword_74: -6509370582656421478
+      male_longsword_75: -7258731977486650926
+      male_longsword_76: 2979229224013955924
+      male_longsword_77: -4910059506795522205
+      male_longsword_78: 3964441854711129930
+      male_longsword_79: -8556528749082867327
+      male_longsword_8: 2012373429396071728
+      male_longsword_80: 2692025504420746423
+      male_longsword_81: 4656191082880309738
+      male_longsword_82: 5388712143584614102
+      male_longsword_83: 6891515351294388111
+      male_longsword_84: -2507101548711557435
+      male_longsword_85: 4647301164718822951
+      male_longsword_86: -2589849373731840560
+      male_longsword_87: 3338731496145435367
+      male_longsword_88: 9153714462976126883
+      male_longsword_89: -1930769920695835249
+      male_longsword_9: 5611017219671004351
+      male_longsword_90: 2172102253524374755
+      male_longsword_91: -7553866585883620733
+      male_longsword_92: -2956028053433209643
+      male_longsword_93: -2576619840887015348
+      male_longsword_94: 8735374450384914566
+      male_longsword_95: 7571958271610291123
+      male_longsword_96: 3148154201163420238
+      male_longsword_97: 7645929572981900902
+      male_longsword_98: 5351554473485036989
+      male_longsword_99: -6425838702956431654
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,3848 @@
+fileFormatVersion: 2
+guid: 0304002ad654533999a5f0b4c016df35
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7645618802847392789
+    second: male_staff_0
+  - first:
+      213: 6059227932396743993
+    second: male_staff_1
+  - first:
+      213: -4527877486986813844
+    second: male_staff_2
+  - first:
+      213: -6365593201193459355
+    second: male_staff_3
+  - first:
+      213: 1496694907983215141
+    second: male_staff_4
+  - first:
+      213: 5949338198081869066
+    second: male_staff_5
+  - first:
+      213: 726689208452658009
+    second: male_staff_6
+  - first:
+      213: 7350162534817866907
+    second: male_staff_7
+  - first:
+      213: 569568281313701908
+    second: male_staff_8
+  - first:
+      213: 2914237114100072088
+    second: male_staff_9
+  - first:
+      213: 6948974849784533565
+    second: male_staff_10
+  - first:
+      213: 4181505606986902010
+    second: male_staff_11
+  - first:
+      213: 6768206662457631193
+    second: male_staff_12
+  - first:
+      213: -6644496605981362615
+    second: male_staff_13
+  - first:
+      213: 4567442400516276556
+    second: male_staff_14
+  - first:
+      213: -2543478545493441926
+    second: male_staff_15
+  - first:
+      213: -8877013348730351647
+    second: male_staff_16
+  - first:
+      213: 6138361824292937334
+    second: male_staff_17
+  - first:
+      213: -6213652040180647031
+    second: male_staff_18
+  - first:
+      213: 9176747625223949584
+    second: male_staff_19
+  - first:
+      213: -8126045040655681068
+    second: male_staff_20
+  - first:
+      213: -3558083925053367291
+    second: male_staff_21
+  - first:
+      213: -4526841738041193478
+    second: male_staff_22
+  - first:
+      213: 4555957181308458728
+    second: male_staff_23
+  - first:
+      213: -4047981721638579486
+    second: male_staff_24
+  - first:
+      213: -7120687649002797924
+    second: male_staff_25
+  - first:
+      213: -1805890170147052476
+    second: male_staff_26
+  - first:
+      213: -2139592988901957975
+    second: male_staff_27
+  - first:
+      213: 8442353517049523814
+    second: male_staff_28
+  - first:
+      213: -1385446286159327404
+    second: male_staff_29
+  - first:
+      213: 6919324443256043322
+    second: male_staff_30
+  - first:
+      213: 3987342831684896570
+    second: male_staff_31
+  - first:
+      213: -7406420492556819072
+    second: male_staff_32
+  - first:
+      213: 8119809219597057003
+    second: male_staff_33
+  - first:
+      213: 2792488652753102411
+    second: male_staff_34
+  - first:
+      213: -5600977445404429485
+    second: male_staff_35
+  - first:
+      213: 8577573214950642145
+    second: male_staff_36
+  - first:
+      213: 2092399881418101126
+    second: male_staff_37
+  - first:
+      213: 5346816622243180697
+    second: male_staff_38
+  - first:
+      213: 6105537200597125383
+    second: male_staff_39
+  - first:
+      213: -8908921390377219039
+    second: male_staff_40
+  - first:
+      213: -1199662458258615668
+    second: male_staff_41
+  - first:
+      213: -1399389402442251838
+    second: male_staff_42
+  - first:
+      213: -5546797719330115815
+    second: male_staff_43
+  - first:
+      213: -202448719629583317
+    second: male_staff_44
+  - first:
+      213: 2456602788574657266
+    second: male_staff_45
+  - first:
+      213: -6955207885982620962
+    second: male_staff_46
+  - first:
+      213: -5209942750876091955
+    second: male_staff_47
+  - first:
+      213: 7586085737260051661
+    second: male_staff_48
+  - first:
+      213: 8068341773784202460
+    second: male_staff_49
+  - first:
+      213: 7118524443959019819
+    second: male_staff_50
+  - first:
+      213: 8450650199477207988
+    second: male_staff_51
+  - first:
+      213: -1714191290690425323
+    second: male_staff_52
+  - first:
+      213: -5214695356939539242
+    second: male_staff_53
+  - first:
+      213: -5387194132001686809
+    second: male_staff_54
+  - first:
+      213: -7512166598688418847
+    second: male_staff_55
+  - first:
+      213: 2053245863494727804
+    second: male_staff_56
+  - first:
+      213: -7819013029279351135
+    second: male_staff_57
+  - first:
+      213: -5830743841104847023
+    second: male_staff_58
+  - first:
+      213: 8149389785841582401
+    second: male_staff_59
+  - first:
+      213: -1455755881047391843
+    second: male_staff_60
+  - first:
+      213: 8337222769272053458
+    second: male_staff_61
+  - first:
+      213: 5272421513300170353
+    second: male_staff_62
+  - first:
+      213: -6036463627943321786
+    second: male_staff_63
+  - first:
+      213: -491557741878727060
+    second: male_staff_64
+  - first:
+      213: 3589046951419575306
+    second: male_staff_65
+  - first:
+      213: -4706818360805244270
+    second: male_staff_66
+  - first:
+      213: 3405313965183497913
+    second: male_staff_67
+  - first:
+      213: 8845954337574445546
+    second: male_staff_68
+  - first:
+      213: 3246261919059870798
+    second: male_staff_69
+  - first:
+      213: 2705117393742496936
+    second: male_staff_70
+  - first:
+      213: 2627521160889976925
+    second: male_staff_71
+  - first:
+      213: 6667127737037023129
+    second: male_staff_72
+  - first:
+      213: -7426695256843671598
+    second: male_staff_73
+  - first:
+      213: 2150665110850826030
+    second: male_staff_74
+  - first:
+      213: 4585164307725214616
+    second: male_staff_75
+  - first:
+      213: -657269734425747074
+    second: male_staff_76
+  - first:
+      213: 2347047425370563239
+    second: male_staff_77
+  - first:
+      213: -6597421547516263956
+    second: male_staff_78
+  - first:
+      213: -4852309312761866826
+    second: male_staff_79
+  - first:
+      213: 1296593611534573613
+    second: male_staff_80
+  - first:
+      213: 2283011523896153920
+    second: male_staff_81
+  - first:
+      213: -5108607595698864063
+    second: male_staff_82
+  - first:
+      213: -8115621096877820116
+    second: male_staff_83
+  - first:
+      213: -2890492277964377799
+    second: male_staff_84
+  - first:
+      213: 70895829660710899
+    second: male_staff_85
+  - first:
+      213: -5821836156108248917
+    second: male_staff_86
+  - first:
+      213: 9075457557461425799
+    second: male_staff_87
+  - first:
+      213: -7879979208415877361
+    second: male_staff_88
+  - first:
+      213: 6518946828716843817
+    second: male_staff_89
+  - first:
+      213: 4314301367097758057
+    second: male_staff_90
+  - first:
+      213: 6318885177472133567
+    second: male_staff_91
+  - first:
+      213: -6848482264956747839
+    second: male_staff_92
+  - first:
+      213: 3925585511113361187
+    second: male_staff_93
+  - first:
+      213: 1651481946960263410
+    second: male_staff_94
+  - first:
+      213: 7704643581611815858
+    second: male_staff_95
+  - first:
+      213: 2422720475298855472
+    second: male_staff_96
+  - first:
+      213: 7078164649431865241
+    second: male_staff_97
+  - first:
+      213: -2059125163062846445
+    second: male_staff_98
+  - first:
+      213: 6390707876299766604
+    second: male_staff_99
+  - first:
+      213: 959807511514509912
+    second: male_staff_100
+  - first:
+      213: -7163814757585218437
+    second: male_staff_101
+  - first:
+      213: 614991058241270720
+    second: male_staff_102
+  - first:
+      213: -2737886297808792491
+    second: male_staff_103
+  - first:
+      213: 2258024496764848556
+    second: male_staff_104
+  - first:
+      213: 3254307341087650142
+    second: male_staff_105
+  - first:
+      213: -1679863288926502359
+    second: male_staff_106
+  - first:
+      213: 2495458464236836933
+    second: male_staff_107
+  - first:
+      213: -5537179957195847689
+    second: male_staff_108
+  - first:
+      213: 4642263834793438304
+    second: male_staff_109
+  - first:
+      213: 4999710602399267479
+    second: male_staff_110
+  - first:
+      213: -1021187739427792087
+    second: male_staff_111
+  - first:
+      213: 3130783451190458104
+    second: male_staff_112
+  - first:
+      213: -4740605386083614695
+    second: male_staff_113
+  - first:
+      213: 6224604932056725969
+    second: male_staff_114
+  - first:
+      213: 4337317540002374246
+    second: male_staff_115
+  - first:
+      213: 2149203981327293977
+    second: male_staff_116
+  - first:
+      213: -1768306209044785312
+    second: male_staff_117
+  - first:
+      213: -4834099862741352808
+    second: male_staff_118
+  - first:
+      213: -2348531640897966644
+    second: male_staff_119
+  - first:
+      213: 304190359625548667
+    second: male_staff_120
+  - first:
+      213: -1942716315360382226
+    second: male_staff_121
+  - first:
+      213: 2812014770902709296
+    second: male_staff_122
+  - first:
+      213: 683259554732135677
+    second: male_staff_123
+  - first:
+      213: 6061059051765909091
+    second: male_staff_124
+  - first:
+      213: 2159672537694727341
+    second: male_staff_125
+  - first:
+      213: 1039541566474798836
+    second: male_staff_126
+  - first:
+      213: -3073010931595751194
+    second: male_staff_127
+  - first:
+      213: 6379399991197419447
+    second: male_staff_128
+  - first:
+      213: -4607729784267631926
+    second: male_staff_129
+  - first:
+      213: -4373004177933484301
+    second: male_staff_130
+  - first:
+      213: 3260163851418601954
+    second: male_staff_131
+  - first:
+      213: 2809059240711015147
+    second: male_staff_132
+  - first:
+      213: -6383528772005949323
+    second: male_staff_133
+  - first:
+      213: 592056707349328477
+    second: male_staff_134
+  - first:
+      213: -8870919711787307504
+    second: male_staff_135
+  - first:
+      213: 5331727635667046959
+    second: male_staff_136
+  - first:
+      213: -4200395699073672096
+    second: male_staff_137
+  - first:
+      213: -7871495072205936645
+    second: male_staff_138
+  - first:
+      213: -9038618464807565621
+    second: male_staff_139
+  - first:
+      213: 4284232236846071889
+    second: male_staff_140
+  - first:
+      213: -8110805843475233433
+    second: male_staff_141
+  - first:
+      213: 6857048673124968869
+    second: male_staff_142
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: male_staff_0
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 1963
+        width: 15
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51424cffac1ba1a60800000000000000
+      internalID: 7645618802847392789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_1
+      rect:
+        serializedVersion: 2
+        x: 1410
+        y: 1952
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 93de1ab83b3b61450800000000000000
+      internalID: 6059227932396743993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_2
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 1930
+        width: 21
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6e99a15a6fb921c0800000000000000
+      internalID: -4527877486986813844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_3
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 1928
+        width: 62
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 561e83ab5bed8a7a0800000000000000
+      internalID: -6365593201193459355
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_4
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 1926
+        width: 17
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52ab977c61455c410800000000000000
+      internalID: 1496694907983215141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_5
+      rect:
+        serializedVersion: 2
+        x: 396
+        y: 1929
+        width: 65
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a051559f19b409250800000000000000
+      internalID: 5949338198081869066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_6
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 1924
+        width: 14
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9533ee32cf7b51a00800000000000000
+      internalID: 726689208452658009
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_7
+      rect:
+        serializedVersion: 2
+        x: 652
+        y: 1927
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b942431f1e5010660800000000000000
+      internalID: 7350162534817866907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_8
+      rect:
+        serializedVersion: 2
+        x: 655
+        y: 1929
+        width: 64
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 410780b855387e700800000000000000
+      internalID: 569568281313701908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_9
+      rect:
+        serializedVersion: 2
+        x: 870
+        y: 1926
+        width: 17
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89eb1390733717820800000000000000
+      internalID: 2914237114100072088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_10
+      rect:
+        serializedVersion: 2
+        x: 908
+        y: 1929
+        width: 65
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d32d7820fc7bf6060800000000000000
+      internalID: 6948974849784533565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_11
+      rect:
+        serializedVersion: 2
+        x: 1420
+        y: 1927
+        width: 22
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: af922cae131b70a30800000000000000
+      internalID: 4181505606986902010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_12
+      rect:
+        serializedVersion: 2
+        x: 1674
+        y: 1912
+        width: 46
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d1283a99108ded50800000000000000
+      internalID: 6768206662457631193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_13
+      rect:
+        serializedVersion: 2
+        x: 1095
+        y: 1912
+        width: 23
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94631397a810ac3a0800000000000000
+      internalID: -6644496605981362615
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_14
+      rect:
+        serializedVersion: 2
+        x: 1117
+        y: 1916
+        width: 23
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4184d6f9a0d26f30800000000000000
+      internalID: 4567442400516276556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_15
+      rect:
+        serializedVersion: 2
+        x: 1154
+        y: 1920
+        width: 22
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7249022dbfb3bcd0800000000000000
+      internalID: -2543478545493441926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_16
+      rect:
+        serializedVersion: 2
+        x: 1075
+        y: 1911
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1efc68a44638ec480800000000000000
+      internalID: -8877013348730351647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_17
+      rect:
+        serializedVersion: 2
+        x: 1890
+        y: 1882
+        width: 23
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67e9cc78e87df2550800000000000000
+      internalID: 6138361824292937334
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_18
+      rect:
+        serializedVersion: 2
+        x: 1930
+        y: 1879
+        width: 33
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98bb62b046ca4c9a0800000000000000
+      internalID: -6213652040180647031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_19
+      rect:
+        serializedVersion: 2
+        x: 1962
+        y: 1880
+        width: 19
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01d02ea385b5a5f70800000000000000
+      internalID: 9176747625223949584
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_20
+      rect:
+        serializedVersion: 2
+        x: 1395
+        y: 1708
+        width: 14
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d9b4e2d61d7a3f80800000000000000
+      internalID: -8126045040655681068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_21
+      rect:
+        serializedVersion: 2
+        x: 1410
+        y: 1691
+        width: 16
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50c9a2e85852f9ec0800000000000000
+      internalID: -3558083925053367291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_22
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 1645
+        width: 61
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: afb84a96c6d6d21c0800000000000000
+      internalID: -4526841738041193478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_23
+      rect:
+        serializedVersion: 2
+        x: 1093
+        y: 1678
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e6d7cbfae20a3f30800000000000000
+      internalID: 4555957181308458728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_24
+      rect:
+        serializedVersion: 2
+        x: 1111
+        y: 1670
+        width: 29
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e25570421ea2d7c0800000000000000
+      internalID: -4047981721638579486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_25
+      rect:
+        serializedVersion: 2
+        x: 1428
+        y: 1653
+        width: 34
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c944dac6f4c3e2d90800000000000000
+      internalID: -7120687649002797924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_26
+      rect:
+        serializedVersion: 2
+        x: 397
+        y: 1650
+        width: 62
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 444e301557030f6e0800000000000000
+      internalID: -1805890170147052476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_27
+      rect:
+        serializedVersion: 2
+        x: 653
+        y: 1651
+        width: 61
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ae159c3383ae42e0800000000000000
+      internalID: -2139592988901957975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_28
+      rect:
+        serializedVersion: 2
+        x: 909
+        y: 1650
+        width: 62
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66ea1045bc3492570800000000000000
+      internalID: 8442353517049523814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_29
+      rect:
+        serializedVersion: 2
+        x: 1158
+        y: 1658
+        width: 26
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45fc61271f7e5cce0800000000000000
+      internalID: -1385446286159327404
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_30
+      rect:
+        serializedVersion: 2
+        x: 1677
+        y: 1640
+        width: 30
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a3734f5cbe0660060800000000000000
+      internalID: 6919324443256043322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_31
+      rect:
+        serializedVersion: 2
+        x: 1894
+        y: 1630
+        width: 21
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a374748fd23e55730800000000000000
+      internalID: 3987342831684896570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_32
+      rect:
+        serializedVersion: 2
+        x: 1933
+        y: 1606
+        width: 36
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0852afb8dcb173990800000000000000
+      internalID: -7406420492556819072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_33
+      rect:
+        serializedVersion: 2
+        x: 1969
+        y: 1599
+        width: 19
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: beb3602f67b5fa070800000000000000
+      internalID: 8119809219597057003
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_34
+      rect:
+        serializedVersion: 2
+        x: 1401
+        y: 1453
+        width: 13
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4668aa62a9e0c620800000000000000
+      internalID: 2792488652753102411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_35
+      rect:
+        serializedVersion: 2
+        x: 1412
+        y: 1431
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 353b1bb40b45542b0800000000000000
+      internalID: -5600977445404429485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_36
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 1403
+        width: 8
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e1d900a469a90770800000000000000
+      internalID: 8577573214950642145
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_37
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 1402
+        width: 8
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 681defb2b92b90d10800000000000000
+      internalID: 2092399881418101126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_38
+      rect:
+        serializedVersion: 2
+        x: 663
+        y: 1401
+        width: 8
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99075f7a365b33a40800000000000000
+      internalID: 5346816622243180697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_39
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 1402
+        width: 8
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70946844cb93bb450800000000000000
+      internalID: 6105537200597125383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_40
+      rect:
+        serializedVersion: 2
+        x: 1161
+        y: 1392
+        width: 15
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12ccfaa62372d5480800000000000000
+      internalID: -8908921390377219039
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_41
+      rect:
+        serializedVersion: 2
+        x: 1422
+        y: 1378
+        width: 30
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c829f1da951f95fe0800000000000000
+      internalID: -1199662458258615668
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_42
+      rect:
+        serializedVersion: 2
+        x: 1666
+        y: 1375
+        width: 30
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c1cbf4b0ce549ce0800000000000000
+      internalID: -1399389402442251838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_43
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 1368
+        width: 7
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91fa16accd0d503b0800000000000000
+      internalID: -5546797719330115815
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_44
+      rect:
+        serializedVersion: 2
+        x: 409
+        y: 1373
+        width: 7
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2cfe3d46f1c03df0800000000000000
+      internalID: -202448719629583317
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_45
+      rect:
+        serializedVersion: 2
+        x: 663
+        y: 1375
+        width: 7
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2faf937783b971220800000000000000
+      internalID: 2456602788574657266
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_46
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 1373
+        width: 7
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed2a20927432a7f90800000000000000
+      internalID: -6955207885982620962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_47
+      rect:
+        serializedVersion: 2
+        x: 1911
+        y: 1376
+        width: 10
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dc9b8e9eba092b7b0800000000000000
+      internalID: -5209942750876091955
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_48
+      rect:
+        serializedVersion: 2
+        x: 1928
+        y: 1335
+        width: 20
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dccea0509c0374960800000000000000
+      internalID: 7586085737260051661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_49
+      rect:
+        serializedVersion: 2
+        x: 1945
+        y: 1322
+        width: 11
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cdc3ad8681288ff60800000000000000
+      internalID: 8068341773784202460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_50
+      rect:
+        serializedVersion: 2
+        x: 1409
+        y: 1195
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b29cc1724441ac260800000000000000
+      internalID: 7118524443959019819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_51
+      rect:
+        serializedVersion: 2
+        x: 1191
+        y: 1166
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b34cec359db64570800000000000000
+      internalID: 8450650199477207988
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_52
+      rect:
+        serializedVersion: 2
+        x: 1410
+        y: 1174
+        width: 7
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51e24517a18f538e0800000000000000
+      internalID: -1714191290690425323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_53
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 1131
+        width: 31
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dc6db5933ea1a7b0800000000000000
+      internalID: -5214695356939539242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_54
+      rect:
+        serializedVersion: 2
+        x: 1183
+        y: 1159
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7ea78f1ca77dc35b0800000000000000
+      internalID: -5387194132001686809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_55
+      rect:
+        serializedVersion: 2
+        x: 1411
+        y: 1111
+        width: 7
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e35f97974c6fb790800000000000000
+      internalID: -7512166598688418847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_56
+      rect:
+        serializedVersion: 2
+        x: 1626
+        y: 1116
+        width: 55
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c78b42afb389e7c10800000000000000
+      internalID: 2053245863494727804
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_57
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 1112
+        width: 75
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ae37a7a3194d7390800000000000000
+      internalID: -7819013029279351135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_58
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 1118
+        width: 75
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 15f16ae7e59051fa0800000000000000
+      internalID: -5830743841104847023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_59
+      rect:
+        serializedVersion: 2
+        x: 602
+        y: 1121
+        width: 75
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 141c84935d2781170800000000000000
+      internalID: 8149389785841582401
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_60
+      rect:
+        serializedVersion: 2
+        x: 860
+        y: 1118
+        width: 75
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d910c763dbd1ccbe0800000000000000
+      internalID: -1455755881047391843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_61
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 1119
+        width: 12
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2de52c7afe3c3b370800000000000000
+      internalID: 8337222769272053458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_62
+      rect:
+        serializedVersion: 2
+        x: 1680
+        y: 1107
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 176526e8e676b2940800000000000000
+      internalID: 5272421513300170353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_63
+      rect:
+        serializedVersion: 2
+        x: 1913
+        y: 1095
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64f5fdc105c2a3ca0800000000000000
+      internalID: -6036463627943321786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_64
+      rect:
+        serializedVersion: 2
+        x: 1901
+        y: 1062
+        width: 10
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6ea9b096d2ad29f0800000000000000
+      internalID: -491557741878727060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_65
+      rect:
+        serializedVersion: 2
+        x: 1906
+        y: 1077
+        width: 11
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0cff8dcf2bdec130800000000000000
+      internalID: 3589046951419575306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_66
+      rect:
+        serializedVersion: 2
+        x: 1410
+        y: 937
+        width: 11
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 292caed73a50eaeb0800000000000000
+      internalID: -4706818360805244270
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_67
+      rect:
+        serializedVersion: 2
+        x: 1401
+        y: 917
+        width: 12
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b6707b520b124f20800000000000000
+      internalID: 3405313965183497913
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_68
+      rect:
+        serializedVersion: 2
+        x: 1608
+        y: 876
+        width: 39
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae163762a9423ca70800000000000000
+      internalID: 8845954337574445546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_69
+      rect:
+        serializedVersion: 2
+        x: 561
+        y: 875
+        width: 82
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e440175140a0d0d20800000000000000
+      internalID: 3246261919059870798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_70
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 879
+        width: 57
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a480c1ffe18a8520800000000000000
+      internalID: 2705117393742496936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_71
+      rect:
+        serializedVersion: 2
+        x: 1189
+        y: 886
+        width: 20
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d584baa1394d67420800000000000000
+      internalID: 2627521160889976925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_72
+      rect:
+        serializedVersion: 2
+        x: 1209
+        y: 889
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 997ee365a55668c50800000000000000
+      internalID: 6667127737037023129
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_73
+      rect:
+        serializedVersion: 2
+        x: 1374
+        y: 861
+        width: 29
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d721c023041fe890800000000000000
+      internalID: -7426695256843671598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_74
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 874
+        width: 83
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2fe61b0682b8dd10800000000000000
+      internalID: 2150665110850826030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_75
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 875
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 893e2c605a6c1af30800000000000000
+      internalID: 4585164307725214616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_76
+      rect:
+        serializedVersion: 2
+        x: 307
+        y: 874
+        width: 82
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e7120fda8a8e0e6f0800000000000000
+      internalID: -657269734425747074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_77
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 873
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a2253cb233629020800000000000000
+      internalID: 2347047425370563239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_78
+      rect:
+        serializedVersion: 2
+        x: 644
+        y: 873
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce109c2ae004174a0800000000000000
+      internalID: -6597421547516263956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_79
+      rect:
+        serializedVersion: 2
+        x: 819
+        y: 874
+        width: 82
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b55280836229acb0800000000000000
+      internalID: -4852309312761866826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_80
+      rect:
+        serializedVersion: 2
+        x: 901
+        y: 873
+        width: 21
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d202f81250d6ef110800000000000000
+      internalID: 1296593611534573613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_81
+      rect:
+        serializedVersion: 2
+        x: 1644
+        y: 857
+        width: 20
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04714f392e2eeaf10800000000000000
+      internalID: 2283011523896153920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_82
+      rect:
+        serializedVersion: 2
+        x: 1662
+        y: 843
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 140c18155749a19b0800000000000000
+      internalID: -5108607595698864063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_83
+      rect:
+        serializedVersion: 2
+        x: 1927
+        y: 859
+        width: 23
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c277eec5c958f5f80800000000000000
+      internalID: -8115621096877820116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_84
+      rect:
+        serializedVersion: 2
+        x: 1877
+        y: 831
+        width: 19
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9317ce17698e2e7d0800000000000000
+      internalID: -2890492277964377799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_85
+      rect:
+        serializedVersion: 2
+        x: 1899
+        y: 844
+        width: 12
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f7bbf6a16fdbf000800000000000000
+      internalID: 70895829660710899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_86
+      rect:
+        serializedVersion: 2
+        x: 1860
+        y: 822
+        width: 18
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba864a68cdea43fa0800000000000000
+      internalID: -5821836156108248917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_87
+      rect:
+        serializedVersion: 2
+        x: 1393
+        y: 664
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78e5f9e809082fd70800000000000000
+      internalID: 9075457557461425799
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_88
+      rect:
+        serializedVersion: 2
+        x: 1407
+        y: 680
+        width: 14
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0768ece8a0b4a290800000000000000
+      internalID: -7879979208415877361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_89
+      rect:
+        serializedVersion: 2
+        x: 1622
+        y: 630
+        width: 18
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 923a3531a93f77a50800000000000000
+      internalID: 6518946828716843817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_90
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 616
+        width: 74
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 96118d73c3a7fdb30800000000000000
+      internalID: 4314301367097758057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_91
+      rect:
+        serializedVersion: 2
+        x: 309
+        y: 622
+        width: 59
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb925bb079031b750800000000000000
+      internalID: 6318885177472133567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_92
+      rect:
+        serializedVersion: 2
+        x: 566
+        y: 635
+        width: 40
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1cfb0b23aad45f0a0800000000000000
+      internalID: -6848482264956747839
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_93
+      rect:
+        serializedVersion: 2
+        x: 604
+        y: 622
+        width: 21
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3270555493b7a7630800000000000000
+      internalID: 3925585511113361187
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_94
+      rect:
+        serializedVersion: 2
+        x: 821
+        y: 622
+        width: 59
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f87981b41e3be610800000000000000
+      internalID: 1651481946960263410
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_95
+      rect:
+        serializedVersion: 2
+        x: 1120
+        y: 619
+        width: 50
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b337fa34846cea60800000000000000
+      internalID: 7704643581611815858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_96
+      rect:
+        serializedVersion: 2
+        x: 1354
+        y: 623
+        width: 39
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03af048af6b3f9120800000000000000
+      internalID: 2422720475298855472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_97
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 614
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9971d173f31ba3260800000000000000
+      internalID: 7078164649431865241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_98
+      rect:
+        serializedVersion: 2
+        x: 623
+        y: 614
+        width: 15
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 31c129be2948c63e0800000000000000
+      internalID: -2059125163062846445
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_99
+      rect:
+        serializedVersion: 2
+        x: 879
+        y: 614
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4b732e34fa50b850800000000000000
+      internalID: 6390707876299766604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_100
+      rect:
+        serializedVersion: 2
+        x: 1173
+        y: 613
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 852f290b8dbe15d00800000000000000
+      internalID: 959807511514509912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_101
+      rect:
+        serializedVersion: 2
+        x: 1192
+        y: 609
+        width: 19
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b749e69fe64059c90800000000000000
+      internalID: -7163814757585218437
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_102
+      rect:
+        serializedVersion: 2
+        x: 1637
+        y: 606
+        width: 11
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c3338eeb13e88800800000000000000
+      internalID: 614991058241270720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_103
+      rect:
+        serializedVersion: 2
+        x: 1643
+        y: 587
+        width: 9
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55492b70be2110ad0800000000000000
+      internalID: -2737886297808792491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_104
+      rect:
+        serializedVersion: 2
+        x: 1871
+        y: 593
+        width: 18
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca98cc7f05d165f10800000000000000
+      internalID: 2258024496764848556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_105
+      rect:
+        serializedVersion: 2
+        x: 1893
+        y: 596
+        width: 13
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e51b97fd84f992d20800000000000000
+      internalID: 3254307341087650142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_106
+      rect:
+        serializedVersion: 2
+        x: 1924
+        y: 600
+        width: 22
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92201503d3defa8e0800000000000000
+      internalID: -1679863288926502359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_107
+      rect:
+        serializedVersion: 2
+        x: 1852
+        y: 591
+        width: 19
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54814907046a1a220800000000000000
+      internalID: 2495458464236836933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_108
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 393
+        width: 7
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f7cde98a2cf723b0800000000000000
+      internalID: -5537179957195847689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_109
+      rect:
+        serializedVersion: 2
+        x: 610
+        y: 394
+        width: 7
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06c618aac52ac6040800000000000000
+      internalID: 4642263834793438304
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_110
+      rect:
+        serializedVersion: 2
+        x: 864
+        y: 393
+        width: 7
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79a33c3ad4a826540800000000000000
+      internalID: 4999710602399267479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_111
+      rect:
+        serializedVersion: 2
+        x: 1392
+        y: 412
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92b1c66592304d1f0800000000000000
+      internalID: -1021187739427792087
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_112
+      rect:
+        serializedVersion: 2
+        x: 1403
+        y: 423
+        width: 12
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f6f0e416f6c27b20800000000000000
+      internalID: 3130783451190458104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_113
+      rect:
+        serializedVersion: 2
+        x: 1650
+        y: 403
+        width: 12
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 910ce26a48cf53eb0800000000000000
+      internalID: -4740605386083614695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_114
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 391
+        width: 6
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d9b262d43d326650800000000000000
+      internalID: 6224604932056725969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_115
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 365
+        width: 8
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 662a9e1925f313c30800000000000000
+      internalID: 4337317540002374246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_116
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 364
+        width: 8
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91e5ed052a183dd10800000000000000
+      internalID: 2149203981327293977
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_117
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 365
+        width: 8
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06794cb2fd6b577e0800000000000000
+      internalID: -1768306209044785312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_118
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 363
+        width: 16
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 89e798879c3d9ecb0800000000000000
+      internalID: -4834099862741352808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_119
+      rect:
+        serializedVersion: 2
+        x: 1364
+        y: 386
+        width: 28
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccde2886ae6586fd0800000000000000
+      internalID: -2348531640897966644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_120
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 366
+        width: 7
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7344993583b83400800000000000000
+      internalID: 304190359625548667
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_121
+      rect:
+        serializedVersion: 2
+        x: 1636
+        y: 359
+        width: 12
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee2b69bddc51a05e0800000000000000
+      internalID: -1942716315360382226
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_122
+      rect:
+        serializedVersion: 2
+        x: 1642
+        y: 378
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 034bec21988460720800000000000000
+      internalID: 2812014770902709296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_123
+      rect:
+        serializedVersion: 2
+        x: 1144
+        y: 340
+        width: 15
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df45339e1fc6b7900800000000000000
+      internalID: 683259554732135677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_124
+      rect:
+        serializedVersion: 2
+        x: 1632
+        y: 340
+        width: 9
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3664c2f38153d1450800000000000000
+      internalID: 6061059051765909091
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_125
+      rect:
+        serializedVersion: 2
+        x: 1884
+        y: 351
+        width: 15
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dace5780bb2b8fd10800000000000000
+      internalID: 2159672537694727341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_126
+      rect:
+        serializedVersion: 2
+        x: 1902
+        y: 348
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f6cbf60c813d6e00800000000000000
+      internalID: 1039541566474798836
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_127
+      rect:
+        serializedVersion: 2
+        x: 1918
+        y: 340
+        width: 11
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6e0d757d6d87a55d0800000000000000
+      internalID: -3073010931595751194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_128
+      rect:
+        serializedVersion: 2
+        x: 135
+        y: 147
+        width: 25
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b7c3731e7e288850800000000000000
+      internalID: 6379399991197419447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_129
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 149
+        width: 29
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac29dbb8c2e0e00c0800000000000000
+      internalID: -4607729784267631926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_130
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 149
+        width: 31
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3feb9fc8ed7ff43c0800000000000000
+      internalID: -4373004177933484301
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_131
+      rect:
+        serializedVersion: 2
+        x: 903
+        y: 149
+        width: 29
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e90061ffbd6e3d20800000000000000
+      internalID: 3260163851418601954
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_132
+      rect:
+        serializedVersion: 2
+        x: 1399
+        y: 148
+        width: 8
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: beacb931f78cbf620800000000000000
+      internalID: 2809059240711015147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_133
+      rect:
+        serializedVersion: 2
+        x: 1666
+        y: 134
+        width: 36
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 570991b37662967a0800000000000000
+      internalID: -6383528772005949323
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_134
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 125
+        width: 37
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d52b1704078673800800000000000000
+      internalID: 592056707349328477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_135
+      rect:
+        serializedVersion: 2
+        x: 345
+        y: 122
+        width: 33
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01e28e3b58924e480800000000000000
+      internalID: -8870919711787307504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_136
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 121
+        width: 33
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f225113390a1ef940800000000000000
+      internalID: 5331727635667046959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_137
+      rect:
+        serializedVersion: 2
+        x: 857
+        y: 122
+        width: 33
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06c92a8cd5235b5c0800000000000000
+      internalID: -4200395699073672096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_138
+      rect:
+        serializedVersion: 2
+        x: 1122
+        y: 113
+        width: 32
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf76de1dfe4d2c290800000000000000
+      internalID: -7871495072205936645
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_139
+      rect:
+        serializedVersion: 2
+        x: 1100
+        y: 94
+        width: 26
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc6cbd81560609280800000000000000
+      internalID: -9038618464807565621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_140
+      rect:
+        serializedVersion: 2
+        x: 1634
+        y: 96
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 150cc744586a47b30800000000000000
+      internalID: 4284232236846071889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_141
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 111
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7650f79ee01a07f80800000000000000
+      internalID: -8110805843475233433
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_staff_142
+      rect:
+        serializedVersion: 2
+        x: 1903
+        y: 86
+        width: 36
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a96d212071292f50800000000000000
+      internalID: 6857048673124968869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      male_staff_0: 7645618802847392789
+      male_staff_1: 6059227932396743993
+      male_staff_10: 6948974849784533565
+      male_staff_100: 959807511514509912
+      male_staff_101: -7163814757585218437
+      male_staff_102: 614991058241270720
+      male_staff_103: -2737886297808792491
+      male_staff_104: 2258024496764848556
+      male_staff_105: 3254307341087650142
+      male_staff_106: -1679863288926502359
+      male_staff_107: 2495458464236836933
+      male_staff_108: -5537179957195847689
+      male_staff_109: 4642263834793438304
+      male_staff_11: 4181505606986902010
+      male_staff_110: 4999710602399267479
+      male_staff_111: -1021187739427792087
+      male_staff_112: 3130783451190458104
+      male_staff_113: -4740605386083614695
+      male_staff_114: 6224604932056725969
+      male_staff_115: 4337317540002374246
+      male_staff_116: 2149203981327293977
+      male_staff_117: -1768306209044785312
+      male_staff_118: -4834099862741352808
+      male_staff_119: -2348531640897966644
+      male_staff_12: 6768206662457631193
+      male_staff_120: 304190359625548667
+      male_staff_121: -1942716315360382226
+      male_staff_122: 2812014770902709296
+      male_staff_123: 683259554732135677
+      male_staff_124: 6061059051765909091
+      male_staff_125: 2159672537694727341
+      male_staff_126: 1039541566474798836
+      male_staff_127: -3073010931595751194
+      male_staff_128: 6379399991197419447
+      male_staff_129: -4607729784267631926
+      male_staff_13: -6644496605981362615
+      male_staff_130: -4373004177933484301
+      male_staff_131: 3260163851418601954
+      male_staff_132: 2809059240711015147
+      male_staff_133: -6383528772005949323
+      male_staff_134: 592056707349328477
+      male_staff_135: -8870919711787307504
+      male_staff_136: 5331727635667046959
+      male_staff_137: -4200395699073672096
+      male_staff_138: -7871495072205936645
+      male_staff_139: -9038618464807565621
+      male_staff_14: 4567442400516276556
+      male_staff_140: 4284232236846071889
+      male_staff_141: -8110805843475233433
+      male_staff_142: 6857048673124968869
+      male_staff_15: -2543478545493441926
+      male_staff_16: -8877013348730351647
+      male_staff_17: 6138361824292937334
+      male_staff_18: -6213652040180647031
+      male_staff_19: 9176747625223949584
+      male_staff_2: -4527877486986813844
+      male_staff_20: -8126045040655681068
+      male_staff_21: -3558083925053367291
+      male_staff_22: -4526841738041193478
+      male_staff_23: 4555957181308458728
+      male_staff_24: -4047981721638579486
+      male_staff_25: -7120687649002797924
+      male_staff_26: -1805890170147052476
+      male_staff_27: -2139592988901957975
+      male_staff_28: 8442353517049523814
+      male_staff_29: -1385446286159327404
+      male_staff_3: -6365593201193459355
+      male_staff_30: 6919324443256043322
+      male_staff_31: 3987342831684896570
+      male_staff_32: -7406420492556819072
+      male_staff_33: 8119809219597057003
+      male_staff_34: 2792488652753102411
+      male_staff_35: -5600977445404429485
+      male_staff_36: 8577573214950642145
+      male_staff_37: 2092399881418101126
+      male_staff_38: 5346816622243180697
+      male_staff_39: 6105537200597125383
+      male_staff_4: 1496694907983215141
+      male_staff_40: -8908921390377219039
+      male_staff_41: -1199662458258615668
+      male_staff_42: -1399389402442251838
+      male_staff_43: -5546797719330115815
+      male_staff_44: -202448719629583317
+      male_staff_45: 2456602788574657266
+      male_staff_46: -6955207885982620962
+      male_staff_47: -5209942750876091955
+      male_staff_48: 7586085737260051661
+      male_staff_49: 8068341773784202460
+      male_staff_5: 5949338198081869066
+      male_staff_50: 7118524443959019819
+      male_staff_51: 8450650199477207988
+      male_staff_52: -1714191290690425323
+      male_staff_53: -5214695356939539242
+      male_staff_54: -5387194132001686809
+      male_staff_55: -7512166598688418847
+      male_staff_56: 2053245863494727804
+      male_staff_57: -7819013029279351135
+      male_staff_58: -5830743841104847023
+      male_staff_59: 8149389785841582401
+      male_staff_6: 726689208452658009
+      male_staff_60: -1455755881047391843
+      male_staff_61: 8337222769272053458
+      male_staff_62: 5272421513300170353
+      male_staff_63: -6036463627943321786
+      male_staff_64: -491557741878727060
+      male_staff_65: 3589046951419575306
+      male_staff_66: -4706818360805244270
+      male_staff_67: 3405313965183497913
+      male_staff_68: 8845954337574445546
+      male_staff_69: 3246261919059870798
+      male_staff_7: 7350162534817866907
+      male_staff_70: 2705117393742496936
+      male_staff_71: 2627521160889976925
+      male_staff_72: 6667127737037023129
+      male_staff_73: -7426695256843671598
+      male_staff_74: 2150665110850826030
+      male_staff_75: 4585164307725214616
+      male_staff_76: -657269734425747074
+      male_staff_77: 2347047425370563239
+      male_staff_78: -6597421547516263956
+      male_staff_79: -4852309312761866826
+      male_staff_8: 569568281313701908
+      male_staff_80: 1296593611534573613
+      male_staff_81: 2283011523896153920
+      male_staff_82: -5108607595698864063
+      male_staff_83: -8115621096877820116
+      male_staff_84: -2890492277964377799
+      male_staff_85: 70895829660710899
+      male_staff_86: -5821836156108248917
+      male_staff_87: 9075457557461425799
+      male_staff_88: -7879979208415877361
+      male_staff_89: 6518946828716843817
+      male_staff_9: 2914237114100072088
+      male_staff_90: 4314301367097758057
+      male_staff_91: 6318885177472133567
+      male_staff_92: -6848482264956747839
+      male_staff_93: 3925585511113361187
+      male_staff_94: 1651481946960263410
+      male_staff_95: 7704643581611815858
+      male_staff_96: 2422720475298855472
+      male_staff_97: 7078164649431865241
+      male_staff_98: -2059125163062846445
+      male_staff_99: 6390707876299766604
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

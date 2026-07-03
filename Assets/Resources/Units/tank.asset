@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ffd278c54770a061887da11565a2e7d, type: 3}
+  m_Name: tank
+  m_EditorClassIdentifier: PangeaSkirmish::PangeaSkirmish.UnitDefinition
+  unitId: tank
+  displayName: Tanque
+  description: "Unidade defensiva com alta vitalidade. Forte contra ataques f\xEDsicos."
+  baseStats:
+    STR: 3
+    VIT: 6
+    DEX: 2
+    AGI: 1
+    INT: 1
+    WIS: 2
+    Footprint: 4
+    AttackRange: 1
+  defaultWeaponId: WoodenShield
+  spriteResourcePath: 
+  teamTint: {r: 1, g: 1, b: 1, a: 1}
+  aiAggression: 0.3
+  aiAttackPreference: 0.4
+  aiIntelligence: 0.4
+  aiSurvivalInstinct: 0.2
+  aiUseSpells: 0

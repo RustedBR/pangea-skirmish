@@ -1,0 +1,458 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b9eac3b2ba974e5c84233209a9372b4, type: 3}
+  m_Name: GameTuning
+  m_EditorClassIdentifier: Assembly-CSharp::PangeaSkirmish.GameTuning
+  planningTime: 200
+  planningGraceSeconds: 15
+  bonusConfirmSeconds: 6
+  bonusStepSeconds: 10
+  moveCostPerTile: 1
+  turnCost: 0.5
+  heightCostMultiplier: 1.5
+  minActionPoints: 1
+  minDamageFloor: 1
+  tileAttackStrMultiplier: 1
+  unarmedDamage: 1
+  unarmedRange: 1
+  statFormulas:
+    hpBase: 5
+    hpPerVIT: 3
+    manaBase: 5
+    manaPerWIS: 3
+    weaponBase: 1
+    dmgPerSTR: 2
+    dmgPerINT: 2
+    iniPerAGI: 1
+    iniPerDEX: 1
+    movePerAGI: 1
+    apPerAGI: 0.5
+    bapPerDEX: 1
+    bonusMoveBudget: 1
+    incrementAttackDamage: 3
+    incrementMoveTiles: 1
+    baseHitChance: 0.9
+    dodgePerAGI: 0.02
+    critPerDEX: 0.02
+    critDamageMul: 1.5
+    damageVariance: 0.15
+    armorBase: 0
+    armorPerVIT: 1
+    magicResistBase: 0
+    magicResistPerWIS: 1
+    manaRegenBase: 2
+    manaRegenPerWIS: 0.5
+  guerreiro:
+    STR: 8
+    VIT: 10
+    DEX: 2
+    AGI: 3
+    INT: 1
+    WIS: 1
+    Footprint: 3
+    AttackRange: 1
+  ladino:
+    STR: 2
+    VIT: 5
+    DEX: 8
+    AGI: 8
+    INT: 1
+    WIS: 1
+    Footprint: 3
+    AttackRange: 1
+  goblin:
+    STR: 3
+    VIT: 4
+    DEX: 3
+    AGI: 5
+    INT: 1
+    WIS: 1
+    Footprint: 2
+    AttackRange: 1
+  arqueiro:
+    STR: 5
+    VIT: 5
+    DEX: 10
+    AGI: 7
+    INT: 1
+    WIS: 2
+    Footprint: 3
+    AttackRange: 3
+  mago:
+    STR: 1
+    VIT: 4
+    DEX: 2
+    AGI: 4
+    INT: 10
+    WIS: 8
+    Footprint: 3
+    AttackRange: 4
+  weapons:
+  - id: Hatchet
+    displayName: Machado
+    damage: 4
+    range: 1
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: IronAxe
+    displayName: Machado de Ferro
+    damage: 7
+    range: 1
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: WoodenSword
+    displayName: Espada de Madeira
+    damage: 3
+    range: 1
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: IronSword
+    displayName: Espada de Ferro
+    damage: 5
+    range: 1
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: WoodenStaff
+    displayName: Cajado
+    damage: 1
+    range: 3
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: Scepter
+    displayName: Cetro
+    damage: 3
+    range: 3
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: ShortBow
+    displayName: Arco Curto
+    damage: 3
+    range: 3
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: LongBow
+    displayName: Arco Longo
+    damage: 5
+    range: 4
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: ApprenticeWand
+    displayName: Varinha
+    damage: 2
+    range: 3
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  - id: ArcaneStaff
+    displayName: Cajado Arcano
+    damage: 6
+    range: 4
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 0
+  attributeMin: 1
+  attributeMax: 20
+  aiAggression: 0.3
+  aiAttackPreference: 0.3
+  aiIntelligence: 1
+  aiSurvivalInstinct: 0.5
+  aiSurvivalHpThreshold: 0.2
+  aiFlankRange: 2
+  aiAggressiveMaxGap: 2
+  aiCautiousGapOffset: 1
+  aiFlankScoreBonus: 1
+  aiKillabilityWeight: 0.4
+  aiReactionDelay: 0.3
+  spriteScalePerFootprint: 1.4
+  footprintScalePerFootprint: 0.95
+  spriteFootOffsetRatio: -0.1
+  headHeightRatio: 0.9
+  footprintAlpha: 0.411
+  playerFootprintColor: {r: 0.3, g: 0.6, b: 1, a: 0.8}
+  enemyFootprintColor: {r: 1, g: 0.38, b: 0.2, a: 0.8}
+  enemyTint: {r: 0.55, g: 0.55, b: 0.65, a: 1}
+  targetHoverColor: {r: 1, g: 0.92, b: 0.25, a: 0.95}
+  attackMarkColor: {r: 0.2, g: 0.03, b: 0.03, a: 0.95}
+  selectedTintColor: {r: 1, g: 1, b: 0.6, a: 1}
+  selectedTintStrength: 0.5
+  hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
+  bodyColliderSize: {x: 0.8, y: 0.9}
+  bodyColliderOffset: {x: 0, y: 0.2}
+  footprintColliderSize: {x: 1.2, y: 0.6}
+  footprintColliderOffset: {x: 0, y: -0.1}
+  attackAnimDuration: 1
+  walkAnimFps: 8
+  idleFrameInterval: 0.55
+  moveDurationBase: 3
+  moveDurationMin: 0.8
+  bonusMoveDuration: 2
+  hitFlashDuration: 0.16
+  deathFadeDuration: 0.9
+  weaponAttackOffset: {x: 0, y: 0.25}
+  weaponCarryOffset: {x: 0, y: 0.25}
+  weaponShowWhileIdle: 0
+  followSpeed: 7
+  camInitialSize: 15
+  zoomSize: 6
+  zoomSpeed: 2
+  zoomScrollFactor: 0.1
+  zoomMin: 5
+  zoomMax: 20
+  edgeMargin: 15
+  edgePanSpeed: 12
+  edgePanReferenceZoom: 13
+  dragSpeed: 1
+  panMargin: 2
+  camTransitionDuration: 0.3
+  camManualTimeout: 2
+  camSettleThreshold: 0.05
+  camSettleTimeout: 1.2
+  camSettleMinDuration: 0.2
+  camSettleExtra: 0.6
+  attackFocusSettleExtra: 0.4
+  autoFramePadding: 1.5
+  autoFrameZoomMin: 3
+  autoFrameZoomMax: 20
+  initiativeContestMinRadius: 3
+  initiativeContestZoomPadding: 3.5
+  camMoveDuration: 1
+  preActionPause: 0.55
+  postActionPause: 0.75
+  initiativeHold: 1.75
+  slotPause: 0.15
+  revealDelay: 1
+  roundBannerHold: 0.4
+  roundEndPause: 0.5
+  initiativeCollapseExtraPause: 1
+  attackLabelLeadPause: 1
+  attackAreaFocusDuration: 1
+  shakeDurationCrit: 0.25
+  shakeMagnitudeCrit: 0.2
+  shakeDurationNormal: 0.15
+  shakeMagnitudeNormal: 0.1
+  shakeDurationDefault: 0.2
+  shakeMagnitudeDefault: 0.15
+  flashDurationCrit: 0.25
+  flashIntensityCrit: 0.15
+  flashDurationRed: 0.2
+  flashIntensityRed: 0.35
+  flashRedColor: {r: 1, g: 0.1, b: 0.05, a: 1}
+  flashDurationWhite: 0.15
+  flashIntensityWhite: 0.5
+  flashHoldRatio: 0.5
+  battleLabelDuration: 3
+  battleLabelFadeTime: 2
+  attackLabelDuration: 1
+  damageRiseHeight: 1
+  damageRiseDuration: 1
+  critRiseHeight: 1
+  critRiseDuration: 1
+  missRiseHeight: 1
+  missRiseDuration: 1
+  battleLabelStackSpacing: 0.9
+  battleLabelStackRadius: 2
+  seqStackSpacing: 1.2
+  battleLabelCharWidth: 0.45
+  battleLabelBgPadding: 0.8
+  battleLabelBgHeight: 1.4
+  battleLabelFontSize: 100
+  battleLabelCharacterSize: 0.06
+  battleLabelHeightOffset: 0.3
+  attackLabelMaxNameChars: 12
+  attackLabelTextColor: {r: 1, g: 0.75, b: 0.25, a: 1}
+  attackLabelFadeRatio: 0.5
+  critLabelScale: 1.35
+  critLabelTextColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  damageLabelTextColor: {r: 1, g: 0.28, b: 0.28, a: 1}
+  missLabelHeightOffset: 0.4
+  missLabelTextColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  seqLabelScale: 0.7
+  floatingLabelFontSize: 80
+  floatingLabelCharacterSize: 0.06
+  highlightDuration: 2
+  moveGhostColor: {r: 1, g: 1, b: 1, a: 0.3}
+  unitTargetColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
+  tileTargetColor: {r: 0.35, g: 0.85, b: 0.95, a: 1}
+  tileTargetGhostColor: {r: 0.35, g: 0.85, b: 0.95, a: 0.45}
+  cursorGhostColor: {r: 1, g: 1, b: 0.6, a: 0.45}
+  seqLabelMoveColor: {r: 0.1, g: 0.23, b: 0.36, a: 1}
+  seqLabelAttackColor: {r: 0.36, g: 0.1, b: 0.1, a: 1}
+  seqLabelBaseHeight: 0.7
+  stepGhostColor: {r: 1, g: 0.9, b: 0.35, a: 0.55}
+  stepGhostScale: 0.95
+  reachHighlightColor: {r: 0.35, g: 0.85, b: 0.45, a: 1}
+  bonusHighlightColor: {r: 0.9, g: 0.75, b: 0.3, a: 1}
+  gridLineColor: {r: 1, g: 1, b: 1, a: 0.25}
+  sideFaceLeftColor: {r: 0.38, g: 0.25, b: 0.12, a: 1}
+  sideFaceRightColor: {r: 0.5, g: 0.34, b: 0.2, a: 1}
+  playerTeamColor: {r: 0.3, g: 0.5, b: 0.92, a: 1}
+  enemyTeamColor: {r: 0.8, g: 0.3, b: 0.25, a: 1}
+  battleBackgroundColor: {r: 0.08, g: 0.09, b: 0.11, a: 1}
+  initiativeTagHeightOffset: 0.5
+  initiativeTagBgScale: {x: 2.4, y: 0.8}
+  initiativeTagFontSize: 80
+  initiativePhase2FontSize: 130
+  initiativeTagBgColor: {r: 0.08, g: 0.09, b: 0.14, a: 0.88}
+  initiativeTagBorderColor: {r: 0.5, g: 0.65, b: 0.92, a: 1}
+  initiativeD20Color: {r: 1, g: 0.867, b: 0.2, a: 1}
+  initiativeAgiColor: {r: 0.4, g: 1, b: 0.4, a: 1}
+  initiativeDexColor: {r: 0.4, g: 0.667, b: 1, a: 1}
+  initiativeWinnerColor: {r: 0.4, g: 1, b: 0.439, a: 1}
+  initiativeLoserColor: {r: 0.533, g: 0.533, b: 0.533, a: 1}
+  hudButtonNormalColor: {r: 0.16, g: 0.26, b: 0.48, a: 1}
+  hudButtonActiveColor: {r: 0.3, g: 0.5, b: 0.85, a: 1}
+  hudButtonConfirmedColor: {r: 0.18, g: 0.45, b: 0.28, a: 1}
+  hudButtonDisabledColor: {r: 0.18, g: 0.2, b: 0.26, a: 1}
+  logPlayerColor: {r: 0.55, g: 0.8, b: 1, a: 1}
+  logEnemyColor: {r: 1, g: 0.52, b: 0.52, a: 1}
+  logSystemColor: {r: 0.82, g: 0.85, b: 0.92, a: 1}
+  logHoverColor: {r: 0.25, g: 0.38, b: 0.65, a: 0.35}
+  logScrollSensitivity: 40
+  seqChipMoveColor: {r: 0.18, g: 0.36, b: 0.66, a: 1}
+  seqChipAttackColor: {r: 0.66, g: 0.32, b: 0.12, a: 1}
+  seqChipMoveBonusColor: {r: 0.6, g: 0.2, b: 0.92, a: 1}
+  seqChipAttackBonusColor: {r: 0.95, g: 0.5, b: 0.08, a: 1}
+  seqChipSelectedLighten: 0.4
+  windowGradientTopColor: {r: 0.11, g: 0.15, b: 0.32, a: 0.97}
+  windowGradientBottomColor: {r: 0.02, g: 0.04, b: 0.11, a: 0.97}
+  windowBorderColor: {r: 0.5, g: 0.64, b: 0.92, a: 1}
+  timerNormalColor: {r: 1, g: 0.9, b: 0.55, a: 1}
+  timerWarningColor: {r: 1, g: 0.35, b: 0.35, a: 1}
+  cameraAutoColor: {r: 0.55, g: 0.95, b: 0.55, a: 1}
+  cameraManualColor: {r: 1, g: 0.75, b: 0.35, a: 1}
+  cameraIndicatorBgAlpha: 0.85
+  hpBarYellowThreshold: 0.5
+  hpBarRedThreshold: 0.25
+  hpBarHighColor: {r: 0.2, g: 0.78, b: 0.28, a: 1}
+  hpBarMidColor: {r: 0.85, g: 0.72, b: 0.1, a: 1}
+  hpBarLowColor: {r: 0.82, g: 0.2, b: 0.2, a: 1}
+  endScreenDimAlpha: 0.78
+  menuWalkAnimFrameDelay: 0.35
+  menuBackgroundColor: {r: 0.06, g: 0.07, b: 0.09, a: 1}
+  uiButtonNormalColor: {r: 0.25, g: 0.25, b: 0.3, a: 1}
+  uiButtonActiveColor: {r: 0.28, g: 0.5, b: 0.82, a: 1}
+  uiTitleColor: {r: 0.92, g: 0.8, b: 0.35, a: 1}
+  uiPanelBgColor: {r: 0.08, g: 0.09, b: 0.12, a: 0.92}
+  toastTextColor: {r: 1, g: 0.92, b: 0.6, a: 1}
+  sandboxCameraSize: 12
+  sandboxBackgroundColor: {r: 0.08, g: 0.09, b: 0.11, a: 1}
+  sandboxDefaultMapSize: 20
+  paintPreviewColor: {r: 0.3, g: 1, b: 0.3, a: 0.5}
+  hoverCursorColor: {r: 1, g: 0.95, b: 0.4, a: 0.4}
+  maxTileHeight: 3
+  maxMapSize: 50
+  sfxVolume: 1
+  musicVolume: 0.799
+  spellApCost: 1
+  spellSelfManaCost: 2
+  spellUnitManaCost: 3
+  spellTileManaCost: 4
+  concentrateManaGain: 3
+  spellRangePerMana: 1
+  spellRangeBase: 4
+  physicalBasePotency: 1
+  magicBasePotency: 1
+  fireBasePotency: 1
+  waterBasePotency: 1
+  airBasePotency: 1
+  earthBasePotency: 1
+  conduitAffinityBonus: 0.25
+  spellMinDamage: 1
+  spellResistFactor: 0.5
+  spellBuffDurationRounds: 3
+  physicalBuffDurationRounds: 3
+  physicalBuffStrFactor: 0.5
+  physicalBuffVitFactor: 0.5
+  shieldCapacityFactor: 1
+  fireTileDamageFactor: 0.4
+  fireTileDurationRounds: 3
+  windTileDurationRounds: 3
+  windPushTiles: 1
+  waterTileIndex: 16
+  earthStoneTileIndex: 8
+  earthRaiseAmount: 1
+  orbManaFactor: 1
+  spellFoldMaxGridSize: 40
+  airProjectilePushTiles: 1
+  spellProjectileSpeed: 14
+  wallImpactDamage: 2
+  spellProjectileArc: 0.6
+  spellCastAnimDuration: 0.5
+  spellImpactPause: 0.35
+  tileEffectAnimFps: 6
+  tileEffectOverlayAlpha: 0.65
+  elemPhysicalColor: {r: 0.8, g: 0.6, b: 0.3, a: 1}
+  elemMagicColor: {r: 0.5, g: 0.2, b: 1, a: 1}
+  elemFireColor: {r: 1, g: 0.3, b: 0, a: 1}
+  elemWaterColor: {r: 0.1, g: 0.4, b: 1, a: 1}
+  elemAirColor: {r: 0.7, g: 0.9, b: 1, a: 1}
+  elemEarthColor: {r: 0.5, g: 0.35, b: 0.15, a: 1}
+  spellTargetHighlightColor: {r: 0.3, g: 0.8, b: 1, a: 0.7}
+  attackRangeColor: {r: 1, g: 0.82, b: 0.3, a: 0.35}
+  enemyRangeColor: {r: 1, g: 0.28, b: 0.22, a: 0.45}
+  seqChipSpellColor: {r: 0.6, g: 0.2, b: 0.8, a: 1}
+  manaTextColor: {r: 0.4, g: 0.6, b: 1, a: 1}
+  projectileSheetPhysical: Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 1A
+  projectileSheetMagic: Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 2A
+  projectileSheetFire: Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 3A
+  projectileSheetWater: Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 4A
+  projectileSheetAir: Sprites/BDragon1727/Bullets/Bullet 24x24 Part 5A Free
+  projectileSheetEarth: Sprites/BDragon1727/Bullets/Bullet 24x24 Part 6A Free
+  impactSheetPath: Sprites/BDragon1727/Effects/113
+  auraSheetPath: Sprites/BDragon1727/RPGEffects/1010
+  spellProjectileScale: 1.5
+  spellVfxScale: 2
+  spellVfxFps: 12
+  spellVfxDebugLogs: 1
+  spellProjectileFrame: 0
+  aiUseSpells: 1
+  aiSpellMinPair: 8
+  aiSpellManaFraction: 0.34
+  aiConcentrationThreshold: 0
+  worldBarsEnabled: 1
+  worldBarSize: {x: 1.4, y: 0.14}
+  worldBarGap: 0.05
+  worldBarYOffset: 0.25
+  worldBarBgColor: {r: 0.05, g: 0.05, b: 0.07, a: 0.85}
+  worldHpHighColor: {r: 0.3, g: 0.85, b: 0.3, a: 1}
+  worldHpLowColor: {r: 0.9, g: 0.25, b: 0.2, a: 1}
+  worldMpColor: {r: 0.3, g: 0.55, b: 1, a: 1}
+  worldBarSortingBase: 15000
+  uiSkinEnabled: 1
+  worldIndicatorsEnabled: 1
+  uiSheetPath: Sprites/BDragon1727/UI/00
+  markerArrowRect: {x: 241, y: 50, z: 14, w: 12}
+  activeMarkerColor: {r: 0.4, g: 1, b: 0.5, a: 1}
+  targetMarkerColor: {r: 1, g: 0.3, b: 0.25, a: 1}
+  markerYOffset: 0.55
+  markerBobAmplitude: 0.12
+  markerBobSpeed: 3
+  markerScale: 1.3
+  markerSortingOrder: 15100
+  uiButtonSkinEnabled: 1
+  uiButtonFrameRect: {x: 64, y: 85, z: 48, w: 22}
+  uiButtonFrameBorder: {x: 14, y: 4, z: 14, w: 4}
+  uiButtonFrameTintLerp: 0.25
+  uiButtonFrameFlipShading: 0
+  worldBarPillRect: {x: 68, y: 68, z: 38, w: 8}
+  worldBarPillBorder: {x: 8, y: 3, z: 8, w: 3}
+  windowFrameEnabled: 1
+  windowFrameCorner: 6
+  windowFrameBorderPx: 2

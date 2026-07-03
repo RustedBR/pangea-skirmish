@@ -1,0 +1,1794 @@
+fileFormatVersion: 2
+guid: a35e91012a719ca2b8deebf970bdd8dc
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 759336739350262757
+    second: male_unarmored_0
+  - first:
+      213: -3619509886858238967
+    second: male_unarmored_1
+  - first:
+      213: -8275691779023038032
+    second: male_unarmored_2
+  - first:
+      213: 2292618014673297753
+    second: male_unarmored_3
+  - first:
+      213: 484727249258309298
+    second: male_unarmored_4
+  - first:
+      213: -9014785359344283956
+    second: male_unarmored_5
+  - first:
+      213: 1806843623696158780
+    second: male_unarmored_6
+  - first:
+      213: -1065051533265127043
+    second: male_unarmored_7
+  - first:
+      213: -8949858889434506205
+    second: male_unarmored_8
+  - first:
+      213: -8606007734439619321
+    second: male_unarmored_9
+  - first:
+      213: 6214001650779131906
+    second: male_unarmored_10
+  - first:
+      213: -1144940381360482174
+    second: male_unarmored_11
+  - first:
+      213: 5623404546888502967
+    second: male_unarmored_12
+  - first:
+      213: 8287877037459680007
+    second: male_unarmored_13
+  - first:
+      213: -6639904656980332224
+    second: male_unarmored_14
+  - first:
+      213: 4805426941713169741
+    second: male_unarmored_15
+  - first:
+      213: -7310922548440001824
+    second: male_unarmored_16
+  - first:
+      213: 182332687817677634
+    second: male_unarmored_17
+  - first:
+      213: 3074836434522902283
+    second: male_unarmored_18
+  - first:
+      213: 4018984579866992973
+    second: male_unarmored_19
+  - first:
+      213: -4099338553811378045
+    second: male_unarmored_20
+  - first:
+      213: -5608502227620866814
+    second: male_unarmored_21
+  - first:
+      213: -8870245913569341970
+    second: male_unarmored_22
+  - first:
+      213: 8114960025058016763
+    second: male_unarmored_23
+  - first:
+      213: 533281303919257084
+    second: male_unarmored_24
+  - first:
+      213: -3184356816001653956
+    second: male_unarmored_25
+  - first:
+      213: 5932178870412459958
+    second: male_unarmored_26
+  - first:
+      213: -6234775154070460415
+    second: male_unarmored_27
+  - first:
+      213: 49086512923902572
+    second: male_unarmored_28
+  - first:
+      213: -8507890518463029966
+    second: male_unarmored_29
+  - first:
+      213: 4590134981548458281
+    second: male_unarmored_30
+  - first:
+      213: -1787781221766734303
+    second: male_unarmored_31
+  - first:
+      213: -2348208251709611721
+    second: male_unarmored_32
+  - first:
+      213: -507386397359093699
+    second: male_unarmored_33
+  - first:
+      213: -5017623186134712293
+    second: male_unarmored_34
+  - first:
+      213: -2228105756595046389
+    second: male_unarmored_35
+  - first:
+      213: 5363085802369742863
+    second: male_unarmored_36
+  - first:
+      213: 4526496614874212282
+    second: male_unarmored_37
+  - first:
+      213: -1630864279339402669
+    second: male_unarmored_38
+  - first:
+      213: 3617849161708047862
+    second: male_unarmored_39
+  - first:
+      213: 3858525966579767661
+    second: male_unarmored_40
+  - first:
+      213: 993929822266422813
+    second: male_unarmored_41
+  - first:
+      213: 1203852312146172851
+    second: male_unarmored_42
+  - first:
+      213: 7530463556490417601
+    second: male_unarmored_43
+  - first:
+      213: 1481167425038367069
+    second: male_unarmored_44
+  - first:
+      213: -7619912784899406103
+    second: male_unarmored_45
+  - first:
+      213: -6905264033568619239
+    second: male_unarmored_46
+  - first:
+      213: -9016842435892368346
+    second: male_unarmored_47
+  - first:
+      213: 1067193794186281935
+    second: male_unarmored_48
+  - first:
+      213: -9146837918177844105
+    second: male_unarmored_49
+  - first:
+      213: -6903125056880412945
+    second: male_unarmored_50
+  - first:
+      213: -3756500857175022575
+    second: male_unarmored_51
+  - first:
+      213: 1742889198215841130
+    second: male_unarmored_52
+  - first:
+      213: 422696932922786767
+    second: male_unarmored_53
+  - first:
+      213: 2559980920965222158
+    second: male_unarmored_54
+  - first:
+      213: 8176528932283159252
+    second: male_unarmored_55
+  - first:
+      213: -9137940264143921536
+    second: male_unarmored_56
+  - first:
+      213: 1634638083614127520
+    second: male_unarmored_57
+  - first:
+      213: 1325706017082522137
+    second: male_unarmored_58
+  - first:
+      213: 7762015229532866805
+    second: male_unarmored_59
+  - first:
+      213: -8529359584400903140
+    second: male_unarmored_60
+  - first:
+      213: 7289287093561860994
+    second: male_unarmored_61
+  - first:
+      213: -2619678030558253375
+    second: male_unarmored_62
+  - first:
+      213: -7525920691854391640
+    second: male_unarmored_63
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: male_unarmored_0
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 1862
+        width: 67
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e330e5cdb4b98a00800000000000000
+      internalID: 759336739350262757
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_1
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 1864
+        width: 57
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 904ecc45feae4cdc0800000000000000
+      internalID: -3619509886858238967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_2
+      rect:
+        serializedVersion: 2
+        x: 610
+        y: 1867
+        width: 59
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b916b86c26d62d80800000000000000
+      internalID: -8275691779023038032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_3
+      rect:
+        serializedVersion: 2
+        x: 866
+        y: 1869
+        width: 53
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 951634200f301df10800000000000000
+      internalID: 2292618014673297753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_4
+      rect:
+        serializedVersion: 2
+        x: 1108
+        y: 1862
+        width: 78
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b66ef07dd81ab600800000000000000
+      internalID: 484727249258309298
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_5
+      rect:
+        serializedVersion: 2
+        x: 1363
+        y: 1863
+        width: 83
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cce44e16a7c05e280800000000000000
+      internalID: -9014785359344283956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_6
+      rect:
+        serializedVersion: 2
+        x: 1633
+        y: 1862
+        width: 68
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c30d613e3b2331910800000000000000
+      internalID: 1806843623696158780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_7
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 1851
+        width: 104
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d793f3cf54d2831f0800000000000000
+      internalID: -1065051533265127043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_8
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 1610
+        width: 68
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32c526922c6bbc380800000000000000
+      internalID: -8949858889434506205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_9
+      rect:
+        serializedVersion: 2
+        x: 361
+        y: 1610
+        width: 60
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7055676ef81519880800000000000000
+      internalID: -8606007734439619321
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_10
+      rect:
+        serializedVersion: 2
+        x: 617
+        y: 1606
+        width: 60
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 200916404919c3650800000000000000
+      internalID: 6214001650779131906
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_11
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 1613
+        width: 60
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28812001aca5c10f0800000000000000
+      internalID: -1144940381360482174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_12
+      rect:
+        serializedVersion: 2
+        x: 1119
+        y: 1611
+        width: 71
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7be0b9d24a85a0e40800000000000000
+      internalID: 5623404546888502967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_13
+      rect:
+        serializedVersion: 2
+        x: 1379
+        y: 1608
+        width: 61
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70ba6e72144740370800000000000000
+      internalID: 8287877037459680007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_14
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 1610
+        width: 75
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 041b93ae4e15ad3a0800000000000000
+      internalID: -6639904656980332224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_15
+      rect:
+        serializedVersion: 2
+        x: 1885
+        y: 1590
+        width: 70
+        height: 67
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4db7eed75e40b240800000000000000
+      internalID: 4805426941713169741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_16
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 1345
+        width: 56
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e217d75da26a8a90800000000000000
+      internalID: -7310922548440001824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_17
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 1352
+        width: 50
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24b90501d96c78200800000000000000
+      internalID: 182332687817677634
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_18
+      rect:
+        serializedVersion: 2
+        x: 622
+        y: 1351
+        width: 49
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0f8a2e22730caa20800000000000000
+      internalID: 3074836434522902283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_19
+      rect:
+        serializedVersion: 2
+        x: 879
+        y: 1351
+        width: 50
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d41aeb09e2d46c730800000000000000
+      internalID: 4018984579866992973
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_20
+      rect:
+        serializedVersion: 2
+        x: 1119
+        y: 1344
+        width: 55
+        height: 119
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3806206fd493c17c0800000000000000
+      internalID: -4099338553811378045
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_21
+      rect:
+        serializedVersion: 2
+        x: 1390
+        y: 1344
+        width: 37
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 205dba860f89a22b0800000000000000
+      internalID: -5608502227620866814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_22
+      rect:
+        serializedVersion: 2
+        x: 1644
+        y: 1343
+        width: 54
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eedc653965e86e480800000000000000
+      internalID: -8870245913569341970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_23
+      rect:
+        serializedVersion: 2
+        x: 1872
+        y: 1332
+        width: 97
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfdf31cd5212e9070800000000000000
+      internalID: 8114960025058016763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_24
+      rect:
+        serializedVersion: 2
+        x: 107
+        y: 1086
+        width: 43
+        height: 110
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf5e67d3588966700800000000000000
+      internalID: 533281303919257084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_25
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 1095
+        width: 40
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c33a028e854eec3d0800000000000000
+      internalID: -3184356816001653956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_26
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 1100
+        width: 63
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bf330ba045535250800000000000000
+      internalID: 5932178870412459958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_27
+      rect:
+        serializedVersion: 2
+        x: 874
+        y: 1091
+        width: 45
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 108e237d701a979a0800000000000000
+      internalID: -6234775154070460415
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_28
+      rect:
+        serializedVersion: 2
+        x: 1129
+        y: 1085
+        width: 58
+        height: 117
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6287166ce36ea000800000000000000
+      internalID: 49086512923902572
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_29
+      rect:
+        serializedVersion: 2
+        x: 1382
+        y: 1088
+        width: 63
+        height: 112
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23dd81376a6ede980800000000000000
+      internalID: -8507890518463029966
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_30
+      rect:
+        serializedVersion: 2
+        x: 1649
+        y: 1084
+        width: 53
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9214a46327f63bf30800000000000000
+      internalID: 4590134981548458281
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_31
+      rect:
+        serializedVersion: 2
+        x: 1868
+        y: 1089
+        width: 111
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12eda7c63768037e0800000000000000
+      internalID: -1787781221766734303
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_32
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 838
+        width: 68
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7312532590d796fd0800000000000000
+      internalID: -2348208251709611721
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_33
+      rect:
+        serializedVersion: 2
+        x: 357
+        y: 844
+        width: 57
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d38cb8582c665f8f0800000000000000
+      internalID: -507386397359093699
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_34
+      rect:
+        serializedVersion: 2
+        x: 611
+        y: 835
+        width: 59
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b104da5fb42dd5ab0800000000000000
+      internalID: -5017623186134712293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_35
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 837
+        width: 53
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0836209e9d2411e0800000000000000
+      internalID: -2228105756595046389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_36
+      rect:
+        serializedVersion: 2
+        x: 1118
+        y: 837
+        width: 78
+        height: 99
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0870365f128d6a40800000000000000
+      internalID: 5363085802369742863
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_37
+      rect:
+        serializedVersion: 2
+        x: 1370
+        y: 840
+        width: 83
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab7e59650b851de30800000000000000
+      internalID: 4526496614874212282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_38
+      rect:
+        serializedVersion: 2
+        x: 1627
+        y: 836
+        width: 68
+        height: 84
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35af91124910e59e0800000000000000
+      internalID: -1630864279339402669
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_39
+      rect:
+        serializedVersion: 2
+        x: 1864
+        y: 821
+        width: 104
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6fd8d86f4ae253230800000000000000
+      internalID: 3617849161708047862
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_40
+      rect:
+        serializedVersion: 2
+        x: 91
+        y: 585
+        width: 68
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d699b9a5cec3c8530800000000000000
+      internalID: 3858525966579767661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_41
+      rect:
+        serializedVersion: 2
+        x: 347
+        y: 588
+        width: 60
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d167bd348e52bcd00800000000000000
+      internalID: 993929822266422813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_42
+      rect:
+        serializedVersion: 2
+        x: 603
+        y: 575
+        width: 60
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3bb5183bc41f4b010800000000000000
+      internalID: 1203852312146172851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_43
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 587
+        width: 60
+        height: 95
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1c5d2aed4b4918860800000000000000
+      internalID: 7530463556490417601
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_44
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 585
+        width: 71
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d59ba4eece92e8410800000000000000
+      internalID: 1481167425038367069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_45
+      rect:
+        serializedVersion: 2
+        x: 1376
+        y: 584
+        width: 61
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e60d94b1b1a04690800000000000000
+      internalID: -7619912784899406103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_46
+      rect:
+        serializedVersion: 2
+        x: 1622
+        y: 585
+        width: 75
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9158cd672f29b20a0800000000000000
+      internalID: -6905264033568619239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_47
+      rect:
+        serializedVersion: 2
+        x: 1885
+        y: 560
+        width: 70
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62ca7fce39dbdd280800000000000000
+      internalID: -9016842435892368346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_48
+      rect:
+        serializedVersion: 2
+        x: 94
+        y: 321
+        width: 55
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc389f00a1f6fce00800000000000000
+      internalID: 1067193794186281935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_49
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 328
+        width: 50
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 774afec1067ef0180800000000000000
+      internalID: -9146837918177844105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_50
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 323
+        width: 49
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe67b88c55c2330a0800000000000000
+      internalID: -6903125056880412945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_51
+      rect:
+        serializedVersion: 2
+        x: 863
+        y: 338
+        width: 50
+        height: 88
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 114e1a98f5a3edbc0800000000000000
+      internalID: -3756500857175022575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_52
+      rect:
+        serializedVersion: 2
+        x: 1130
+        y: 320
+        width: 55
+        height: 90
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a654586dd7cff2810800000000000000
+      internalID: 1742889198215841130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_53
+      rect:
+        serializedVersion: 2
+        x: 1389
+        y: 322
+        width: 37
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fc38286fe98bdd500800000000000000
+      internalID: 422696932922786767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_54
+      rect:
+        serializedVersion: 2
+        x: 1630
+        y: 320
+        width: 54
+        height: 91
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0fc8e19511e68320800000000000000
+      internalID: 2559980920965222158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_55
+      rect:
+        serializedVersion: 2
+        x: 1871
+        y: 308
+        width: 97
+        height: 62
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d211782ebdd87170800000000000000
+      internalID: 8176528932283159252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_56
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 63
+        width: 43
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08e56f0aeb38f2180800000000000000
+      internalID: -9137940264143921536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_57
+      rect:
+        serializedVersion: 2
+        x: 361
+        y: 70
+        width: 40
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a535262da66fa610800000000000000
+      internalID: 1634638083614127520
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_58
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 77
+        width: 63
+        height: 94
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91a3dc0499ad56210800000000000000
+      internalID: 1325706017082522137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_59
+      rect:
+        serializedVersion: 2
+        x: 873
+        y: 81
+        width: 45
+        height: 89
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5f88a71f9b738bb60800000000000000
+      internalID: 7762015229532866805
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_60
+      rect:
+        serializedVersion: 2
+        x: 1117
+        y: 63
+        width: 58
+        height: 96
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c14f53206a0a1a980800000000000000
+      internalID: -8529359584400903140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_61
+      rect:
+        serializedVersion: 2
+        x: 1371
+        y: 67
+        width: 63
+        height: 109
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2832895cdffb82560800000000000000
+      internalID: 7289287093561860994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_62
+      rect:
+        serializedVersion: 2
+        x: 1626
+        y: 63
+        width: 53
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ce2eaaf5b805abd0800000000000000
+      internalID: -2619678030558253375
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: male_unarmored_63
+      rect:
+        serializedVersion: 2
+        x: 1861
+        y: 59
+        width: 111
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a6c14a310f8e8790800000000000000
+      internalID: -7525920691854391640
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      male_unarmored_0: 759336739350262757
+      male_unarmored_1: -3619509886858238967
+      male_unarmored_10: 6214001650779131906
+      male_unarmored_11: -1144940381360482174
+      male_unarmored_12: 5623404546888502967
+      male_unarmored_13: 8287877037459680007
+      male_unarmored_14: -6639904656980332224
+      male_unarmored_15: 4805426941713169741
+      male_unarmored_16: -7310922548440001824
+      male_unarmored_17: 182332687817677634
+      male_unarmored_18: 3074836434522902283
+      male_unarmored_19: 4018984579866992973
+      male_unarmored_2: -8275691779023038032
+      male_unarmored_20: -4099338553811378045
+      male_unarmored_21: -5608502227620866814
+      male_unarmored_22: -8870245913569341970
+      male_unarmored_23: 8114960025058016763
+      male_unarmored_24: 533281303919257084
+      male_unarmored_25: -3184356816001653956
+      male_unarmored_26: 5932178870412459958
+      male_unarmored_27: -6234775154070460415
+      male_unarmored_28: 49086512923902572
+      male_unarmored_29: -8507890518463029966
+      male_unarmored_3: 2292618014673297753
+      male_unarmored_30: 4590134981548458281
+      male_unarmored_31: -1787781221766734303
+      male_unarmored_32: -2348208251709611721
+      male_unarmored_33: -507386397359093699
+      male_unarmored_34: -5017623186134712293
+      male_unarmored_35: -2228105756595046389
+      male_unarmored_36: 5363085802369742863
+      male_unarmored_37: 4526496614874212282
+      male_unarmored_38: -1630864279339402669
+      male_unarmored_39: 3617849161708047862
+      male_unarmored_4: 484727249258309298
+      male_unarmored_40: 3858525966579767661
+      male_unarmored_41: 993929822266422813
+      male_unarmored_42: 1203852312146172851
+      male_unarmored_43: 7530463556490417601
+      male_unarmored_44: 1481167425038367069
+      male_unarmored_45: -7619912784899406103
+      male_unarmored_46: -6905264033568619239
+      male_unarmored_47: -9016842435892368346
+      male_unarmored_48: 1067193794186281935
+      male_unarmored_49: -9146837918177844105
+      male_unarmored_5: -9014785359344283956
+      male_unarmored_50: -6903125056880412945
+      male_unarmored_51: -3756500857175022575
+      male_unarmored_52: 1742889198215841130
+      male_unarmored_53: 422696932922786767
+      male_unarmored_54: 2559980920965222158
+      male_unarmored_55: 8176528932283159252
+      male_unarmored_56: -9137940264143921536
+      male_unarmored_57: 1634638083614127520
+      male_unarmored_58: 1325706017082522137
+      male_unarmored_59: 7762015229532866805
+      male_unarmored_6: 1806843623696158780
+      male_unarmored_60: -8529359584400903140
+      male_unarmored_61: 7289287093561860994
+      male_unarmored_62: -2619678030558253375
+      male_unarmored_63: -7525920691854391640
+      male_unarmored_7: -1065051533265127043
+      male_unarmored_8: -8949858889434506205
+      male_unarmored_9: -8606007734439619321
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

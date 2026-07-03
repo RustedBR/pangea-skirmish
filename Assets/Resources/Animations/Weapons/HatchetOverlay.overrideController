@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HatchetOverlay
+  m_Controller: {fileID: 9100000, guid: 78f976304ee66ea73bdca5a1ea13aee6, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: b2eeedeced8e1a88e80c994bdcfa3f00, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: b2eeedeced8e1a88e80c994bdcfa3f00, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 8d501036fbee8c12197c2d9e1a62e60a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 8d501036fbee8c12197c2d9e1a62e60a, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: dba38ce56ab274493bf469f6390dcebb, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: dba38ce56ab274493bf469f6390dcebb, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: c6e8ded83fce88b3d92763dd011d744d, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: c6e8ded83fce88b3d92763dd011d744d, type: 2}
