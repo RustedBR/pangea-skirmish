@@ -49,9 +49,9 @@ namespace PangeaSkirmish
         [Tooltip("Fórmulas derivadas (HP, mana, dano, movimento...) a partir dos atributos. Editar com cuidado — afeta todo o balanceamento.")]
         public StatFormulas statFormulas = new StatFormulas();
 
-        // ═════════════════════════ CLASSES & ARMAS ═════════════════════════
+        // ═════════════════════════ PERSONAGENS PADRÃO & ARMAS ═════════════════════════
 
-        [Header("═══ CLASSES & ARMAS ═══")]
+        [Header("═══ PERSONAGENS PADRÃO & ARMAS ═══")]
         [Tooltip("Atributos iniciais do Guerreiro (STR/VIT/DEX/AGI/INT/WIS, footprint e alcance).")]
         public UnitStatBlock guerreiro = new UnitStatBlock { STR = 8, VIT = 10, DEX = 2, AGI = 3, INT = 1, WIS = 1, Footprint = 3 };
         [Tooltip("Atributos iniciais do Ladino.")]

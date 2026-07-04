@@ -28,9 +28,9 @@ namespace PangeaSkirmish
 
         private Phase _phase = Phase.Terrain;
         private TileBrush _brush = null;            // pincel atual (Terrain) — inicializado em Start
-        private string _classId = "fighter";        // classe-base atual (Allies/Enemies)
-        private UnitStatBlock _activeStats = null;  // override de preset (null = stats default da classe)
-        private string _activeName = null;          // nome do preset ativo (null = nome da classe)
+        private string _spriteId = null;            // spritePath ativo (Allies/Enemies); null = nenhum selecionado
+        private UnitStatBlock _activeStats = null;  // override de stats (null = stats padrão)
+        private string _activeName = null;          // nome do preset ativo (null = nome do sprite)
         private int _selectedUnit = -1;             // índice em _placements p/ editar stats
         private string _mapName = "Novo Mapa";
 
@@ -248,10 +248,10 @@ namespace PangeaSkirmish
                     CancelSelection();
             }
 
-            // Clique direito (Allies/Enemies): limpa a classe ativa
+            // Clique direito (Allies/Enemies): limpa sprite ativo
             if (rightDown && (_phase == Phase.Allies || _phase == Phase.Enemies))
             {
-                _classId = null;
+                _spriteId = null;
                 _activeStats = null;
                 _activeName = null;
                 _hud.SetNoClassSelected();
@@ -606,10 +606,10 @@ namespace PangeaSkirmish
                 return;
             }
 
-            // Criar nova unidade — só se uma classe/preset estiver ativo
-            if (string.IsNullOrEmpty(_classId)) return;
-            var def = ClassCatalog.Get(_classId);
-            var baseStats = _activeStats ?? def.defaultStats;
+            // Criar nova unidade — só se um sprite estiver ativo
+            if (string.IsNullOrEmpty(_spriteId)) return;
+            var spriteDef = CharacterSpriteCatalog.GetByPath(_spriteId);
+            var baseStats = _activeStats ?? new UnitStatBlock { STR=5, VIT=5, DEX=5, AGI=5, INT=1, WIS=1, Footprint=3 };
             int fp = Mathf.Max(1, baseStats.Footprint);
             int half = (fp - 1) / 2;
             int ax = Mathf.Clamp(cell.x - half, 0, Mathf.Max(0, _grid.width  - fp));
@@ -629,13 +629,13 @@ namespace PangeaSkirmish
 
             var placement = new UnitPlacement
             {
-                classId = _classId,
+                spritePath = _spriteId,
                 team = (int)team,
                 x = ax,
                 y = ay,
-                displayName = _activeName ?? def.displayName,
+                displayName = _activeName ?? (spriteDef != null ? spriteDef.displayName : "Unidade"),
                 stats = CloneStatBlock(baseStats),
-                weaponId = def.defaultWeaponId // Usar arma default da classe
+                weaponId = "Hatchet" // arma padrão; pode ser trocada no painel de stats
             };
 
             var color = team == Team.Player ? PlayerColor : EnemyColor;
@@ -649,15 +649,15 @@ namespace PangeaSkirmish
 
         private Unit CreateUnitVisual(UnitPlacement p, Color color)
         {
-            var def = ClassCatalog.Get(p.classId);
+            // Resolver spritePath com fallback
+            string resPath = !string.IsNullOrEmpty(p.spritePath) ? p.spritePath : CharacterSpriteCatalog.Default;
             var go = new GameObject(p.displayName);
             var u = go.AddComponent<Unit>();
             u.unitName = p.displayName;
             u.team = (Team)p.team;
             u.stats = p.stats.ToAttributeStats();
-            // Setar arma antes de Init (usar default da classe se weaponId vazio)
-            u.weaponId = !string.IsNullOrEmpty(p.weaponId) ? p.weaponId : def.defaultWeaponId;
-            u.Init(_grid, new Vector2Int(p.x, p.y), color, def.resourcePath);
+            u.weaponId = !string.IsNullOrEmpty(p.weaponId) ? p.weaponId : "";
+            u.Init(_grid, new Vector2Int(p.x, p.y), color, resPath);
             return u;
         }
 
@@ -681,16 +681,16 @@ namespace PangeaSkirmish
 
         public void SetBrush(TileBrush b) => _brush = b;
 
-        public void SetClass(string classId)
+        public void SetSprite(string spritePath)
         {
-            _classId = classId;
+            _spriteId = spritePath;
             _activeStats = null;
             _activeName = null;
         }
 
         public void SetPreset(CharacterPreset p)
         {
-            _classId = p.classId;
+            _spriteId = !string.IsNullOrEmpty(p.spritePath) ? p.spritePath : CharacterSpriteCatalog.Default;
             _activeStats = p.stats;
             _activeName = p.presetName;
         }
@@ -716,7 +716,8 @@ namespace PangeaSkirmish
             var preset = new CharacterPreset
             {
                 presetName = string.IsNullOrWhiteSpace(pl.displayName) ? "Personagem" : pl.displayName,
-                classId = pl.classId,
+                spritePath = !string.IsNullOrEmpty(pl.spritePath) ? pl.spritePath : CharacterSpriteCatalog.Default,
+                weaponId = !string.IsNullOrEmpty(pl.weaponId) ? pl.weaponId : "Hatchet",
                 stats = CloneStatBlock(pl.stats)
             };
             CharacterStorage.Save(preset);

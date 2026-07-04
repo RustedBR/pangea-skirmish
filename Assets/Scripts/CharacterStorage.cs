@@ -28,7 +28,16 @@ namespace PangeaSkirmish
                 try
                 {
                     var p = JsonUtility.FromJson<CharacterPreset>(File.ReadAllText(f));
-                    if (p != null) list.Add(p);
+                    if (p != null)
+                    {
+                        // Migração: preset antigo com classId mas sem spritePath → derivar sprite
+                        if (string.IsNullOrEmpty(p.spritePath) && !string.IsNullOrEmpty(p.classId))
+                            p.spritePath = CharacterSpriteCatalog.LegacySprite(p.classId);
+                        // Fallback final: garante que spritePath nunca fica vazio
+                        if (string.IsNullOrEmpty(p.spritePath))
+                            p.spritePath = CharacterSpriteCatalog.Default;
+                        list.Add(p);
+                    }
                 }
                 catch (System.Exception e)
                 {

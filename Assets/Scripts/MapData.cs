@@ -4,17 +4,17 @@ using UnityEngine;
 
 namespace PangeaSkirmish
 {
-    // Uma unidade posicionada no editor (classe + time + posição + stats custom).
+    // Uma unidade posicionada no editor (sprite direto + time + posição + stats).
     [Serializable]
     public class UnitPlacement
     {
-        public string classId = "fighter";  // id no ClassCatalog
+        public string spritePath = "";       // resourcePath do sprite (self-contained; fallback = CharacterSpriteCatalog.Default)
         public int    team    = 0;           // 0 = Player, 1 = Enemy
         public int    x       = 0;           // anchor.x
         public int    y       = 0;           // anchor.y
         public string displayName = "Unidade";
         public UnitStatBlock stats = new UnitStatBlock();
-        public string weaponId = "";       // id no WeaponCatalog; vazio = usa default da classe
+        public string weaponId = "";       // id no WeaponCatalog; vazio = sem arma
     }
 
     // Cenário completo: terreno (flatten) + unidades.
@@ -62,7 +62,8 @@ namespace PangeaSkirmish
     public class CharacterPreset
     {
         public string presetName = "Personagem";
-        public string classId    = "fighter";
+        public string spritePath = "";       // resourcePath do sprite escolhido (novo modelo)
+        public string classId    = "";       // LEGADO — usado apenas para migração no load; não usar em código novo
         public string weaponId   = "Hatchet";
         public UnitStatBlock stats = new UnitStatBlock();
     }
@@ -73,38 +74,40 @@ namespace PangeaSkirmish
         public static CharacterPreset Active;
     }
 
-    // Catálogo de classes jogáveis (sprite + stats default).
+    // Catálogo de sprites disponíveis para personagens (substitui o conceito de "classe").
     [Serializable]
-    public class UnitClassDef
+    public class CharacterSpriteDef
     {
-        public string id, displayName, resourcePath;
-        public UnitStatBlock defaultStats;
-        public string defaultWeaponId; // id da arma padrão para a classe
+        public string displayName;
+        public string resourcePath;
     }
 
-    public static class ClassCatalog
+    public static class CharacterSpriteCatalog
     {
-        public static readonly UnitClassDef[] All =
+        public static readonly CharacterSpriteDef[] All =
         {
-            new UnitClassDef { id="fighter", displayName="Guerreiro",
-                resourcePath="Sprites/TinyTactics/Characters/fighter",
-                defaultStats=new UnitStatBlock{ STR=8,VIT=10,DEX=2,AGI=3,INT=1,WIS=1,Footprint=3 },
-                defaultWeaponId="Hatchet" },
-            new UnitClassDef { id="mage", displayName="Mago",
-                resourcePath="Sprites/TinyTactics/Characters/mage",
-                defaultStats=new UnitStatBlock{ STR=3,VIT=5,DEX=8,AGI=10,INT=1,WIS=1,Footprint=3 },
-                defaultWeaponId="WoodenStaff" },
-            new UnitClassDef { id="cleric", displayName="Clérigo",
-                resourcePath="Sprites/TinyTactics/Characters/cleric",
-                defaultStats=new UnitStatBlock{ STR=4,VIT=7,DEX=4,AGI=5,INT=4,WIS=8,Footprint=3 },
-                defaultWeaponId="Scepter" },
+            new CharacterSpriteDef { displayName="Guerreiro", resourcePath="Sprites/TinyTactics/Characters/fighter"  },
+            new CharacterSpriteDef { displayName="Mago",      resourcePath="Sprites/TinyTactics/Characters/mage"     },
+            new CharacterSpriteDef { displayName="Clérigo",   resourcePath="Sprites/TinyTactics/Characters/cleric"   },
         };
-        public static UnitClassDef Get(string id)
+
+        public static string Default => All[0].resourcePath;
+
+        public static CharacterSpriteDef GetByPath(string path)
         {
-            foreach (var c in All) if (c.id == id) return c;
+            foreach (var s in All) if (s.resourcePath == path) return s;
             return All[0];
         }
+
+        /// <summary>Converte classId legado (fighter/mage/cleric) para resourcePath.</summary>
+        public static string LegacySprite(string classId)
+        {
+            if (classId == "mage")   return "Sprites/TinyTactics/Characters/mage";
+            if (classId == "cleric") return "Sprites/TinyTactics/Characters/cleric";
+            return "Sprites/TinyTactics/Characters/fighter"; // fighter ou qualquer valor desconhecido
+        }
     }
+
 
     // Catálogo de armas.
     public static class WeaponCatalog
