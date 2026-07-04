@@ -786,7 +786,9 @@ namespace PangeaSkirmish
         private void MakeMenuBtn(Transform parent, string label, Vector2 pos, Action onClick)
         {
             var btn = MakeBtn(parent, new Vector2(0.5f, 0.5f), pos, new Vector2(370, 65));
-            btn.GetComponent<Image>().color = new Color(0.18f, 0.28f, 0.52f);
+            var img = btn.GetComponent<Image>();
+            var baseColor = new Color(0.18f, 0.28f, 0.52f);
+            UiSkin.ApplyButtonSkin(img, baseColor);
             MakeLabel(btn.transform, Vector2.zero, new Vector2(370, 65), 28, Color.white).text = label;
             btn.onClick.AddListener(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); onClick?.Invoke(); });
         }

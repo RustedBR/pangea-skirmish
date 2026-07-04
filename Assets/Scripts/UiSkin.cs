@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace PangeaSkirmish
 {
@@ -240,6 +241,29 @@ namespace PangeaSkirmish
                 0, SpriteMeshType.FullRect, new Vector4(b, b, b, b));
             _maskCache[corner] = spr;
             return spr;
+        }
+
+        // ── Helper de skin de botão ────────────────────────────
+
+        /// <summary>
+        /// Aplica (ou remove) a skin de botão BDragon1727 num Image.
+        /// Encapsula a lógica de SliceSliced + tint que antes ficava em BattleHUD.ApplyButtonFrame,
+        /// permitindo reutilização em MainMenuManager e SandboxHUD sem duplicação.
+        /// baseColor é a cor sólida do botão (usada como fallback e como base do tint).
+        /// </summary>
+        public static void ApplyButtonSkin(Image img, Color baseColor)
+        {
+            img.color = baseColor;
+            img.sprite = null;
+            img.type = Image.Type.Simple;
+
+            var T = Tuning.Get();
+            if (!T.uiButtonSkinEnabled) return;
+            var spr = SliceSliced(T.uiSheetPath, T.uiButtonFrameRect, T.uiButtonFrameBorder, 32f, T.uiButtonFrameFlipShading);
+            if (spr == null) return;
+            img.sprite = spr;
+            img.type = Image.Type.Sliced;
+            img.color = Color.Lerp(baseColor, Color.white, T.uiButtonFrameTintLerp);
         }
 
         // ── Fallbacks gerados ──────────────────────────────────

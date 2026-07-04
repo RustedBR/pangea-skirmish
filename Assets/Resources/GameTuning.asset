@@ -416,7 +416,11 @@ MonoBehaviour:
   projectileSheetAir: Sprites/BDragon1727/Bullets/Bullet 24x24 Part 5A Free
   projectileSheetEarth: Sprites/BDragon1727/Bullets/Bullet 24x24 Part 6A Free
   impactSheetPath: Sprites/BDragon1727/Effects/113
+  impactFrameStart: 0
+  impactFrameCount: 8
   auraSheetPath: Sprites/BDragon1727/RPGEffects/1010
+  auraFrameStart: 0
+  auraFrameCount: 8
   spellProjectileScale: 1.5
   spellVfxScale: 2
   spellVfxFps: 12
@@ -437,7 +441,7 @@ MonoBehaviour:
   worldBarSortingBase: 15000
   uiSkinEnabled: 1
   worldIndicatorsEnabled: 1
-  uiSheetPath: Sprites/BDragon1727/UI/00
+  uiSheetPath: Sprites/BDragon1727/UI/UI_buttons_00
   markerArrowRect: {x: 241, y: 50, z: 14, w: 12}
   activeMarkerColor: {r: 0.4, g: 1, b: 0.5, a: 1}
   targetMarkerColor: {r: 1, g: 0.3, b: 0.25, a: 1}

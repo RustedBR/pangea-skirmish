@@ -153,7 +153,7 @@ namespace PangeaSkirmish
         {
             if (target == null) { DLog("PlayImpact abortado: target null"); yield break; }
             DLog($"Impacto em {target.unitName} ({SpellBook.ElementName(element)})");
-            yield return Burst(target.HeadWorld, Tuning.Get().impactSheetPath, element, "SpellImpact", rise: 0f);
+            yield return Burst(target.HeadWorld, Tuning.Get().impactSheetPath, element, "SpellImpact", rise: 0f, frameStart: Tuning.Get().impactFrameStart, frameCount: Tuning.Get().impactFrameCount);
         }
 
         // ── Aura de buff (Self) ────────────────────────────────
@@ -161,18 +161,18 @@ namespace PangeaSkirmish
         {
             if (caster == null) { DLog("PlaySelfBuff abortado: caster null"); yield break; }
             DLog($"Aura de buff em {caster.unitName} ({SpellBook.ElementName(element)})");
-            yield return Burst(caster.HeadWorld, Tuning.Get().auraSheetPath, element, "SpellAura", rise: 0.5f);
+            yield return Burst(caster.HeadWorld, Tuning.Get().auraSheetPath, element, "SpellAura", rise: 0.5f, frameStart: Tuning.Get().auraFrameStart, frameCount: Tuning.Get().auraFrameCount);
         }
 
         // ── Efeito no tile ─────────────────────────────────────
         public static IEnumerator PlayTileVfx(Vector3 worldPos, SpellElement element, List<string> log)
         {
             DLog($"VFX de tile em {worldPos} ({SpellBook.ElementName(element)})");
-            yield return Burst(worldPos, Tuning.Get().impactSheetPath, element, "SpellTileVfx", rise: 0f);
+            yield return Burst(worldPos, Tuning.Get().impactSheetPath, element, "SpellTileVfx", rise: 0f, frameStart: Tuning.Get().impactFrameStart, frameCount: Tuning.Get().impactFrameCount);
         }
 
         /// <summary>Explosão/aura estática: toca os frames uma vez, cresce um pouco, opcional sobe, e some.</summary>
-        private static IEnumerator Burst(Vector3 pos, string sheetPath, SpellElement element, string name, float rise)
+        private static IEnumerator Burst(Vector3 pos, string sheetPath, SpellElement element, string name, float rise, int frameStart, int frameCount)
         {
             var T = Tuning.Get();
             var frames = LoadFrames(sheetPath);
@@ -180,8 +180,16 @@ namespace PangeaSkirmish
             var go = MakeVfx(name, pos, tint, frames, 20001, T.spellVfxScale, out var sr, out bool fb);
 
             float fps = Mathf.Max(1f, T.spellVfxFps);
-            int frameCount = (!fb && frames.Length > 0) ? frames.Length : 6;
-            float dur = frameCount / fps;
+            int startFrame = 0;
+            int win;
+            if (!fb && frames.Length > 0)
+            {
+                startFrame = Mathf.Clamp(frameStart, 0, frames.Length - 1);
+                win = (frameCount <= 0) ? frames.Length - startFrame : Mathf.Min(frameCount, frames.Length - startFrame);
+                if (win < 1) win = 1;
+            }
+            else win = 6;
+            float dur = win / fps;
             Vector3 start = pos;
             float t = 0f;
             while (t < dur)
@@ -189,7 +197,7 @@ namespace PangeaSkirmish
                 t += Time.deltaTime;
                 float p = Mathf.Clamp01(t / dur);
                 if (!fb && frames.Length > 0)
-                    sr.sprite = frames[Mathf.Min(frames.Length - 1, (int)(t * fps))];
+                    sr.sprite = frames[startFrame + Mathf.Min(win - 1, (int)(t * fps))];
                 else
                 {
                     // Fallback: pulso que cresce e some

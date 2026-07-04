@@ -638,8 +638,16 @@ namespace PangeaSkirmish
         public string projectileSheetEarth = "Sprites/BDragon1727/Bullets/Bullet 24x24 Part 6A Free";
         [Tooltip("Path do spritesheet de impacto (explosão) — Effects.")]
         public string impactSheetPath = "Sprites/BDragon1727/Effects/113";
+        [Tooltip("Índice do primeiro frame do sheet de IMPACTO a animar (atlas grande: janela)")]
+        public int impactFrameStart = 0;
+        [Tooltip("Quantos frames animar no IMPACTO a partir do início (0 = todos os frames do sheet)")]
+        public int impactFrameCount = 0;
         [Tooltip("Path do spritesheet de aura de buff Self — RPGEffects.")]
         public string auraSheetPath = "Sprites/BDragon1727/RPGEffects/1010";
+        [Tooltip("Índice do primeiro frame do sheet de AURA (Self) a animar")]
+        public int auraFrameStart = 0;
+        [Tooltip("Quantos frames animar na AURA a partir do início (0 = todos os frames do sheet)")]
+        public int auraFrameCount = 0;
         [Tooltip("Escala do sprite de projétil no mundo.")]
         public float spellProjectileScale = 1.5f;
         [Tooltip("Escala do sprite de impacto/aura/tile-VFX no mundo.")]

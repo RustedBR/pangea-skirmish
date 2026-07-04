@@ -490,6 +490,7 @@ namespace PangeaSkirmish
             Color color, UnityEngine.Events.UnityAction onClick)
         {
             var btn = MakeBtn(parent, new Vector2(0.5f, 0.5f), pos, size, color);
+            UiSkin.ApplyButtonSkin(btn.GetComponent<Image>(), color);
             MakeLabel(btn.transform, Vector2.zero, size, 18, Color.white).text = label;
             btn.onClick.AddListener(onClick);
         }

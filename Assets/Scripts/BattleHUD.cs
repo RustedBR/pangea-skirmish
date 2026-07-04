@@ -561,7 +561,13 @@ namespace PangeaSkirmish
             bgRT.pivot = new Vector2(0, 1);
             bgRT.anchoredPosition = new Vector2(92, -(baseY + 30f));
             bgRT.sizeDelta = new Vector2(248, 14);
-            _hpBarBg.AddComponent<Image>().color = new Color(0.04f, 0.07f, 0.16f);
+            var hpBgImg = _hpBarBg.AddComponent<Image>();
+            hpBgImg.color = new Color(0.04f, 0.07f, 0.16f);
+            {
+                var T = Tuning.Get();
+                var pillSpr = UiSkin.SliceSliced(T.uiSheetPath, T.worldBarPillRect, T.worldBarPillBorder);
+                if (pillSpr != null) { hpBgImg.sprite = pillSpr; hpBgImg.type = Image.Type.Sliced; }
+            }
 
             var hpFill = new GameObject("HPFill", typeof(RectTransform));
             hpFill.transform.SetParent(_hpBarBg.transform, false);
@@ -938,20 +944,7 @@ namespace PangeaSkirmish
             _skinnedButtons.RemoveAll(t => t.img == img);
             _skinnedButtons.Add((img, baseColor));
 
-            img.color = baseColor;
-            img.sprite = null;
-            img.type = Image.Type.Simple;
-
-            var T = Tuning.Get();
-            if (!T.uiButtonSkinEnabled) return;
-            var spr = UiSkin.SliceSliced(T.uiSheetPath, T.uiButtonFrameRect, T.uiButtonFrameBorder, 32f, T.uiButtonFrameFlipShading);
-            if (spr == null) return;
-            img.sprite = spr;
-            img.type = Image.Type.Sliced;
-            // O sprite tem sombreado interno escuro; as cores de botão foram calibradas p/
-            // preenchimento liso, então multiplicar direto (Image.color × sprite) crushava
-            // pra quase-preto. Clareia o tint pra compensar e manter o texto legível.
-            img.color = Color.Lerp(baseColor, Color.white, T.uiButtonFrameTintLerp);
+            UiSkin.ApplyButtonSkin(img, baseColor);
         }
 
         /// <summary>

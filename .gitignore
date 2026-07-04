@@ -120,3 +120,10 @@ __pycache__/
 # Custom
 *.blob
 mono_crash.*
+
+# Game Studios framework session logs (transientes)
+production/
+production.meta
+
+# Visual Studio solution (formato XML novo)
+*.slnx
