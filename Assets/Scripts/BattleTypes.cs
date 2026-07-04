@@ -95,10 +95,11 @@ namespace PangeaSkirmish
 
         public int WeaponDamage = -1;
         public int AttackRange = 1;
+        public bool strScalesDamage = true; // false para armas ranged com range > strDamageMaxRange
 
         public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT);
         public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS);
-        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) + STR * F.dmgPerSTR);
+        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) + (strScalesDamage ? STR * F.dmgPerSTR : 0));
         public int MagicDamage => Mathf.RoundToInt(INT * F.dmgPerINT);
         public int Initiative => Mathf.RoundToInt(AGI * F.iniPerAGI + DEX * F.iniPerDEX);
         public int MoveBudget => Footprint + Mathf.RoundToInt(AGI * F.movePerAGI);
@@ -163,7 +164,8 @@ namespace PangeaSkirmish
     {
         public ActionType Type;
         public int        Index;
-        public bool       IsBonus;     // potencializada com 1 PAB
+        public bool       IsBonus;     // potencializada com 1 PAB (Golpe Poderoso/Incremento)
+        public bool       IsAimed;     // mirada com 1 PAB (Mirar): +DEX no próximo ataque
         public Vector2Int BonusStep;   // destino do passo extra (Type==Move && IsBonus)
     }
 

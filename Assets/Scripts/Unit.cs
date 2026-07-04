@@ -26,6 +26,7 @@ namespace PangeaSkirmish
         public readonly List<ScheduledAction> actionSequence  = new List<ScheduledAction>();
         public int plannedAttackCount => plannedAttacks.Count;
         public bool bonusDamageThisAttack;
+        public bool aimBonusThisAttack;
         public bool hasPlannedBonus;
         public int remainingAP;
         public int remainingBAP;
@@ -44,7 +45,7 @@ namespace PangeaSkirmish
         public int currentMana;
         public int reservedMana;
         public int rolledInitiative;
-        public bool plannedConcentration;
+        public int plannedConcentrations;
         public readonly List<PlannedSpell>   plannedSpells = new List<PlannedSpell>();
         public readonly List<StatusEffect>   statusEffects = new List<StatusEffect>();
 
@@ -332,18 +333,21 @@ namespace PangeaSkirmish
             // Resolver a arma via WeaponCatalog
             var w = WeaponCatalog.Get(weaponId); // null = desarmado
 
-            // Aplicar dano da arma aos stats
+            // Aplicar dano da arma aos stats (alcance é ADITIVO: base + arma)
+            var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+            int baseRange = tuning != null ? tuning.baseAttackRange : 1;
             if (w != null)
             {
                 stats.WeaponDamage = w.damage;
-                stats.AttackRange = w.range;
+                stats.AttackRange = baseRange + w.range;
+                stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
             }
             else
             {
                 // Sem arma: usar valores desarmados do GameTuning
-                var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
                 stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
-                stats.AttackRange = tuning != null ? tuning.unarmedRange : 1;
+                stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
+                stats.strScalesDamage = true; // unarmed sempre escala com STR
             }
 
             // Criar overlay apenas se houver arma
@@ -724,7 +728,8 @@ namespace PangeaSkirmish
             actionSequence.Clear();
             hasPlannedBonus       = false;
             bonusDamageThisAttack = false;
-            plannedConcentration  = false;
+            aimBonusThisAttack    = false;
+            plannedConcentrations = 0;
             reservedMana = 0;
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;
@@ -739,7 +744,7 @@ namespace PangeaSkirmish
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
             for (int i = 0; i < plannedSpells.Count; i++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
-            if (plannedConcentration)
+            for (int c = 0; c < plannedConcentrations; c++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero });
         }
     }

@@ -65,8 +65,9 @@ namespace PangeaSkirmish
             }
             if (target == null) return null;
 
-            bool bonus = ConsumeBonus(attacker);
-            int  dmg   = BaseDamage(attacker) + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0);
+            bool bonus  = ConsumeBonus(attacker);
+            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
+            int  dmg    = BaseDamage(attacker) + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0) + aimDmg;
             target.TakeDamage(dmg, bonus);
             ConsumeStrBuffOnHit(attacker);
 
@@ -74,7 +75,8 @@ namespace PangeaSkirmish
             string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
             string icon     = bonus ? "<color=#ffd700>*</color>" : ">";
             string tag      = bonus ? " <color=#ffd700>+INCR</color>" : "";
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {dmg}{tag}  ({hp})";
+            string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
+            return $"{icon} {attacker.unitName} -> {target.unitName}: {dmg}{tag}{aimTag}  ({hp})";
         }
 
         // ---- Tile (posicional, bônus de dano) ----
@@ -96,9 +98,12 @@ namespace PangeaSkirmish
                 return $"<color=#888888>x</color> {attacker.unitName} posicao vazia";
 
             bool bonus = ConsumeBonus(attacker);
+            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
+            int  strDmg = attacker.stats.strScalesDamage ? Mathf.RoundToInt(attacker.stats.STR * Tuning.Get().tileAttackStrMultiplier) : 0;
             int  dmg   = BaseDamage(attacker)
-                       + Mathf.RoundToInt(attacker.stats.STR * Tuning.Get().tileAttackStrMultiplier)
-                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0);
+                       + strDmg
+                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
+                       + aimDmg;
             target.TakeDamage(dmg, bonus);
             ConsumeStrBuffOnHit(attacker);
 
@@ -106,7 +111,8 @@ namespace PangeaSkirmish
             string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
             string icon     = bonus ? "<color=#ffd700>*</color>" : ">";
             string tag      = bonus ? " <color=#ffd700>+INCR</color>" : "";
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {dmg}+STR{tag}  ({hp})";
+            string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
+            return $"{icon} {attacker.unitName} -> {target.unitName}: {dmg}{tag}{aimTag}  ({hp})";
         }
 
         // ---- Helpers ----
@@ -116,6 +122,13 @@ namespace PangeaSkirmish
         {
             if (!u.bonusDamageThisAttack) return false;
             u.bonusDamageThisAttack = false;
+            return true;
+        }
+
+        private static bool ConsumeAim(Unit u)
+        {
+            if (!u.aimBonusThisAttack) return false;
+            u.aimBonusThisAttack = false;
             return true;
         }
 

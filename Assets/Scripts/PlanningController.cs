@@ -74,6 +74,7 @@ namespace PangeaSkirmish
             _hud.BindQuickStep(OnQuickStepClick);
             _hud.BindConcentrate(OnConcentrateClick);
             _hud.BindIncrement(OnIncrementClick);
+            _hud.BindAim(OnAimClick);
             _hud.BindMagicElement(OnMagicElementChosen);
             _hud.BindSpellSelf(OnSpellTargetSelf);
             _hud.BindSpellUnit(OnSpellTargetUnit);
@@ -291,30 +292,23 @@ namespace PangeaSkirmish
         {
             if (!_active || _controlled == null) return;
 
-            if (_controlled.plannedConcentration)
+            // Concentração agora é um CONTADOR: cada clique adiciona uma (gasta 1 PAB),
+            // até acabar o PAB ou a mana projetada encher. Cancela via Desfazer/Limpar.
+            if (_controlled.remainingBAP <= 0) return;
+            int projectedMana = _controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen;
+            if (projectedMana >= _controlled.stats.MaxMana)
             {
-                _controlled.plannedConcentration = false;
-                _controlled.remainingBAP++;
-                int idx = _controlled.actionSequence.FindLastIndex(a => a.Type == ActionType.Concentrate);
-                if (idx >= 0) _controlled.actionSequence.RemoveAt(idx);
-                _hud.LogAction($"{_controlled.unitName} cancelou concentracao", _controlled);
+                _hud.LogAction($"{_controlled.unitName} mana ja cheia", _controlled);
+                return;
             }
-            else
+            _controlled.plannedConcentrations++;
+            _controlled.remainingBAP--;
+            _controlled.actionSequence.Add(new ScheduledAction
             {
-                if (_controlled.remainingBAP <= 0) return;
-                if (_controlled.currentMana >= _controlled.stats.MaxMana)
-                {
-                    _hud.LogAction($"{_controlled.unitName} mana ja cheia", _controlled);
-                    return;
-                }
-                _controlled.plannedConcentration = true;
-                _controlled.remainingBAP--;
-                _controlled.actionSequence.Add(new ScheduledAction
-                {
-                    Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero
-                });
-                _hud.LogAction($"{_controlled.unitName} planejou concentrar", _controlled);
-            }
+                Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero
+            });
+            _hud.LogAction($"{_controlled.unitName} planejou concentrar ({_controlled.plannedConcentrations})", _controlled);
+
             _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
@@ -350,6 +344,62 @@ namespace PangeaSkirmish
                 }
                 action.IsBonus = true;
                 _controlled.actionSequence[idx] = action;
+                _controlled.remainingBAP--;
+            }
+
+            _hud.UpdateAPDisplay(_controlled);
+            RefreshSequenceVisuals();
+            SyncButtonStates();
+            _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
+        }
+
+        private void OnAimClick()
+        {
+            if (!_active || _controlled == null) return;
+
+            int idx = _hud.SelectedSeqIndex;
+            if (idx < 0 || idx >= _controlled.actionSequence.Count)
+            {
+                Debug.Log("Selecione um ataque planejado para usar Mirar");
+                return;
+            }
+
+            var action = _controlled.actionSequence[idx];
+            if (action.Type != ActionType.Attack)
+            {
+                Debug.Log("Mirar só funciona em ataques");
+                return;
+            }
+
+            if (action.IsAimed)
+            {
+                // Remover mira: devolve PAB
+                _controlled.actionSequence[idx] = new ScheduledAction
+                {
+                    Type = action.Type,
+                    Index = action.Index,
+                    IsBonus = action.IsBonus,
+                    IsAimed = false,
+                    BonusStep = action.BonusStep
+                };
+                _controlled.remainingBAP++;
+            }
+            else
+            {
+                // Aplicar mira: gasta PAB
+                if (_controlled.remainingBAP <= 0)
+                {
+                    Debug.Log("PAB insuficiente para Mirar");
+                    return;
+                }
+                _controlled.actionSequence[idx] = new ScheduledAction
+                {
+                    Type = action.Type,
+                    Index = action.Index,
+                    IsBonus = action.IsBonus,
+                    IsAimed = true,
+                    BonusStep = action.BonusStep
+                };
                 _controlled.remainingBAP--;
             }
 
@@ -527,6 +577,7 @@ namespace PangeaSkirmish
             _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
+            _hud.ShowMainMenu(); // magia confirmada → volta ao menu (dá acesso a Desfazer/Limpar)
         }
 
         private void CommitSpellUnit(Unit target)
@@ -569,6 +620,7 @@ namespace PangeaSkirmish
             _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
+            _hud.ShowMainMenu(); // magia confirmada → volta ao menu (dá acesso a Desfazer/Limpar)
         }
 
         private void CommitSpellTile(Vector2Int anchor)
@@ -609,6 +661,7 @@ namespace PangeaSkirmish
             _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
+            _hud.ShowMainMenu(); // magia confirmada → volta ao menu (dá acesso a Desfazer/Limpar)
         }
 
         // ------------------------------------------------------------------ PICKING: MOVIMENTO
@@ -902,6 +955,7 @@ namespace PangeaSkirmish
                 _controlled.plannedAttacks.RemoveAt(_controlled.plannedAttacks.Count - 1);
                 _controlled.remainingAP++;
                 if (last.IsBonus) _controlled.remainingBAP++;
+                if (last.IsAimed) _controlled.remainingBAP++;
 
                 if (_pathGhosts.Count > 0)
                 {
@@ -917,6 +971,9 @@ namespace PangeaSkirmish
                 {
                     // Devolve a mana reservada para a conjuração desfeita.
                     _controlled.reservedMana = Mathf.Max(0, _controlled.reservedMana - _controlled.plannedSpells[li].Mana);
+                    var undoneSpell = _controlled.plannedSpells[li];
+                    if (undoneSpell.Target == SpellTargetKind.Unit && undoneSpell.TargetUnit != null)
+                        undoneSpell.TargetUnit.SetAttackMarked(false);
                     _controlled.plannedSpells.RemoveAt(li);
                 }
                 _controlled.remainingAP++;
@@ -930,7 +987,7 @@ namespace PangeaSkirmish
             }
             else if (last.Type == ActionType.Concentrate)
             {
-                _controlled.plannedConcentration = false;
+                if (_controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
                 _controlled.remainingBAP++;
             }
 
@@ -948,7 +1005,7 @@ namespace PangeaSkirmish
         {
             if (!_active || _controlled == null) return;
             if (_controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0
-                && _controlled.plannedSpells.Count == 0 && !_controlled.plannedConcentration) return;
+                && _controlled.plannedSpells.Count == 0 && _controlled.plannedConcentrations == 0) return;
 
             _controlled.remainingAP = _controlled.stats.ActionPoints;
             _controlled.remainingBAP = _controlled.stats.BonusActionPoints;
@@ -958,7 +1015,7 @@ namespace PangeaSkirmish
             _controlled.plannedAttacks.Clear();
             _controlled.plannedSpells.Clear();
             _controlled.reservedMana = 0;
-            _controlled.plannedConcentration = false;
+            _controlled.plannedConcentrations = 0;
             _controlled.actionSequence.Clear();
             _controlled.hasPlannedBonus = false;
             _controlled.bonusDamageThisAttack = false;
@@ -1224,12 +1281,14 @@ namespace PangeaSkirmish
                 canAdd:    _controlled.remainingAP > 0 && hasMana,
                 isPicking: _mode == PlanMode.SpellElementPicking);
             _hud.SetConcentrateState(
-                canAdd:    (_controlled.remainingBAP > 0 && _controlled.currentMana < _controlled.stats.MaxMana)
-                           || _controlled.plannedConcentration,
+                canAdd:    _controlled.remainingBAP > 0
+                           && (_controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen) < _controlled.stats.MaxMana,
                 isPicking: false);
             _hud.SetIncrementState(
                 canAdd:    _controlled.remainingBAP > 0 && hasSequence,
                 isPicking: false);
+            _hud.SetAimState(
+                canAdd:    _controlled.remainingBAP > 0 && hasSequence);
         }
 
         // ------------------------------------------------------------------ GHOSTS

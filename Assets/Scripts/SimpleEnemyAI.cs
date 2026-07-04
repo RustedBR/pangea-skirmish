@@ -123,10 +123,10 @@ namespace PangeaSkirmish
             }
 
             // ── CONCENTRAÇÃO: IA recupera mana quando threshold baixo ──
-            if (!enemy.plannedConcentration && enemy.currentMana <= tuning.aiConcentrationThreshold
+            if (enemy.plannedConcentrations == 0 && enemy.currentMana <= tuning.aiConcentrationThreshold
                 && enemy.remainingBAP > 0)
             {
-                enemy.plannedConcentration = true;
+                enemy.plannedConcentrations = 1;
                 enemy.remainingBAP--;
             }
 

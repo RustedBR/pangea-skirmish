@@ -88,15 +88,15 @@ namespace PangeaSkirmish
         {
             new UnitClassDef { id="fighter", displayName="Guerreiro",
                 resourcePath="Sprites/TinyTactics/Characters/fighter",
-                defaultStats=new UnitStatBlock{ STR=8,VIT=10,DEX=2,AGI=3,INT=1,WIS=1,Footprint=3,AttackRange=1 },
+                defaultStats=new UnitStatBlock{ STR=8,VIT=10,DEX=2,AGI=3,INT=1,WIS=1,Footprint=3 },
                 defaultWeaponId="Hatchet" },
             new UnitClassDef { id="mage", displayName="Mago",
                 resourcePath="Sprites/TinyTactics/Characters/mage",
-                defaultStats=new UnitStatBlock{ STR=3,VIT=5,DEX=8,AGI=10,INT=1,WIS=1,Footprint=3,AttackRange=1 },
+                defaultStats=new UnitStatBlock{ STR=3,VIT=5,DEX=8,AGI=10,INT=1,WIS=1,Footprint=3 },
                 defaultWeaponId="WoodenStaff" },
             new UnitClassDef { id="cleric", displayName="Clérigo",
                 resourcePath="Sprites/TinyTactics/Characters/cleric",
-                defaultStats=new UnitStatBlock{ STR=4,VIT=7,DEX=4,AGI=5,INT=4,WIS=8,Footprint=3,AttackRange=1 },
+                defaultStats=new UnitStatBlock{ STR=4,VIT=7,DEX=4,AGI=5,INT=4,WIS=8,Footprint=3 },
                 defaultWeaponId="Scepter" },
         };
         public static UnitClassDef Get(string id)
