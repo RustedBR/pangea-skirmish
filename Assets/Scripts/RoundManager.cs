@@ -297,7 +297,7 @@ namespace PangeaSkirmish
             for (int slot = 0; slot < maxSlots; slot++)
             {
                 var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
-                var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr)>();
+                var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
                 var spellsThisSlot  = new List<(Unit u, PlannedSpell spell, bool incr)>();
 
                 foreach (var u in _units)
@@ -307,7 +307,7 @@ namespace PangeaSkirmish
                     if (act.Type == ActionType.Move && act.Index < u.plannedPath.Count)
                         movesThisSlot.Add((u, u.plannedPath[act.Index], act.IsBonus));
                     else if (act.Type == ActionType.Attack && act.Index < u.plannedAttacks.Count)
-                        attacksThisSlot.Add((u, u.plannedAttacks[act.Index], act.IsBonus));
+                        attacksThisSlot.Add((u, u.plannedAttacks[act.Index], act.IsBonus, act.IsAimed));
                     else if (act.Type == ActionType.Spell && act.Index < u.plannedSpells.Count)
                         spellsThisSlot.Add((u, u.plannedSpells[act.Index], act.IsBonus));
                     // Concentrate: skip — resolved at end of round
@@ -382,11 +382,11 @@ namespace PangeaSkirmish
             // ── FIM DE ROUND: concentração, status effects, tile effects ──
             foreach (var u in _units)
             {
-                if (u.IsDead || !u.plannedConcentration) continue;
-                int regen = u.stats.ManaRegen;
+                if (u.IsDead || u.plannedConcentrations <= 0) continue;
+                int regen = u.stats.ManaRegen * u.plannedConcentrations;
                 u.currentMana = Mathf.Min(u.currentMana + regen, u.stats.MaxMana);
                 _hud.LogAction($"✦ {u.unitName} concentrou +{regen} mana", u);
-                u.plannedConcentration = false;
+                u.plannedConcentrations = 0;
             }
             foreach (var u in _units)
                 if (!u.IsDead) StatusEffectSystem.TickEndOfRound(u.statusEffects);
@@ -630,14 +630,14 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Resolve um slot de ataque: rola iniciativa fresca, executa em ordem desc.</summary>
-        private IEnumerator ResolveAttackSlot(List<(Unit u, PlannedAttack atk, bool incr)> attacks)
+        private IEnumerator ResolveAttackSlot(List<(Unit u, PlannedAttack atk, bool incr, bool aimed)> attacks)
         {
             _phase = RoundPhase.ActionAttack;
             _hud.SetPhase($"Round {_round} — Ação: Ataque");
 
             var rolls  = new Dictionary<Unit, int>();
             var decomp = new Dictionary<Unit, (int d20, int agi, int dex, int total)>();
-            foreach (var (u, _, _) in attacks)
+            foreach (var (u, _, _, _) in attacks)
             {
                 var ini = RollInitiative(u);
                 rolls[u]  = ini.total;
@@ -654,10 +654,10 @@ namespace PangeaSkirmish
                 yield return ShowInitiativeContest(atkContestants, atkWinner, "Ataques simultâneos");
             }
 
-            var sorted = new List<(Unit u, PlannedAttack atk, bool incr)>(attacks);
+            var sorted = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>(attacks);
             sorted.Sort((a, b) => rolls[b.u].CompareTo(rolls[a.u]));
 
-            foreach (var (u, atk, incr) in sorted)
+            foreach (var (u, atk, incr, aimed) in sorted)
             {
                 if (u.IsDead) continue;
 
@@ -683,7 +683,9 @@ namespace PangeaSkirmish
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
                     // Label animates and self-destructs
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
-                    if (incr) { u.remainingBAP++; _hud.RefreshUnitInfo(); }
+                    if (incr) u.remainingBAP++;
+                    if (aimed) u.remainingBAP++;
+                    _hud.RefreshUnitInfo();
                     yield return new WaitForSeconds(slotPause);
                     continue;
                 }
@@ -693,6 +695,9 @@ namespace PangeaSkirmish
                 {
                     u.bonusDamageThisAttack = true;
                 }
+
+                // Mirar: dano DEX no próximo ataque (sempre aplica, mesmo que erre — ConsumeAim drena no resolver)
+                u.aimBonusThisAttack = aimed;
 
                 Vector3 aimPos;
                 if (atk.Mode == AttackMode.Tile)

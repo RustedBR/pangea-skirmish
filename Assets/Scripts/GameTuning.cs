@@ -36,39 +36,45 @@ namespace PangeaSkirmish
         public float tileAttackStrMultiplier = 1f;
         [Tooltip("Dano de ataque sem arma equipada.")]
         public int unarmedDamage = 1;
-        [Tooltip("Alcance (tiles) do ataque sem arma equipada.")]
-        public int unarmedRange = 1;
+        [Tooltip("Alcance (tiles) do ataque sem arma equipada. 0 = só alcança com a base.")]
+        public int unarmedRange = 0;
+        [Tooltip("Alcance natural da unidade além do footprint, em tiles (gap). Efetivo = base + arma.")]
+        public int baseAttackRange = 1;
+        [Tooltip("Armas com range ACIMA disso não escalam dano com STR (usam Mirar/DEX).")]
+        public int strDamageMaxRange = 4;
+        [Tooltip("Mirar: dano extra no próximo ataque = DEX * este fator.")]
+        public float aimDexMultiplier = 1f;
 
         [Header("── Fórmulas de stats ──")]
         [Tooltip("Fórmulas derivadas (HP, mana, dano, movimento...) a partir dos atributos. Editar com cuidado — afeta todo o balanceamento.")]
         public StatFormulas statFormulas = new StatFormulas();
 
-        // ═════════════════════════ CLASSES & ARMAS ═════════════════════════
+        // ═════════════════════════ PERSONAGENS PADRÃO & ARMAS ═════════════════════════
 
-        [Header("═══ CLASSES & ARMAS ═══")]
+        [Header("═══ PERSONAGENS PADRÃO & ARMAS ═══")]
         [Tooltip("Atributos iniciais do Guerreiro (STR/VIT/DEX/AGI/INT/WIS, footprint e alcance).")]
-        public UnitStatBlock guerreiro = new UnitStatBlock { STR = 8, VIT = 10, DEX = 2, AGI = 3, INT = 1, WIS = 1, Footprint = 3, AttackRange = 1 };
+        public UnitStatBlock guerreiro = new UnitStatBlock { STR = 8, VIT = 10, DEX = 2, AGI = 3, INT = 1, WIS = 1, Footprint = 3 };
         [Tooltip("Atributos iniciais do Ladino.")]
-        public UnitStatBlock ladino    = new UnitStatBlock { STR = 3, VIT = 5,  DEX = 8, AGI = 10, INT = 1, WIS = 1, Footprint = 3, AttackRange = 1 };
+        public UnitStatBlock ladino    = new UnitStatBlock { STR = 3, VIT = 5,  DEX = 8, AGI = 10, INT = 1, WIS = 1, Footprint = 3 };
         [Tooltip("Atributos iniciais do Goblin (inimigo básico).")]
-        public UnitStatBlock goblin    = new UnitStatBlock { STR = 3, VIT = 3,  DEX = 3, AGI = 3,  INT = 1, WIS = 1, Footprint = 2, AttackRange = 1 };
+        public UnitStatBlock goblin    = new UnitStatBlock { STR = 3, VIT = 3,  DEX = 3, AGI = 3,  INT = 1, WIS = 1, Footprint = 2 };
         [Tooltip("Atributos iniciais do Arqueiro.")]
-        public UnitStatBlock arqueiro  = new UnitStatBlock { STR = 5, VIT = 5,  DEX = 10, AGI = 7, INT = 1, WIS = 2, Footprint = 3, AttackRange = 3 };
+        public UnitStatBlock arqueiro  = new UnitStatBlock { STR = 5, VIT = 5,  DEX = 10, AGI = 7, INT = 1, WIS = 2, Footprint = 3 };
         [Tooltip("Atributos iniciais do Mago.")]
-        public UnitStatBlock mago      = new UnitStatBlock { STR = 1, VIT = 4,  DEX = 2, AGI = 4,  INT = 10, WIS = 8, Footprint = 3, AttackRange = 4 };
+        public UnitStatBlock mago      = new UnitStatBlock { STR = 1, VIT = 4,  DEX = 2, AGI = 4,  INT = 10, WIS = 8, Footprint = 3 };
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=1 },
-            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=1 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=1 },
-            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=1 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=2 },
-            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=2 },
+            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2 },
+            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2 },
+            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3 },
+            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3 },
             new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3 },
-            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=4 },
+            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5 },
             new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=4 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]
@@ -620,6 +626,8 @@ namespace PangeaSkirmish
         public Color enemyRangeColor = new Color(1.00f, 0.28f, 0.22f, 0.45f);
         [Tooltip("Cor do chip de magia na sequência de ações.")]
         public Color seqChipSpellColor = new Color(0.60f, 0.20f, 0.80f);
+        [Tooltip("Cor do chip de Concentração na barra de sequência de ações.")]
+        public Color seqChipConcentrateColor = new Color(0.15f, 0.55f, 0.55f);
         [Tooltip("Cor do texto de mana na HUD.")]
         public Color manaTextColor = new Color(0.40f, 0.60f, 1.00f);
 

@@ -74,14 +74,15 @@ namespace PangeaSkirmish
             {
                 foreach (var p in RuntimeMap.Selected.units)
                 {
-                    var def   = ClassCatalog.Get(p.classId);
                     var team  = (Team)p.team;
                     var color = team == Team.Player ? tuning.playerTeamColor : tuning.enemyTeamColor;
                     bool isPlayerChar = team == Team.Player && controlled == null; // 1ª aliada = controlada
-                    // Resolver weaponId: usar o da placement, ou fallback para default da classe
-                    var weaponId = !string.IsNullOrEmpty(p.weaponId) ? p.weaponId : def.defaultWeaponId;
+                    // Resolver spritePath com fallback
+                    string resPath = !string.IsNullOrEmpty(p.spritePath) ? p.spritePath : CharacterSpriteCatalog.Default;
+                    // Resolver weaponId (sem default de classe — placement é self-contained)
+                    var weaponId = !string.IsNullOrEmpty(p.weaponId) ? p.weaponId : "";
                     var u = CreateUnit(p.displayName, team, new Vector2Int(p.x, p.y),
-                                       color, def.resourcePath, grid, p.stats, isPlayerChar, weaponId);
+                                       color, resPath, grid, p.stats, isPlayerChar, weaponId);
                     units.Add(u);
                     if (isPlayerChar) controlled = u;
                 }
@@ -97,8 +98,7 @@ namespace PangeaSkirmish
                 if (RuntimeSelectedCharacter.Active != null)
                 {
                     var preset = RuntimeSelectedCharacter.Active;
-                    var def = ClassCatalog.Get(preset.classId);
-                    string resPath = def != null ? def.resourcePath : FIGHTER;
+                    string resPath = !string.IsNullOrEmpty(preset.spritePath) ? preset.spritePath : FIGHTER;
                     string wId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
                     playerUnit = CreateUnit(preset.presetName, Team.Player, new Vector2Int(1, 1),
                         new Color(0.30f, 0.50f, 0.92f),

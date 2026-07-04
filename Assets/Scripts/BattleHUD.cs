@@ -661,6 +661,11 @@ namespace PangeaSkirmish
         private Image  _incrementImg;
         private Text   _incrementLabel;
 
+        // Botão Mirar (novo)
+        private Button _aimButton;
+        private Image  _aimImg;
+        private Text   _aimLabel;
+
         // SpellType submenu
         private Button _spellSelfButton;
         private Image  _spellSelfImg;
@@ -702,7 +707,7 @@ namespace PangeaSkirmish
             float subH        = TITLE_H + 2 * BTN_H + 1 * BTN_GAP + 8f + BOTTOM_PAD;
             float magicH      = TITLE_H + 6 * BTN_H + 5 * BTN_GAP + 8f + BOTTOM_PAD;
             float spellTypeH  = TITLE_H + 3 * BTN_H + 2 * BTN_GAP + 8f + BOTTOM_PAD;
-            float bonusH      = TITLE_H + 2 * BTN_H + 1 * BTN_GAP + 8f + BOTTOM_PAD;
+            float bonusH      = TITLE_H + 3 * BTN_H + 2 * BTN_GAP + 8f + BOTTOM_PAD;
             float manaStepH   = TITLE_H + 26f + (HUNDO - 4f) + 22f + 2 * BTN_H + 5 * BTN_GAP + 8f + BOTTOM_PAD;
             float maxSub      = Mathf.Max(Mathf.Max(magicH, manaStepH), Mathf.Max(spellTypeH, bonusH));
             float totalH      = Mathf.Max(mainH, maxSub) + BR_H;
@@ -888,6 +893,10 @@ namespace PangeaSkirmish
             _incrementButton = MakeMenuButton(_bonusMenuPanel.transform, "BtnIncremento", y,
                 out _incrementImg, out _incrementLabel);
             _incrementLabel.text = "2 - Incremento";
+            y -= BTN_H + BTN_GAP;
+            _aimButton = MakeMenuButton(_bonusMenuPanel.transform, "BtnMirar", y,
+                out _aimImg, out _aimLabel);
+            _aimLabel.text = "3 - Mirar";
 
             // ── Estado inicial ──
             _actionsMenuPanel.SetActive(false);
@@ -1053,12 +1062,15 @@ namespace PangeaSkirmish
                 int idx = i; // local copy para evitar closure issues
                 bool isAtk = seq[i] == ActionType.Attack;
                 bool isSpell = seq[i] == ActionType.Spell;
+                bool isConc = seq[i] == ActionType.Concentrate;
                 bool isBonus = scheduled != null && i < scheduled.Count && scheduled[i].IsBonus;
                 var chip = new GameObject($"Chip{i}", typeof(RectTransform));
                 chip.transform.SetParent(_seqContentRT, false);
                 Color baseCol;
                 if (isSpell)
                     baseCol = Tuning.Get().seqChipSpellColor;
+                else if (isConc)
+                    baseCol = Tuning.Get().seqChipConcentrateColor;
                 else
                     baseCol = isBonus ? (isAtk ? CorChipAtkBn : CorChipMoveBn) : (isAtk ? CorChipAtk : CorChipMove);
                 var img = chip.AddComponent<Image>();
@@ -1070,7 +1082,7 @@ namespace PangeaSkirmish
                 var t = MakeText(chip.transform, "Lbl", new Vector2(0.5f, 0.5f),
                     Vector2.zero, new Vector2(86, 22), 12, TextAnchor.MiddleCenter);
                 string mark = isBonus ? "◆ " : "";
-                t.text      = $"{mark}{i + 1}  {(isSpell ? "Magia" : isAtk ? "Atacar" : "Mover")}";
+                t.text      = $"{mark}{i + 1}  {(isSpell ? "Magia" : isAtk ? "Atacar" : isConc ? "Concentrar" : "Mover")}";
                 t.color     = Color.white;
                 t.fontStyle = FontStyle.Bold;
 
@@ -1159,6 +1171,7 @@ namespace PangeaSkirmish
         public void BindMagic(Action a)       { BindButton(_magicButton, a); }
         public void BindConcentrate(Action a) { BindButton(_concentrateButton, a); }
         public void BindIncrement(Action a)   { BindButton(_incrementButton,   a); }
+        public void BindAim(Action a)         { BindButton(_aimButton,         a); }
         public void BindUndo(Action a)        { BindButton(_undoButton,   a); }
         public void BindClear(Action a)       { BindButton(_clearButton,  a); }
         public void BindMagicElement(System.Action<SpellElement> a) { _magicElementClick = a; }
@@ -1310,6 +1323,14 @@ namespace PangeaSkirmish
             _incrementLabel.text = (isPicking ? "▶ " : "") + "2 - Incremento" + (isPicking ? "..." : "");
         }
 
+        public void SetAimState(bool canAdd, bool isPicking = false)
+        {
+            if (_aimButton == null) return;
+            _aimButton.interactable = canAdd || isPicking;
+            _aimImg.color  = SkinTint(isPicking ? CorAtivo : canAdd ? CorNormal : CorDisabled);
+            _aimLabel.text = (isPicking ? "▶ " : "") + "3 - Mirar" + (isPicking ? "..." : "");
+        }
+
         // ── VISIBILIDADE ─────────────────────
         public void SetActionBarVisible(bool v, Unit u = null)
         {
@@ -1373,7 +1394,7 @@ namespace PangeaSkirmish
             _unitStatsText.text =
                 $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
                 $"<b>MOV</b> {s.MoveBudget}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
-                $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentration}" +
+                $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}" +
                 (string.IsNullOrEmpty(buffs) ? "" : $"\n<color=#FFD700><b>BUFFS</b> {buffs}</color>");
             _unitNameText.text = $"{u.unitName}  <size=11>{team}</size>  <color=#{ColorUtility.ToHtmlStringRGB(Tuning.Get().manaTextColor)}>MP {u.currentMana}</color>";
         }

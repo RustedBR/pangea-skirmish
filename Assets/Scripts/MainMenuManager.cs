@@ -216,9 +216,9 @@ namespace PangeaSkirmish
 
             _nameInput = MakeInputField(_editorPanel.transform, new Vector2(lx, top), new Vector2(300, 40), "Nome");
 
-            // Class row
+            // Appearance row
             MakeLabel(_editorPanel.transform, new Vector2(lx - 160, top - 60), new Vector2(70, 36), 16,
-                new Color(0.78f, 0.80f, 0.85f)).text = "Classe:";
+                new Color(0.78f, 0.80f, 0.85f)).text = "Aparência:";
             _classLabel = MakeLabel(_editorPanel.transform, new Vector2(lx - 10, top - 60), new Vector2(140, 36), 16,
                 new Color(1f, 0.92f, 0.6f));
             _classLabel.alignment = TextAnchor.MiddleLeft;
@@ -341,10 +341,10 @@ namespace PangeaSkirmish
                 string prefix = isActive ? "▶ " : "";
                 MakeLabel(row.transform, new Vector2(-38, 0), new Vector2(130, 24), 12,
                     new Color(0.85f, 0.88f, 0.92f)).text = prefix + preset.presetName;
-                var def = ClassCatalog.Get(preset.classId);
-                string className = def != null ? def.displayName : preset.classId;
+                var spriteDef = CharacterSpriteCatalog.GetByPath(preset.spritePath);
+                string spriteName = spriteDef != null ? spriteDef.displayName : "";
                 MakeLabel(row.transform, new Vector2(52, 0), new Vector2(50, 24), 10,
-                    new Color(0.55f, 0.55f, 0.60f)).text = className;
+                    new Color(0.55f, 0.55f, 0.60f)).text = spriteName;
 
                 row.GetComponent<Button>().onClick.AddListener(() => {
                     RuntimeSelectedCharacter.Active = preset;
@@ -384,7 +384,7 @@ namespace PangeaSkirmish
             _editing = new CharacterPreset
             {
                 presetName = preset.presetName,
-                classId = preset.classId,
+                spritePath = preset.spritePath,
                 weaponId = preset.weaponId,
                 stats = new UnitStatBlock
                 {
@@ -403,9 +403,9 @@ namespace PangeaSkirmish
         {
             if (_nameInput != null) _nameInput.SetTextWithoutNotify(_editing.presetName);
 
-            var def = ClassCatalog.Get(_editing.classId);
+            var spriteDef = CharacterSpriteCatalog.GetByPath(_editing.spritePath);
             if (_classLabel != null)
-                _classLabel.text = def != null ? def.displayName : _editing.classId;
+                _classLabel.text = spriteDef != null ? spriteDef.displayName : "Guerreiro";
 
             var w = WeaponCatalog.Get(_editing.weaponId);
             if (_weaponLabel != null)
@@ -464,33 +464,32 @@ namespace PangeaSkirmish
                                 $"Defesa: {d.PhysicalDefense}\n" +
                                 $"Resistência: {d.MagicDefense}";
 
-            // Load class walking animation (SE invertido)
+            // Load character walking animation (SE invertido)
             if (_classSpriteImg != null)
             {
                 if (_walkAnim != null) { StopCoroutine(_walkAnim); _walkAnim = null; }
                 _walkFrames = null;
-                var def = ClassCatalog.Get(_editing.classId);
-                if (def != null)
+                string path = !string.IsNullOrEmpty(_editing.spritePath)
+                    ? _editing.spritePath
+                    : CharacterSpriteCatalog.Default;
+                var all = Resources.LoadAll<Sprite>(path);
+                if (all != null && all.Length > 0)
                 {
-                    var all = Resources.LoadAll<Sprite>(def.resourcePath);
-                    if (all != null && all.Length > 0)
+                    _walkFrames = new List<Sprite>();
+                    for (int i = 0; ; i++)
                     {
-                        _walkFrames = new List<Sprite>();
-                        for (int i = 0; ; i++)
-                        {
-                            string key = $"walkingSE_{i}";
-                            bool found = false;
-                            foreach (var s in all)
-                                if (s.name == key) { _walkFrames.Add(s); found = true; break; }
-                            if (!found) break;
-                        }
-                        if (_walkFrames.Count > 0)
-                        {
-                            _classSpriteImg.color = Color.white;
-                            _classSpriteImg.transform.localScale = new Vector3(-1, 1, 1);
-                            _classSpriteImg.sprite = _walkFrames[0];
-                            _walkAnim = StartCoroutine(WalkAnimLoop());
-                        }
+                        string key = $"walkingSE_{i}";
+                        bool found = false;
+                        foreach (var s in all)
+                            if (s.name == key) { _walkFrames.Add(s); found = true; break; }
+                        if (!found) break;
+                    }
+                    if (_walkFrames.Count > 0)
+                    {
+                        _classSpriteImg.color = Color.white;
+                        _classSpriteImg.transform.localScale = new Vector3(-1, 1, 1);
+                        _classSpriteImg.sprite = _walkFrames[0];
+                        _walkAnim = StartCoroutine(WalkAnimLoop());
                     }
                 }
             }
@@ -570,11 +569,11 @@ namespace PangeaSkirmish
         private void CycleClass()
         {
             if (_editing == null) return;
-            var all = ClassCatalog.All;
+            var all = CharacterSpriteCatalog.All;
             int idx = 0;
             for (int i = 0; i < all.Length; i++)
-                if (all[i].id == _editing.classId) { idx = (i + 1) % all.Length; break; }
-            _editing.classId = all[idx].id;
+                if (all[i].resourcePath == _editing.spritePath) { idx = (i + 1) % all.Length; break; }
+            _editing.spritePath = all[idx].resourcePath;
             SyncEditorToPreset();
             RefreshPreview();
         }

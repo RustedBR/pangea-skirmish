@@ -213,16 +213,16 @@ namespace PangeaSkirmish
             }
         }
 
-        // ── CLASSES + PRESETS DE UNIDADE ─────
+        // ── SPRITES + PRESETS DE UNIDADE ─────
         private void BuildUnitsPanelContent(bool highlightFirst)
         {
             // Limpa conteúdo anterior
             foreach (Transform c in _unitsPanel.transform) Destroy(c.gameObject);
             _classImgs.Clear();
 
-            var classes = ClassCatalog.All;
+            var sprites = CharacterSpriteCatalog.All;
             var presets = CharacterStorage.LoadAll();
-            int total = classes.Length + presets.Count;
+            int total = sprites.Length + presets.Count;
 
             // Redimensiona o painel conforme a quantidade de entradas
             float panelH = 60 + total * 44 + 10;
@@ -230,21 +230,21 @@ namespace PangeaSkirmish
             float top = panelH * 0.5f;
 
             MakeLabel(_unitsPanel.transform, new Vector2(0, top - 22), new Vector2(230, 26), 15,
-                new Color(0.70f, 0.74f, 0.82f)).text = "Classe / Personagem";
+                new Color(0.70f, 0.74f, 0.82f)).text = "Aparência / Personagem";
 
             float y = top - 56;
             int idx = 0;
 
-            foreach (var def in classes)
+            foreach (var spriteDef in sprites)
             {
                 var go = MakeListEntry(_unitsPanel.transform, y, out var img);
                 _classImgs.Add(img);
                 MakeLabel(go.transform, Vector2.zero, new Vector2(220, 36), 16,
-                    new Color(0.85f, 0.88f, 0.92f)).text = def.displayName;
+                    new Color(0.85f, 0.88f, 0.92f)).text = spriteDef.displayName;
                 int local = idx;
-                string id = def.id;
+                string path = spriteDef.resourcePath;
                 go.GetComponent<Button>().onClick.AddListener(() =>
-                    { HighlightList(_classImgs, local); _ctrl?.SetClass(id); });
+                    { HighlightList(_classImgs, local); _ctrl?.SetSprite(path); });
                 y -= 44; idx++;
             }
 

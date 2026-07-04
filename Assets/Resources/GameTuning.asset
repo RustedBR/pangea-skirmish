@@ -23,7 +23,10 @@ MonoBehaviour:
   minDamageFloor: 1
   tileAttackStrMultiplier: 1
   unarmedDamage: 1
-  unarmedRange: 1
+  unarmedRange: 0
+  baseAttackRange: 1
+  strDamageMaxRange: 4
+  aimDexMultiplier: 1
   statFormulas:
     hpBase: 5
     hpPerVIT: 3
@@ -86,7 +89,7 @@ MonoBehaviour:
     INT: 1
     WIS: 2
     Footprint: 3
-    AttackRange: 3
+    AttackRange: 1
   mago:
     STR: 1
     VIT: 4
@@ -95,33 +98,33 @@ MonoBehaviour:
     INT: 10
     WIS: 8
     Footprint: 3
-    AttackRange: 4
+    AttackRange: 1
   weapons:
   - id: Hatchet
     displayName: Machado
     damage: 4
-    range: 1
+    range: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 0
   - id: IronAxe
     displayName: Machado de Ferro
     damage: 7
-    range: 1
+    range: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 0
   - id: WoodenSword
     displayName: Espada de Madeira
     damage: 3
-    range: 1
+    range: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 0
   - id: IronSword
     displayName: Espada de Ferro
     damage: 5
-    range: 1
+    range: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 0
@@ -149,7 +152,7 @@ MonoBehaviour:
   - id: LongBow
     displayName: Arco Longo
     damage: 5
-    range: 4
+    range: 5
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 0
@@ -163,7 +166,7 @@ MonoBehaviour:
   - id: ArcaneStaff
     displayName: Cajado Arcano
     damage: 6
-    range: 4
+    range: 5
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 0
