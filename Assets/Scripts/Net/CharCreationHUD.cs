@@ -59,10 +59,19 @@ namespace PangeaSkirmish
                 }
             };
 
-            // Painel central
+            // Fundo escuro full-screen: cobre a cena atrás (sandbox/menu) e captura os cliques,
+            // para o overlay de criação não ficar "flutuando" sobre o mapa.
+            var dimmer = new GameObject("CharCreationDimmer", typeof(RectTransform), typeof(Image));
+            dimmer.transform.SetParent(canvas, false);
+            var dimRt = dimmer.GetComponent<RectTransform>();
+            dimRt.anchorMin = Vector2.zero; dimRt.anchorMax = Vector2.one;
+            dimRt.offsetMin = Vector2.zero; dimRt.offsetMax = Vector2.zero;
+            dimmer.GetComponent<Image>().color = new Color(0.02f, 0.03f, 0.05f, 0.94f);
+
+            // Painel central (renderizado por cima do dimmer, pois é criado depois)
             var panel = MakePanel(canvas, "CharCreationPanel",
                 new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(520, 680),
-                new Color(0.04f, 0.05f, 0.08f, 0.97f));
+                new Color(0.04f, 0.05f, 0.08f, 0.99f));
 
             float top = 310f;
             float lineH = 42f;
@@ -87,7 +96,7 @@ namespace PangeaSkirmish
 
             // Sprite picker
             MakeLabel(panel.transform, new Vector2(-160, top), new Vector2(100, 34), 15,
-                Color.white).text = "Classe:";
+                Color.white).text = "Aparência:";
             MakeBtn(panel.transform, new Vector2(-50, top), new Vector2(30, 30), "<",
                 () => { _spriteIdx = (_spriteIdx - 1 + CharacterSpriteCatalog.All.Length) % CharacterSpriteCatalog.All.Length; SyncSprite(); });
             _spriteLbl = MakeLabel(panel.transform, new Vector2(50, top), new Vector2(130, 34), 15, Color.white);

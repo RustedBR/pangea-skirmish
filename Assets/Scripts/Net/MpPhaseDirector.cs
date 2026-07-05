@@ -74,8 +74,14 @@ namespace PangeaSkirmish
             EnsureOverlayCanvas();
             var go = new GameObject("CharCreationHUD", typeof(RectTransform));
             go.transform.SetParent(_overlayCanvas.transform, false);
+            // go ocupa a tela inteira e É o pai de TODA a UI do overlay (dimmer + painel),
+            // para que HideCharCreation (Destroy(go)) remova tudo — senão o painel fica
+            // órfão no canvas DontDestroyOnLoad e "vaza" para a cena seguinte (sandbox).
+            var goRt = go.GetComponent<RectTransform>();
+            goRt.anchorMin = Vector2.zero; goRt.anchorMax = Vector2.one;
+            goRt.offsetMin = Vector2.zero; goRt.offsetMax = Vector2.zero;
             _charCreationHUD = go.AddComponent<CharCreationHUD>();
-            _charCreationHUD.Build(_overlayCanvas.transform);
+            _charCreationHUD.Build(go.transform);
         }
 
         private void HideCharCreation()
