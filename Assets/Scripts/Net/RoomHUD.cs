@@ -181,18 +181,18 @@ namespace PangeaSkirmish
             _mpRoomPanel.AddComponent<Image>().color = new Color(0.04f, 0.05f, 0.08f, 0.98f);
 
             // ---- Título + Join code -----------------------------------------
-            MakeLabel(_mpRoomPanel.transform, new Vector2(0, 480), new Vector2(500, 50), 34,
+            MakeLabel(_mpRoomPanel.transform, new Vector2(0, 370), new Vector2(500, 50), 34,
                 Color.white).text = "Sala Multiplayer";
 
-            var joinCodeLbl = MakeLabel(_mpRoomPanel.transform, new Vector2(-300, 420), new Vector2(200, 35), 18,
+            var joinCodeLbl = MakeLabel(_mpRoomPanel.transform, new Vector2(-300, 310), new Vector2(200, 35), 18,
                 new Color(0.6f, 0.6f, 0.6f));
             joinCodeLbl.text = "Código:";
 
-            _joinCodeDisplay = MakeLabel(_mpRoomPanel.transform, new Vector2(50, 420), new Vector2(400, 40), 30,
+            _joinCodeDisplay = MakeLabel(_mpRoomPanel.transform, new Vector2(50, 310), new Vector2(400, 40), 30,
                 new Color(0.4f, 0.9f, 0.5f));
             _joinCodeDisplay.text = "---";
 
-            _phaseLabel = MakeLabel(_mpRoomPanel.transform, new Vector2(0, 370), new Vector2(600, 30), 18,
+            _phaseLabel = MakeLabel(_mpRoomPanel.transform, new Vector2(0, 260), new Vector2(600, 30), 18,
                 new Color(0.7f, 0.7f, 0.9f));
             _phaseLabel.text = "Fase: Lobby";
 
@@ -204,7 +204,7 @@ namespace PangeaSkirmish
             playerListBg.transform.SetParent(_mpRoomPanel.transform, false);
             var plRt = playerListBg.GetComponent<RectTransform>();
             plRt.anchorMin = plRt.anchorMax = plRt.pivot = new Vector2(0.5f, 0.5f);
-            plRt.anchoredPosition = new Vector2(-540, 70);
+            plRt.anchoredPosition = new Vector2(-540, -40);
             plRt.sizeDelta = new Vector2(340, 430);
             playerListBg.GetComponent<Image>().color = new Color(0.06f, 0.07f, 0.10f);
 
@@ -241,7 +241,7 @@ namespace PangeaSkirmish
             chatBg.transform.SetParent(_mpRoomPanel.transform, false);
             var chatBgRt = chatBg.GetComponent<RectTransform>();
             chatBgRt.anchorMin = chatBgRt.anchorMax = chatBgRt.pivot = new Vector2(0.5f, 0.5f);
-            chatBgRt.anchoredPosition = new Vector2(100, 100);
+            chatBgRt.anchoredPosition = new Vector2(100, -10);
             chatBgRt.sizeDelta = new Vector2(440, 370);
             chatBg.GetComponent<Image>().color = new Color(0.04f, 0.05f, 0.08f);
 
@@ -287,7 +287,7 @@ namespace PangeaSkirmish
             hostCtrlBg.transform.SetParent(_mpRoomPanel.transform, false);
             var hcRt = hostCtrlBg.GetComponent<RectTransform>();
             hcRt.anchorMin = hcRt.anchorMax = hcRt.pivot = new Vector2(0.5f, 0.5f);
-            hcRt.anchoredPosition = new Vector2(560, 100);
+            hcRt.anchoredPosition = new Vector2(560, -10);
             hcRt.sizeDelta = new Vector2(260, 370);
             hostCtrlBg.GetComponent<Image>().color = new Color(0.06f, 0.07f, 0.10f);
 
@@ -324,7 +324,7 @@ namespace PangeaSkirmish
             // Avançar fase
             _advanceBtn = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(0, -110), new Vector2(230, 55));
             UiSkin.ApplyButtonSkin(_advanceBtn.GetComponent<Image>(), new Color(0.15f, 0.40f, 0.20f));
-            MakeLabel(_advanceBtn.transform, Vector2.zero, new Vector2(230, 55), 18, Color.white).text = "Iniciar Edição de Mapa";
+            MakeLabel(_advanceBtn.transform, Vector2.zero, new Vector2(230, 55), 18, Color.white).text = "Iniciar (Criar Personagens)";
             _advanceBtn.onClick.AddListener(OnClickAdvancePhase);
 
             // ---- Waiting overlay (não-host) ----------------------------------

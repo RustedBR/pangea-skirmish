@@ -82,13 +82,13 @@ namespace PangeaSkirmish
             _mapNameInput = MakeInputField(topBar.transform, new Vector2(-820, -10), new Vector2(240, 44),
                 "Novo Mapa", v => _ctrl.SetMapName(v));
 
-            MakeTopButton(topBar.transform, "◀ Voltar", new Vector2(-560, -10), new Vector2(110, 44),
+            _prevBtn = MakeTopButton(topBar.transform, "◀ Voltar", new Vector2(-560, -10), new Vector2(110, 44),
                 new Color(0.25f, 0.25f, 0.35f), () =>
                 {
                     int p = (int)_currentPhase - 1;
                     if (p >= 0) _ctrl?.SetPhase((SandboxController.Phase)p);
                 });
-            MakeTopButton(topBar.transform, "Próxima ▶", new Vector2(-440, -10), new Vector2(120, 44),
+            _nextBtn = MakeTopButton(topBar.transform, "Próxima ▶", new Vector2(-440, -10), new Vector2(120, 44),
                 new Color(0.25f, 0.25f, 0.35f), () =>
                 {
                     int p = (int)_currentPhase + 1;
@@ -100,7 +100,7 @@ namespace PangeaSkirmish
             _phaseLabel.alignment = TextAnchor.MiddleCenter;
             _phaseLabel.text = "1. Terreno";
 
-            MakeTopButton(topBar.transform, "Salvar", new Vector2(760, -10), new Vector2(120, 44),
+            _saveBtn = MakeTopButton(topBar.transform, "Salvar", new Vector2(760, -10), new Vector2(120, 44),
                 new Color(0.18f, 0.40f, 0.20f), () => _ctrl?.SaveMap());
             MakeTopButton(topBar.transform, "Menu", new Vector2(890, -10), new Vector2(110, 44),
                 new Color(0.40f, 0.16f, 0.16f), () => _ctrl?.BackToMenu());
@@ -486,13 +486,14 @@ namespace PangeaSkirmish
             return go;
         }
 
-        private void MakeTopButton(Transform parent, string label, Vector2 pos, Vector2 size,
+        private Button MakeTopButton(Transform parent, string label, Vector2 pos, Vector2 size,
             Color color, UnityEngine.Events.UnityAction onClick)
         {
             var btn = MakeBtn(parent, new Vector2(0.5f, 0.5f), pos, size, color);
             UiSkin.ApplyButtonSkin(btn.GetComponent<Image>(), color);
             MakeLabel(btn.transform, Vector2.zero, size, 18, Color.white).text = label;
             btn.onClick.AddListener(onClick);
+            return btn;
         }
 
         private Button MakeBtn(Transform parent, Vector2 anchor, Vector2 pos, Vector2 size, Color color)
@@ -530,6 +531,7 @@ namespace PangeaSkirmish
         // ── MODO MULTIPLAYER ──────────────────
         private Text _mpStatusLabel;
         private Button _readyBtn;
+        private Button _saveBtn, _nextBtn, _prevBtn;
 
         /// <summary>
         /// Adapta a HUD para o modo MP: oculta fases Allies/Enemies e Save,
@@ -543,22 +545,27 @@ namespace PangeaSkirmish
             if (_unitsPanel != null) _unitsPanel.SetActive(false);
             if (_statsPanel  != null) _statsPanel.SetActive(false);
 
+            // Em MP não há Salvar (o mapa vai para a sala) nem navegação de fases
+            // (só existe a fase Terreno) — esconder esses botões.
+            if (_saveBtn != null) _saveBtn.gameObject.SetActive(false);
+            if (_nextBtn != null) _nextBtn.gameObject.SetActive(false);
+            if (_prevBtn != null) _prevBtn.gameObject.SetActive(false);
+
             // Substituir label de fase
             if (_phaseLabel != null) _phaseLabel.text = "Mapa Colaborativo";
 
-            // Botão "Pronto" na barra superior (posição ao lado dos botões existentes)
+            // Botão "Finalizar Mapa" na vaga que era do Salvar (visível na barra superior).
             if (_readyBtn == null)
             {
                 var canvas = transform.root; // canvas raiz
-                // Encontrar topBar existente
                 var topBar = canvas.Find("TopBar");
                 if (topBar != null)
                 {
+                    var readyCol = new Color(0.18f, 0.40f, 0.20f);
                     _readyBtn = MakeBtn(topBar, new Vector2(0.5f, 0.5f),
-                        new Vector2(1030, -10), new Vector2(130, 44),
-                        new Color(0.18f, 0.40f, 0.20f));
-                    UiSkin.ApplyButtonSkin(_readyBtn.GetComponent<Image>(), new Color(0.18f, 0.40f, 0.20f));
-                    MakeLabel(_readyBtn.transform, Vector2.zero, new Vector2(130, 44), 18, Color.white).text = "Pronto";
+                        new Vector2(760, -10), new Vector2(170, 44), readyCol);
+                    UiSkin.ApplyButtonSkin(_readyBtn.GetComponent<Image>(), readyCol);
+                    MakeLabel(_readyBtn.transform, Vector2.zero, new Vector2(170, 44), 16, Color.white).text = "Finalizar Mapa";
                     _readyBtn.onClick.AddListener(() =>
                     {
                         _ctrl?.SetReadyMap();
@@ -567,8 +574,8 @@ namespace PangeaSkirmish
                     });
 
                     // Label "Aguardando os demais…" (inicialmente oculto)
-                    _mpStatusLabel = MakeLabel(topBar, new Vector2(1180, -10),
-                        new Vector2(200, 44), 16,
+                    _mpStatusLabel = MakeLabel(topBar, new Vector2(600, -10),
+                        new Vector2(190, 44), 15,
                         new Color(0.80f, 0.80f, 0.35f));
                     _mpStatusLabel.text = "";
                 }

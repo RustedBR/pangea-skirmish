@@ -21,8 +21,8 @@ namespace PangeaSkirmish
     public enum RoomPhase
     {
         Lobby = 0,
-        MapEditing,
         CharCreation,
+        MapEditing,
         Placement,
         Battle,
         PostGame
@@ -381,10 +381,10 @@ namespace PangeaSkirmish
             for (int i = 0; i < _slots.Count; i++)
                 if (!_slots[i].ReadyMap) return;
 
-            // Todos prontos: enviar snapshot final a todos e avançar para CharCreation
+            // Todos prontos: congela o mapa (snapshot final a todos) e vai para o posicionamento
             CollabMapSync.Instance?.SendFinalSnapshotAndAdvance();
-            _phase.Value = RoomPhase.CharCreation;
-            ApplyPhaseDefaults(RoomPhase.CharCreation);
+            _phase.Value = RoomPhase.Placement;
+            ApplyPhaseDefaults(RoomPhase.Placement);
         }
 
         // -------------------------------------------------------------------------
@@ -456,8 +456,9 @@ namespace PangeaSkirmish
             for (int i = 0; i < _slots.Count; i++)
                 if (!_slots[i].ReadyChar) return;
 
-            _phase.Value = RoomPhase.Placement;
-            ApplyPhaseDefaults(RoomPhase.Placement);
+            // Personagens prontos → criar o mapa colaborativo
+            _phase.Value = RoomPhase.MapEditing;
+            ApplyPhaseDefaults(RoomPhase.MapEditing);
         }
 
         // -------------------------------------------------------------------------
