@@ -185,6 +185,7 @@ namespace PangeaSkirmish
         {
             // Nome será enviado via SetPlayerNameRpc em seguida
             AddSlot(clientId, "...");
+            Debug.Log($"[MP] Player conectou: clientId={clientId} | jogadores na sala={_slots.Count}");
         }
 
         private void ServerOnClientDisconnected(ulong clientId)
@@ -277,12 +278,14 @@ namespace PangeaSkirmish
         {
             int idx = FindSlot(rpc.Receive.SenderClientId);
             string senderName = idx >= 0 ? _slots[idx].PlayerName.ToString() : "?";
+            Debug.Log($"[MP] Chat (host recebeu) {senderName}: {msg}");
             ChatMessageClientRpc(senderName, msg);
         }
 
         [ClientRpc]
         private void ChatMessageClientRpc(string senderName, string msg)
         {
+            Debug.Log($"[MP] Chat (broadcast recebido) {senderName}: {msg}");
             OnChatMessage?.Invoke(senderName, msg);
         }
 
@@ -297,6 +300,7 @@ namespace PangeaSkirmish
             var slot = _slots[idx];
             slot.Team = team;
             _slots[idx] = slot;
+            Debug.Log($"[MP] Troca de time: clientId={targetClientId} -> time={team}");
         }
 
         // --- Configurar sala (host envia) -------------------------------------
@@ -304,6 +308,7 @@ namespace PangeaSkirmish
         public void SetConfigServerRpc(RoomConfigNet cfg, ServerRpcParams rpc = default)
         {
             if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
+            Debug.Log($"[MP] Config alterada: modo={(cfg.GameMode == 0 ? "TDM" : "FFA")} budget={cfg.AttributeBudget} planejamento={cfg.PlanningTime}s");
             _config.Value = cfg;
         }
 
@@ -313,6 +318,7 @@ namespace PangeaSkirmish
         {
             if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
             var next = (RoomPhase)((int)_phase.Value + 1);
+            Debug.Log($"[MP] AdvancePhase: {_phase.Value} -> {next}");
             if ((int)next < System.Enum.GetValues(typeof(RoomPhase)).Length)
             {
                 _phase.Value = next;
@@ -430,6 +436,7 @@ namespace PangeaSkirmish
             }
 
             _submittedChars[senderId] = preset;
+            Debug.Log($"[MP] Personagem aceito (host): clientId={senderId} nome={preset.presetName} pts={total}/{budget}");
 
             // Marcar readyChar no slot
             int idx = FindSlot(senderId);

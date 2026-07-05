@@ -94,6 +94,7 @@ namespace PangeaSkirmish
         [ServerRpc(RequireOwnership = false)]
         public void PaintOpServerRpc(PaintOp op)
         {
+            Debug.Log($"[MP] Tile pintado (host): ({op.X},{op.Y}) tile={op.TileIndex} altura={op.Height} void={op.IsVoid}");
             // Host aplica no canônico
             ApplyOpToMap(_canonical, op);
 

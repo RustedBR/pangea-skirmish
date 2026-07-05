@@ -47,17 +47,25 @@ namespace PangeaSkirmish
             }
         }
 
-        private void Start()
+        private bool _subscribed;
+
+        private void Update()
         {
-            if (RoomManager.Instance != null)
-            {
-                RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
-                RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
-            }
+            // No CLIENTE o RoomManager é replicado alguns frames após conectar; como o fluxo
+            // da sala fica no MainMenu (sem troca de cena), o OnSceneLoaded não dispara — então
+            // assinamos aqui assim que RoomManager.Instance aparecer (senão o overlay de
+            // criação de personagem nunca abre no cliente).
+            if (_subscribed || RoomManager.Instance == null) return;
+            RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
+            RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
+            _subscribed = true;
+            Debug.Log($"[MP] MpPhaseDirector inscrito no RoomManager; fase atual = {RoomManager.Instance.CurrentPhase}");
+            OnPhaseChanged(RoomManager.Instance.CurrentPhase);
         }
 
         private void OnPhaseChanged(RoomPhase phase)
         {
+            Debug.Log($"[MP] MpPhaseDirector.OnPhaseChanged -> {phase}");
             if (phase == RoomPhase.CharCreation)
                 ShowCharCreation();
             else
@@ -69,6 +77,7 @@ namespace PangeaSkirmish
         // =========================================================================
         private void ShowCharCreation()
         {
+            Debug.Log("[MP] Criacao de personagem: abrindo overlay CharCreationHUD");
             if (_charCreationHUD != null) return; // já aberto
 
             EnsureOverlayCanvas();

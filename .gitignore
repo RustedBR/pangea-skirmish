@@ -127,3 +127,6 @@ production.meta
 
 # Visual Studio solution (formato XML novo)
 *.slnx
+
+# Unity scene auto-recovery (transitorio)
+[Aa]ssets/_Recovery/

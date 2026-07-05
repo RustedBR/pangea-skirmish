@@ -256,6 +256,7 @@ namespace PangeaSkirmish
                 _editing.presetName = RuntimeMultiplayerSession.PlayerName;
 
             string json = JsonUtility.ToJson(_editing);
+            Debug.Log($"[MP] Personagem criado (enviando): {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId}");
             RoomManager.Instance?.SubmitCharacterServerRpc(json);
 
             // Salvar localmente para uso no GameBootstrap MP

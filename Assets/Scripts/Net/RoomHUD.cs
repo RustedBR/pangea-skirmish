@@ -615,6 +615,7 @@ namespace PangeaSkirmish
                 }
 
                 RuntimeMultiplayerSession.PlayerName = playerName;
+                Debug.Log($"[MP] Sala criada (host): jogador={playerName} loopback={bootstrap.useLoopback} codigo={joinCode}");
                 SetLobbyStatus("Sala criada!");
                 EnterRoom(joinCode);
             }
@@ -650,6 +651,7 @@ namespace PangeaSkirmish
                     await bootstrap.JoinRelayAsync(code);
                 }
 
+                Debug.Log($"[MP] Entrou na sala (cliente): jogador={playerName} loopback={bootstrap.useLoopback} codigo={code}");
                 SetLobbyStatus("Conectado!");
                 EnterRoom(code);
 
