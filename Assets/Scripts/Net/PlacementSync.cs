@@ -305,6 +305,28 @@ namespace PangeaSkirmish
             _planner.Setup(_grid, _cam, _allUnits);
             _round.Setup(_grid, _planner, _hud, _canvas, _cam, _camCtrl,
                 _allUnits, _controlled, _tileFx);
+
+            // Chat na batalha: mensagens do RoomManager aparecem no log do BattleHUD
+            if (RoomManager.Instance != null && _hud != null)
+                RoomManager.Instance.OnChatMessage += (name, msg) =>
+                    _hud.LogAction($"<color=#aaddff>[Chat] {name}: {msg}</color>");
+
+            // Spawn do LockstepBattleSync (somente host)
+            if (Unity.Netcode.NetworkManager.Singleton != null
+                && Unity.Netcode.NetworkManager.Singleton.IsServer
+                && LockstepBattleSync.Instance == null)
+            {
+                var go = new GameObject("LockstepBattleSync");
+                var lbs = go.AddComponent<LockstepBattleSync>();
+                go.AddComponent<Unity.Netcode.NetworkObject>();
+                go.GetComponent<Unity.Netcode.NetworkObject>().Spawn();
+                lbs.Init(_round, _allUnits);
+            }
+            else if (LockstepBattleSync.Instance != null)
+            {
+                LockstepBattleSync.Instance.Init(_round, _allUnits);
+            }
+
             _round.Begin();
 
             Debug.Log($"[PlacementSync] Batalha iniciada. Seed={seed}. Unidades={_allUnits.Count}");

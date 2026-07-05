@@ -37,6 +37,9 @@ namespace PangeaSkirmish
         private ScreenFlash _screenFlash;
         private TileEffectManager _tileFx;
 
+        // ---- Lockstep MP (Fase 6) ----
+        private bool _waitingLockstep; // true enquanto aguarda ExecuteRoundClientRpc
+
         private RoundPhase _phase = RoundPhase.Resolving;
         private float _timer;
         private int _round;
@@ -178,9 +181,56 @@ namespace PangeaSkirmish
         {
             _phase = RoundPhase.Planning;
             _gracePeriodUsed = false;
+            _waitingLockstep = false;
 
             foreach (var u in _units)
                 if (!u.IsDead) u.ResetPlan();
+
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                // MP: planningTime da config; ordenar unidades por unitId para determinismo
+                _units.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+                float cfgTime = RuntimeMultiplayerSession.CurrentConfig.planningTime;
+                if (cfgTime > 0f) planningTime = cfgTime;
+
+                _hud.SetPhase($"Round {_round} — Planejamento");
+
+                // Habilita controle apenas da unidade do jogador local
+                Unit controlled = null;
+                foreach (var u in _units)
+                    if (!u.IsDead && u.ownerId == RuntimeMultiplayerSession.LocalClientId)
+                    { controlled = u; break; }
+
+                if (controlled != null && !controlled.IsDead)
+                {
+                    _timer = planningTime;
+                    _hud.SetTimerVisible(true);
+                    _hud.SetTimerWarning(false);
+                    _planner.Begin(controlled);
+                    _hud.ShowUnitInfo(controlled);
+                    _hud.SetConfirmVisible(true);
+                }
+                else
+                {
+                    // Jogador local morto: auto-submit plano vazio
+                    _hud.SetTimerVisible(false);
+                    _hud.SetConfirmVisible(false);
+                    _hud.LogAction("<color=#ff7a7a>Sua unidade foi eliminada — round automático.</color>");
+                    _timer = planningTime; // ainda aguarda timer para sincronizar
+                }
+
+                // Host inicia coleta
+                if (LockstepBattleSync.Instance != null && LockstepBattleSync.Instance.IsServer)
+                {
+                    int players = 0;
+                    if (Unity.Netcode.NetworkManager.Singleton != null)
+                        players = Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count;
+                    LockstepBattleSync.Instance.BeginCollection(Mathf.Max(1, players));
+                }
+                return;
+            }
+
+            // ---- SP: comportamento original ----
 
             // IA para todos os inimigos
             foreach (var u in _units)
@@ -222,8 +272,9 @@ namespace PangeaSkirmish
 
             if (_timer <= 0f)
             {
-                // grace period de 2s se o jogador ainda tem PA para gastar
-                if (!_gracePeriodUsed
+                // Grace period só em SP (MP usa auto-submit via ConfirmPlan)
+                if (!RuntimeMultiplayerSession.IsMultiplayer
+                    && !_gracePeriodUsed
                     && _playerUnit != null && !_playerUnit.IsDead
                     && _playerUnit.remainingAP > 0)
                 {
@@ -276,10 +327,20 @@ namespace PangeaSkirmish
         public void ConfirmPlan()
         {
             if (_phase != RoundPhase.Planning) return;
+            if (_waitingLockstep) return; // já confirmou, aguardando host
             AudioManager.I?.Play(AudioManager.I.sfxUIConfirm);
             _planner.End();
             _hud.SetTimerVisible(false);
             _hud.SetConfirmVisible(false);
+
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                _waitingLockstep = true;
+                _hud.SetPhase($"Round {_round} — Aguardando jogadores...");
+                LockstepBattleSync.Instance?.OnPlanningComplete();
+                return;
+            }
+
             StartCoroutine(ActionRoutine());
         }
 
@@ -353,7 +414,7 @@ namespace PangeaSkirmish
                 if (spellsThisSlot.Count > 0)
                     yield return ResolveSpellSlot(spellsThisSlot);
 
-                if (!AnyAlive(Team.Player) || !AnyAlive(Team.Enemy)) break;
+                if (!CheckAnyFactionAlive()) break;
 
                 // pausa entre slots para o jogador acompanhar o encadeamento
                 if ((movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) && slot < maxSlots - 1)
@@ -392,8 +453,27 @@ namespace PangeaSkirmish
                 if (!u.IsDead) StatusEffectSystem.TickEndOfRound(u.statusEffects);
             yield return _tileFx.EndOfRoundTick(_units, null);
 
-            if (!AnyAlive(Team.Player)) { GameOver("Derrota! Inimigos venceram."); yield break; }
-            if (!AnyAlive(Team.Enemy))  { GameOver("Vitória! Todos os inimigos eliminados."); yield break; }
+            // ---- Win condition (SP / MP-TDM / MP-FFA) ----
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0) // TDM
+                {
+                    int alive = CountAliveTeams(out int survivingTeam);
+                    if (alive == 0)     { GameOver("Empate! Todos eliminados."); yield break; }
+                    if (alive == 1)     { GameOver($"Time {survivingTeam} venceu!"); yield break; }
+                }
+                else // FFA
+                {
+                    int alive = CountAliveOwners(out ulong survivingOwner);
+                    if (alive == 0)     { GameOver("Empate! Todos eliminados."); yield break; }
+                    if (alive == 1)     { GameOver($"Vitória! {GetPlayerName(survivingOwner)} venceu!"); yield break; }
+                }
+            }
+            else
+            {
+                if (!AnyAlive(Team.Player)) { GameOver("Derrota! Inimigos venceram."); yield break; }
+                if (!AnyAlive(Team.Enemy))  { GameOver("Vitória! Todos os inimigos eliminados."); yield break; }
+            }
 
             yield return new WaitForSeconds(Tuning.Get().roundEndPause);
             yield return StartRound();
@@ -574,10 +654,12 @@ namespace PangeaSkirmish
         /// <summary>Decompõe a rolagem de iniciativa em d20 + AGI + DEX.</summary>
         private (int d20, int agiPart, int dexPart, int total) RollInitiative(Unit u)
         {
-            int d20 = Random.Range(1, 21);
+            int d20 = BattleRng.Next(1, 21);
             int agiPart = Mathf.RoundToInt(u.stats.AGI * AttributeStats.Formulas.iniPerAGI);
             int dexPart = Mathf.RoundToInt(u.stats.DEX * AttributeStats.Formulas.iniPerDEX);
             int total = d20 + agiPart + dexPart;
+            // Desempate determinístico por unitId em MP; em SP unitId = 0 então é neutro
+            // (unitId é tiebreaker apenas quando totais são iguais, resolvido na ordenação)
             AudioManager.I?.Play(AudioManager.I.sfxDice);
             return (d20, agiPart, dexPart, total);
         }
@@ -847,7 +929,7 @@ namespace PangeaSkirmish
                 return false;
             foreach (var other in _units)
             {
-                if (other == u || other.IsDead || other.team == u.team) continue;
+                if (other == u || other.IsDead || !other.IsHostileTo(u)) continue;
                 if (GridManager.FootprintsOverlap(other.anchor, other.stats.Footprint, atk.TargetTile, afp))
                     return true;
             }
@@ -1015,7 +1097,7 @@ namespace PangeaSkirmish
             int  bestGap = int.MaxValue;
             foreach (var u in _units)
             {
-                if (u == self || u.IsDead || u.team == self.team) continue;
+                if (u == self || u.IsDead || !u.IsHostileTo(self)) continue;
                 int gap = GridManager.FootprintGap(self.anchor, self.stats.Footprint,
                                                    u.anchor,   u.stats.Footprint);
                 if (gap < bestGap) { bestGap = gap; best = u; }
@@ -1024,28 +1106,117 @@ namespace PangeaSkirmish
         }
 
 
-        private bool AnyAlive(Team team)
-        {
-            foreach (var u in _units) if (u.team == team && !u.IsDead) return true;
-            return false;
-        }
-
         private void GameOver(string message)
         {
             _phase = RoundPhase.GameOver;
-            bool victory = message.StartsWith("Vitória");
+            bool victory = message.StartsWith("Vitória") || message.Contains("venceu");
             AudioManager.I?.Play(victory ? AudioManager.I.sfxVictory : AudioManager.I.sfxDefeat);
             _hud.SetPhase("Fim de jogo");
             _hud.ShowEndScreen(message);
+
+            // MP: volta ao menu após delay
+            // Decisão de design: sem lobby pós-batalha na v1 — reset limpo e volta ao MainMenu.
+            // Host avança a fase; todos recebem o GameOver via ShowEndScreen + auto-retorno.
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+                StartCoroutine(MpReturnToMenu());
+        }
+
+        private IEnumerator MpReturnToMenu()
+        {
+            yield return new WaitForSeconds(5f);
+            RuntimeMultiplayerSession.Reset();
+            if (Unity.Netcode.NetworkManager.Singleton != null)
+                Unity.Netcode.NetworkManager.Singleton.Shutdown();
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
 
         private static void Shuffle<T>(IList<T> list)
         {
             for (int i = list.Count - 1; i > 0; i--)
             {
-                int j = Random.Range(0, i + 1);
+                int j = BattleRng.Next(0, i + 1);
                 (list[i], list[j]) = (list[j], list[i]);
             }
+        }
+
+        // ---- MP Lockstep API -----------------------------------------------
+
+        /// <summary>
+        /// Chamado pelo LockstepBattleSync após receber ExecuteRoundClientRpc.
+        /// Semeia o RNG e executa a fase de ação já com planos injetados por PlanWire.
+        /// </summary>
+        public void RunActionPhaseMp(int seed)
+        {
+            if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            _waitingLockstep = false;
+            BattleRng.Seed(seed);
+            StartCoroutine(ActionRoutineMp());
+        }
+
+        private IEnumerator ActionRoutineMp()
+        {
+            yield return ActionRoutine();
+            // Após a fase de ação, calcula e reporta hash
+            if (LockstepBattleSync.Instance != null)
+            {
+                ulong hash = LockstepBattleSync.ComputeStateHash(_units);
+                LockstepBattleSync.Instance.ReportRoundHash(hash);
+            }
+        }
+
+        // ---- Win condition helpers (usadas pelo bloco 6.6) --------------------
+
+        /// <summary>
+        /// Retorna true se ainda existem 2+ facções vivas (a batalha continua).
+        /// SP: 2 teams; MP-TDM: 2+ teamIds; MP-FFA: 2+ ownerIds.
+        /// </summary>
+        private bool CheckAnyFactionAlive()
+        {
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0)
+                    return CountAliveTeams(out _) >= 2;
+                return CountAliveOwners(out _) >= 2;
+            }
+            return AnyAlive(Team.Player) && AnyAlive(Team.Enemy);
+        }
+
+        /// <summary>Retorna true se há ao menos uma unidade viva com o team dado (SP).</summary>
+        private bool AnyAlive(Team team)
+        {
+            foreach (var u in _units) if (u.team == team && !u.IsDead) return true;
+            return false;
+        }
+
+        /// <summary>MP-TDM: retorna o número de teamIds com ao menos uma unidade viva.</summary>
+        private int CountAliveTeams(out int survivingTeamId)
+        {
+            var alive = new HashSet<int>();
+            survivingTeamId = -1;
+            foreach (var u in _units)
+                if (!u.IsDead) alive.Add(u.teamId);
+            foreach (var id in alive) survivingTeamId = id;
+            return alive.Count;
+        }
+
+        /// <summary>MP-FFA: retorna o número de ownerIds com ao menos uma unidade viva.</summary>
+        private int CountAliveOwners(out ulong survivingOwnerId)
+        {
+            var alive = new HashSet<ulong>();
+            survivingOwnerId = 0;
+            foreach (var u in _units)
+                if (!u.IsDead) alive.Add(u.ownerId);
+            foreach (var id in alive) survivingOwnerId = id;
+            return alive.Count;
+        }
+
+        private string GetPlayerName(ulong ownerId)
+        {
+            if (RoomManager.Instance == null) return $"Jogador({ownerId})";
+            var slots = RoomManager.Instance.Slots;
+            for (int i = 0; i < slots.Count; i++)
+                if (slots[i].ClientId == ownerId) return slots[i].PlayerName.ToString();
+            return $"Jogador({ownerId})";
         }
     }
 }

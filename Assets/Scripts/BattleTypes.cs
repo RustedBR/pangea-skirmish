@@ -117,19 +117,24 @@ namespace PangeaSkirmish
 
         public HitResult RollHit(float attackerHitChance, float targetDodgeChance)
         {
-            float r = UnityEngine.Random.value;
-            if (r < CritChance) return HitResult.Critical;
-            if (r < attackerHitChance - targetDodgeChance) return HitResult.Hit;
+            // Fixed-point: evitar float-ordering divergente em MP
+            if (BattleRng.Roll10000() < Mathf.RoundToInt(CritChance * 10000f))
+                return HitResult.Critical;
+            float effectiveChance = attackerHitChance - targetDodgeChance;
+            if (BattleRng.Roll10000() < Mathf.RoundToInt(effectiveChance * 10000f))
+                return HitResult.Hit;
             return HitResult.Miss;
         }
 
         public int RollDamage(int baseDamage, bool isPhysical)
         {
-            float dmg = baseDamage;
             float halfRange = baseDamage * F.damageVariance;
-            dmg += UnityEngine.Random.Range(-halfRange, halfRange);
+            int varInt = Mathf.RoundToInt(halfRange);
+            // [−varInt, +varInt] determinístico
+            int variance = varInt > 0 ? BattleRng.Next(-varInt, varInt + 1) : 0;
+            int dmg = baseDamage + variance;
             dmg -= isPhysical ? PhysicalDefense : MagicDefense;
-            return Mathf.Max(Tuning.Get().minDamageFloor, Mathf.RoundToInt(dmg));
+            return Mathf.Max(Tuning.Get().minDamageFloor, dmg);
         }
     }
 

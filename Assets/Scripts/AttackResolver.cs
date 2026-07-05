@@ -17,7 +17,7 @@ namespace PangeaSkirmish
             int  bestGap = int.MaxValue;
             foreach (var u in all)
             {
-                if (u == attacker || u.IsDead || u.team == attacker.team) continue;
+                if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
                 int gap = GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint,
                                                    u.anchor, u.stats.Footprint);
                 if (gap <= attacker.stats.AttackRange && gap < bestGap)
@@ -89,7 +89,7 @@ namespace PangeaSkirmish
             Unit target = null;
             foreach (var u in all)
             {
-                if (u == attacker || u.IsDead || u.team == attacker.team) continue;
+                if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
                 if (GridManager.FootprintsOverlap(u.anchor, u.stats.Footprint, tile, afp))
                 { target = u; break; }
             }

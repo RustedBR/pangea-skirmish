@@ -151,7 +151,20 @@ namespace PangeaSkirmish
         }
 
         private void HandleClientConnected(ulong clientId) => OnClientConnected?.Invoke(clientId);
-        private void HandleClientDisconnected(ulong clientId) => OnClientDisconnected?.Invoke(clientId);
+
+        private void HandleClientDisconnected(ulong clientId)
+        {
+            OnClientDisconnected?.Invoke(clientId);
+
+            // Cliente detecta que o servidor (host) caiu: clientId == ServerClientId
+            if (!_networkManager.IsServer && clientId == Unity.Netcode.NetworkManager.ServerClientId)
+            {
+                Debug.LogWarning("[NetBootstrap] Host desconectou — voltando ao menu principal.");
+                RuntimeMultiplayerSession.Reset();
+                _networkManager.Shutdown();
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            }
+        }
 
         // -------------------------------------------------------------------------
         // UGS: inicializa serviços + autenticação anônima

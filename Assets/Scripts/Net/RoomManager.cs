@@ -187,7 +187,25 @@ namespace PangeaSkirmish
 
         private void ServerOnClientDisconnected(ulong clientId)
         {
+            // Obter nome antes de remover o slot
+            string playerName = $"Jogador({clientId})";
+            for (int i = 0; i < _slots.Count; i++)
+                if (_slots[i].ClientId == clientId) { playerName = _slots[i].PlayerName.ToString(); break; }
+
             RemoveSlot(clientId);
+
+            // Toast/chat para todos
+            PlayerDisconnectedClientRpc(playerName);
+
+            // Durante batalha: eliminar unidades do jogador desconectado
+            if (_phase.Value == RoomPhase.Battle && LockstepBattleSync.Instance != null)
+                LockstepBattleSync.Instance.EliminateDisconnectedPlayer(clientId);
+        }
+
+        [ClientRpc]
+        private void PlayerDisconnectedClientRpc(string playerName)
+        {
+            OnChatMessage?.Invoke("Sistema", $"{playerName} saiu da partida.");
         }
 
         // ---- Helpers de slot (servidor) -------------------------------------

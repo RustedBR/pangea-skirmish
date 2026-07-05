@@ -1,0 +1,432 @@
+// Net/LockstepBattleSync.cs
+// Máquina de lockstep por round para batalha MP.
+// Spawned pelo PlacementSync junto ao RoomManager após todos os posicionamentos.
+//
+// Fluxo por round:
+//   1. PLANNING — cada cliente planeja normalmente via PlanningController.
+//   2. ConfirmPlan (botão ou timeout) → SubmitPlanServerRpc(gz)
+//   3. Host coleta planos de todos; timeout +5s → ausentes = plano vazio
+//   4. Host monta RoundPlansWire { roundSeed, plans } → ExecuteRoundClientRpc(gz)
+//   5. Cada cliente: ApplyToUnit em cada unidade, BattleRng.Seed(seed), RoundManager.RunActionPhaseMp()
+//   6. Fim de round → ReportHashServerRpc(hash) → host compara → diverge = snapshot resync
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using Unity.Netcode;
+using UnityEngine;
+
+namespace PangeaSkirmish
+{
+    public class LockstepBattleSync : NetworkBehaviour
+    {
+        public static LockstepBattleSync Instance { get; private set; }
+
+        // ---- Referências injetadas pelo PlacementSync / RoundManager ----
+        private RoundManager  _round;
+        private List<Unit>    _units;
+
+        // ---- Coleta de planos no host ----
+        private readonly Dictionary<ulong, byte[]> _receivedPlans = new Dictionary<ulong, byte[]>();
+        private bool _collectingPlans;
+        private float _collectionTimer;
+        private const float HostExtraTimeout = 5f;
+        private int _expectedCount;
+
+        // ---- Hash por round ----
+        private readonly Dictionary<ulong, ulong> _receivedHashes = new Dictionary<ulong, ulong>();
+        private ulong _myHash;
+        private int _currentRound;
+        private int _hashesExpected;
+
+        // ---- Resync (snapshot) ----
+        private const int ChunkSize = 3000; // bytes por chunk (margem abaixo do MTU do Relay)
+        private byte[] _snapshotBuffer;
+        private int _snapshotTotal;
+
+        // ---- AFK tracker ----
+        private readonly Dictionary<ulong, int> _afkRounds = new Dictionary<ulong, int>();
+
+        public override void OnNetworkSpawn()
+        {
+            Instance = this;
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (Instance == this) Instance = null;
+        }
+
+        public void Init(RoundManager round, List<Unit> units)
+        {
+            _round = round;
+            _units = units;
+        }
+
+        // =========================================================================
+        // Chamado pelo RoundManager ao fim do PLANNING (somente em MP)
+        // =========================================================================
+        public void OnPlanningComplete()
+        {
+            if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            // Serializa o plano das unidades do jogador local e envia
+            var wire = new RoundPlansWire();
+            bool hasAnyAction = false;
+            foreach (var u in _units)
+            {
+                if (u.ownerId != RuntimeMultiplayerSession.LocalClientId) continue;
+                wire.plans.Add(UnitPlanWire.FromUnit(u));
+                if (u.actionSequence.Count > 0) hasAnyAction = true;
+            }
+
+            // Track AFK
+            ulong myId = RuntimeMultiplayerSession.LocalClientId;
+            if (!hasAnyAction)
+            {
+                _afkRounds.TryGetValue(myId, out int cnt);
+                _afkRounds[myId] = cnt + 1;
+                if (_afkRounds[myId] >= 3)
+                    ChatAfkWarningServerRpc(myId);
+            }
+            else
+            {
+                _afkRounds[myId] = 0;
+            }
+
+            string json = JsonUtility.ToJson(wire);
+            byte[] gz   = NetCompression.GzipCompress(Encoding.UTF8.GetBytes(json));
+            SubmitPlanServerRpc(gz);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void SubmitPlanServerRpc(byte[] gz, ServerRpcParams rpc = default)
+        {
+            if (!_collectingPlans) return;
+            ulong sender = rpc.Receive.SenderClientId;
+            if (!_receivedPlans.ContainsKey(sender))
+                _receivedPlans[sender] = gz;
+
+            if (_receivedPlans.Count >= _expectedCount)
+                StartCoroutine(BroadcastRound());
+        }
+
+        // =========================================================================
+        // Início da coleta (chamado pelo RoundManager ao entrar em Planning em MP)
+        // =========================================================================
+        public void BeginCollection(int expectedPlayers)
+        {
+            if (!IsServer) return;
+            _receivedPlans.Clear();
+            _collectingPlans = true;
+            _expectedCount   = expectedPlayers;
+            _collectionTimer = 0f;
+            StartCoroutine(CollectionTimeout());
+        }
+
+        private IEnumerator CollectionTimeout()
+        {
+            // Aguarda planningTime + HostExtraTimeout — a mesma duração que os clientes esperam
+            float planningTime = RuntimeMultiplayerSession.CurrentConfig.planningTime;
+            yield return new WaitForSeconds(planningTime + HostExtraTimeout);
+            if (_collectingPlans)
+                yield return BroadcastRound();
+        }
+
+        private IEnumerator BroadcastRound()
+        {
+            _collectingPlans = false;
+            _currentRound++;
+
+            // Seed novo para o round
+            int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+            // Monta envelope
+            var envelope = new RoundPlansWire { roundSeed = seed };
+            foreach (var kv in _receivedPlans)
+            {
+                try
+                {
+                    string json = Encoding.UTF8.GetString(NetCompression.GzipDecompress(kv.Value));
+                    var partial = JsonUtility.FromJson<RoundPlansWire>(json);
+                    if (partial?.plans != null)
+                        envelope.plans.AddRange(partial.plans);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"[Lockstep] Falha ao desserializar plano do client {kv.Key}: {e.Message}");
+                }
+            }
+
+            string envJson = JsonUtility.ToJson(envelope);
+            byte[] gz = NetCompression.GzipCompress(Encoding.UTF8.GetBytes(envJson));
+            ExecuteRoundClientRpc(gz);
+            yield break;
+        }
+
+        [ClientRpc]
+        private void ExecuteRoundClientRpc(byte[] gz)
+        {
+            try
+            {
+                string json     = Encoding.UTF8.GetString(NetCompression.GzipDecompress(gz));
+                var envelope    = JsonUtility.FromJson<RoundPlansWire>(json);
+                if (envelope == null) { Debug.LogError("[Lockstep] envelope nulo"); return; }
+
+                // Aplica os planos de TODAS as unidades
+                foreach (var pw in envelope.plans)
+                {
+                    var unit = UnitRegistry.Get(pw.unitId);
+                    if (unit == null) continue;
+                    UnitPlanWire.ApplyToUnit(pw, unit);
+                }
+
+                // Semeia RNG e manda o RoundManager executar a fase de ação
+                _round?.RunActionPhaseMp(envelope.roundSeed);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Lockstep] Falha ao processar ExecuteRound: {e}");
+            }
+        }
+
+        // =========================================================================
+        // Hash de estado por round
+        // =========================================================================
+        public void ReportRoundHash(ulong hash)
+        {
+            _myHash = hash;
+            ReportHashServerRpc(hash, _currentRound);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        private void ReportHashServerRpc(ulong hash, int roundNum, ServerRpcParams rpc = default)
+        {
+            ulong sender = rpc.Receive.SenderClientId;
+            _receivedHashes[sender] = hash;
+
+            // Aguarda todos
+            int connected = NetworkManager.Singleton.ConnectedClientsIds.Count;
+            if (_receivedHashes.Count < connected) return;
+
+            bool allMatch = true;
+            foreach (var kv in _receivedHashes)
+                if (kv.Value != _myHash) { allMatch = false; break; }
+
+            if (allMatch)
+            {
+                Debug.Log($"[Lockstep] hash OK round {roundNum} = {_myHash:X16}");
+                HashResultClientRpc(true, roundNum);
+            }
+            else
+            {
+                // Log de breakdown
+                var sb = new StringBuilder();
+                sb.Append($"[Lockstep] DESYNC round {roundNum}:\n");
+                foreach (var kv in _receivedHashes)
+                    sb.Append($"  client {kv.Key}: {kv.Value:X16}\n");
+                Debug.LogError(sb.ToString());
+
+                // Broadcast hash result para logar nos clientes também
+                HashResultClientRpc(false, roundNum);
+
+                // Resync: serializa estado canônico do host e envia
+                StartCoroutine(SendStateSnapshot());
+            }
+            _receivedHashes.Clear();
+        }
+
+        [ClientRpc]
+        private void HashResultClientRpc(bool ok, int roundNum)
+        {
+            if (!ok)
+            {
+                // Dump local para debug
+                var sb = new StringBuilder();
+                sb.Append($"[Lockstep] DESYNC round {roundNum} — estado local:\n");
+                var sorted = new List<Unit>(_units);
+                sorted.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+                foreach (var u in sorted)
+                    sb.Append($"  uid={UnitRegistry.GetId(u)} HP={u.currentHP} MP={u.currentMana} anchor=({u.anchor.x},{u.anchor.y})\n");
+                Debug.LogError(sb.ToString());
+            }
+        }
+
+        // =========================================================================
+        // Hash FNV-1a do estado (unitId/HP/mana/anchor/isDead) — ordem por unitId
+        // =========================================================================
+        public static ulong ComputeStateHash(List<Unit> units)
+        {
+            const ulong FnvOffsetBasis = 14695981039346656037UL;
+            const ulong FnvPrime       = 1099511628211UL;
+
+            var sorted = new List<Unit>(units);
+            sorted.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+
+            ulong hash = FnvOffsetBasis;
+            foreach (var u in sorted)
+            {
+                hash = FnvMix(hash, FnvPrime, (ulong)UnitRegistry.GetId(u));
+                hash = FnvMix(hash, FnvPrime, (ulong)u.currentHP);
+                hash = FnvMix(hash, FnvPrime, (ulong)u.currentMana);
+                hash = FnvMix(hash, FnvPrime, (ulong)(uint)u.anchor.x);
+                hash = FnvMix(hash, FnvPrime, (ulong)(uint)u.anchor.y);
+                hash = FnvMix(hash, FnvPrime, u.IsDead ? 1UL : 0UL);
+            }
+            return hash;
+        }
+
+        private static ulong FnvMix(ulong hash, ulong prime, ulong val)
+        {
+            hash ^= val;
+            hash *= prime;
+            return hash;
+        }
+
+        // =========================================================================
+        // Snapshot resync (host → cliente)
+        // =========================================================================
+        private IEnumerator SendStateSnapshot()
+        {
+            var snapshot = new StateSnapshot();
+            var sorted = new List<Unit>(_units);
+            sorted.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+            foreach (var u in sorted)
+            {
+                snapshot.entries.Add(new UnitStateEntry
+                {
+                    unitId   = UnitRegistry.GetId(u),
+                    hp       = u.currentHP,
+                    mana     = u.currentMana,
+                    anchorX  = u.anchor.x,
+                    anchorY  = u.anchor.y,
+                    isDead   = u.IsDead,
+                });
+            }
+
+            string json = JsonUtility.ToJson(snapshot);
+            byte[] gz   = NetCompression.GzipCompress(Encoding.UTF8.GetBytes(json));
+
+            // Envia em chunks
+            int total  = gz.Length;
+            int offset = 0;
+            int seq    = 0;
+            while (offset < total)
+            {
+                int len   = Mathf.Min(ChunkSize, total - offset);
+                var chunk = new byte[len];
+                Array.Copy(gz, offset, chunk, 0, len);
+                bool last = (offset + len) >= total;
+                StateSnapshotChunkClientRpc(chunk, seq, total, last);
+                offset += len;
+                seq++;
+                yield return null; // spread over frames
+            }
+        }
+
+        [ClientRpc]
+        private void StateSnapshotChunkClientRpc(byte[] chunk, int seq, int totalBytes, bool last)
+        {
+            if (IsServer) return; // host não precisa aplicar
+
+            if (seq == 0)
+            {
+                _snapshotBuffer = new byte[totalBytes];
+                _snapshotTotal  = 0;
+            }
+            if (_snapshotBuffer == null) return;
+
+            Array.Copy(chunk, 0, _snapshotBuffer, _snapshotTotal, chunk.Length);
+            _snapshotTotal += chunk.Length;
+
+            if (!last) return;
+
+            try
+            {
+                string json     = Encoding.UTF8.GetString(NetCompression.GzipDecompress(_snapshotBuffer));
+                var snapshot    = JsonUtility.FromJson<StateSnapshot>(json);
+                foreach (var entry in snapshot.entries)
+                {
+                    var unit = UnitRegistry.Get(entry.unitId);
+                    if (unit == null) continue;
+                    unit.currentHP   = entry.hp;
+                    unit.currentMana = entry.mana;
+                    unit.anchor      = new Vector2Int(entry.anchorX, entry.anchorY);
+                    unit.SnapToAnchor();
+                    if (entry.isDead && !unit.IsDead) unit.TakeDamage(unit.currentHP + 1);
+                }
+                Debug.Log("[Lockstep] Resync aplicado.");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[Lockstep] Falha ao aplicar snapshot: {e}");
+            }
+        }
+
+        // =========================================================================
+        // AFK warning
+        // =========================================================================
+        [ServerRpc(RequireOwnership = false)]
+        private void ChatAfkWarningServerRpc(ulong clientId)
+        {
+            string name = "Jogador";
+            if (RoomManager.Instance != null)
+            {
+                var slots = RoomManager.Instance.Slots;
+                for (int i = 0; i < slots.Count; i++)
+                    if (slots[i].ClientId == clientId) { name = slots[i].PlayerName.ToString(); break; }
+            }
+            ChatAfkWarningClientRpc(name);
+        }
+
+        [ClientRpc]
+        private void ChatAfkWarningClientRpc(string playerName)
+        {
+            // Loga no BattleHUD se disponível
+            var hud = UnityEngine.Object.FindObjectOfType<BattleHUD>();
+            hud?.LogAction($"<color=#ffaa44>[Chat] {playerName} parece ausente (3 rounds sem ação)</color>");
+        }
+
+        // =========================================================================
+        // Desconexão de jogador durante batalha
+        // =========================================================================
+        public void EliminateDisconnectedPlayer(ulong clientId)
+        {
+            if (!IsServer) return;
+            EliminatePlayerClientRpc(clientId);
+        }
+
+        [ClientRpc]
+        private void EliminatePlayerClientRpc(ulong clientId)
+        {
+            foreach (var u in _units)
+            {
+                if (u.ownerId != clientId) continue;
+                if (!u.IsDead)
+                {
+                    u.TakeDamage(u.currentHP + 9999); // elimina garantido
+                    Debug.Log($"[Lockstep] Unidade {u.unitName} eliminada por desconexão de {clientId}");
+                }
+            }
+        }
+    }
+
+    // ---- DTOs de snapshot -------------------------------------------------------
+
+    [Serializable]
+    public class UnitStateEntry
+    {
+        public uint unitId;
+        public int  hp;
+        public int  mana;
+        public int  anchorX;
+        public int  anchorY;
+        public bool isDead;
+    }
+
+    [Serializable]
+    public class StateSnapshot
+    {
+        public List<UnitStateEntry> entries = new List<UnitStateEntry>();
+    }
+}

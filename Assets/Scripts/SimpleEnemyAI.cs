@@ -37,7 +37,7 @@ namespace PangeaSkirmish
             // ── MODO NORMAL (agressivo / cauteloso) ──
 
             // Sorteia uma vez por planejamento: agressivo (gruda) ou cauteloso (folga)
-            bool isAggressive = Random.value <= aggression;
+            bool isAggressive = BattleRng.Roll10000() <= Mathf.RoundToInt(aggression * 10000f);
             int desiredGap = Mathf.Max(1,
                 isAggressive ? Mathf.Min(enemy.stats.AttackRange, tuning.aiAggressiveMaxGap)
                              : enemy.stats.AttackRange + tuning.aiCautiousGapOffset);
@@ -45,7 +45,7 @@ namespace PangeaSkirmish
             // HP virtual: rastreia quanto dano ainda falta aplicar em cada alvo
             var virtualHP = new Dictionary<Unit, int>();
             foreach (var u in allUnits)
-                if (!u.IsDead && u.team != enemy.team)
+                if (!u.IsDead && u.IsHostileTo(enemy))
                     virtualHP[u] = u.currentHP;
 
             // Alvo travado (intelligence < 1.0 = tendência a focar um alvo até morrer)
@@ -56,7 +56,7 @@ namespace PangeaSkirmish
             {
                 // Reavalia alvo conforme inteligência
                 bool reEvaluate = intelligence >= 1f ||
-                    (intelligence > 0f && Random.value <= intelligence);
+                    (intelligence > 0f && BattleRng.Roll10000() <= Mathf.RoundToInt(intelligence * 10000f));
 
                 Unit target;
                 if (!reEvaluate && lockedTarget != null &&
@@ -157,7 +157,7 @@ namespace PangeaSkirmish
             int closestGap = int.MaxValue;
             foreach (var u in all)
             {
-                if (u == enemy || u.IsDead || u.team == enemy.team) continue;
+                if (u == enemy || u.IsDead || !u.IsHostileTo(enemy)) continue;
                 int g = GridManager.FootprintGap(enemy.anchor, efp, u.anchor, u.stats.Footprint);
                 if (g < closestGap) { closestGap = g; nearestThreat = u; }
             }
@@ -213,7 +213,7 @@ namespace PangeaSkirmish
             // Primeira passada: descobre a distância máxima para normalização
             foreach (var u in all)
             {
-                if (u == self || u.IsDead || u.team == self.team) continue;
+                if (u == self || u.IsDead || !u.IsHostileTo(self)) continue;
                 if (!virtualHP.TryGetValue(u, out int hp) || hp <= 0) continue;
                 int g = GridManager.FootprintGap(self.anchor, selfFP, u.anchor, u.stats.Footprint);
                 if (g > maxGap) maxGap = g;
@@ -222,7 +222,7 @@ namespace PangeaSkirmish
 
             foreach (var u in all)
             {
-                if (u == self || u.IsDead || u.team == self.team) continue;
+                if (u == self || u.IsDead || !u.IsHostileTo(self)) continue;
                 if (!virtualHP.TryGetValue(u, out int hp) || hp <= 0) continue;
 
                 int  gap      = GridManager.FootprintGap(self.anchor, selfFP, u.anchor, u.stats.Footprint);
@@ -277,7 +277,7 @@ namespace PangeaSkirmish
             {
                 int score = threatAnchor.HasValue
                     ? GridManager.FootprintGap(a, efp, threatAnchor.Value, threatFP)
-                    : Random.Range(1, 100); // sem ameaça: tile aleatório
+                    : BattleRng.Next(1, 101); // sem ameaça: tile aleatório
                 if (score > bestScore) { bestScore = score; best = a; }
             }
             if (best == enemy.FinalAnchor) return;
@@ -302,7 +302,7 @@ namespace PangeaSkirmish
 
             for (int attempt = 0; attempt < 3; attempt++)
             {
-                var elem = elements[Random.Range(0, elements.Length)];
+                var elem = elements[BattleRng.Next(0, elements.Length)];
 
                 // Self-buff (mana = custo fixo, já que mana define alcance e self-buff não usa alcance)
                 if (lowHP && (elem == SpellElement.Physical || elem == SpellElement.Magic))
@@ -328,7 +328,7 @@ namespace PangeaSkirmish
                 int bestGap = int.MaxValue;
                 foreach (var u in all)
                 {
-                    if (u == enemy || u.IsDead || u.team == enemy.team) continue;
+                    if (u == enemy || u.IsDead || !u.IsHostileTo(enemy)) continue;
                     int g = GridManager.FootprintGap(enemy.anchor, enemy.stats.Footprint,
                         u.anchor, u.stats.Footprint);
                     if (g < bestGap) { bestGap = g; target = u; }

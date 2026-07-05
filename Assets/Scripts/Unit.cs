@@ -72,6 +72,21 @@ namespace PangeaSkirmish
         private Coroutine _idleCoroutine;
 
         public bool IsDead => currentHP <= 0;
+
+        /// <summary>
+        /// Retorna true se <paramref name="other"/> é inimigo desta unidade.
+        /// SP: team != other.team  |  MP-TDM: teamId != other.teamId  |  MP-FFA: ownerId != other.ownerId
+        /// </summary>
+        public bool IsHostileTo(Unit other)
+        {
+            if (other == null) return false;
+            if (!RuntimeMultiplayerSession.IsMultiplayer)
+                return team != other.team;
+            // gameMode 0 = TDM, 1 = FFA
+            if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0)
+                return teamId != other.teamId;
+            return ownerId != other.ownerId;
+        }
         public Vector2Int CenterCell => anchor;
 
         public Sprite CurrentSprite => _sr != null ? _sr.sprite : null;
