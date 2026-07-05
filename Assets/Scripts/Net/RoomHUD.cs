@@ -42,7 +42,9 @@ namespace PangeaSkirmish
         private ScrollRect _chatScroll;
 
         // Host controls
-        private Toggle _tdmFfaToggle;   // off=TDM, on=FFA
+        private Button _tdmBtn, _ffaBtn;
+        private int _gameMode = 0;      // 0=TDM, 1=FFA
+        private Button _budgetMinusBtn, _budgetPlusBtn, _planMinusBtn, _planPlusBtn;
         private Text _budgetLabel;
         private int _budgetValue = 30;
         private Text _planningLabel;
@@ -292,34 +294,34 @@ namespace PangeaSkirmish
             hostCtrlBg.GetComponent<Image>().color = new Color(0.06f, 0.07f, 0.10f);
 
             MakeLabel(hostCtrlBg.transform, new Vector2(0, 160), new Vector2(240, 28), 16,
-                new Color(0.8f, 0.8f, 0.8f)).text = "Modo (host)";
+                new Color(0.8f, 0.8f, 0.8f)).text = "Modo";
 
-            // Toggle TDM/FFA
-            BuildTdmFfaToggle(hostCtrlBg.transform);
+            // Botões de modo TDM/FFA
+            BuildModeButtons(hostCtrlBg.transform);
 
             // Budget
             MakeLabel(hostCtrlBg.transform, new Vector2(-70, 80), new Vector2(120, 28), 15,
                 new Color(0.7f, 0.7f, 0.7f)).text = "Budget:";
-            var budgetMinus = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(-30, 50), new Vector2(36, 36));
-            MakeLabel(budgetMinus.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "-";
+            _budgetMinusBtn = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(-30, 50), new Vector2(36, 36));
+            MakeLabel(_budgetMinusBtn.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "-";
             _budgetLabel = MakeLabel(hostCtrlBg.transform, new Vector2(20, 50), new Vector2(50, 36), 18, Color.white);
             _budgetLabel.text = "30";
-            var budgetPlus = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(65, 50), new Vector2(36, 36));
-            MakeLabel(budgetPlus.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "+";
-            budgetMinus.onClick.AddListener(() => { _budgetValue = Mathf.Max(10, _budgetValue - 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); });
-            budgetPlus.onClick.AddListener(() => { _budgetValue = Mathf.Min(100, _budgetValue + 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); });
+            _budgetPlusBtn = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(65, 50), new Vector2(36, 36));
+            MakeLabel(_budgetPlusBtn.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "+";
+            _budgetMinusBtn.onClick.AddListener(() => { _budgetValue = Mathf.Max(10, _budgetValue - 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); });
+            _budgetPlusBtn.onClick.AddListener(() => { _budgetValue = Mathf.Min(100, _budgetValue + 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); });
 
             // Planning time
             MakeLabel(hostCtrlBg.transform, new Vector2(-60, 0), new Vector2(140, 28), 15,
                 new Color(0.7f, 0.7f, 0.7f)).text = "Planejamento:";
-            var planMinus = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(-30, -30), new Vector2(36, 36));
-            MakeLabel(planMinus.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "-";
+            _planMinusBtn = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(-30, -30), new Vector2(36, 36));
+            MakeLabel(_planMinusBtn.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "-";
             _planningLabel = MakeLabel(hostCtrlBg.transform, new Vector2(20, -30), new Vector2(55, 36), 18, Color.white);
             _planningLabel.text = "15s";
-            var planPlus = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(65, -30), new Vector2(36, 36));
-            MakeLabel(planPlus.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "+";
-            planMinus.onClick.AddListener(() => { _planningValue = Mathf.Max(5f, _planningValue - 5f); _planningLabel.text = _planningValue + "s"; SyncConfig(); });
-            planPlus.onClick.AddListener(() => { _planningValue = Mathf.Min(120f, _planningValue + 5f); _planningLabel.text = _planningValue + "s"; SyncConfig(); });
+            _planPlusBtn = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(65, -30), new Vector2(36, 36));
+            MakeLabel(_planPlusBtn.transform, Vector2.zero, new Vector2(36, 36), 20, Color.white).text = "+";
+            _planMinusBtn.onClick.AddListener(() => { _planningValue = Mathf.Max(5f, _planningValue - 5f); _planningLabel.text = _planningValue + "s"; SyncConfig(); });
+            _planPlusBtn.onClick.AddListener(() => { _planningValue = Mathf.Min(120f, _planningValue + 5f); _planningLabel.text = _planningValue + "s"; SyncConfig(); });
 
             // Avançar fase
             _advanceBtn = MakeBtn(hostCtrlBg.transform, new Vector2(0.5f, 0.5f), new Vector2(0, -110), new Vector2(230, 55));
@@ -343,41 +345,50 @@ namespace PangeaSkirmish
             btnLeave.onClick.AddListener(OnClickLeaveRoom);
         }
 
-        private void BuildTdmFfaToggle(Transform parent)
+        private void BuildModeButtons(Transform parent)
         {
-            var row = new GameObject("TdmFfaRow", typeof(RectTransform));
-            row.transform.SetParent(parent, false);
-            var rowRt = row.GetComponent<RectTransform>();
-            rowRt.anchorMin = rowRt.anchorMax = rowRt.pivot = new Vector2(0.5f, 0.5f);
-            rowRt.anchoredPosition = new Vector2(0, 125);
-            rowRt.sizeDelta = new Vector2(240, 34);
+            _tdmBtn = MakeBtn(parent, new Vector2(0.5f, 0.5f), new Vector2(-55, 125), new Vector2(95, 34));
+            MakeLabel(_tdmBtn.transform, Vector2.zero, new Vector2(95, 34), 16, Color.white).text = "TDM";
+            _tdmBtn.onClick.AddListener(() => { _gameMode = 0; UpdateModeHighlight(); SyncConfig(); });
 
-            MakeLabel(row.transform, new Vector2(-70, 0), new Vector2(80, 32), 16, Color.white).text = "TDM";
+            _ffaBtn = MakeBtn(parent, new Vector2(0.5f, 0.5f), new Vector2(55, 125), new Vector2(95, 34));
+            MakeLabel(_ffaBtn.transform, Vector2.zero, new Vector2(95, 34), 16, Color.white).text = "FFA";
+            _ffaBtn.onClick.AddListener(() => { _gameMode = 1; UpdateModeHighlight(); SyncConfig(); });
 
-            _tdmFfaToggle = row.AddComponent<Toggle>();
-            var bg = new GameObject("BG", typeof(RectTransform), typeof(Image));
-            bg.transform.SetParent(row.transform, false);
-            var bgRt = bg.GetComponent<RectTransform>();
-            bgRt.anchorMin = bgRt.anchorMax = bgRt.pivot = new Vector2(0.5f, 0.5f);
-            bgRt.anchoredPosition = new Vector2(0, 0);
-            bgRt.sizeDelta = new Vector2(44, 24);
-            bg.GetComponent<Image>().color = new Color(0.25f, 0.25f, 0.35f);
-            var check = new GameObject("Check", typeof(RectTransform), typeof(Image));
-            check.transform.SetParent(bg.transform, false);
-            var checkRt = check.GetComponent<RectTransform>();
-            checkRt.anchorMin = checkRt.anchorMax = checkRt.pivot = new Vector2(0f, 0.5f);
-            checkRt.anchoredPosition = new Vector2(2, 0);
-            checkRt.sizeDelta = new Vector2(20, 20);
-            check.GetComponent<Image>().color = new Color(0.4f, 0.7f, 1f);
-            _tdmFfaToggle.targetGraphic = bg.GetComponent<Image>();
-            _tdmFfaToggle.graphic = check.GetComponent<Image>();
+            UpdateModeHighlight();
+        }
 
-            MakeLabel(row.transform, new Vector2(75, 0), new Vector2(80, 32), 16, Color.white).text = "FFA";
+        private void UpdateModeHighlight()
+        {
+            var active = new Color(0.15f, 0.45f, 0.25f);
+            var idle   = new Color(0.22f, 0.22f, 0.30f);
+            if (_tdmBtn != null) _tdmBtn.GetComponent<Image>().color = _gameMode == 0 ? active : idle;
+            if (_ffaBtn != null) _ffaBtn.GetComponent<Image>().color = _gameMode == 1 ? active : idle;
+        }
 
-            _tdmFfaToggle.onValueChanged.AddListener(isOn =>
-            {
-                SyncConfig();
-            });
+        /// <summary>Reflete o config replicado da sala no display (todos veem; só host edita).</summary>
+        private void UpdateConfigDisplay()
+        {
+            if (RoomManager.Instance == null) return;
+            var cfg = RoomManager.Instance.CurrentConfig;
+            _gameMode      = cfg.GameMode;
+            _budgetValue   = cfg.AttributeBudget;
+            _planningValue = cfg.PlanningTime;
+            UpdateModeHighlight();
+            if (_budgetLabel   != null) _budgetLabel.text   = _budgetValue.ToString();
+            if (_planningLabel != null) _planningLabel.text = _planningValue + "s";
+        }
+
+        /// <summary>Só o host interage; os demais veem o painel read-only.</summary>
+        private void SetHostControlsInteractable(bool on)
+        {
+            if (_tdmBtn != null)         _tdmBtn.interactable = on;
+            if (_ffaBtn != null)         _ffaBtn.interactable = on;
+            if (_budgetMinusBtn != null) _budgetMinusBtn.interactable = on;
+            if (_budgetPlusBtn  != null) _budgetPlusBtn.interactable = on;
+            if (_planMinusBtn   != null) _planMinusBtn.interactable = on;
+            if (_planPlusBtn    != null) _planPlusBtn.interactable = on;
+            if (_advanceBtn     != null) _advanceBtn.interactable = on;
         }
 
         // =========================================================================
@@ -393,10 +404,9 @@ namespace PangeaSkirmish
 
             // Controles do host visíveis só pro host
             bool isHost = RuntimeMultiplayerSession.IsHost;
-            // O hostCtrlBg foi criado como filho direto do _mpRoomPanel — achamos pelo nome
-            var hostCtrl = _mpRoomPanel.transform.Find("HostCtrl");
-            if (hostCtrl != null) hostCtrl.gameObject.SetActive(isHost);
-            if (_advanceBtn != null) _advanceBtn.interactable = isHost;
+            // O painel de controles fica VISÍVEL para todos; só o host consegue interagir
+            // (os demais veem modo/budget/timer em read-only, atualizados pelo config replicado).
+            SetHostControlsInteractable(isHost);
 
             // Assinar eventos do RoomManager. No CLIENTE, o RoomManager é replicado alguns
             // frames APÓS conectar — tentamos já e, se ainda não existir, uma corrotina fica
@@ -413,9 +423,11 @@ namespace PangeaSkirmish
             if (_boundRoom || RoomManager.Instance == null) return;
             RoomManager.Instance.Slots.OnListChanged += OnSlotsChanged;
             RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
+            RoomManager.Instance.OnConfigChanged += UpdateConfigDisplay;
             RoomManager.Instance.OnChatMessage += AppendChatMessage;
             _boundRoom = true;
             RebuildPlayerList();
+            UpdateConfigDisplay();
             OnPhaseChanged(RoomManager.Instance.CurrentPhase);
         }
 
@@ -438,6 +450,7 @@ namespace PangeaSkirmish
             {
                 RoomManager.Instance.Slots.OnListChanged -= OnSlotsChanged;
                 RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
+                RoomManager.Instance.OnConfigChanged -= UpdateConfigDisplay;
                 RoomManager.Instance.OnChatMessage -= AppendChatMessage;
             }
             _boundRoom = false;
@@ -560,7 +573,7 @@ namespace PangeaSkirmish
 
             var cfg = new RoomConfigNet
             {
-                GameMode = _tdmFfaToggle != null && _tdmFfaToggle.isOn ? 1 : 0,
+                GameMode = _gameMode,
                 AttributeBudget = _budgetValue,
                 PlanningTime = _planningValue,
                 MaxPlayers = 4
@@ -670,6 +683,7 @@ namespace PangeaSkirmish
             {
                 RoomManager.Instance.Slots.OnListChanged -= OnSlotsChanged;
                 RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
+                RoomManager.Instance.OnConfigChanged -= UpdateConfigDisplay;
                 RoomManager.Instance.OnChatMessage -= AppendChatMessage;
             }
             _boundRoom = false;

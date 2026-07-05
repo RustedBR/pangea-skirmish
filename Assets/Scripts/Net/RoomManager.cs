@@ -117,6 +117,7 @@ namespace PangeaSkirmish
         // ---- Eventos locais (para o HUD) ------------------------------------
         public event Action OnSlotsChanged;
         public event Action<RoomPhase> OnPhaseChanged;
+        public event Action OnConfigChanged; // config da sala (modo/budget/timer) mudou
         public event Action<string, string> OnChatMessage; // (senderName, msg)
 
         // ---- Awake: cria NetworkList/Variable antes do Spawn ----------------
@@ -147,6 +148,7 @@ namespace PangeaSkirmish
             _config.OnValueChanged += (_, newVal) =>
             {
                 RuntimeMultiplayerSession.CurrentConfig = newVal.ToData();
+                OnConfigChanged?.Invoke();
             };
 
             if (IsServer)
