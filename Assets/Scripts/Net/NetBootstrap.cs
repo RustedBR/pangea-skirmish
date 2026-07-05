@@ -125,12 +125,28 @@ namespace PangeaSkirmish
                 ForceSamePrefabs      = false,
             };
 
+            // Registra os prefabs de rede dos managers (spawnados em runtime pelo host).
+            // SEM isto, o host spawna mas os CLIENTES não conseguem instanciar o objeto
+            // replicado (hash não registrado) → exceção em SynchronizeSceneNetworkObjects e
+            // "[Deferred OnSpawn] NetworkObject not received" no cliente. Registrar em ambos
+            // (host e cliente) ANTES de StartHost/StartClient.
+            RegisterNetPrefab(nm, "Net/RoomManagerNet");
+            RegisterNetPrefab(nm, "Net/CollabMapSyncNet");
+            RegisterNetPrefab(nm, "Net/PlacementSyncNet");
+
             var bootstrap = go.AddComponent<NetBootstrap>();
             bootstrap._networkManager = nm;
             bootstrap._transport = transport;
 
             _instance = bootstrap;
             return bootstrap;
+        }
+
+        private static void RegisterNetPrefab(NetworkManager nm, string resPath)
+        {
+            var prefab = Resources.Load<GameObject>(resPath);
+            if (prefab != null) nm.AddNetworkPrefab(prefab);
+            else Debug.LogError($"[NetBootstrap] Prefab de rede nao encontrado em Resources: {resPath}");
         }
 
         private void Awake()
@@ -246,30 +262,20 @@ namespace PangeaSkirmish
         {
             if (!_networkManager.IsHost) return;
 
-            // ---- RoomManager ----
-            var go = new GameObject("RoomManager");
+            // Instancia os PREFABS registrados (ver RegisterNetPrefab). Assim o cliente
+            // consegue instanciar o objeto replicado a partir do hash do prefab.
+            SpawnNetManager("Net/RoomManagerNet");
+            SpawnNetManager("Net/CollabMapSyncNet");
+            SpawnNetManager("Net/PlacementSyncNet");
+        }
+
+        private static void SpawnNetManager(string resPath)
+        {
+            var prefab = Resources.Load<GameObject>(resPath);
+            if (prefab == null) { Debug.LogError($"[NetBootstrap] prefab nulo no spawn: {resPath}"); return; }
+            var go = UnityEngine.Object.Instantiate(prefab);
             DontDestroyOnLoad(go);
-            var netObj = go.AddComponent<NetworkObject>();
-            go.AddComponent<RoomManager>();
-
-            // ForceSamePrefabs=false (configurado em EnsureExists) permite spawn de objetos
-            // criados em runtime sem exigir prefab registrado nos clientes.
-            // O cliente receberá o spawn message e instanciará localmente via NGO.
-            netObj.Spawn();
-
-            // ---- CollabMapSync ----
-            var syncGo = new GameObject("CollabMapSync");
-            DontDestroyOnLoad(syncGo);
-            var syncNet = syncGo.AddComponent<NetworkObject>();
-            syncGo.AddComponent<CollabMapSync>();
-            syncNet.Spawn();
-
-            // ---- PlacementSync ----
-            var placementGo = new GameObject("PlacementSync");
-            DontDestroyOnLoad(placementGo);
-            var placementNet = placementGo.AddComponent<NetworkObject>();
-            placementGo.AddComponent<PlacementSync>();
-            placementNet.Spawn();
+            go.GetComponent<NetworkObject>().Spawn();
         }
 
         // -------------------------------------------------------------------------
