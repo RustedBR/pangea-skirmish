@@ -540,6 +540,7 @@ namespace PangeaSkirmish
         public void SetMpMode(bool mp)
         {
             if (!mp) return;
+            Debug.Log("[MP] SandboxHUD.SetMpMode ativado — botao 'Finalizar Mapa' no rodape");
 
             // Ocultar painel de unidades (fases Allies/Enemies não existem em MP)
             if (_unitsPanel != null) _unitsPanel.SetActive(false);
@@ -554,31 +555,27 @@ namespace PangeaSkirmish
             // Substituir label de fase
             if (_phaseLabel != null) _phaseLabel.text = "Mapa Colaborativo";
 
-            // Botão "Finalizar Mapa" na vaga que era do Salvar (visível na barra superior).
+            // Botão "Finalizar Mapa" — grande, ancorado no RODAPÉ do canvas (posição garantida,
+            // independente da largura da tela). É o que finaliza o mapa e vai ao posicionamento.
             if (_readyBtn == null)
             {
                 var canvas = transform.root; // canvas raiz
-                var topBar = canvas.Find("TopBar");
-                if (topBar != null)
+                var readyCol = new Color(0.18f, 0.45f, 0.22f);
+                _readyBtn = MakeBtn(canvas, new Vector2(0.5f, 0f), new Vector2(0, 45), new Vector2(280, 58), readyCol);
+                UiSkin.ApplyButtonSkin(_readyBtn.GetComponent<Image>(), readyCol);
+                MakeLabel(_readyBtn.transform, Vector2.zero, new Vector2(280, 58), 20, Color.white).text = "Finalizar Mapa";
+                _readyBtn.onClick.AddListener(() =>
                 {
-                    var readyCol = new Color(0.18f, 0.40f, 0.20f);
-                    _readyBtn = MakeBtn(topBar, new Vector2(0.5f, 0.5f),
-                        new Vector2(760, -10), new Vector2(170, 44), readyCol);
-                    UiSkin.ApplyButtonSkin(_readyBtn.GetComponent<Image>(), readyCol);
-                    MakeLabel(_readyBtn.transform, Vector2.zero, new Vector2(170, 44), 16, Color.white).text = "Finalizar Mapa";
-                    _readyBtn.onClick.AddListener(() =>
-                    {
-                        _ctrl?.SetReadyMap();
-                        if (_readyBtn != null) _readyBtn.interactable = false;
-                        ShowMpWaiting(true);
-                    });
+                    Debug.Log("[MP] Finalizar Mapa clicado — enviando readyMap ao host");
+                    _ctrl?.SetReadyMap();
+                    if (_readyBtn != null) _readyBtn.interactable = false;
+                    ShowMpWaiting(true);
+                });
 
-                    // Label "Aguardando os demais…" (inicialmente oculto)
-                    _mpStatusLabel = MakeLabel(topBar, new Vector2(600, -10),
-                        new Vector2(190, 44), 15,
-                        new Color(0.80f, 0.80f, 0.35f));
-                    _mpStatusLabel.text = "";
-                }
+                // Label "Aguardando os demais…" acima do botão (filho dele; inicialmente oculto)
+                _mpStatusLabel = MakeLabel(_readyBtn.transform, new Vector2(0, 48),
+                    new Vector2(420, 30), 16, new Color(0.85f, 0.85f, 0.4f));
+                _mpStatusLabel.text = "";
             }
         }
 

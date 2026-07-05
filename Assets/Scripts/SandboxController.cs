@@ -137,12 +137,16 @@ namespace PangeaSkirmish
             // Em MP: pular fases Allies/Enemies (só terreno), registrar no CollabMapSync
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
+                Debug.Log($"[MP] Sandbox iniciado em modo COLABORATIVO (CollabMapSync={(CollabMapSync.Instance != null)})");
                 _phase = Phase.Terrain;
                 if (CollabMapSync.Instance != null)
                     CollabMapSync.Instance.RegisterSandbox(this, _map);
-                // HUD MP: mostrar botão "Pronto" em vez de salvar
+                else
+                    Debug.LogWarning("[MP] CollabMapSync.Instance NULL no Sandbox — sincronizacao de tiles pode falhar");
+                // HUD MP: botão "Finalizar Mapa" em vez de salvar
                 _hud.SetMpMode(true);
             }
+            else Debug.Log("[MP] Sandbox iniciado em modo SINGLE-PLAYER (IsMultiplayer=false)");
 
             _hud.SetPhaseUI(_phase);
         }
