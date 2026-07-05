@@ -107,20 +107,23 @@ namespace PangeaSkirmish
             var go = new GameObject("NetBootstrap");
             DontDestroyOnLoad(go);
 
-            // NetworkManager
             var nm = go.AddComponent<NetworkManager>();
 
-            // UnityTransport
             var transport = go.AddComponent<UnityTransport>();
             transport.UseWebSockets = true;
 
-            // Configurar NetworkConfig (NetworkManager já possui uma instância interna)
-            nm.NetworkConfig.EnableSceneManagement = true;
-            nm.NetworkConfig.ConnectionApproval = false;
-            nm.NetworkConfig.TickRate = 60;
-            nm.NetworkConfig.NetworkTransport = transport;
-            // Permite spawn de objetos criados em runtime sem exigir prefab idêntico nos clientes
-            nm.NetworkConfig.ForceSamePrefabs = false;
+            // NGO 2.x: um NetworkManager criado por AddComponent em runtime NÃO instancia o
+            // NetworkConfig (é campo serializado, só preenchido pelo Inspector) — criar na mão.
+            // A inicialização de UGS/Relay fica em InitUgsAsync (só o caminho relay a usa;
+            // loopback dispensa UGS), mantendo este método síncrono e sem risco de deadlock.
+            nm.NetworkConfig = new NetworkConfig
+            {
+                NetworkTransport      = transport,
+                EnableSceneManagement = true,
+                ConnectionApproval    = false,
+                TickRate              = 60,
+                ForceSamePrefabs      = false,
+            };
 
             var bootstrap = go.AddComponent<NetBootstrap>();
             bootstrap._networkManager = nm;
