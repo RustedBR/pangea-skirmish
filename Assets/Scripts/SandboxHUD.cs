@@ -33,6 +33,7 @@ namespace PangeaSkirmish
         public void Build(Transform canvas, SandboxController ctrl)
         {
             _ctrl = ctrl;
+            _canvas = canvas;
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             BuildTopBar(canvas);
@@ -532,6 +533,7 @@ namespace PangeaSkirmish
         private Text _mpStatusLabel;
         private Button _readyBtn;
         private Button _saveBtn, _nextBtn, _prevBtn;
+        private Transform _canvas;   // canvas raiz (guardado no Build) — usado pelo overlay MP
 
         /// <summary>
         /// Adapta a HUD para o modo MP: oculta fases Allies/Enemies e Save,
@@ -559,9 +561,10 @@ namespace PangeaSkirmish
             // independente da largura da tela). É o que finaliza o mapa e vai ao posicionamento.
             if (_readyBtn == null)
             {
-                var canvas = transform.root; // canvas raiz
+                var canvas = _canvas != null ? _canvas : transform.root; // canvas real (guardado no Build)
                 var readyCol = new Color(0.18f, 0.45f, 0.22f);
                 _readyBtn = MakeBtn(canvas, new Vector2(0.5f, 0f), new Vector2(0, 45), new Vector2(280, 58), readyCol);
+                Debug.Log($"[MP] Botao 'Finalizar Mapa' criado sob canvas='{canvas.name}'");
                 UiSkin.ApplyButtonSkin(_readyBtn.GetComponent<Image>(), readyCol);
                 MakeLabel(_readyBtn.transform, Vector2.zero, new Vector2(280, 58), 20, Color.white).text = "Finalizar Mapa";
                 _readyBtn.onClick.AddListener(() =>
