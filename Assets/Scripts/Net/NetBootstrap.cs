@@ -177,6 +177,7 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = true;
             RuntimeMultiplayerSession.LocalClientId = _networkManager.LocalClientId;
+            MpPhaseDirector.EnsureExists();
             SpawnRoomManager();
             return RuntimeMultiplayerSession.JoinCode;
         }
@@ -191,6 +192,7 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = false;
             RuntimeMultiplayerSession.JoinCode = joinCode;
+            MpPhaseDirector.EnsureExists();
             // LocalClientId será atualizado após OnClientConnected
         }
 
@@ -206,6 +208,7 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsHost = true;
             RuntimeMultiplayerSession.JoinCode = "LOOPBACK";
             RuntimeMultiplayerSession.LocalClientId = _networkManager.LocalClientId;
+            MpPhaseDirector.EnsureExists();
             SpawnRoomManager();
         }
 
@@ -217,6 +220,7 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = false;
             RuntimeMultiplayerSession.JoinCode = "LOOPBACK";
+            MpPhaseDirector.EnsureExists();
         }
 
         // -------------------------------------------------------------------------
@@ -226,6 +230,7 @@ namespace PangeaSkirmish
         {
             if (!_networkManager.IsHost) return;
 
+            // ---- RoomManager ----
             var go = new GameObject("RoomManager");
             DontDestroyOnLoad(go);
             var netObj = go.AddComponent<NetworkObject>();
@@ -235,6 +240,20 @@ namespace PangeaSkirmish
             // criados em runtime sem exigir prefab registrado nos clientes.
             // O cliente receberá o spawn message e instanciará localmente via NGO.
             netObj.Spawn();
+
+            // ---- CollabMapSync ----
+            var syncGo = new GameObject("CollabMapSync");
+            DontDestroyOnLoad(syncGo);
+            var syncNet = syncGo.AddComponent<NetworkObject>();
+            syncGo.AddComponent<CollabMapSync>();
+            syncNet.Spawn();
+
+            // ---- PlacementSync ----
+            var placementGo = new GameObject("PlacementSync");
+            DontDestroyOnLoad(placementGo);
+            var placementNet = placementGo.AddComponent<NetworkObject>();
+            placementGo.AddComponent<PlacementSync>();
+            placementNet.Spawn();
         }
 
         // -------------------------------------------------------------------------

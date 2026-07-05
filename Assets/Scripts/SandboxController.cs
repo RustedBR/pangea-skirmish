@@ -54,6 +54,9 @@ namespace PangeaSkirmish
             _iso = Resources.Load<IsoConfig>("IsoConfig");
             if (_iso == null) _iso = ScriptableObject.CreateInstance<IsoConfig>();
 
+            // Em MP: registrar no CollabMapSync (disponível após spawn do host)
+            // O registro acontece após o grid ser construído (mais abaixo em Start).
+
             // Câmera ortográfica
             var cam = Camera.main;
             if (cam == null)
@@ -130,6 +133,17 @@ namespace PangeaSkirmish
             CreateHoverCursor();
 
             if (TilePalette.Brushes.Length > 0) _brush = TilePalette.Brushes[0];
+
+            // Em MP: pular fases Allies/Enemies (só terreno), registrar no CollabMapSync
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                _phase = Phase.Terrain;
+                if (CollabMapSync.Instance != null)
+                    CollabMapSync.Instance.RegisterSandbox(this, _map);
+                // HUD MP: mostrar botão "Pronto" em vez de salvar
+                _hud.SetMpMode(true);
+            }
+
             _hud.SetPhaseUI(_phase);
         }
 
@@ -395,7 +409,7 @@ namespace PangeaSkirmish
 
         /// <summary>
         /// Aplica a pintura em todos os tiles da seleção.
-        /// Expande o grid automaticamente para cells fora dos limites.
+        /// Em SP: aplica direto. Em MP: envia via RPC (convergência por eco).
         /// </summary>
         private void ApplyPaint()
         {
@@ -422,15 +436,26 @@ namespace PangeaSkirmish
                                 continue;
                         }
 
-                        var newMap = _grid.Expand(dirX, dirY);
-                        if (newMap != null)
+                        if (RuntimeMultiplayerSession.IsMultiplayer && CollabMapSync.Instance != null)
                         {
-                            _map = newMap;
-                            expanded = true;
+                            // Em MP: rotear expansão via RPC
+                            CollabMapSync.Instance.ExpandGridServerRpc(
+                                _grid.width  + (dirX != 0 ? 1 : 0),
+                                _grid.height + (dirY != 0 ? 1 : 0));
+                            expanded = false; // cliente aguarda eco; não expande localmente agora
+                            break;
                         }
-                        break; // reconhecer iterar novamente
+                        else
+                        {
+                            var newMap = _grid.Expand(dirX, dirY);
+                            if (newMap != null) { _map = newMap; expanded = true; }
+                            break;
+                        }
                     }
                 }
+
+                // Em MP não expandimos localmente nesta iteração
+                if (RuntimeMultiplayerSession.IsMultiplayer) break;
             }
 
             // Reposicionar câmera no centro do grid
@@ -451,45 +476,170 @@ namespace PangeaSkirmish
                     continue;
                 }
 
-                bool isVoidCell = _grid.IsVoid(cell.x, cell.y);
-
-                if (isVoidBrush)
+                if (RuntimeMultiplayerSession.IsMultiplayer && CollabMapSync.Instance != null)
                 {
-                    if (!isVoidCell)
-                    {
-                        int curH = _grid.GetHeight(cell.x, cell.y);
-                        if (curH > 0)
-                            _grid.SetCell(cell.x, cell.y, _grid.GetTileIndex(cell.x, cell.y), curH - 1, false);
-                        else
-                            _grid.SetCell(cell.x, cell.y, 0, 0, true);
-                    }
+                    // Em MP: construir PaintOp e enviar via RPC (não aplica localmente)
+                    var op = BuildPaintOp(cell, isVoidBrush);
+                    CollabMapSync.Instance.PaintOpServerRpc(op);
                 }
                 else
                 {
-                    if (isVoidCell)
+                    // SP: aplica diretamente (comportamento original)
+                    ApplySingleCellLocal(cell, isVoidBrush);
+                }
+            }
+        }
+
+        private PaintOp BuildPaintOp(Vector2Int cell, bool isVoidBrush)
+        {
+            bool isVoidCell = _grid.IsVoid(cell.x, cell.y);
+            if (isVoidBrush)
+            {
+                int curH = _grid.GetHeight(cell.x, cell.y);
+                return new PaintOp
+                {
+                    X = cell.x, Y = cell.y,
+                    TileIndex = _grid.GetTileIndex(cell.x, cell.y),
+                    Height = curH > 0 ? curH - 1 : 0,
+                    IsVoid = curH <= 0,
+                    Kind = PaintOpKind.Erase
+                };
+            }
+            else
+            {
+                int curIdx = isVoidCell ? _brush.tileIndex : _grid.GetTileIndex(cell.x, cell.y);
+                int curH   = isVoidCell ? _brush.height    : _grid.GetHeight(cell.x, cell.y);
+                int newH   = curH;
+                int newIdx = _brush.tileIndex;
+
+                if (!isVoidCell && curIdx == _brush.tileIndex)
+                {
+                    int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 3;
+                    newH = Mathf.Min(curH + 1, maxH);
+                }
+
+                return new PaintOp
+                {
+                    X = cell.x, Y = cell.y,
+                    TileIndex = newIdx,
+                    Height = newH,
+                    IsVoid = false,
+                    Kind = PaintOpKind.Paint
+                };
+            }
+        }
+
+        private void ApplySingleCellLocal(Vector2Int cell, bool isVoidBrush)
+        {
+            bool isVoidCell = _grid.IsVoid(cell.x, cell.y);
+            if (isVoidBrush)
+            {
+                if (!isVoidCell)
+                {
+                    int curH = _grid.GetHeight(cell.x, cell.y);
+                    if (curH > 0)
+                        _grid.SetCell(cell.x, cell.y, _grid.GetTileIndex(cell.x, cell.y), curH - 1, false);
+                    else
+                        _grid.SetCell(cell.x, cell.y, 0, 0, true);
+                }
+            }
+            else
+            {
+                if (isVoidCell)
+                {
+                    _grid.SetCell(cell.x, cell.y, _brush.tileIndex, _brush.height, false);
+                }
+                else
+                {
+                    int curIdx = _grid.GetTileIndex(cell.x, cell.y);
+                    int curH   = _grid.GetHeight(cell.x, cell.y);
+                    if (curIdx == _brush.tileIndex)
                     {
-                        _grid.SetCell(cell.x, cell.y, _brush.tileIndex, _brush.height, false);
+                        int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 3;
+                        if (curH < maxH) _grid.SetCell(cell.x, cell.y, curIdx, curH + 1, false);
                     }
                     else
                     {
-                        int curIdx = _grid.GetTileIndex(cell.x, cell.y);
-                        int curH = _grid.GetHeight(cell.x, cell.y);
-
-                        if (curIdx == _brush.tileIndex)
-                        {
-                            int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 3;
-                            if (curH < maxH)
-                            {
-                                _grid.SetCell(cell.x, cell.y, curIdx, curH + 1, false);
-                            }
-                        }
-                        else
-                        {
-                            _grid.SetCell(cell.x, cell.y, _brush.tileIndex, curH, false);
-                        }
+                        _grid.SetCell(cell.x, cell.y, _brush.tileIndex, curH, false);
                     }
                 }
             }
+        }
+
+        // =========================================================================
+        // API pública para CollabMapSync (chamada pelo ClientRpc)
+        // =========================================================================
+
+        /// <summary>Aplica uma PaintOp recebida pela rede no estado local do grid.</summary>
+        public void ApplyPaintOp(PaintOp op)
+        {
+            if (_grid == null) return;
+            if (op.X < 0 || op.Y < 0 || op.X >= _grid.width || op.Y >= _grid.height) return;
+
+            switch (op.Kind)
+            {
+                case PaintOpKind.Erase:
+                    bool isVoidCell2 = _grid.IsVoid(op.X, op.Y);
+                    if (!isVoidCell2)
+                    {
+                        int curH2 = _grid.GetHeight(op.X, op.Y);
+                        if (curH2 > 0)
+                            _grid.SetCell(op.X, op.Y, _grid.GetTileIndex(op.X, op.Y), curH2 - 1, false);
+                        else
+                            _grid.SetCell(op.X, op.Y, 0, 0, true);
+                    }
+                    break;
+
+                case PaintOpKind.Paint:
+                    _grid.SetCell(op.X, op.Y, op.TileIndex, op.Height, false);
+                    break;
+
+                case PaintOpKind.Height:
+                    _grid.SetCell(op.X, op.Y, _grid.GetTileIndex(op.X, op.Y), op.Height,
+                                  _grid.IsVoid(op.X, op.Y));
+                    break;
+            }
+
+            // Atualizar _map local para ficar em sincronia
+            _map = _grid.ExportToMapData();
+        }
+
+        /// <summary>Aplica expansão de grid recebida pela rede.</summary>
+        public void ApplyGridExpand(int newW, int newH)
+        {
+            if (_grid == null) return;
+            // Re-expandir localmente para igualar as dimensões
+            while (_grid.width < newW)
+            {
+                var nm = _grid.Expand(1, 0);
+                if (nm != null) _map = nm; else break;
+            }
+            while (_grid.height < newH)
+            {
+                var nm = _grid.Expand(0, 1);
+                if (nm != null) _map = nm; else break;
+            }
+            // Recentrar câmera
+            if (_cam != null && _iso != null)
+            {
+                float halfW = _iso.TileUnitsW * 0.5f;
+                float halfH = _iso.TileUnitsH * 0.5f;
+                float cx = ((_grid.width - 1) - (_grid.height - 1)) * 0.5f * halfW;
+                float cy = -((_grid.width - 1) + (_grid.height - 1)) * 0.5f * halfH;
+                _cam.transform.position = new Vector3(cx, cy, _cam.transform.position.z);
+            }
+        }
+
+        /// <summary>Aplica snapshot completo do mapa (late-joiner ou snapshot final).</summary>
+        public void ApplyFullSnapshot(MapData map)
+        {
+            if (map == null || _grid == null) return;
+            _map = map;
+            _grid.sourceMap = map;
+            _grid.width  = map.width;
+            _grid.height = map.height;
+            _grid.Build();
+            Debug.Log($"[SandboxController] Snapshot aplicado: {map.width}x{map.height}");
         }
 
         // ── HOVER CURSOR ─────────────────────
@@ -824,5 +974,15 @@ namespace PangeaSkirmish
         }
 
         public void BackToMenu() => SceneManager.LoadScene("MainMenu");
+
+        // ── MP: sinalizar que o jogador local está pronto ─────────────────────
+        public void SetReadyMap()
+        {
+            if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            RoomManager.Instance?.SetReadyMapServerRpc(true);
+
+            // Se for o host e todos já estiverem prontos, envia snapshot final
+            // (o servidor verifica CheckAllReadyMap automaticamente)
+        }
     }
 }

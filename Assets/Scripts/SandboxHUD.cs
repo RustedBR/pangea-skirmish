@@ -526,5 +526,59 @@ namespace PangeaSkirmish
             t.verticalOverflow = VerticalWrapMode.Overflow;
             return t;
         }
+
+        // ── MODO MULTIPLAYER ──────────────────
+        private Text _mpStatusLabel;
+        private Button _readyBtn;
+
+        /// <summary>
+        /// Adapta a HUD para o modo MP: oculta fases Allies/Enemies e Save,
+        /// exibe botão "Pronto" e label de espera.
+        /// </summary>
+        public void SetMpMode(bool mp)
+        {
+            if (!mp) return;
+
+            // Ocultar painel de unidades (fases Allies/Enemies não existem em MP)
+            if (_unitsPanel != null) _unitsPanel.SetActive(false);
+            if (_statsPanel  != null) _statsPanel.SetActive(false);
+
+            // Substituir label de fase
+            if (_phaseLabel != null) _phaseLabel.text = "Mapa Colaborativo";
+
+            // Botão "Pronto" na barra superior (posição ao lado dos botões existentes)
+            if (_readyBtn == null)
+            {
+                var canvas = transform.root; // canvas raiz
+                // Encontrar topBar existente
+                var topBar = canvas.Find("TopBar");
+                if (topBar != null)
+                {
+                    _readyBtn = MakeBtn(topBar, new Vector2(0.5f, 0.5f),
+                        new Vector2(1030, -10), new Vector2(130, 44),
+                        new Color(0.18f, 0.40f, 0.20f));
+                    UiSkin.ApplyButtonSkin(_readyBtn.GetComponent<Image>(), new Color(0.18f, 0.40f, 0.20f));
+                    MakeLabel(_readyBtn.transform, Vector2.zero, new Vector2(130, 44), 18, Color.white).text = "Pronto";
+                    _readyBtn.onClick.AddListener(() =>
+                    {
+                        _ctrl?.SetReadyMap();
+                        if (_readyBtn != null) _readyBtn.interactable = false;
+                        ShowMpWaiting(true);
+                    });
+
+                    // Label "Aguardando os demais…" (inicialmente oculto)
+                    _mpStatusLabel = MakeLabel(topBar, new Vector2(1180, -10),
+                        new Vector2(200, 44), 16,
+                        new Color(0.80f, 0.80f, 0.35f));
+                    _mpStatusLabel.text = "";
+                }
+            }
+        }
+
+        public void ShowMpWaiting(bool show)
+        {
+            if (_mpStatusLabel != null)
+                _mpStatusLabel.text = show ? "Aguardando os demais..." : "";
+        }
     }
 }

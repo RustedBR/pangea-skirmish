@@ -11,6 +11,13 @@ namespace PangeaSkirmish
         [SerializeField] private GameTuning tuning;
         [SerializeField] private IsoConfig isoConfig;
 
+        // Referências públicas para uso pelo PlacementSync e RoundManager em MP
+        [HideInInspector] public GridManager MpGrid;
+        [HideInInspector] public Canvas MpCanvas;
+        [HideInInspector] public BattleHUD MpHUD;
+        [HideInInspector] public PlanningController MpPlanner;
+        [HideInInspector] public RoundManager MpRoundManager;
+
         private void Start()
         {
             if (AudioManager.I == null) new GameObject("AudioManager", typeof(AudioManager));
@@ -54,11 +61,21 @@ namespace PangeaSkirmish
             camCtrl.edgePanSpeed = tuning.edgePanSpeed;
             camCtrl.dragSpeed    = tuning.dragSpeed;
 
+            // Em MP: usar o mapa colaborativo se disponível
+            var mapForBattle = RuntimeMap.Selected;
+            if (RuntimeMultiplayerSession.IsMultiplayer && RuntimeMultiplayerSession.CollabMap != null)
+                mapForBattle = RuntimeMultiplayerSession.CollabMap;
+
             var gridGo = new GameObject("GridManager");
             var grid = gridGo.AddComponent<GridManager>();
             grid.iso = isoConfig;
-            if (RuntimeMap.Selected != null) grid.sourceMap = RuntimeMap.Selected;
-            grid.width = gridW;
+            if (mapForBattle != null)
+            {
+                grid.sourceMap = mapForBattle;
+                gridW = mapForBattle.width;
+                gridH = mapForBattle.height;
+            }
+            grid.width  = gridW;
             grid.height = gridH;
             grid.Build();
 
@@ -67,33 +84,78 @@ namespace PangeaSkirmish
             camCtrl.SetPanBounds(new Vector2(centerX - panRangeX, centerY - panRangeY),
                                  new Vector2(centerX + panRangeX, centerY + panRangeY));
 
-            var units = new List<Unit>();
+            var canvas = BuildCanvas();
+            BuildEventSystem();
+            var hud = gameObject.AddComponent<BattleHUD>();
+            hud.Build(canvas);
+
+            var planner = gameObject.AddComponent<PlanningController>();
+
+            var round = gameObject.AddComponent<RoundManager>();
+            round.planningTime    = RuntimeMultiplayerSession.IsMultiplayer && RuntimeMultiplayerSession.CurrentConfig != null
+                ? RuntimeMultiplayerSession.CurrentConfig.planningTime : tuning.planningTime;
+            round.zoomSize        = tuning.zoomSize;
+            round.camMoveDuration = tuning.camMoveDuration;
+            round.preActionPause  = tuning.preActionPause;
+            round.postActionPause = tuning.postActionPause;
+            round.initiativeHold  = tuning.initiativeHold;
+            round.slotPause       = tuning.slotPause;
+            round.bonusConfirmTime = tuning.bonusConfirmSeconds;
+            round.bonusStepTime    = tuning.bonusStepSeconds;
+
+            var tileFxGo = new GameObject("TileEffectManager");
+            var tileFx = tileFxGo.AddComponent<TileEffectManager>();
+            tileFx.Setup(grid, cam);
+
+            // ---- Modo Multiplayer: terreno apenas, sem spawn de unidades ----
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                UnitRegistry.Clear();
+                MpGrid          = grid;
+                MpCanvas        = canvas;
+                MpHUD           = hud;
+                MpPlanner       = planner;
+                MpRoundManager  = round;
+
+                // RoundManager e PlanningController ficam prontos mas NÃO começam
+                // PlacementSync vai spawnar unidades e chamar Begin() via StartBattleClientRpc
+                planner.Setup(grid, cam, new System.Collections.Generic.List<Unit>());
+                round.Setup(grid, planner, hud, canvas, cam, camCtrl,
+                    new System.Collections.Generic.List<Unit>(), null, tileFx);
+
+                // Mostrar HUD "Aguardando posicionamento"
+                hud.ShowWaitingForPlacement();
+
+                // Notificar PlacementSync de que o grid está pronto
+                PlacementSync.Instance?.OnGridReady(grid, canvas, hud, cam, camCtrl, round, planner, tileFx, tuning);
+                return;
+            }
+
+            // ---- Modo Single-Player (comportamento original) -----------------
+            var units = new System.Collections.Generic.List<Unit>();
             Unit controlled = null;
 
-            if (RuntimeMap.Selected != null)
+            if (mapForBattle != null)
             {
-                foreach (var p in RuntimeMap.Selected.units)
+                foreach (var p in mapForBattle.units)
                 {
                     var team  = (Team)p.team;
                     var color = team == Team.Player ? tuning.playerTeamColor : tuning.enemyTeamColor;
-                    bool isPlayerChar = team == Team.Player && controlled == null; // 1ª aliada = controlada
-                    // Resolver spritePath com fallback
+                    bool isPlayerChar = team == Team.Player && controlled == null;
                     string resPath = !string.IsNullOrEmpty(p.spritePath) ? p.spritePath : CharacterSpriteCatalog.Default;
-                    // Resolver weaponId (sem default de classe — placement é self-contained)
                     var weaponId = !string.IsNullOrEmpty(p.weaponId) ? p.weaponId : "";
                     var u = CreateUnit(p.displayName, team, new Vector2Int(p.x, p.y),
                                        color, resPath, grid, p.stats, isPlayerChar, weaponId);
                     units.Add(u);
                     if (isPlayerChar) controlled = u;
                 }
-                if (controlled == null && units.Count > 0) controlled = units[0]; // fallback
+                if (controlled == null && units.Count > 0) controlled = units[0];
             }
             else
             {
                 const string FIGHTER = "Sprites/TinyTactics/Characters/fighter";
                 const string MAGE    = "Sprites/TinyTactics/Characters/mage";
 
-                // Usa personagem selecionado, se houver
                 Unit playerUnit;
                 if (RuntimeSelectedCharacter.Active != null)
                 {
@@ -131,29 +193,7 @@ namespace PangeaSkirmish
                 controlled = playerUnit;
             }
 
-            var canvas = BuildCanvas();
-            BuildEventSystem();
-            var hud = gameObject.AddComponent<BattleHUD>();
-            hud.Build(canvas);
-
-            var planner = gameObject.AddComponent<PlanningController>();
             planner.Setup(grid, cam, units);
-
-            var round = gameObject.AddComponent<RoundManager>();
-            round.planningTime    = tuning.planningTime;
-            round.zoomSize        = tuning.zoomSize;
-            round.camMoveDuration = tuning.camMoveDuration;
-            round.preActionPause  = tuning.preActionPause;
-            round.postActionPause = tuning.postActionPause;
-            round.initiativeHold  = tuning.initiativeHold;
-            round.slotPause       = tuning.slotPause;
-            round.bonusConfirmTime = tuning.bonusConfirmSeconds;
-            round.bonusStepTime    = tuning.bonusStepSeconds;
-
-            var tileFxGo = new GameObject("TileEffectManager");
-            var tileFx = tileFxGo.AddComponent<TileEffectManager>();
-            tileFx.Setup(grid, cam);
-
             round.Setup(grid, planner, hud, canvas, cam, camCtrl, units, controlled, tileFx);
             round.Begin();
         }

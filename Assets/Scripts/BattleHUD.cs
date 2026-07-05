@@ -1837,5 +1837,48 @@ namespace PangeaSkirmish
 
             _endPanel.SetActive(false);
         }
+
+        // ── MULTIPLAYER: aguardando posicionamento ───────────────────────────
+        private GameObject _mpWaitingOverlay;
+
+        public void ShowWaitingForPlacement()
+        {
+            if (_mpWaitingOverlay != null) return;
+
+            var canvas = GetComponentInParent<Canvas>() ?? FindAnyObjectByType<Canvas>();
+            if (canvas == null) return;
+
+            _mpWaitingOverlay = new GameObject("MpWaitingOverlay", typeof(RectTransform));
+            _mpWaitingOverlay.transform.SetParent(canvas.transform, false);
+            var rt = _mpWaitingOverlay.GetComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(0, 60);
+            rt.sizeDelta = new Vector2(500, 50);
+
+            var bg = _mpWaitingOverlay.AddComponent<UnityEngine.UI.Image>();
+            bg.color = new Color(0.04f, 0.05f, 0.08f, 0.88f);
+
+            var go = new GameObject("Lbl", typeof(RectTransform));
+            go.transform.SetParent(_mpWaitingOverlay.transform, false);
+            var lrt = go.GetComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            var txt = go.AddComponent<UnityEngine.UI.Text>();
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            txt.fontSize = 20;
+            txt.alignment = TextAnchor.MiddleCenter;
+            txt.color = new Color(0.92f, 0.80f, 0.35f);
+            txt.text = "Aguardando jogadores posicionarem...";
+            txt.raycastTarget = false;
+        }
+
+        public void HideWaitingForPlacement()
+        {
+            if (_mpWaitingOverlay != null)
+            {
+                Destroy(_mpWaitingOverlay);
+                _mpWaitingOverlay = null;
+            }
+        }
     }
 }

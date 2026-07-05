@@ -11,6 +11,7 @@ using System;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace PangeaSkirmish
 {
@@ -304,19 +305,190 @@ namespace PangeaSkirmish
         // -------------------------------------------------------------------------
         private void ApplyPhaseDefaults(RoomPhase phase)
         {
-            if (phase != RoomPhase.MapEditing) return;
-
             // Garante config populada em RuntimeMultiplayerSession
             RuntimeMultiplayerSession.CurrentConfig = _config.Value.ToData();
 
-            // TDM: redistribui times 0/1 balanceados
-            // FFA: team = índice do slot
-            for (int i = 0; i < _slots.Count; i++)
+            if (phase == RoomPhase.MapEditing)
             {
-                var slot = _slots[i];
-                slot.Team = _config.Value.GameMode == 1 ? i : (i % 2);
-                _slots[i] = slot;
+                // TDM: redistribui times 0/1 balanceados; FFA: team = índice do slot
+                for (int i = 0; i < _slots.Count; i++)
+                {
+                    var slot = _slots[i];
+                    slot.Team = _config.Value.GameMode == 1 ? i : (i % 2);
+                    _slots[i] = slot;
+                }
+
+                // Transição de cena sincronizada pelo NGO Scene Management
+                if (NetworkManager.Singleton.SceneManager != null)
+                    NetworkManager.Singleton.SceneManager.LoadScene("Sandbox", LoadSceneMode.Single);
             }
+            else if (phase == RoomPhase.CharCreation)
+            {
+                // Permanece na cena Sandbox (CharCreationHUD será exibido por overlay)
+                PhaseChangedClientRpc(phase);
+            }
+            else if (phase == RoomPhase.Placement)
+            {
+                if (NetworkManager.Singleton.SceneManager != null)
+                    NetworkManager.Singleton.SceneManager.LoadScene("Battle", LoadSceneMode.Single);
+            }
+        }
+
+        // Notifica clientes de mudança de fase (para fases sem LoadScene)
+        [ClientRpc]
+        private void PhaseChangedClientRpc(RoomPhase phase)
+        {
+            OnPhaseChanged?.Invoke(phase);
+        }
+
+        // -------------------------------------------------------------------------
+        // Fase 3 — ReadyMap + AdvancePhase para CharCreation
+        // -------------------------------------------------------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void SetReadyMapServerRpc(bool ready, ServerRpcParams rpc = default)
+        {
+            int idx = FindSlot(rpc.Receive.SenderClientId);
+            if (idx < 0) return;
+            var slot = _slots[idx];
+            slot.ReadyMap = ready;
+            _slots[idx] = slot;
+
+            // Verificar se todos estão prontos
+            if (ready) CheckAllReadyMap();
+        }
+
+        private void CheckAllReadyMap()
+        {
+            if (_slots.Count == 0) return;
+            for (int i = 0; i < _slots.Count; i++)
+                if (!_slots[i].ReadyMap) return;
+
+            // Todos prontos: enviar snapshot final a todos e avançar para CharCreation
+            CollabMapSync.Instance?.SendFinalSnapshotAndAdvance();
+            _phase.Value = RoomPhase.CharCreation;
+            ApplyPhaseDefaults(RoomPhase.CharCreation);
+        }
+
+        // -------------------------------------------------------------------------
+        // Fase 4 — SubmitCharacter + ReadyChar
+        // -------------------------------------------------------------------------
+
+        // Dicionário servidor: clientId → CharacterPreset validado
+        private readonly System.Collections.Generic.Dictionary<ulong, CharacterPreset> _submittedChars
+            = new System.Collections.Generic.Dictionary<ulong, CharacterPreset>();
+
+        public System.Collections.Generic.Dictionary<ulong, CharacterPreset> SubmittedCharacters
+            => _submittedChars;
+
+        [ServerRpc(RequireOwnership = false)]
+        public void SubmitCharacterServerRpc(string presetJson, ServerRpcParams rpc = default)
+        {
+            ulong senderId = rpc.Receive.SenderClientId;
+            CharacterPreset preset;
+            try { preset = JsonUtility.FromJson<CharacterPreset>(presetJson); }
+            catch { CharacterRejectedClientRpc("JSON inválido", BuildTargetParams(senderId)); return; }
+
+            if (preset == null) { CharacterRejectedClientRpc("Preset nulo", BuildTargetParams(senderId)); return; }
+
+            // Revalidar budget (autoridade do servidor)
+            int budget = _config.Value.AttributeBudget;
+            var s = preset.stats;
+            int total = (int)(s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS);
+            if (total > budget)
+            {
+                CharacterRejectedClientRpc($"Budget excedido ({total}/{budget})", BuildTargetParams(senderId));
+                return;
+            }
+
+            float min = CharacterConfig.AttrMin, max = CharacterConfig.AttrMax;
+            if (s.STR < min || s.STR > max || s.VIT < min || s.VIT > max ||
+                s.DEX < min || s.DEX > max || s.AGI < min || s.AGI > max ||
+                s.INT < min || s.INT > max || s.WIS < min || s.WIS > max)
+            {
+                CharacterRejectedClientRpc("Atributo fora dos limites", BuildTargetParams(senderId));
+                return;
+            }
+
+            _submittedChars[senderId] = preset;
+
+            // Marcar readyChar no slot
+            int idx = FindSlot(senderId);
+            if (idx >= 0)
+            {
+                var slot = _slots[idx];
+                slot.ReadyChar = true;
+                _slots[idx] = slot;
+            }
+
+            CheckAllReadyChar();
+        }
+
+        [ClientRpc]
+        private void CharacterRejectedClientRpc(string reason, ClientRpcParams target = default)
+        {
+            Debug.LogWarning($"[CharCreation] Personagem rejeitado: {reason}");
+            OnCharacterRejected?.Invoke(reason);
+        }
+
+        public event Action<string> OnCharacterRejected;
+
+        private void CheckAllReadyChar()
+        {
+            if (_slots.Count == 0) return;
+            for (int i = 0; i < _slots.Count; i++)
+                if (!_slots[i].ReadyChar) return;
+
+            _phase.Value = RoomPhase.Placement;
+            ApplyPhaseDefaults(RoomPhase.Placement);
+        }
+
+        // -------------------------------------------------------------------------
+        // Fase 5 — Placed + StartBattle
+        // -------------------------------------------------------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void SetPlacedServerRpc(ServerRpcParams rpc = default)
+        {
+            int idx = FindSlot(rpc.Receive.SenderClientId);
+            if (idx < 0) return;
+            var slot = _slots[idx];
+            slot.Placed = true;
+            _slots[idx] = slot;
+            CheckAllPlaced();
+        }
+
+        private void CheckAllPlaced()
+        {
+            if (_slots.Count == 0) return;
+            for (int i = 0; i < _slots.Count; i++)
+                if (!_slots[i].Placed) return;
+
+            // Gerar seed determinístico e iniciar batalha
+            int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+            RuntimeMultiplayerSession.BattleSeed = seed;
+            StartBattleClientRpc(seed);
+        }
+
+        [ClientRpc]
+        private void StartBattleClientRpc(int initiativeSeed)
+        {
+            RuntimeMultiplayerSession.BattleSeed = initiativeSeed;
+            OnBattleStart?.Invoke(initiativeSeed);
+        }
+
+        public event Action<int> OnBattleStart;
+
+        // -------------------------------------------------------------------------
+        // Utilitário: ClientRpcParams para um único cliente
+        // -------------------------------------------------------------------------
+        private static ClientRpcParams BuildTargetParams(ulong clientId)
+        {
+            return new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new[] { clientId }
+                }
+            };
         }
     }
 }

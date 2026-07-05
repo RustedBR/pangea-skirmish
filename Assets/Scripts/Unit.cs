@@ -15,6 +15,13 @@ namespace PangeaSkirmish
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
         public string weaponId = ""; // id da arma equipada (setado antes de Init)
+
+        // ---- Campos de identidade MP (Fase 5 — preenchidos no SpawnUnitClientRpc) ----
+        // Não usados pela lógica SP. Fase 6 substituirá IsHostileTo usando estes campos.
+        /// <summary>ClientId NGO do dono desta unidade (0 em SP).</summary>
+        public ulong ownerId = 0;
+        /// <summary>Time numérico (TDM: 0 ou 1; FFA: índice do slot; SP: irrelevante).</summary>
+        public int teamId = 0;
         public AttributeStats stats = new AttributeStats();
 
         public Vector2Int anchor;

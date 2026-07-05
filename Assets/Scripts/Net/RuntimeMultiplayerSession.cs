@@ -29,6 +29,21 @@ namespace PangeaSkirmish
         // ---- Configurações da sala -------------------------------------------
         public static RoomConfigData CurrentConfig { get; set; } = new RoomConfigData();
 
+        // ---- Dados da batalha -----------------------------------------------
+        /// <summary>Seed do round 1, distribuído pelo host via StartBattleClientRpc.
+        /// Guardado aqui para a Fase 6 (LockstepBattleSync) consumir.</summary>
+        public static int BattleSeed { get; set; } = 0;
+
+        // ---- Mapa colaborativo final ----------------------------------------
+        /// <summary>Mapa colaborativo finalizado (snapshot do host). Usado no
+        /// GameBootstrap MP para montar o terreno sem unidades de placement.</summary>
+        public static MapData CollabMap { get; set; } = null;
+
+        // ---- Personagem local confirmado ------------------------------------
+        /// <summary>CharacterPreset do jogador local confirmado pelo servidor.
+        /// Preenchido pelo CharCreationHUD após SubmitCharacterServerRpc aceito.</summary>
+        public static CharacterPreset LocalCharacterPreset { get; set; } = null;
+
         // ---- Reset completo (volta para single-player) -----------------------
         public static void Reset()
         {
@@ -38,6 +53,9 @@ namespace PangeaSkirmish
             JoinCode = string.Empty;
             PlayerName = "Jogador";
             CurrentConfig = new RoomConfigData();
+            BattleSeed = 0;
+            CollabMap = null;
+            LocalCharacterPreset = null;
         }
     }
 }
