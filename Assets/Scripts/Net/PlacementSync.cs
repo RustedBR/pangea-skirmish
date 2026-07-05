@@ -49,6 +49,12 @@ namespace PangeaSkirmish
         private List<Unit> _allUnits = new List<Unit>();
         private Unit _controlled;
 
+        // ClientId REAL desta instância em runtime. NÃO usar RuntimeMultiplayerSession.LocalClientId,
+        // que é capturado logo após StartClient (antes do NGO atribuir o id ao cliente → fica 0).
+        private static ulong LocalId =>
+            NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId
+                                             : RuntimeMultiplayerSession.LocalClientId;
+
         public override void OnNetworkSpawn()
         {
             Instance = this;
@@ -82,7 +88,7 @@ namespace PangeaSkirmish
             _hud?.SetWaitingText(_myZoneHighlights.Count > 0
                 ? "Clique numa célula destacada para posicionar seu personagem"
                 : "ERRO: sem zona de posicionamento (veja o console)");
-            Debug.Log($"[PlacementSync] OnGridReady: grid {_grid.width}x{_grid.height}, zona local = {_myZoneHighlights.Count} celulas");
+            Debug.Log($"[PlacementSync] OnGridReady: LocalClientId={LocalId}, grid {_grid.width}x{_grid.height}, zona local = {_myZoneHighlights.Count} celulas");
 
             // Escutar StartBattle
             if (RoomManager.Instance != null)
@@ -116,10 +122,10 @@ namespace PangeaSkirmish
 
             var slots = RoomManager.Instance.Slots;
             int mySlotIdx = -1;
-            ulong myId = RuntimeMultiplayerSession.LocalClientId;
+            ulong myId = LocalId;
             for (int i = 0; i < slots.Count; i++)
                 if (slots[i].ClientId == myId) { mySlotIdx = i; break; }
-            if (mySlotIdx < 0) return result;
+            if (mySlotIdx < 0) { Debug.LogWarning($"[PlacementSync] slot nao encontrado p/ LocalClientId={myId} (zona vazia)"); return result; }
 
             int gameMode = RuntimeMultiplayerSession.CurrentConfig.gameMode;
             int w = _grid.width, h = _grid.height;
@@ -196,18 +202,19 @@ namespace PangeaSkirmish
         public void PlaceUnitServerRpc(int x, int y, ServerRpcParams rpc = default)
         {
             ulong senderId = rpc.Receive.SenderClientId;
+            Debug.Log($"[PlacementSync] PlaceUnitServerRpc (host): clientId={senderId} cell=({x},{y})");
 
             // Já posicionou?
             for (int i = 0; i < _placements.Count; i++)
-                if (_placements[i].clientId == senderId) return;
+                if (_placements[i].clientId == senderId) { Debug.Log($"[PlacementSync] rejeitado: {senderId} ja posicionou"); return; }
 
             var anchor = new Vector2Int(x, y);
 
             // Validações
-            if (x < 0 || y < 0 || x >= _grid.width || y >= _grid.height) return;
-            if (_grid.IsVoid(x, y)) return;
-            if (!IsInSpawnZone(senderId, anchor)) return;
-            if (_occupiedCells.Contains(anchor)) return;
+            if (x < 0 || y < 0 || x >= _grid.width || y >= _grid.height) { Debug.Log("[PlacementSync] rejeitado: fora do grid"); return; }
+            if (_grid.IsVoid(x, y)) { Debug.Log("[PlacementSync] rejeitado: celula void"); return; }
+            if (!IsInSpawnZone(senderId, anchor)) { Debug.Log($"[PlacementSync] rejeitado: ({x},{y}) fora da zona de {senderId}"); return; }
+            if (_occupiedCells.Contains(anchor)) { Debug.Log("[PlacementSync] rejeitado: celula ocupada"); return; }
 
             // Buscar preset do jogador
             if (!RoomManager.Instance.SubmittedCharacters.TryGetValue(senderId, out var preset))
@@ -251,7 +258,7 @@ namespace PangeaSkirmish
             unit.team     = (team == 0) ? Team.Player : Team.Enemy; // aproximação TDM para Fase 6
             unit.ownerId  = ownerId;
             unit.teamId   = team;
-            unit.isPlayerCharacter = (ownerId == RuntimeMultiplayerSession.LocalClientId);
+            unit.isPlayerCharacter = (ownerId == LocalId);
             unit.weaponId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
             unit.stats    = (preset.stats ?? new UnitStatBlock()).ToAttributeStats();
             unit.Init(_grid, new Vector2Int(x, y), color,
@@ -264,7 +271,7 @@ namespace PangeaSkirmish
             if (unit.isPlayerCharacter && _controlled == null)
                 _controlled = unit;
 
-            if (_gridReady && ownerId == RuntimeMultiplayerSession.LocalClientId)
+            if (_gridReady && ownerId == LocalId)
                 _placementDone = true;
 
             Debug.Log($"[PlacementSync] Unidade {preset.presetName} spawnada em ({x},{y}), team={team}, owner={ownerId}");

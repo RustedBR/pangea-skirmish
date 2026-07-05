@@ -169,7 +169,13 @@ namespace PangeaSkirmish
             _networkManager.OnClientDisconnectCallback -= HandleClientDisconnected;
         }
 
-        private void HandleClientConnected(ulong clientId) => OnClientConnected?.Invoke(clientId);
+        private void HandleClientConnected(ulong clientId)
+        {
+            // Atualiza o id local com o valor REAL do NGO (no cliente, StartClient captura 0
+            // cedo demais; o id verdadeiro só existe após conectar).
+            RuntimeMultiplayerSession.LocalClientId = _networkManager.LocalClientId;
+            OnClientConnected?.Invoke(clientId);
+        }
 
         private void HandleClientDisconnected(ulong clientId)
         {
