@@ -1,0 +1,322 @@
+// Net/RoomManager.cs
+// NetworkBehaviour autoridade da sala.
+// Spawn: host cria GameObject em runtime e chama NetworkObject.Spawn() logo após StartHost.
+// NetBootstrap cria este objeto. Veja NetBootstrap.SpawnRoomManager().
+//
+// Escolha de spawn: objeto "spawned" (não in-scene), registrado como prefab em runtime via
+// NetworkManager.Prefabs.Add() antes do Spawn(). Mais simples que prefab asset para um objeto
+// criado 100% por código.
+
+using System;
+using Unity.Collections;
+using Unity.Netcode;
+using UnityEngine;
+
+namespace PangeaSkirmish
+{
+    // -------------------------------------------------------------------------
+    // Enum de fases da sala
+    // -------------------------------------------------------------------------
+    public enum RoomPhase
+    {
+        Lobby = 0,
+        MapEditing,
+        CharCreation,
+        Placement,
+        Battle,
+        PostGame
+    }
+
+    // -------------------------------------------------------------------------
+    // Configuração serializável de rede (espelha RoomConfigData)
+    // -------------------------------------------------------------------------
+    public struct RoomConfigNet : INetworkSerializable, IEquatable<RoomConfigNet>
+    {
+        public int GameMode;        // 0 = TDM, 1 = FFA
+        public int AttributeBudget;
+        public float PlanningTime;
+        public int MaxPlayers;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref GameMode);
+            serializer.SerializeValue(ref AttributeBudget);
+            serializer.SerializeValue(ref PlanningTime);
+            serializer.SerializeValue(ref MaxPlayers);
+        }
+
+        public bool Equals(RoomConfigNet other) =>
+            GameMode == other.GameMode &&
+            AttributeBudget == other.AttributeBudget &&
+            PlanningTime.Equals(other.PlanningTime) &&
+            MaxPlayers == other.MaxPlayers;
+
+        public static RoomConfigNet FromData(RoomConfigData d) => new RoomConfigNet
+        {
+            GameMode = d.gameMode,
+            AttributeBudget = d.attributeBudget,
+            PlanningTime = d.planningTime,
+            MaxPlayers = d.maxPlayers
+        };
+
+        public RoomConfigData ToData() => new RoomConfigData
+        {
+            gameMode = GameMode,
+            attributeBudget = AttributeBudget,
+            planningTime = PlanningTime,
+            maxPlayers = MaxPlayers
+        };
+    }
+
+    // -------------------------------------------------------------------------
+    // Slot de jogador
+    // -------------------------------------------------------------------------
+    public struct PlayerSlot : INetworkSerializable, IEquatable<PlayerSlot>
+    {
+        public ulong ClientId;
+        public FixedString64Bytes PlayerName;
+        public int Team;
+        public bool ReadyMap;
+        public bool ReadyChar;
+        public bool Placed;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref ClientId);
+            serializer.SerializeValue(ref PlayerName);
+            serializer.SerializeValue(ref Team);
+            serializer.SerializeValue(ref ReadyMap);
+            serializer.SerializeValue(ref ReadyChar);
+            serializer.SerializeValue(ref Placed);
+        }
+
+        public bool Equals(PlayerSlot other) =>
+            ClientId == other.ClientId &&
+            PlayerName.Equals(other.PlayerName) &&
+            Team == other.Team &&
+            ReadyMap == other.ReadyMap &&
+            ReadyChar == other.ReadyChar &&
+            Placed == other.Placed;
+    }
+
+    // -------------------------------------------------------------------------
+    // RoomManager — NetworkBehaviour
+    // -------------------------------------------------------------------------
+    public class RoomManager : NetworkBehaviour
+    {
+        // ---- Singleton de conveniência (existe 1 por sessão) ----------------
+        public static RoomManager Instance { get; private set; }
+
+        // ---- Dados de rede --------------------------------------------------
+        // NetworkList DEVE ser inicializado no campo ou no Awake (nunca OnNetworkSpawn)
+        private NetworkList<PlayerSlot> _slots;
+        private NetworkVariable<RoomPhase> _phase;
+        private NetworkVariable<RoomConfigNet> _config;
+
+        // ---- Eventos locais (para o HUD) ------------------------------------
+        public event Action OnSlotsChanged;
+        public event Action<RoomPhase> OnPhaseChanged;
+        public event Action<string, string> OnChatMessage; // (senderName, msg)
+
+        // ---- Awake: cria NetworkList/Variable antes do Spawn ----------------
+        private void Awake()
+        {
+            _slots = new NetworkList<PlayerSlot>(
+                default,
+                NetworkVariableReadPermission.Everyone,
+                NetworkVariableWritePermission.Server);
+
+            _phase = new NetworkVariable<RoomPhase>(
+                RoomPhase.Lobby,
+                NetworkVariableReadPermission.Everyone,
+                NetworkVariableWritePermission.Server);
+
+            _config = new NetworkVariable<RoomConfigNet>(
+                new RoomConfigNet { GameMode = 0, AttributeBudget = 30, PlanningTime = 15f, MaxPlayers = 4 },
+                NetworkVariableReadPermission.Everyone,
+                NetworkVariableWritePermission.Server);
+        }
+
+        public override void OnNetworkSpawn()
+        {
+            Instance = this;
+
+            _slots.OnListChanged += _ => OnSlotsChanged?.Invoke();
+            _phase.OnValueChanged += (_, newVal) => OnPhaseChanged?.Invoke(newVal);
+            _config.OnValueChanged += (_, newVal) =>
+            {
+                RuntimeMultiplayerSession.CurrentConfig = newVal.ToData();
+            };
+
+            if (IsServer)
+            {
+                // Registrar callbacks de conexão
+                NetworkManager.Singleton.OnClientConnectedCallback += ServerOnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback += ServerOnClientDisconnected;
+
+                // Adicionar slot do host
+                AddSlot(NetworkManager.Singleton.LocalClientId, RuntimeMultiplayerSession.PlayerName);
+            }
+
+            // Sincronizar config atual no cliente
+            RuntimeMultiplayerSession.CurrentConfig = _config.Value.ToData();
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            if (IsServer)
+            {
+                NetworkManager.Singleton.OnClientConnectedCallback -= ServerOnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback -= ServerOnClientDisconnected;
+            }
+            if (Instance == this) Instance = null;
+        }
+
+        // ---- Accessors públicos (leitura) ------------------------------------
+        public NetworkList<PlayerSlot> Slots => _slots;
+        public RoomPhase CurrentPhase => _phase.Value;
+        public RoomConfigNet CurrentConfig => _config.Value;
+
+        // ---- Callbacks do servidor ------------------------------------------
+        private void ServerOnClientConnected(ulong clientId)
+        {
+            // Nome será enviado via SetPlayerNameRpc em seguida
+            AddSlot(clientId, "...");
+        }
+
+        private void ServerOnClientDisconnected(ulong clientId)
+        {
+            RemoveSlot(clientId);
+        }
+
+        // ---- Helpers de slot (servidor) -------------------------------------
+        private void AddSlot(ulong clientId, string playerName)
+        {
+            // Evita duplicata
+            for (int i = 0; i < _slots.Count; i++)
+                if (_slots[i].ClientId == clientId) return;
+
+            int team = DetermineDefaultTeam(clientId);
+            _slots.Add(new PlayerSlot
+            {
+                ClientId = clientId,
+                PlayerName = playerName,
+                Team = team,
+                ReadyMap = false,
+                ReadyChar = false,
+                Placed = false
+            });
+        }
+
+        private void RemoveSlot(ulong clientId)
+        {
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i].ClientId == clientId)
+                {
+                    _slots.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
+        private int DetermineDefaultTeam(ulong clientId)
+        {
+            // TDM: distribui alternando 0/1; FFA: índice do slot
+            int idx = _slots.Count;
+            if (_config.Value.GameMode == 1) return idx; // FFA
+            return idx % 2; // TDM
+        }
+
+        private int FindSlot(ulong clientId)
+        {
+            for (int i = 0; i < _slots.Count; i++)
+                if (_slots[i].ClientId == clientId) return i;
+            return -1;
+        }
+
+        // =========================================================================
+        // RPCs
+        // =========================================================================
+
+        // --- Cliente envia seu nome ao conectar --------------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void SetPlayerNameServerRpc(string name, ServerRpcParams rpc = default)
+        {
+            int idx = FindSlot(rpc.Receive.SenderClientId);
+            if (idx < 0) return;
+            var slot = _slots[idx];
+            slot.PlayerName = name;
+            _slots[idx] = slot;
+        }
+
+        // --- Chat --------------------------------------------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void SendChatServerRpc(string msg, ServerRpcParams rpc = default)
+        {
+            int idx = FindSlot(rpc.Receive.SenderClientId);
+            string senderName = idx >= 0 ? _slots[idx].PlayerName.ToString() : "?";
+            ChatMessageClientRpc(senderName, msg);
+        }
+
+        [ClientRpc]
+        private void ChatMessageClientRpc(string senderName, string msg)
+        {
+            OnChatMessage?.Invoke(senderName, msg);
+        }
+
+        // --- Mudar time de um jogador (host envia) ----------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void SetTeamServerRpc(ulong targetClientId, int team, ServerRpcParams rpc = default)
+        {
+            // Só o host chama; verificação por clientId
+            if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
+            int idx = FindSlot(targetClientId);
+            if (idx < 0) return;
+            var slot = _slots[idx];
+            slot.Team = team;
+            _slots[idx] = slot;
+        }
+
+        // --- Configurar sala (host envia) -------------------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void SetConfigServerRpc(RoomConfigNet cfg, ServerRpcParams rpc = default)
+        {
+            if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
+            _config.Value = cfg;
+        }
+
+        // --- Avançar fase (host envia) ----------------------------------------
+        [ServerRpc(RequireOwnership = false)]
+        public void AdvancePhaseServerRpc(ServerRpcParams rpc = default)
+        {
+            if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
+            var next = (RoomPhase)((int)_phase.Value + 1);
+            if ((int)next < System.Enum.GetValues(typeof(RoomPhase)).Length)
+            {
+                _phase.Value = next;
+                ApplyPhaseDefaults(next);
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Fase 2 — defaults ao avançar fase
+        // -------------------------------------------------------------------------
+        private void ApplyPhaseDefaults(RoomPhase phase)
+        {
+            if (phase != RoomPhase.MapEditing) return;
+
+            // Garante config populada em RuntimeMultiplayerSession
+            RuntimeMultiplayerSession.CurrentConfig = _config.Value.ToData();
+
+            // TDM: redistribui times 0/1 balanceados
+            // FFA: team = índice do slot
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                var slot = _slots[i];
+                slot.Team = _config.Value.GameMode == 1 ? i : (i % 2);
+                _slots[i] = slot;
+            }
+        }
+    }
+}

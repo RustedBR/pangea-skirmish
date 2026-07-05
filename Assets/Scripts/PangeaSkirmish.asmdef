@@ -2,7 +2,14 @@
     "name": "PangeaSkirmish",
     "rootNamespace": "PangeaSkirmish",
     "references": [
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "Unity.Collections",
+        "Unity.Netcode.Runtime",
+        "Unity.Networking.Transport",
+        "Unity.Services.Core",
+        "Unity.Services.Authentication",
+        "Unity.Services.Lobbies",
+        "Unity.Services.Relay"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

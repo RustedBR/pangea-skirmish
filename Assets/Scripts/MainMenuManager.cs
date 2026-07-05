@@ -15,6 +15,7 @@ namespace PangeaSkirmish
         private GameObject _menuPanel;
         private GameObject _editorPanel;
         private GameObject _mapSelectPanel;
+        private RoomHUD _roomHUD;
 
         // Editor state
         private Transform _presetListContent;
@@ -80,6 +81,7 @@ namespace PangeaSkirmish
             BuildMenuPanel(canvas.transform);
             BuildEditorPanel(canvas.transform);
             BuildMapSelectPanel(canvas.transform);
+            BuildMultiplayerHUD(canvas.transform);
             ShowMenu();
         }
 
@@ -94,10 +96,11 @@ namespace PangeaSkirmish
             MakeLabel(_menuPanel.transform, new Vector2(0, 135), new Vector2(600, 40), 24,
                 new Color(0.55f, 0.55f, 0.60f)).text = "Tactics de combate simultâneo";
 
-            MakeMenuBtn(_menuPanel.transform, "Começar o Jogo",        new Vector2(0,  60), ShowMapSelect);
-            MakeMenuBtn(_menuPanel.transform, "Modo Sandbox",          new Vector2(0, -10), () => SceneManager.LoadScene("Sandbox"));
-            MakeMenuBtn(_menuPanel.transform, "Criar Personagem",      new Vector2(0, -80), ShowEditor);
-            MakeMenuBtn(_menuPanel.transform, "Sair",                  new Vector2(0,-150), () => Application.Quit());
+            MakeMenuBtn(_menuPanel.transform, "Começar o Jogo",        new Vector2(0,  95), ShowMapSelect);
+            MakeMenuBtn(_menuPanel.transform, "Multiplayer",           new Vector2(0,  25), ShowMultiplayer);
+            MakeMenuBtn(_menuPanel.transform, "Modo Sandbox",          new Vector2(0, -45), () => SceneManager.LoadScene("Sandbox"));
+            MakeMenuBtn(_menuPanel.transform, "Criar Personagem",      new Vector2(0,-115), ShowEditor);
+            MakeMenuBtn(_menuPanel.transform, "Sair",                  new Vector2(0,-185), () => Application.Quit());
         }
 
         private void ShowMapSelect()
@@ -126,6 +129,28 @@ namespace PangeaSkirmish
             _menuPanel.SetActive(true);
             _editorPanel.SetActive(false);
             _mapSelectPanel.SetActive(false);
+            _roomHUD?.HideAll();
+        }
+
+        private void ShowMultiplayer()
+        {
+            _menuPanel.SetActive(false);
+            _editorPanel.SetActive(false);
+            _mapSelectPanel.SetActive(false);
+            _roomHUD?.ShowLobbyPanel();
+        }
+
+        private void BuildMultiplayerHUD(Transform canvasTransform)
+        {
+            var go = new GameObject("RoomHUD", typeof(RectTransform));
+            go.transform.SetParent(canvasTransform, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+            _roomHUD = go.AddComponent<RoomHUD>();
+            _roomHUD.Init(canvasTransform, _font);
+            _roomHUD.OnBackToMenu += ShowMenu;
         }
 
         // -------------------------------------------------------- CHARACTER EDITOR
