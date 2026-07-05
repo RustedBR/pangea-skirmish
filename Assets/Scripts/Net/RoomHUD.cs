@@ -398,24 +398,49 @@ namespace PangeaSkirmish
             if (hostCtrl != null) hostCtrl.gameObject.SetActive(isHost);
             if (_advanceBtn != null) _advanceBtn.interactable = isHost;
 
-            // Assinar eventos do RoomManager
-            if (RoomManager.Instance != null)
+            // Assinar eventos do RoomManager. No CLIENTE, o RoomManager é replicado alguns
+            // frames APÓS conectar — tentamos já e, se ainda não existir, uma corrotina fica
+            // tentando até ele aparecer (senão a lista de jogadores e o chat nunca populam).
+            _boundRoom = false;
+            BindRoomManager();
+            if (!_boundRoom) StartCoroutine(BindWhenReady());
+        }
+
+        private bool _boundRoom;
+
+        private void BindRoomManager()
+        {
+            if (_boundRoom || RoomManager.Instance == null) return;
+            RoomManager.Instance.Slots.OnListChanged += OnSlotsChanged;
+            RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
+            RoomManager.Instance.OnChatMessage += AppendChatMessage;
+            _boundRoom = true;
+            RebuildPlayerList();
+            OnPhaseChanged(RoomManager.Instance.CurrentPhase);
+        }
+
+        private IEnumerator BindWhenReady()
+        {
+            float t = 8f;
+            while (!_boundRoom && t > 0f)
             {
-                RoomManager.Instance.Slots.OnListChanged += OnSlotsChanged;
-                RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
-                RoomManager.Instance.OnChatMessage += AppendChatMessage;
-                RebuildPlayerList();
+                BindRoomManager();
+                t -= Time.deltaTime;
+                yield return null;
             }
+            if (!_boundRoom)
+                Debug.LogWarning("[RoomHUD] RoomManager nao apareceu no cliente (timeout) — sala nao vinculou.");
         }
 
         private void OnDestroy()
         {
-            if (RoomManager.Instance != null)
+            if (_boundRoom && RoomManager.Instance != null)
             {
                 RoomManager.Instance.Slots.OnListChanged -= OnSlotsChanged;
                 RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
                 RoomManager.Instance.OnChatMessage -= AppendChatMessage;
             }
+            _boundRoom = false;
         }
 
         // =========================================================================
@@ -641,12 +666,13 @@ namespace PangeaSkirmish
         private void OnClickLeaveRoom()
         {
             _inRoom = false;
-            if (RoomManager.Instance != null)
+            if (_boundRoom && RoomManager.Instance != null)
             {
                 RoomManager.Instance.Slots.OnListChanged -= OnSlotsChanged;
                 RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
                 RoomManager.Instance.OnChatMessage -= AppendChatMessage;
             }
+            _boundRoom = false;
             NetBootstrap.Instance?.Shutdown();
             _ = LobbyService.LeaveAsync();
             _mpRoomPanel.SetActive(false);
