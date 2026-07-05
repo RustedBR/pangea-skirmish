@@ -478,8 +478,12 @@ namespace PangeaSkirmish
         private void CheckAllPlaced()
         {
             if (_slots.Count == 0) return;
+            int placedCount = 0;
+            for (int i = 0; i < _slots.Count; i++) if (_slots[i].Placed) placedCount++;
+            Debug.Log($"[RoomManager] posicionados {placedCount}/{_slots.Count}");
             for (int i = 0; i < _slots.Count; i++)
                 if (!_slots[i].Placed) return;
+            Debug.Log("[RoomManager] todos posicionados — StartBattle");
 
             // Gerar seed determinístico e iniciar batalha
             int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);

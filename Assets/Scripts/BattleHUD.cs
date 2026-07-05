@@ -1870,6 +1870,14 @@ namespace PangeaSkirmish
             txt.color = new Color(0.92f, 0.80f, 0.35f);
             txt.text = "Aguardando jogadores posicionarem...";
             txt.raycastTarget = false;
+            _mpWaitingText = txt;
+        }
+
+        private UnityEngine.UI.Text _mpWaitingText;
+        /// <summary>Atualiza o texto do overlay de posicionamento (se visível).</summary>
+        public void SetWaitingText(string s)
+        {
+            if (_mpWaitingText != null) _mpWaitingText.text = s;
         }
 
         public void HideWaitingForPlacement()

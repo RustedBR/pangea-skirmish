@@ -127,7 +127,10 @@ namespace PangeaSkirmish
                 hud.ShowWaitingForPlacement();
 
                 // Notificar PlacementSync de que o grid está pronto
-                PlacementSync.Instance?.OnGridReady(grid, canvas, hud, cam, camCtrl, round, planner, tileFx, tuning);
+                if (PlacementSync.Instance != null)
+                    PlacementSync.Instance.OnGridReady(grid, canvas, hud, cam, camCtrl, round, planner, tileFx, tuning);
+                else
+                    Debug.LogError("[GameBootstrap] MP: PlacementSync.Instance NULL na cena Battle — o objeto de rede nao sobreviveu a troca de cena; posicionamento nao inicia.");
                 return;
             }
 

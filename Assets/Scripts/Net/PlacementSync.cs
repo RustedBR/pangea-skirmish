@@ -79,6 +79,10 @@ namespace PangeaSkirmish
             _gridReady = true;
 
             ShowPlacementZone();
+            _hud?.SetWaitingText(_myZoneHighlights.Count > 0
+                ? "Clique numa célula destacada para posicionar seu personagem"
+                : "ERRO: sem zona de posicionamento (veja o console)");
+            Debug.Log($"[PlacementSync] OnGridReady: grid {_grid.width}x{_grid.height}, zona local = {_myZoneHighlights.Count} celulas");
 
             // Escutar StartBattle
             if (RoomManager.Instance != null)
@@ -206,7 +210,8 @@ namespace PangeaSkirmish
             if (_occupiedCells.Contains(anchor)) return;
 
             // Buscar preset do jogador
-            if (!RoomManager.Instance.SubmittedCharacters.TryGetValue(senderId, out var preset)) return;
+            if (!RoomManager.Instance.SubmittedCharacters.TryGetValue(senderId, out var preset))
+            { Debug.LogWarning($"[PlacementSync] sem personagem submetido para {senderId} — posicionamento ignorado"); return; }
 
             // Buscar slot para team
             var slots = RoomManager.Instance.Slots;
@@ -283,11 +288,13 @@ namespace PangeaSkirmish
                 var cell = _grid.WorldToCell(world);
 
                 // Verificar se a célula é da zona local
+                Debug.Log($"[PlacementSync] clique em {cell} — naZona={_myZoneHighlights.Contains(cell)}");
                 if (_myZoneHighlights.Contains(cell))
                 {
                     PlaceUnitServerRpc(cell.x, cell.y);
                     _grid.ClearHighlight();
                     _placementDone = true;
+                    _hud?.SetWaitingText("Você posicionou. Aguardando os outros jogadores...");
                 }
             }
         }
