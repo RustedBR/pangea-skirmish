@@ -148,15 +148,22 @@ namespace PangeaSkirmish
         // Snapshot para late-joiner
         // =========================================================================
 
+        // Id incremental por envio: se duas sequências de chunk (ex.: retry de um
+        // late-joiner) chegarem intercaladas no mesmo cliente, os chunks da sequência
+        // antiga se misturavam no MESMO buffer com a nova, corrompendo o mapa em
+        // silêncio. Cada RPC carrega o id da sua sequência; o cliente só aceita
+        // chunks do id "ativo" (definido pelo chunk index==0 mais recente).
+        private int _nextSnapshotSeq = 1;
+
         [ServerRpc(RequireOwnership = false)]
         public void RequestMapSnapshotServerRpc(ServerRpcParams rpc = default)
         {
             if (_canonical == null) return;
             ulong requesterId = rpc.Receive.SenderClientId;
-            StartCoroutine(SendSnapshotChunks(requesterId));
+            StartCoroutine(SendSnapshotChunks(requesterId, _nextSnapshotSeq++));
         }
 
-        private IEnumerator SendSnapshotChunks(ulong targetId)
+        private IEnumerator SendSnapshotChunks(ulong targetId, int seqId)
         {
             // Serializa e comprime
             string json = JsonUtility.ToJson(_canonical);
@@ -175,7 +182,7 @@ namespace PangeaSkirmish
                 int len    = Mathf.Min(ChunkSize, compressed.Length - offset);
                 var chunk  = new byte[len];
                 Array.Copy(compressed, offset, chunk, 0, len);
-                MapChunkClientRpc(i, total, chunk, target);
+                MapChunkClientRpc(seqId, i, total, chunk, target);
                 yield return null; // um frame entre chunks para não saturar o canal
             }
         }
@@ -184,9 +191,10 @@ namespace PangeaSkirmish
         private byte[] _chunkBuffer;
         private int    _chunkTotal;
         private int    _chunksReceived;
+        private int    _activeChunkSeq = -1;
 
         [ClientRpc]
-        private void MapChunkClientRpc(int index, int total, byte[] data, ClientRpcParams _ = default)
+        private void MapChunkClientRpc(int seqId, int index, int total, byte[] data, ClientRpcParams _ = default)
         {
             if (index == 0)
             {
@@ -194,6 +202,13 @@ namespace PangeaSkirmish
                 _chunkBuffer   = new byte[total * ChunkSize];
                 _chunkTotal    = total;
                 _chunksReceived = 0;
+                _activeChunkSeq = seqId;
+            }
+
+            if (seqId != _activeChunkSeq)
+            {
+                Debug.LogWarning($"[CollabMapSync] chunk de sequência antiga (seq={seqId}, ativo={_activeChunkSeq}) descartado");
+                return;
             }
 
             Array.Copy(data, 0, _chunkBuffer, index * ChunkSize, data.Length);
@@ -230,10 +245,10 @@ namespace PangeaSkirmish
         {
             if (!IsServer) return;
             RuntimeMultiplayerSession.CollabMap = _canonical;
-            StartCoroutine(SendFinalSnapshot());
+            StartCoroutine(SendFinalSnapshot(_nextSnapshotSeq++));
         }
 
-        private IEnumerator SendFinalSnapshot()
+        private IEnumerator SendFinalSnapshot(int seqId)
         {
             string json = JsonUtility.ToJson(_canonical);
             byte[] raw  = Encoding.UTF8.GetBytes(json);
@@ -241,15 +256,13 @@ namespace PangeaSkirmish
 
             int total = Mathf.CeilToInt((float)compressed.Length / ChunkSize);
 
-            // Broadcast (sem target = todos)
-            var broadcast = new ClientRpcParams();
             for (int i = 0; i < total; i++)
             {
                 int offset = i * ChunkSize;
                 int len    = Mathf.Min(ChunkSize, compressed.Length - offset);
                 var chunk  = new byte[len];
                 Array.Copy(compressed, offset, chunk, 0, len);
-                FinalChunkClientRpc(i, total, chunk);
+                FinalChunkClientRpc(seqId, i, total, chunk);
                 yield return null;
             }
         }
@@ -257,15 +270,23 @@ namespace PangeaSkirmish
         private byte[] _finalBuffer;
         private int _finalTotal;
         private int _finalReceived;
+        private int _activeFinalSeq = -1;
 
         [ClientRpc]
-        private void FinalChunkClientRpc(int index, int total, byte[] data)
+        private void FinalChunkClientRpc(int seqId, int index, int total, byte[] data)
         {
             if (index == 0)
             {
                 _finalBuffer   = new byte[total * ChunkSize];
                 _finalTotal    = total;
                 _finalReceived = 0;
+                _activeFinalSeq = seqId;
+            }
+
+            if (seqId != _activeFinalSeq)
+            {
+                Debug.LogWarning($"[CollabMapSync] chunk final de sequência antiga (seq={seqId}, ativo={_activeFinalSeq}) descartado");
+                return;
             }
 
             Array.Copy(data, 0, _finalBuffer, index * ChunkSize, data.Length);

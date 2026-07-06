@@ -33,27 +33,23 @@ namespace PangeaSkirmish
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
-        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-        {
-            // Quando a cena Sandbox carrega em MP, registrar CollabMapSync (já spawned)
-            // e escutar mudanças de fase
-            if (RoomManager.Instance != null)
-            {
-                RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
-                RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
-
-                // Processar fase atual imediatamente (ex: late-joiner que entrou já em CharCreation)
-                OnPhaseChanged(RoomManager.Instance.CurrentPhase);
-            }
-        }
+        // Quando a cena Sandbox carrega, o RoomManager pode já existir (ou ainda não ter
+        // replicado) — delega para o mesmo ponto único de assinatura usado pelo Update.
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode) => TryBindRoomManager();
 
         private RoomManager _boundRm; // instância REAL assinada (sala recriada = objeto novo)
 
-        private void Update()
+        private void Update() => TryBindRoomManager();
+
+        /// <summary>
+        /// Único ponto de assinatura ao RoomManager.OnPhaseChanged. Antes, OnSceneLoaded e
+        /// Update tinham cada um sua própria lógica de (re)assinatura — redundante e um
+        /// convite a duplicar callbacks se algum dia divergissem. Rastreia a INSTÂNCIA (não
+        /// uma flag booleana): se a sala for recriada, um novo RoomManager é spawnado e a
+        /// assinatura antiga fica órfã — sem isso, o overlay de criação nunca reabriria.
+        /// </summary>
+        private void TryBindRoomManager()
         {
-            // Assina o RoomManager ATUAL. Não usar flag booleana: se o jogador sai e recria
-            // a sala, um NOVO RoomManager é spawnado e a assinatura antiga fica órfã — o
-            // overlay de criação de personagem nunca abriria de novo (bug visto pelo host).
             var rm = RoomManager.Instance;
             if (rm == _boundRm) return;
 

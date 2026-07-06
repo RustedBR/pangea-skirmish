@@ -73,6 +73,12 @@ namespace PangeaSkirmish
             RoundManager round, PlanningController planner,
             TileEffectManager tileFx, GameTuning tuning)
         {
+            // _occupiedCells/_placements/_nextUnitId só cresciam (nunca eram limpos) — se o
+            // host reiniciasse a fase de posicionamento (ex.: por desconexão), células e
+            // unitIds de uma sessão anterior persistiam e rejeitavam posicionamentos válidos
+            // com "célula ocupada". Reinicia o estado servidor toda vez que o grid fica pronto.
+            if (IsServer) ResetPlacementState();
+
             _grid    = grid;
             _canvas  = canvas;
             _hud     = hud;
@@ -95,10 +101,12 @@ namespace PangeaSkirmish
                 RoomManager.Instance.OnBattleStart += OnBattleStart;
         }
 
-        private void OnDestroy()
+        public override void OnDestroy()
         {
             if (RoomManager.Instance != null)
                 RoomManager.Instance.OnBattleStart -= OnBattleStart;
+            if (_chatRoom != null) _chatRoom.OnChatMessage -= HandleChatMessage;
+            base.OnDestroy();
         }
 
         // =========================================================================
@@ -339,10 +347,14 @@ namespace PangeaSkirmish
             _round.Setup(_grid, _planner, _hud, _canvas, _cam, _camCtrl,
                 _allUnits, _controlled, _tileFx);
 
-            // Chat na batalha: mensagens do RoomManager aparecem no log do BattleHUD
+            // Chat na batalha: mensagens do RoomManager aparecem no log do BattleHUD.
+            // Método nomeado (não lambda anônima) para poder desinscrever em OnDestroy —
+            // senão a captura de _hud vira dangling se a cena recarregar sem descarregar.
             if (RoomManager.Instance != null && _hud != null)
-                RoomManager.Instance.OnChatMessage += (name, msg) =>
-                    _hud.LogAction($"<color=#aaddff>[Chat] {name}: {msg}</color>");
+            {
+                _chatRoom = RoomManager.Instance;
+                _chatRoom.OnChatMessage += HandleChatMessage;
+            }
 
             // O LockstepBattleSync é spawnado pelo HOST no RoomManager.CheckAllPlaced
             // (prefab registrado, antes do StartBattle). Aqui só vinculamos — com retry,
@@ -356,6 +368,17 @@ namespace PangeaSkirmish
 
             Debug.Log($"[PlacementSync] Batalha iniciada. Seed={seed}. Unidades={_allUnits.Count}");
         }
+
+        private void ResetPlacementState()
+        {
+            _occupiedCells.Clear();
+            _placements.Clear();
+            _nextUnitId = 1;
+        }
+
+        private RoomManager _chatRoom;
+        private void HandleChatMessage(string name, string msg) =>
+            _hud?.LogAction($"<color=#aaddff>[Chat] {name}: {msg}</color>");
 
         private System.Collections.IEnumerator InitLockstepWhenReady()
         {

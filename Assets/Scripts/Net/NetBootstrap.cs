@@ -28,7 +28,11 @@ namespace PangeaSkirmish
     /// <summary>Relay via WebSocket — padrão para WebGL.</summary>
     public class RelayWssStrategy : ITransportStrategy
     {
-        private const int MaxConnections = 3; // host + 3 clientes = 4 jogadores
+        // Antes fixo em 3 (host+3=4) independente da config da sala — se a sala fosse
+        // configurada pra 2 jogadores, o Relay ainda alocava capacidade pra 4. Agora deriva
+        // do maxPlayers atual da sala (default 4 se ainda não configurado).
+        private static int MaxConnections =>
+            Mathf.Max(1, (RuntimeMultiplayerSession.CurrentConfig?.maxPlayers ?? 4) - 1);
 
         public async Task ConfigureHostAsync(UnityTransport transport)
         {

@@ -225,13 +225,16 @@ namespace PangeaSkirmish
                     _timer = planningTime; // ainda aguarda timer para sincronizar
                 }
 
-                // Host inicia coleta
+                // Host inicia coleta (mesma classe de bug: se Instance ainda for null aqui,
+                // a coleta nunca começa e os planos submetidos são rejeitados o round todo).
                 if (LockstepBattleSync.Instance != null && LockstepBattleSync.Instance.IsServer)
                 {
-                    int players = 0;
-                    if (Unity.Netcode.NetworkManager.Singleton != null)
-                        players = Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count;
-                    LockstepBattleSync.Instance.BeginCollection(Mathf.Max(1, players));
+                    BeginLockstepCollection();
+                }
+                else if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsServer)
+                {
+                    Debug.LogWarning("[MP] (host) LockstepBattleSync.Instance NULL ao entrar em Planning — aguardando antes de iniciar a coleta.");
+                    StartCoroutine(BeginCollectionWhenReady());
                 }
                 return;
             }
@@ -343,11 +346,65 @@ namespace PangeaSkirmish
             {
                 _waitingLockstep = true;
                 _hud.SetPhase($"Round {_round} — Aguardando jogadores...");
-                LockstepBattleSync.Instance?.OnPlanningComplete();
+                if (LockstepBattleSync.Instance != null)
+                {
+                    LockstepBattleSync.Instance.OnPlanningComplete();
+                }
+                else
+                {
+                    // BUG conhecido de desync: se o objeto ainda não tiver replicado neste
+                    // instante, o antigo "?." descartava a chamada em silêncio — o plano
+                    // NUNCA era enviado, o host esperava o timeout e resolvia o round sem
+                    // as ações deste jogador (dessincroniza o estado visível/HP/posição).
+                    Debug.LogWarning("[MP] LockstepBattleSync.Instance NULL ao confirmar plano — aguardando aparecer antes de enviar.");
+                    StartCoroutine(SendPlanWhenReady());
+                }
                 return;
             }
 
             StartCoroutine(ActionRoutine());
+        }
+
+        private void BeginLockstepCollection()
+        {
+            int players = 0;
+            if (Unity.Netcode.NetworkManager.Singleton != null)
+                players = Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count;
+            LockstepBattleSync.Instance.BeginCollection(Mathf.Max(1, players));
+        }
+
+        private IEnumerator BeginCollectionWhenReady()
+        {
+            float t = 8f;
+            while (LockstepBattleSync.Instance == null && t > 0f)
+            {
+                t -= Time.deltaTime;
+                yield return null;
+            }
+            if (LockstepBattleSync.Instance != null)
+                BeginLockstepCollection();
+            else
+                Debug.LogError("[MP] (host) LockstepBattleSync.Instance NUNCA apareceu (timeout 8s) — round travado, nenhum plano será coletado.");
+        }
+
+        /// <summary>Espera o LockstepBattleSync replicar no cliente antes de enviar o
+        /// plano confirmado — evita que o "?." silencioso descarte a submissão.</summary>
+        private IEnumerator SendPlanWhenReady()
+        {
+            float t = 8f;
+            while (LockstepBattleSync.Instance == null && t > 0f)
+            {
+                t -= Time.deltaTime;
+                yield return null;
+            }
+            if (LockstepBattleSync.Instance != null)
+            {
+                LockstepBattleSync.Instance.OnPlanningComplete();
+            }
+            else
+            {
+                Debug.LogError("[MP] LockstepBattleSync.Instance NUNCA apareceu (timeout 8s) — plano deste jogador foi PERDIDO neste round.");
+            }
         }
 
         // -------------------- FASE DE AÇÃO (slot a slot) --------------------
