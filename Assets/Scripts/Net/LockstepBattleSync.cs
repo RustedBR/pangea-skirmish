@@ -64,24 +64,58 @@ namespace PangeaSkirmish
             _units = units;
         }
 
+        /// <summary>Id local REAL (NGO); RuntimeMultiplayerSession pode ter sido capturado cedo.</summary>
+        private static ulong LocalId =>
+            NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId
+                                             : RuntimeMultiplayerSession.LocalClientId;
+
+        /// <summary>
+        /// Fiação preguiçosa: no CLIENTE este objeto pode ser replicado DEPOIS do
+        /// PlacementSync.OnBattleStart (Init nunca roda) — sem isto, OnPlanningComplete
+        /// estourava em _units==null, o plano do cliente nunca era enviado e o round
+        /// rodava com o plano dele VAZIO ("comandos do jogador 2 não funcionam").
+        /// </summary>
+        private bool EnsureWired()
+        {
+            if (_round == null)
+                _round = UnityEngine.Object.FindAnyObjectByType<RoundManager>();
+            if (_units == null || _units.Count == 0)
+            {
+                _units = new List<Unit>(UnitRegistry.AllUnits);
+                if (_units.Count > 0)
+                    Debug.Log($"[Lockstep] fiação preguiçosa: {_units.Count} unidades via UnitRegistry");
+            }
+            if (_round == null || _units == null || _units.Count == 0)
+            {
+                Debug.LogError("[Lockstep] EnsureWired falhou: RoundManager/unidades indisponíveis");
+                return false;
+            }
+            return true;
+        }
+
         // =========================================================================
         // Chamado pelo RoundManager ao fim do PLANNING (somente em MP)
         // =========================================================================
         public void OnPlanningComplete()
         {
             if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            if (!EnsureWired()) return;
+
             // Serializa o plano das unidades do jogador local e envia
             var wire = new RoundPlansWire();
             bool hasAnyAction = false;
+            int nMoves = 0, nAtks = 0, nSpells = 0;
             foreach (var u in _units)
             {
-                if (u.ownerId != RuntimeMultiplayerSession.LocalClientId) continue;
+                if (u.ownerId != LocalId) continue;
                 wire.plans.Add(UnitPlanWire.FromUnit(u));
                 if (u.actionSequence.Count > 0) hasAnyAction = true;
+                nMoves += u.plannedMoveCount; nAtks += u.plannedAttacks.Count; nSpells += u.plannedSpells.Count;
             }
+            Debug.Log($"[Lockstep] enviando plano (clientId={LocalId}): unidades={wire.plans.Count} moves={nMoves} atks={nAtks} spells={nSpells}");
 
             // Track AFK
-            ulong myId = RuntimeMultiplayerSession.LocalClientId;
+            ulong myId = LocalId;
             if (!hasAnyAction)
             {
                 _afkRounds.TryGetValue(myId, out int cnt);
@@ -102,10 +136,15 @@ namespace PangeaSkirmish
         [ServerRpc(RequireOwnership = false)]
         private void SubmitPlanServerRpc(byte[] gz, ServerRpcParams rpc = default)
         {
-            if (!_collectingPlans) return;
             ulong sender = rpc.Receive.SenderClientId;
+            if (!_collectingPlans)
+            {
+                Debug.LogWarning($"[Lockstep] plano de clientId={sender} chegou FORA da janela de coleta — ignorado");
+                return;
+            }
             if (!_receivedPlans.ContainsKey(sender))
                 _receivedPlans[sender] = gz;
+            Debug.Log($"[Lockstep] plano recebido de clientId={sender} ({gz.Length} bytes) — {_receivedPlans.Count}/{_expectedCount}");
 
             if (_receivedPlans.Count >= _expectedCount)
                 StartCoroutine(BroadcastRound());
@@ -150,13 +189,19 @@ namespace PangeaSkirmish
                     string json = Encoding.UTF8.GetString(NetCompression.GzipDecompress(kv.Value));
                     var partial = JsonUtility.FromJson<RoundPlansWire>(json);
                     if (partial?.plans != null)
+                    {
                         envelope.plans.AddRange(partial.plans);
+                        int m = 0, a = 0, s = 0;
+                        foreach (var p in partial.plans) { m += p.plannedMoveCount; a += p.attacks.Count; s += p.spells.Count; }
+                        Debug.Log($"[Lockstep] plano de clientId={kv.Key}: unidades={partial.plans.Count} moves={m} atks={a} spells={s}");
+                    }
                 }
                 catch (Exception e)
                 {
                     Debug.LogWarning($"[Lockstep] Falha ao desserializar plano do client {kv.Key}: {e.Message}");
                 }
             }
+            Debug.Log($"[Lockstep] broadcast round {_currentRound}: {envelope.plans.Count} planos de {_receivedPlans.Count} jogadores (seed={seed})");
 
             string envJson = JsonUtility.ToJson(envelope);
             byte[] gz = NetCompression.GzipCompress(Encoding.UTF8.GetBytes(envJson));
@@ -169,17 +214,21 @@ namespace PangeaSkirmish
         {
             try
             {
+                if (!EnsureWired()) return;
                 string json     = Encoding.UTF8.GetString(NetCompression.GzipDecompress(gz));
                 var envelope    = JsonUtility.FromJson<RoundPlansWire>(json);
                 if (envelope == null) { Debug.LogError("[Lockstep] envelope nulo"); return; }
 
                 // Aplica os planos de TODAS as unidades
+                int applied = 0;
                 foreach (var pw in envelope.plans)
                 {
                     var unit = UnitRegistry.Get(pw.unitId);
-                    if (unit == null) continue;
+                    if (unit == null) { Debug.LogWarning($"[Lockstep] plano p/ unitId={pw.unitId} sem unidade local"); continue; }
                     UnitPlanWire.ApplyToUnit(pw, unit);
+                    applied++;
                 }
+                Debug.Log($"[Lockstep] executando round: {applied}/{envelope.plans.Count} planos aplicados (seed={envelope.roundSeed})");
 
                 // Semeia RNG e manda o RoundManager executar a fase de ação
                 _round?.RunActionPhaseMp(envelope.roundSeed);
@@ -196,7 +245,25 @@ namespace PangeaSkirmish
         public void ReportRoundHash(ulong hash)
         {
             _myHash = hash;
+            LogPlayerStats();
             ReportHashServerRpc(hash, _currentRound);
+        }
+
+        /// <summary>[MP-STATS] — estado de cada unidade por dono ao fim do round (console).</summary>
+        private void LogPlayerStats()
+        {
+            if (_units == null) return;
+            var sb = new StringBuilder();
+            sb.Append($"[MP-STATS] fim do round {_currentRound} (visão de clientId={LocalId}):\n");
+            var sorted = new List<Unit>(_units);
+            sorted.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+            foreach (var u in sorted)
+            {
+                sb.Append($"  uid={UnitRegistry.GetId(u)} '{u.unitName}' dono={u.ownerId} " +
+                          $"HP={u.currentHP}/{u.stats.MaxHP} MP={u.currentMana}/{u.stats.MaxMana} " +
+                          $"pos=({u.anchor.x},{u.anchor.y}){(u.IsDead ? " MORTO" : "")}\n");
+            }
+            Debug.Log(sb.ToString());
         }
 
         [ServerRpc(RequireOwnership = false)]

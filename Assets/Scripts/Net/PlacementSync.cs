@@ -355,14 +355,34 @@ namespace PangeaSkirmish
                 go.GetComponent<Unity.Netcode.NetworkObject>().Spawn();
                 lbs.Init(_round, _allUnits);
             }
-            else if (LockstepBattleSync.Instance != null)
+            else
             {
-                LockstepBattleSync.Instance.Init(_round, _allUnits);
+                // CLIENTE: o LockstepBattleSync pode replicar DEPOIS deste callback —
+                // tentar agora e re-tentar até aparecer (senão o Init nunca roda e o
+                // plano local não é submetido).
+                StartCoroutine(InitLockstepWhenReady());
             }
 
             _round.Begin();
 
             Debug.Log($"[PlacementSync] Batalha iniciada. Seed={seed}. Unidades={_allUnits.Count}");
+        }
+
+        private System.Collections.IEnumerator InitLockstepWhenReady()
+        {
+            float t = 10f;
+            while (LockstepBattleSync.Instance == null && t > 0f)
+            {
+                t -= Time.deltaTime;
+                yield return null;
+            }
+            if (LockstepBattleSync.Instance != null)
+            {
+                LockstepBattleSync.Instance.Init(_round, _allUnits);
+                Debug.Log("[PlacementSync] LockstepBattleSync vinculado no cliente");
+            }
+            else
+                Debug.LogError("[PlacementSync] LockstepBattleSync NUNCA replicou no cliente (timeout)");
         }
     }
 }
