@@ -33,6 +33,14 @@ namespace PangeaSkirmish
         private float _collectionTimer;
         private const float HostExtraTimeout = 5f;
         private int _expectedCount;
+        // Corrotina de timeout do round ATUAL — precisa ser cancelada quando a coleta fecha
+        // cedo (AllSlotsHaveSubmitted). Sem isto, a corrotina antiga continua viva em segundo
+        // plano e, ~35s depois (contados a partir do round em que nasceu), acorda e fecha
+        // A RODADA SEGUINTE que estiver em coleta naquele instante — mesmo que ela ainda devesse
+        // aguardar planos — porque o único sinal que ela olha (_collectingPlans) é compartilhado
+        // entre rodadas. Isso causava "rounds pulados" (broadcast com 0 planos de 0 jogadores
+        // bem antes do timeout real daquela rodada) e contribuiu para DESYNCs.
+        private Coroutine _timeoutCoroutine;
 
         // ---- Hash por round ----
         // Indexado por ROUND (não só por clientId): antes, um hash atrasado de um round
@@ -152,7 +160,12 @@ namespace PangeaSkirmish
             Debug.Log($"[Lockstep] plano recebido de clientId={sender} ({gz.Length} bytes) — {_receivedPlans.Count}/{PlayerCount()}");
 
             if (AllSlotsHaveSubmitted())
+            {
+                // Fechamento antecipado: cancela o timeout pendente desta coleta ANTES de
+                // broadcastar — senão ele fica vivo e pode fechar a rodada seguinte cedo demais.
+                if (_timeoutCoroutine != null) { StopCoroutine(_timeoutCoroutine); _timeoutCoroutine = null; }
                 StartCoroutine(BroadcastRound());
+            }
         }
 
         /// <summary>
@@ -192,7 +205,11 @@ namespace PangeaSkirmish
             _collectingPlans = true;
             _expectedCount   = expectedPlayers;
             _collectionTimer = 0f;
-            StartCoroutine(CollectionTimeout());
+            // Defensivo: se por algum motivo ainda houver um timeout pendente de uma coleta
+            // anterior (não deveria, já que fechamento antecipado cancela o dele), cancela antes
+            // de iniciar um novo — nunca mais de um CollectionTimeout vivo por vez.
+            if (_timeoutCoroutine != null) StopCoroutine(_timeoutCoroutine);
+            _timeoutCoroutine = StartCoroutine(CollectionTimeout());
         }
 
         private IEnumerator CollectionTimeout()
@@ -206,6 +223,7 @@ namespace PangeaSkirmish
             if (_collectingPlans)
             {
                 Debug.Log($"[Lockstep] CollectionTimeout disparou após {elapsed:0.0}s real (esperado {planningTime + HostExtraTimeout}s) — fechando coleta por timeout");
+                _timeoutCoroutine = null;
                 yield return BroadcastRound();
             }
             else
