@@ -484,10 +484,13 @@ namespace PangeaSkirmish
                     yield return new WaitForSeconds(slotPause);
             }
 
-            // Passo bônus da IA: valida e executa o destino pré-planejado contra posições atuais
+            // Passo bônus da IA (SP) / QUALQUER unidade (MP): valida e executa o destino
+            // pré-planejado contra posições atuais. Em MP nunca pula por "u == _playerUnit"
+            // — essa comparação é local a cada máquina (mesmo motivo do DoBonusStep acima).
             foreach (var u in _units)
             {
-                if (u.IsDead || !u.hasPlannedBonus || u == _playerUnit) continue;
+                bool skipAsLocalPlayer = !RuntimeMultiplayerSession.IsMultiplayer && u == _playerUnit;
+                if (u.IsDead || !u.hasPlannedBonus || skipAsLocalPlayer) continue;
                 int fp = u.stats.Footprint;
                 var blockers = new List<Unit>();
                 foreach (var other in _units)
@@ -1037,8 +1040,18 @@ namespace PangeaSkirmish
             var reachable = _grid.GetReachableAnchors(u.anchor, 1, fp, blockers);
             reachable.RemoveAll(a => a == u.anchor);
 
-            // IA: valida o passo bônus pré-planejado e executa se ainda válido
-            if (u != _playerUnit)
+            // IA (SP) OU QUALQUER unidade em MP: valida o passo bônus pré-planejado e executa
+            // se ainda válido. Em MP, "u == _playerUnit" (linha abaixo) é FALSO/VERDADEIRO de
+            // forma DIFERENTE em cada cliente (cada um só "é" _playerUnit na própria máquina)
+            // — se não fosse pego aqui, a MESMA unidade seria tratada como pré-planejada numa
+            // tela e como "espera clique ao vivo" na outra, causando: (a) timing divergente
+            // entre as telas (uma espera input real, a outra não), (b) hasPlannedBonus NUNCA
+            // resetado no ramo de clique ao vivo (mais abaixo) — vazando pros próximos rounds
+            // e executando de novo sem o jogador ter planejado nada, e (c) posição final
+            // diferente entre os dois lados (uma usa plannedBonusAnchor, a outra o clique ao
+            // vivo, que pode divergir ou nunca ocorrer) — a causa raiz do desync de posição
+            // reportado (ataque acerta em uma tela e erra na outra, HP diverge, etc).
+            if (RuntimeMultiplayerSession.IsMultiplayer || u != _playerUnit)
             {
                 if (!u.hasPlannedBonus) yield break;
                 if (reachable.Contains(u.plannedBonusAnchor))
@@ -1104,6 +1117,9 @@ namespace PangeaSkirmish
             {
                 _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra pulado", u);
             }
+            // Faltava aqui (só o ramo "IA" acima resetava) — hasPlannedBonus ficava true
+            // indefinidamente, vazando e re-executando em rounds seguintes.
+            u.hasPlannedBonus = false;
         }
 
         private GameObject BuildStepGhost(int fp)
