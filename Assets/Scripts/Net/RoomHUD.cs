@@ -589,6 +589,10 @@ namespace PangeaSkirmish
 
         private async void OnClickCreateRoom()
         {
+            // Evita sala duplicada (clique repetido / já em sala): spawnaria um 2º RoomManager
+            if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening)
+            { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
+
             SetLobbyStatus("Criando sala...");
             try
             {
@@ -596,6 +600,10 @@ namespace PangeaSkirmish
                 if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
                 string roomName = _roomNameInput.text.Trim();
                 if (string.IsNullOrEmpty(roomName)) roomName = "Sala";
+
+                // ANTES de StartHost: o slot do host é criado no spawn do RoomManager
+                // lendo RuntimeMultiplayerSession.PlayerName — se setar depois, fica "Jogador".
+                RuntimeMultiplayerSession.PlayerName = playerName;
 
                 var bootstrap = NetBootstrap.EnsureExists();
                 bootstrap.useLoopback = _loopbackToggle != null && _loopbackToggle.isOn;
@@ -632,6 +640,8 @@ namespace PangeaSkirmish
         {
             string code = _joinCodeInput.text.Trim().ToUpper();
             if (string.IsNullOrEmpty(code)) { SetLobbyStatus("Digite o código."); return; }
+            if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsListening)
+            { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
 
             SetLobbyStatus("Conectando...");
             try

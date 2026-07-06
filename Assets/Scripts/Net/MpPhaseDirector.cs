@@ -47,20 +47,23 @@ namespace PangeaSkirmish
             }
         }
 
-        private bool _subscribed;
+        private RoomManager _boundRm; // instância REAL assinada (sala recriada = objeto novo)
 
         private void Update()
         {
-            // No CLIENTE o RoomManager é replicado alguns frames após conectar; como o fluxo
-            // da sala fica no MainMenu (sem troca de cena), o OnSceneLoaded não dispara — então
-            // assinamos aqui assim que RoomManager.Instance aparecer (senão o overlay de
-            // criação de personagem nunca abre no cliente).
-            if (_subscribed || RoomManager.Instance == null) return;
-            RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
-            RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
-            _subscribed = true;
-            Debug.Log($"[MP] MpPhaseDirector inscrito no RoomManager; fase atual = {RoomManager.Instance.CurrentPhase}");
-            OnPhaseChanged(RoomManager.Instance.CurrentPhase);
+            // Assina o RoomManager ATUAL. Não usar flag booleana: se o jogador sai e recria
+            // a sala, um NOVO RoomManager é spawnado e a assinatura antiga fica órfã — o
+            // overlay de criação de personagem nunca abriria de novo (bug visto pelo host).
+            var rm = RoomManager.Instance;
+            if (rm == _boundRm) return;
+
+            if (_boundRm != null) _boundRm.OnPhaseChanged -= OnPhaseChanged;
+            _boundRm = rm;
+            if (rm == null) return;
+
+            rm.OnPhaseChanged += OnPhaseChanged;
+            Debug.Log($"[MP] MpPhaseDirector (re)inscrito no RoomManager; fase atual = {rm.CurrentPhase}");
+            OnPhaseChanged(rm.CurrentPhase);
         }
 
         private void OnPhaseChanged(RoomPhase phase)
