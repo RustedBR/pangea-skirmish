@@ -377,6 +377,7 @@ namespace PangeaSkirmish
             UpdateModeHighlight();
             if (_budgetLabel   != null) _budgetLabel.text   = _budgetValue.ToString();
             if (_planningLabel != null) _planningLabel.text = _planningValue + "s";
+            RebuildPlayerList(); // rótulos de time dependem do modo (TDM vs FFA)
         }
 
         /// <summary>Só o host interage; os demais veem o painel read-only.</summary>
@@ -543,11 +544,12 @@ namespace PangeaSkirmish
                 nameLbl.text = slot.PlayerName.ToString();
                 nameLbl.alignment = TextAnchor.MiddleLeft;
 
-                // Time
-                string teamStr = slot.Team == 0 ? "Time A" : (slot.Team == 1 ? "Time B" : $"T{slot.Team}");
+                // Time — só faz sentido em TDM; no FFA é cada um por si (sem rótulo de time)
+                bool isFfa = RoomManager.Instance.CurrentConfig.GameMode == 1;
                 var teamLbl = MakeLabel(row.transform, new Vector2(60, 0), new Vector2(80, 38), 14,
-                    slot.Team == 0 ? new Color(0.4f, 0.7f, 1f) : new Color(1f, 0.5f, 0.4f));
-                teamLbl.text = teamStr;
+                    isFfa ? new Color(0.75f, 0.65f, 0.35f)
+                          : (slot.Team == 0 ? new Color(0.4f, 0.7f, 1f) : new Color(1f, 0.5f, 0.4f)));
+                teamLbl.text = isFfa ? "FFA" : (slot.Team == 0 ? "Time A" : "Time B");
 
                 // Botão mudar time (só host, só TDM)
                 if (isHost && RoomManager.Instance.CurrentConfig.GameMode == 0)

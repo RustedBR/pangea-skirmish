@@ -195,11 +195,17 @@ namespace PangeaSkirmish
 
                 _hud.SetPhase($"Round {_round} — Planejamento");
 
-                // Habilita controle apenas da unidade do jogador local
+                // Habilita controle apenas da unidade do jogador local.
+                // Usa o id direto do NGO (RuntimeMultiplayerSession pode ter sido capturado
+                // cedo demais no cliente).
+                ulong localId = Unity.Netcode.NetworkManager.Singleton != null
+                    ? Unity.Netcode.NetworkManager.Singleton.LocalClientId
+                    : RuntimeMultiplayerSession.LocalClientId;
                 Unit controlled = null;
                 foreach (var u in _units)
-                    if (!u.IsDead && u.ownerId == RuntimeMultiplayerSession.LocalClientId)
+                    if (!u.IsDead && u.ownerId == localId)
                     { controlled = u; break; }
+                Debug.Log($"[MP] Planejamento: localId={localId}, controlando '{(controlled != null ? controlled.unitName : "NENHUMA")}'");
 
                 if (controlled != null && !controlled.IsDead)
                 {

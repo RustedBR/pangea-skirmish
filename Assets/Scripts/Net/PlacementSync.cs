@@ -247,15 +247,34 @@ namespace PangeaSkirmish
             try { preset = JsonUtility.FromJson<CharacterPreset>(presetJson); }
             catch { Debug.LogError("[PlacementSync] Falha ao desserializar preset"); return; }
 
-            // Determinar cores: time 0 = cor do jogador, time 1 = cor inimigo
+            // Cores/lado RELATIVOS ao jogador LOCAL (cada cliente vê o próprio lado como
+            // aliado): FFA = só a minha unidade é aliada; TDM = meu time é aliado.
+            // unit.team em MP é APENAS visual — a hostilidade real usa IsHostileTo
+            // (teamId/ownerId), então essa divergência por cliente é segura.
+            bool isAlly;
+            if (RuntimeMultiplayerSession.CurrentConfig != null
+                && RuntimeMultiplayerSession.CurrentConfig.gameMode == 0) // TDM
+            {
+                int localTeam = 0;
+                var slots = RoomManager.Instance != null ? RoomManager.Instance.Slots : null;
+                if (slots != null)
+                    for (int i = 0; i < slots.Count; i++)
+                        if (slots[i].ClientId == LocalId) { localTeam = slots[i].Team; break; }
+                isAlly = team == localTeam;
+            }
+            else // FFA: cada um por si
+            {
+                isAlly = ownerId == LocalId;
+            }
+
             var tuning = _tuning ?? Tuning.Get();
-            var color  = team == 0 ? tuning.playerTeamColor : tuning.enemyTeamColor;
+            var color  = isAlly ? tuning.playerTeamColor : tuning.enemyTeamColor;
 
             // Criar unidade localmente (sem NetworkObject)
             var go = new GameObject(preset.presetName);
             var unit = go.AddComponent<Unit>();
             unit.unitName = preset.presetName;
-            unit.team     = (team == 0) ? Team.Player : Team.Enemy; // aproximação TDM para Fase 6
+            unit.team     = isAlly ? Team.Player : Team.Enemy; // visual local (HUD/footprint/tint)
             unit.ownerId  = ownerId;
             unit.teamId   = team;
             unit.isPlayerCharacter = (ownerId == LocalId);

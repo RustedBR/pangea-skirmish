@@ -139,7 +139,21 @@ namespace PangeaSkirmish
             bootstrap._transport = transport;
 
             _instance = bootstrap;
+            // IMPORTANTE: Awake/OnEnable rodam DURANTE o AddComponent acima — antes de
+            // _networkManager ser atribuído. Assinar os callbacks explicitamente agora,
+            // senão HandleClientConnected/Disconnected nunca disparam (LocalClientId do
+            // cliente ficava 0 e a detecção de queda do host não funcionava).
+            bootstrap.SubscribeCallbacks();
             return bootstrap;
+        }
+
+        private bool _callbacksSubscribed;
+        private void SubscribeCallbacks()
+        {
+            if (_callbacksSubscribed || _networkManager == null) return;
+            _networkManager.OnClientConnectedCallback += HandleClientConnected;
+            _networkManager.OnClientDisconnectCallback += HandleClientDisconnected;
+            _callbacksSubscribed = true;
         }
 
         private static void RegisterNetPrefab(NetworkManager nm, string resPath)
@@ -155,18 +169,14 @@ namespace PangeaSkirmish
             _instance = this;
         }
 
-        private void OnEnable()
-        {
-            if (_networkManager == null) return;
-            _networkManager.OnClientConnectedCallback += HandleClientConnected;
-            _networkManager.OnClientDisconnectCallback += HandleClientDisconnected;
-        }
+        private void OnEnable() => SubscribeCallbacks();
 
         private void OnDisable()
         {
-            if (_networkManager == null) return;
+            if (!_callbacksSubscribed || _networkManager == null) return;
             _networkManager.OnClientConnectedCallback -= HandleClientConnected;
             _networkManager.OnClientDisconnectCallback -= HandleClientDisconnected;
+            _callbacksSubscribed = false;
         }
 
         private void HandleClientConnected(ulong clientId)
