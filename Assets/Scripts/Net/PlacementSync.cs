@@ -344,24 +344,13 @@ namespace PangeaSkirmish
                 RoomManager.Instance.OnChatMessage += (name, msg) =>
                     _hud.LogAction($"<color=#aaddff>[Chat] {name}: {msg}</color>");
 
-            // Spawn do LockstepBattleSync (somente host)
-            if (Unity.Netcode.NetworkManager.Singleton != null
-                && Unity.Netcode.NetworkManager.Singleton.IsServer
-                && LockstepBattleSync.Instance == null)
-            {
-                var go = new GameObject("LockstepBattleSync");
-                var lbs = go.AddComponent<LockstepBattleSync>();
-                go.AddComponent<Unity.Netcode.NetworkObject>();
-                go.GetComponent<Unity.Netcode.NetworkObject>().Spawn();
-                lbs.Init(_round, _allUnits);
-            }
+            // O LockstepBattleSync é spawnado pelo HOST no RoomManager.CheckAllPlaced
+            // (prefab registrado, antes do StartBattle). Aqui só vinculamos — com retry,
+            // pois no cliente a replicação pode chegar alguns frames depois.
+            if (LockstepBattleSync.Instance != null)
+                LockstepBattleSync.Instance.Init(_round, _allUnits);
             else
-            {
-                // CLIENTE: o LockstepBattleSync pode replicar DEPOIS deste callback —
-                // tentar agora e re-tentar até aparecer (senão o Init nunca roda e o
-                // plano local não é submetido).
                 StartCoroutine(InitLockstepWhenReady());
-            }
 
             _round.Begin();
 

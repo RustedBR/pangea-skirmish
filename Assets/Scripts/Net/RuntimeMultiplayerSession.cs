@@ -47,6 +47,9 @@ namespace PangeaSkirmish
         // ---- Reset completo (volta para single-player) -----------------------
         public static void Reset()
         {
+            // Tripwire de debug: se o MP "virar SP" no meio de uma partida, este log diz QUEM resetou.
+            if (IsMultiplayer)
+                UnityEngine.Debug.Log($"[MP] RuntimeMultiplayerSession.Reset() chamado!\n{Environment.StackTrace}");
             IsMultiplayer = false;
             IsHost = false;
             LocalClientId = 0;

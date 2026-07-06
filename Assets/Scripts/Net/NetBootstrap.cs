@@ -133,6 +133,7 @@ namespace PangeaSkirmish
             RegisterNetPrefab(nm, "Net/RoomManagerNet");
             RegisterNetPrefab(nm, "Net/CollabMapSyncNet");
             RegisterNetPrefab(nm, "Net/PlacementSyncNet");
+            RegisterNetPrefab(nm, "Net/LockstepBattleSyncNet");
 
             var bootstrap = go.AddComponent<NetBootstrap>();
             bootstrap._networkManager = nm;

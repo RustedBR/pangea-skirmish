@@ -500,6 +500,22 @@ namespace PangeaSkirmish
                 if (!_slots[i].Placed) return;
             Debug.Log("[RoomManager] todos posicionados — StartBattle");
 
+            // Spawna o LockstepBattleSync (prefab registrado) ANTES do StartBattle — assim o
+            // objeto replica nos clientes junto/antes do início. Criar em runtime sem prefab
+            // NÃO replica no cliente (mesmo bug do RoomManager: NRE no Netcode + timeout).
+            if (LockstepBattleSync.Instance == null)
+            {
+                var prefab = Resources.Load<GameObject>("Net/LockstepBattleSyncNet");
+                if (prefab != null)
+                {
+                    var go = Instantiate(prefab);
+                    DontDestroyOnLoad(go);
+                    go.GetComponent<Unity.Netcode.NetworkObject>().Spawn();
+                    Debug.Log("[MP] LockstepBattleSync spawnado (prefab) antes do StartBattle");
+                }
+                else Debug.LogError("[MP] prefab Net/LockstepBattleSyncNet nao encontrado!");
+            }
+
             // Gerar seed determinístico e iniciar batalha
             int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
             RuntimeMultiplayerSession.BattleSeed = seed;
