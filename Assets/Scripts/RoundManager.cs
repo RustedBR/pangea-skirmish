@@ -367,9 +367,13 @@ namespace PangeaSkirmish
 
         private void BeginLockstepCollection()
         {
-            int players = 0;
-            if (Unity.Netcode.NetworkManager.Singleton != null)
-                players = Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count;
+            // RoomManager.Slots (NetworkList da sala) é a fonte de verdade de "quantos
+            // jogadores existem" — NetworkManager.ConnectedClientsIds.Count (transporte)
+            // retornou valores incorretos em teste real, causando fechamento prematuro
+            // da coleta de planos (LockstepBattleSync.PlayerCount() usa a mesma fonte).
+            int players = RoomManager.Instance != null
+                ? RoomManager.Instance.Slots.Count
+                : (Unity.Netcode.NetworkManager.Singleton != null ? Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count : 1);
             LockstepBattleSync.Instance.BeginCollection(Mathf.Max(1, players));
         }
 

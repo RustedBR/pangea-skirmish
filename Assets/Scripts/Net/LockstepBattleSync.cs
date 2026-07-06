@@ -149,14 +149,37 @@ namespace PangeaSkirmish
             if (!_receivedPlans.ContainsKey(sender))
                 _receivedPlans[sender] = gz;
 
-            // Contagem de jogadores SEMPRE em tempo real (não um valor fixo capturado no
-            // início da coleta) — evita fechar a coleta cedo demais se por qualquer motivo
-            // _expectedCount ficar desatualizado (ex.: reconexão no meio do round).
-            int connectedNow = NetworkManager.Singleton.ConnectedClientsIds.Count;
-            Debug.Log($"[Lockstep] plano recebido de clientId={sender} ({gz.Length} bytes) — {_receivedPlans.Count}/{connectedNow}");
+            Debug.Log($"[Lockstep] plano recebido de clientId={sender} ({gz.Length} bytes) — {_receivedPlans.Count}/{PlayerCount()}");
 
-            if (_receivedPlans.Count >= connectedNow)
+            if (AllSlotsHaveSubmitted())
                 StartCoroutine(BroadcastRound());
+        }
+
+        /// <summary>
+        /// Verdade mais forte que "contagem >= N": confere que TODO clientId presente em
+        /// RoomManager.Slots (a lista de jogadores da sala) está em _receivedPlans — não só
+        /// que o NÚMERO de planos recebidos bate com uma contagem qualquer. Protege contra
+        /// qualquer cenário onde a contagem coincida mas os remetentes reais não sejam os
+        /// jogadores esperados (ex.: duplicidade). Ver PlayerCount() para o porquê de não
+        /// usar NetworkManager.ConnectedClientsIds aqui.
+        /// </summary>
+        private bool AllSlotsHaveSubmitted()
+        {
+            if (RoomManager.Instance == null) return _receivedPlans.Count >= PlayerCount();
+            var slots = RoomManager.Instance.Slots;
+            if (slots.Count == 0) return false;
+            foreach (var slot in slots)
+                if (!_receivedPlans.ContainsKey(slot.ClientId)) return false;
+            return true;
+        }
+
+        /// <summary>Fonte de verdade para "quantos jogadores esperar" — RoomManager.Slots
+        /// (NetworkList da sala), com fallback para ConnectedClientsIds só se o RoomManager
+        /// ainda não existir por algum motivo.</summary>
+        private static int PlayerCount()
+        {
+            if (RoomManager.Instance != null) return RoomManager.Instance.Slots.Count;
+            return NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 1;
         }
 
         // =========================================================================
@@ -291,7 +314,7 @@ namespace PangeaSkirmish
 
             // Aguarda todos os hashes DESTE round específico (outros rounds pendentes,
             // se houver, ficam em seus próprios baldes e não interferem)
-            int connected = NetworkManager.Singleton.ConnectedClientsIds.Count;
+            int connected = PlayerCount();
             if (bucket.Count < connected) return;
 
             bool allMatch = true;
