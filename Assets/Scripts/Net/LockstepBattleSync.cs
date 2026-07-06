@@ -35,8 +35,12 @@ namespace PangeaSkirmish
         private int _expectedCount;
 
         // ---- Hash por round ----
-        private readonly Dictionary<ulong, ulong> _receivedHashes = new Dictionary<ulong, ulong>();
-        private ulong _myHash;
+        // Indexado por ROUND (não só por clientId): antes, um hash atrasado de um round
+        // (latência de rede) se misturava com o hash do round SEGUINTE já calculado pelo
+        // host (_myHash era um campo único, sobrescrito a cada round) — causava "DESYNC"
+        // espúrio comparando hashes de rounds DIFERENTES entre si. Cada round agora tem seu
+        // próprio "balde" de hashes, fechado e comparado só entre si, independente de atraso.
+        private readonly Dictionary<int, Dictionary<ulong, ulong>> _hashesByRound = new Dictionary<int, Dictionary<ulong, ulong>>();
         private int _currentRound;
         private int _hashesExpected;
 
@@ -181,7 +185,7 @@ namespace PangeaSkirmish
             int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
 
             // Monta envelope
-            var envelope = new RoundPlansWire { roundSeed = seed };
+            var envelope = new RoundPlansWire { roundSeed = seed, roundNum = _currentRound };
             foreach (var kv in _receivedPlans)
             {
                 try
@@ -219,6 +223,10 @@ namespace PangeaSkirmish
                 var envelope    = JsonUtility.FromJson<RoundPlansWire>(json);
                 if (envelope == null) { Debug.LogError("[Lockstep] envelope nulo"); return; }
 
+                // Sincroniza o contador local de round com o do host (ver comentário em
+                // RoundPlansWire.roundNum) — sem isto, o cliente sempre reportava "round 0".
+                _currentRound = envelope.roundNum;
+
                 // Aplica os planos de TODAS as unidades
                 int applied = 0;
                 foreach (var pw in envelope.plans)
@@ -244,7 +252,6 @@ namespace PangeaSkirmish
         // =========================================================================
         public void ReportRoundHash(ulong hash)
         {
-            _myHash = hash;
             LogPlayerStats();
             ReportHashServerRpc(hash, _currentRound);
         }
@@ -270,19 +277,30 @@ namespace PangeaSkirmish
         private void ReportHashServerRpc(ulong hash, int roundNum, ServerRpcParams rpc = default)
         {
             ulong sender = rpc.Receive.SenderClientId;
-            _receivedHashes[sender] = hash;
+            if (!_hashesByRound.TryGetValue(roundNum, out var bucket))
+            {
+                bucket = new Dictionary<ulong, ulong>();
+                _hashesByRound[roundNum] = bucket;
+            }
+            bucket[sender] = hash;
 
-            // Aguarda todos
+            // Aguarda todos os hashes DESTE round específico (outros rounds pendentes,
+            // se houver, ficam em seus próprios baldes e não interferem)
             int connected = NetworkManager.Singleton.ConnectedClientsIds.Count;
-            if (_receivedHashes.Count < connected) return;
+            if (bucket.Count < connected) return;
 
             bool allMatch = true;
-            foreach (var kv in _receivedHashes)
-                if (kv.Value != _myHash) { allMatch = false; break; }
+            ulong reference = 0;
+            bool first = true;
+            foreach (var kv in bucket)
+            {
+                if (first) { reference = kv.Value; first = false; continue; }
+                if (kv.Value != reference) { allMatch = false; break; }
+            }
 
             if (allMatch)
             {
-                Debug.Log($"[Lockstep] hash OK round {roundNum} = {_myHash:X16}");
+                Debug.Log($"[Lockstep] hash OK round {roundNum} = {reference:X16}");
                 HashResultClientRpc(true, roundNum);
             }
             else
@@ -290,7 +308,7 @@ namespace PangeaSkirmish
                 // Log de breakdown
                 var sb = new StringBuilder();
                 sb.Append($"[Lockstep] DESYNC round {roundNum}:\n");
-                foreach (var kv in _receivedHashes)
+                foreach (var kv in bucket)
                     sb.Append($"  client {kv.Key}: {kv.Value:X16}\n");
                 Debug.LogError(sb.ToString());
 
@@ -300,7 +318,7 @@ namespace PangeaSkirmish
                 // Resync: serializa estado canônico do host e envia
                 StartCoroutine(SendStateSnapshot());
             }
-            _receivedHashes.Clear();
+            _hashesByRound.Remove(roundNum); // limpa só este round — outros pendentes seguem intactos
         }
 
         [ClientRpc]

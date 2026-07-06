@@ -198,6 +198,11 @@ namespace PangeaSkirmish
     public class RoundPlansWire
     {
         public int roundSeed;
+        /// <summary>Número do round (definido pelo host). O cliente sincroniza seu contador
+        /// local com este valor — sem isso, o cliente nunca incrementava _currentRound
+        /// (só o host faz isso em BroadcastRound), então o cliente sempre reportava
+        /// "round 0" e o hash dele nunca caía no mesmo "balde" do round real do host.</summary>
+        public int roundNum;
         public List<UnitPlanWire> plans = new List<UnitPlanWire>();
     }
 }
