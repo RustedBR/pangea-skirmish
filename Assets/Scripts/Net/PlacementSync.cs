@@ -103,9 +103,18 @@ namespace PangeaSkirmish
 
         public override void OnDestroy()
         {
-            if (RoomManager.Instance != null)
-                RoomManager.Instance.OnBattleStart -= OnBattleStart;
-            if (_chatRoom != null) _chatRoom.OnChatMessage -= HandleChatMessage;
+            // Ao fechar o Play Mode/aplicação, o NGO destrói NetworkObjects DontDestroyOnLoad
+            // em ordem não-determinística; desinscrever eventos aqui pode acessar objetos já
+            // destruídos e contribuir para NullReferenceException DENTRO do próprio pacote
+            // Netcode (visto no console: NetworkObject.OnNetworkBehaviourDestroyed). É
+            // cosmético (só no encerramento, não afeta o gameplay) — pulamos a limpeza manual
+            // nesse caso específico e deixamos o motor destruir tudo.
+            if (!ApplicationQuitTracker.IsQuitting)
+            {
+                if (RoomManager.Instance != null)
+                    RoomManager.Instance.OnBattleStart -= OnBattleStart;
+                if (_chatRoom != null) _chatRoom.OnChatMessage -= HandleChatMessage;
+            }
             base.OnDestroy();
         }
 
