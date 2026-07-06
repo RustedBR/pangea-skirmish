@@ -241,30 +241,90 @@ namespace PangeaSkirmish
                 return;
             }
 
-            // Toggle: no PLANEJAMENTO só reserva/devolve o PAB. O DESTINO do passo extra é
-            // escolhido na FASE DE AÇÃO, depois que o movimento normal executa.
+            // Toggle: em SP, o PLANEJAMENTO só reserva/devolve o PAB — o DESTINO do passo
+            // extra é escolhido na FASE DE AÇÃO (RoundManager.DoBonusStep, clique ao vivo).
+            // Em MP isso NÃO é mais possível: DoBonusStep sempre usa o destino PRÉ-decidido
+            // (senão o clique ao vivo diverge entre as máquinas — ver commit c7b7f39), então
+            // o destino precisa ser escolhido JÁ AQUI, no planejamento, antes de confirmar.
             if (action.IsBonus)
             {
                 action.IsBonus = false;
                 _controlled.actionSequence[idx] = action;
                 _controlled.remainingBAP++;
+                _controlled.hasPlannedBonus = false;
+                RefreshSequenceVisuals();
+                SyncButtonStates();
+                _hud.UpdateAPDisplay(_controlled);
+                return;
             }
-            else
+
+            if (_controlled.remainingBAP <= 0)
             {
-                if (_controlled.remainingBAP <= 0)
-                {
-                    Debug.Log("PAB insuficiente para Passo Rápido");
-                    return;
-                }
-                action.IsBonus = true;
-                _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP--;
+                Debug.Log("PAB insuficiente para Passo Rápido");
+                return;
             }
+
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                _quickStepActionIndex = idx;
+                EnterQuickStepPicking();
+                return;
+            }
+
+            action.IsBonus = true;
+            _controlled.actionSequence[idx] = action;
+            _controlled.remainingBAP--;
 
             _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
+        }
+
+        // ---- Passo Rápido em MP: destino escolhido AGORA (não ao vivo na ação) --------
+        private int _quickStepActionIndex = -1;
+        private List<Vector2Int> _quickStepReachable = new List<Vector2Int>();
+
+        private void EnterQuickStepPicking()
+        {
+            ClearRangeGhosts();
+            var dest = _controlled.plannedAnchor; // destino final do movimento já planejado
+            int fp = _controlled.stats.Footprint;
+            var blockers = new List<Unit>();
+            foreach (var u in _allUnits)
+                if (u != _controlled && !u.IsDead) blockers.Add(u);
+
+            _quickStepReachable = _grid.GetReachableAnchors(dest, 1, fp, blockers);
+            _quickStepReachable.RemoveAll(a => a == dest);
+
+            _grid.HighlightAnchors(_quickStepReachable, ColTileTarget);
+            EnsureCursorGhost();
+            SetCursorGhostColor(ColTileTarget);
+            _hud.ShowPrompt("Passo extra: clique num tile ao lado do destino");
+            SetMode(PlanMode.QuickStepPicking);
+        }
+
+        private void CommitQuickStep(Vector2Int anchor)
+        {
+            if (!_quickStepReachable.Contains(anchor)) return;
+            if (_quickStepActionIndex < 0 || _quickStepActionIndex >= _controlled.actionSequence.Count) return;
+
+            _controlled.plannedBonusAnchor = anchor;
+            _controlled.hasPlannedBonus = true;
+
+            var action = _controlled.actionSequence[_quickStepActionIndex];
+            action.IsBonus = true;
+            _controlled.actionSequence[_quickStepActionIndex] = action;
+            _controlled.remainingBAP--;
+            _quickStepActionIndex = -1;
+
+            HideCursorGhost();
+            _hud.HidePrompt();
+            SetMode(PlanMode.Idle);
+            _hud.UpdateAPDisplay(_controlled);
+            RefreshSequenceVisuals();
+            SyncButtonStates();
+            _hud.ShowMainMenu();
         }
 
         // ------------------------------------------------------------------ MAGIA
@@ -948,7 +1008,14 @@ namespace PangeaSkirmish
                     ? _controlled.plannedPath[_controlled.plannedPath.Count - 1]
                     : _controlled.anchor;
                 _controlled.remainingAP++;
-                if (last.IsBonus) _controlled.remainingBAP++;
+                if (last.IsBonus)
+                {
+                    _controlled.remainingBAP++;
+                    // Desfez o movimento com Passo Rápido — limpa o destino escolhido em
+                    // EnterQuickStepPicking/CommitQuickStep (senão hasPlannedBonus ficaria
+                    // true residual, vazando para o próximo round mesmo sem plano novo).
+                    _controlled.hasPlannedBonus = false;
+                }
             }
             else if (last.Type == ActionType.Attack)
             {
@@ -1244,6 +1311,19 @@ namespace PangeaSkirmish
                         else
                             CommitAttackTile(hovered.Value);
                     }
+                }
+                else
+                    HideCursorGhost();
+            }
+            else if (_mode == PlanMode.QuickStepPicking)
+            {
+                var hovered = HitAnchor();
+                bool valid = hovered.HasValue && _quickStepReachable.Contains(hovered.Value);
+                if (valid)
+                {
+                    PlaceGhost(_cursorGhost, hovered.Value);
+                    if (Mouse.current.leftButton.wasPressedThisFrame)
+                        CommitQuickStep(hovered.Value);
                 }
                 else
                     HideCursorGhost();

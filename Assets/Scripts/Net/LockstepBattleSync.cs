@@ -199,9 +199,19 @@ namespace PangeaSkirmish
         {
             // Aguarda planningTime + HostExtraTimeout — a mesma duração que os clientes esperam
             float planningTime = RuntimeMultiplayerSession.CurrentConfig.planningTime;
+            float startedAt = Time.realtimeSinceStartup;
+            Debug.Log($"[Lockstep] CollectionTimeout iniciado: planningTime={planningTime}s (+{HostExtraTimeout}s extra) — dispara em {planningTime + HostExtraTimeout}s");
             yield return new WaitForSeconds(planningTime + HostExtraTimeout);
+            float elapsed = Time.realtimeSinceStartup - startedAt;
             if (_collectingPlans)
+            {
+                Debug.Log($"[Lockstep] CollectionTimeout disparou após {elapsed:0.0}s real (esperado {planningTime + HostExtraTimeout}s) — fechando coleta por timeout");
                 yield return BroadcastRound();
+            }
+            else
+            {
+                Debug.Log($"[Lockstep] CollectionTimeout acordou após {elapsed:0.0}s mas a coleta já tinha fechado antes (todos confirmaram)");
+            }
         }
 
         private IEnumerator BroadcastRound()
