@@ -541,6 +541,35 @@ namespace PangeaSkirmish
                 if (!AnyAlive(Team.Enemy))  { GameOver("Vitória! Todos os inimigos eliminados."); yield break; }
             }
 
+            if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                // BARREIRA DE SINCRONIZAÇÃO — antes, ActionRoutine() chamava StartRound() do
+                // PRÓXIMO round aqui mesmo, ANTES de ActionRoutineMp sequer calcular/reportar
+                // o hash do round ATUAL. Cada cliente avançava pro planejamento seguinte assim
+                // que terminava sua própria execução local, SEM esperar os demais — se um lado
+                // processasse mais rápido (ex.: sem passo bônus) e o jogador confirmasse
+                // rapidamente o plano seguinte, a submissão chegava ao host antes do outro
+                // jogador sequer ter entrado naquele round (exatamente o "host confirma e o
+                // jogo ignora que ainda tem gente planejando" relatado). Em MP, quem decide
+                // quando avançar é ActionRoutineMp -> LockstepBattleSync, DEPOIS que TODOS os
+                // clientes reportarem hash (ver LockstepBattleSync.ReportHashServerRpc).
+                yield break;
+            }
+
+            yield return new WaitForSeconds(Tuning.Get().roundEndPause);
+            yield return StartRound();
+        }
+
+        /// <summary>Chamado pelo LockstepBattleSync quando TODOS os clientes confirmaram o
+        /// hash do round (ou o host decidiu resync) — só então o próximo round começa.</summary>
+        public void ProceedToNextRoundMp()
+        {
+            if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            StartCoroutine(NextRoundAfterPause());
+        }
+
+        private IEnumerator NextRoundAfterPause()
+        {
             yield return new WaitForSeconds(Tuning.Get().roundEndPause);
             yield return StartRound();
         }

@@ -148,9 +148,14 @@ namespace PangeaSkirmish
             }
             if (!_receivedPlans.ContainsKey(sender))
                 _receivedPlans[sender] = gz;
-            Debug.Log($"[Lockstep] plano recebido de clientId={sender} ({gz.Length} bytes) — {_receivedPlans.Count}/{_expectedCount}");
 
-            if (_receivedPlans.Count >= _expectedCount)
+            // Contagem de jogadores SEMPRE em tempo real (não um valor fixo capturado no
+            // início da coleta) — evita fechar a coleta cedo demais se por qualquer motivo
+            // _expectedCount ficar desatualizado (ex.: reconexão no meio do round).
+            int connectedNow = NetworkManager.Singleton.ConnectedClientsIds.Count;
+            Debug.Log($"[Lockstep] plano recebido de clientId={sender} ({gz.Length} bytes) — {_receivedPlans.Count}/{connectedNow}");
+
+            if (_receivedPlans.Count >= connectedNow)
                 StartCoroutine(BroadcastRound());
         }
 
@@ -302,6 +307,9 @@ namespace PangeaSkirmish
             {
                 Debug.Log($"[Lockstep] hash OK round {roundNum} = {reference:X16}");
                 HashResultClientRpc(true, roundNum);
+                // BARREIRA: só agora, com o hash de TODOS os jogadores confirmado, é seguro
+                // liberar o próximo round para todo mundo (ver RoundManager.ProceedToNextRoundMp).
+                AdvanceRoundClientRpc();
             }
             else
             {
@@ -315,10 +323,18 @@ namespace PangeaSkirmish
                 // Broadcast hash result para logar nos clientes também
                 HashResultClientRpc(false, roundNum);
 
-                // Resync: serializa estado canônico do host e envia
+                // Resync: serializa estado canônico do host e envia; libera o próximo round
+                // só DEPOIS que o snapshot terminar de ser enviado (ver fim de SendStateSnapshot).
                 StartCoroutine(SendStateSnapshot());
             }
             _hashesByRound.Remove(roundNum); // limpa só este round — outros pendentes seguem intactos
+        }
+
+        [ClientRpc]
+        private void AdvanceRoundClientRpc()
+        {
+            EnsureWired();
+            _round?.ProceedToNextRoundMp();
         }
 
         [ClientRpc]
@@ -407,6 +423,10 @@ namespace PangeaSkirmish
                 seq++;
                 yield return null; // spread over frames
             }
+
+            // Só libera o próximo round DEPOIS que o snapshot completo foi transmitido —
+            // senão um cliente poderia começar o round seguinte antes de aplicar a correção.
+            AdvanceRoundClientRpc();
         }
 
         [ClientRpc]
