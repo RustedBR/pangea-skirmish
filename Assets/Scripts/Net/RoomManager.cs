@@ -474,10 +474,16 @@ namespace PangeaSkirmish
         // Fase 5 — Placed + StartBattle
         // -------------------------------------------------------------------------
         [ServerRpc(RequireOwnership = false)]
-        public void SetPlacedServerRpc(ServerRpcParams rpc = default)
+        public void SetPlacedServerRpc(ServerRpcParams rpc = default) => MarkPlaced(rpc.Receive.SenderClientId);
+
+        /// <summary>Marca um jogador como posicionado. Chamado DIRETO pelo servidor
+        /// (PlacementSync já roda no host) — sem passar por RPC, pois o NGO sobrescreveria
+        /// o SenderClientId pelo do host e marcaria sempre o slot errado.</summary>
+        public void MarkPlaced(ulong clientId)
         {
-            int idx = FindSlot(rpc.Receive.SenderClientId);
-            if (idx < 0) return;
+            if (!IsServer) return;
+            int idx = FindSlot(clientId);
+            if (idx < 0) { Debug.LogWarning($"[RoomManager] MarkPlaced: slot nao encontrado p/ clientId={clientId}"); return; }
             var slot = _slots[idx];
             slot.Placed = true;
             _slots[idx] = slot;

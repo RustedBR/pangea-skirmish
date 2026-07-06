@@ -233,9 +233,9 @@ namespace PangeaSkirmish
             string presetJson = JsonUtility.ToJson(preset);
             SpawnUnitClientRpc(unitId, senderId, slotTeam, presetJson, x, y);
 
-            // Marcar Placed no slot
-            RoomManager.Instance.SetPlacedServerRpc(
-                new ServerRpcParams { Receive = new ServerRpcReceiveParams { SenderClientId = senderId } });
+            // Marcar Placed no slot (chamada DIRETA — já estamos no host; via RPC o NGO
+            // sobrescreveria o senderId pelo do host e marcaria sempre o slot errado)
+            RoomManager.Instance.MarkPlaced(senderId);
         }
 
         [ClientRpc]
