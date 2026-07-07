@@ -68,15 +68,27 @@ namespace PangeaSkirmish
             bool bonus  = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
             int  dmg    = BaseDamage(attacker) + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0) + aimDmg;
-            target.TakeDamage(dmg, bonus);
+
+            // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
+            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance);
+            if (res == HitResult.Miss)
+            {
+                ConsumeStrBuffOnHit(attacker);
+                string missTag = bonus ? " <color=#ffd700>+INCR</color>" : "";
+                return $"<color=#888888>x</color> {attacker.unitName} errou {target.unitName}{missTag}";
+            }
+            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
+            if (res == HitResult.Critical)
+                rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
+            target.TakeDamage(rolled, res == HitResult.Critical);
             ConsumeStrBuffOnHit(attacker);
 
             string deathTag = "<color=#ff6666>MORTO</color>";
             string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
-            string icon     = bonus ? "<color=#ffd700>*</color>" : ">";
-            string tag      = bonus ? " <color=#ffd700>+INCR</color>" : "";
+            string icon     = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
+            string tag      = (bonus || res == HitResult.Critical) ? " <color=#ffd700>+INCR</color>" : "";
             string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {dmg}{tag}{aimTag}  ({hp})";
+            return $"{icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}  ({hp})";
         }
 
         // ---- Tile (posicional, bônus de dano) ----
@@ -104,15 +116,27 @@ namespace PangeaSkirmish
                        + strDmg
                        + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
                        + aimDmg;
-            target.TakeDamage(dmg, bonus);
+
+            // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
+            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance);
+            if (res == HitResult.Miss)
+            {
+                ConsumeStrBuffOnHit(attacker);
+                string missTag = bonus ? " <color=#ffd700>+INCR</color>" : "";
+                return $"<color=#888888>x</color> {attacker.unitName} errou {target.unitName}{missTag}";
+            }
+            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
+            if (res == HitResult.Critical)
+                rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
+            target.TakeDamage(rolled, res == HitResult.Critical);
             ConsumeStrBuffOnHit(attacker);
 
             string deathTag = "<color=#ff6666>MORTO</color>";
             string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
-            string icon     = bonus ? "<color=#ffd700>*</color>" : ">";
-            string tag      = bonus ? " <color=#ffd700>+INCR</color>" : "";
+            string icon     = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
+            string tag      = (bonus || res == HitResult.Critical) ? " <color=#ffd700>+INCR</color>" : "";
             string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {dmg}{tag}{aimTag}  ({hp})";
+            return $"{icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}  ({hp})";
         }
 
         // ---- Helpers ----
