@@ -21,6 +21,9 @@ namespace PangeaSkirmish
 
         private void Start()
         {
+            // Volume na metade por padrao (web/build) — ajustavel num menu de opcoes futuro.
+            AudioListener.volume = 0.5f;
+
             if (AudioManager.I == null) new GameObject("AudioManager", typeof(AudioManager));
             AudioManager.I?.PlayMusic(AudioManager.I.bgmBattle);
             if (tuning == null) tuning = RuntimeTuning.Active;
@@ -108,97 +111,28 @@ namespace PangeaSkirmish
             tileFx.Setup(grid, cam);
 
             // ---- Modo Multiplayer: terreno apenas, sem spawn de unidades ----
-            if (RuntimeMultiplayerSession.IsMultiplayer)
-            {
-                UnitRegistry.Clear();
-                MpGrid          = grid;
-                MpCanvas        = canvas;
-                MpHUD           = hud;
-                MpPlanner       = planner;
-                MpRoundManager  = round;
+            // (O jogo é 100% multiplayer — o modo Single-Player foi removido em 2026-07-07.)
+            UnitRegistry.Clear();
+            MpGrid          = grid;
+            MpCanvas        = canvas;
+            MpHUD           = hud;
+            MpPlanner       = planner;
+            MpRoundManager  = round;
 
-                // RoundManager e PlanningController ficam prontos mas NÃO começam
-                // PlacementSync vai spawnar unidades e chamar Begin() via StartBattleClientRpc
-                planner.Setup(grid, cam, new System.Collections.Generic.List<Unit>());
-                round.Setup(grid, planner, hud, canvas, cam, camCtrl,
-                    new System.Collections.Generic.List<Unit>(), null, tileFx);
+            // RoundManager e PlanningController ficam prontos mas NÃO começam
+            // PlacementSync vai spawnar unidades e chamar Begin() via StartBattleClientRpc
+            planner.Setup(grid, cam, new System.Collections.Generic.List<Unit>());
+            round.Setup(grid, planner, hud, canvas, cam, camCtrl,
+                new System.Collections.Generic.List<Unit>(), null, tileFx);
 
-                // Mostrar HUD "Aguardando posicionamento"
-                hud.ShowWaitingForPlacement();
+            // Mostrar HUD "Aguardando posicionamento"
+            hud.ShowWaitingForPlacement();
 
-                // Notificar PlacementSync de que o grid está pronto
-                if (PlacementSync.Instance != null)
-                    PlacementSync.Instance.OnGridReady(grid, canvas, hud, cam, camCtrl, round, planner, tileFx, tuning);
-                else
-                    Debug.LogError("[GameBootstrap] MP: PlacementSync.Instance NULL na cena Battle — o objeto de rede nao sobreviveu a troca de cena; posicionamento nao inicia.");
-                return;
-            }
-
-            // ---- Modo Single-Player (comportamento original) -----------------
-            var units = new System.Collections.Generic.List<Unit>();
-            Unit controlled = null;
-
-            if (mapForBattle != null)
-            {
-                foreach (var p in mapForBattle.units)
-                {
-                    var team  = (Team)p.team;
-                    var color = team == Team.Player ? tuning.playerTeamColor : tuning.enemyTeamColor;
-                    bool isPlayerChar = team == Team.Player && controlled == null;
-                    string resPath = !string.IsNullOrEmpty(p.spritePath) ? p.spritePath : CharacterSpriteCatalog.Default;
-                    var weaponId = !string.IsNullOrEmpty(p.weaponId) ? p.weaponId : "";
-                    var u = CreateUnit(p.displayName, team, new Vector2Int(p.x, p.y),
-                                       color, resPath, grid, p.stats, isPlayerChar, weaponId);
-                    units.Add(u);
-                    if (isPlayerChar) controlled = u;
-                }
-                if (controlled == null && units.Count > 0) controlled = units[0];
-            }
+            // Notificar PlacementSync de que o grid está pronto
+            if (PlacementSync.Instance != null)
+                PlacementSync.Instance.OnGridReady(grid, canvas, hud, cam, camCtrl, round, planner, tileFx, tuning);
             else
-            {
-                const string FIGHTER = "Sprites/TinyTactics/Characters/fighter";
-                const string MAGE    = "Sprites/TinyTactics/Characters/mage";
-
-                Unit playerUnit;
-                if (RuntimeSelectedCharacter.Active != null)
-                {
-                    var preset = RuntimeSelectedCharacter.Active;
-                    string resPath = !string.IsNullOrEmpty(preset.spritePath) ? preset.spritePath : FIGHTER;
-                    string wId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
-                    playerUnit = CreateUnit(preset.presetName, Team.Player, new Vector2Int(1, 1),
-                        new Color(0.30f, 0.50f, 0.92f),
-                        resPath, grid, preset.stats, isPlayerChar: true, weaponId: wId);
-                }
-                else
-                {
-                    playerUnit = CreateUnit("Guerreiro", Team.Player, new Vector2Int(1, 1),
-                        new Color(0.30f, 0.50f, 0.92f),
-                        FIGHTER, grid, tuning.guerreiro, isPlayerChar: true, weaponId: "Hatchet");
-                }
-                units.Add(playerUnit);
-
-                var ladino = CreateUnit("Ladino", Team.Player, new Vector2Int(1, 8),
-                    new Color(0.40f, 0.80f, 0.55f),
-                    MAGE, grid, tuning.ladino, weaponId: "WoodenStaff");
-                units.Add(ladino);
-
-                var goblinA = CreateUnit("Goblin A", Team.Enemy, new Vector2Int(14, 3),
-                    new Color(0.30f, 0.75f, 0.20f), FIGHTER, grid, tuning.goblin, weaponId: "Hatchet");
-                units.Add(goblinA);
-
-                var goblinB = CreateUnit("Goblin B", Team.Enemy, new Vector2Int(15, 12),
-                    new Color(0.25f, 0.65f, 0.15f), FIGHTER, grid, tuning.goblin, weaponId: "Hatchet");
-                units.Add(goblinB);
-
-                var goblinC = CreateUnit("Goblin C", Team.Enemy, new Vector2Int(8, 16),
-                    new Color(0.20f, 0.55f, 0.10f), FIGHTER, grid, tuning.goblin, weaponId: "Hatchet");
-                units.Add(goblinC);
-                controlled = playerUnit;
-            }
-
-            planner.Setup(grid, cam, units);
-            round.Setup(grid, planner, hud, canvas, cam, camCtrl, units, controlled, tileFx);
-            round.Begin();
+                Debug.LogError("[GameBootstrap] MP: PlacementSync.Instance NULL na cena Battle — o objeto de rede nao sobreviveu a troca de cena; posicionamento nao inicia.");
         }
 
         private Unit CreateUnit(string name, Team team, Vector2Int anchor, Color teamColor,
