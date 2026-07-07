@@ -1,0 +1,84 @@
+/* Layout da tela de Criação de Personagem (visual base vem de PangeaTheme.uss). */
+
+.cc-root { flex-grow: 1; }
+
+/* Fundo full-screen que cobre a cena e captura cliques (equivalente ao dimmer do UGUI) */
+.cc-dimmer {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(5, 8, 13, 0.94);
+    align-items: center;
+    justify-content: center;
+}
+
+.cc-panel {
+    width: 520px;
+    min-height: 640px;
+    padding: 24px 28px;
+    align-items: stretch;
+}
+
+.cc-title { align-self: center; margin-bottom: 10px; }
+
+.cc-budget {
+    align-self: center;
+    font-size: 16px;
+    color: var(--pg-ok, rgb(90, 209, 138));
+    margin-bottom: 14px;
+    -unity-text-align: middle-center;
+}
+
+.cc-field { margin-bottom: 12px; }
+.cc-field-label { margin-bottom: 2px; }
+.cc-input { width: 100%; }
+
+.cc-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+.cc-row-label { width: 90px; }
+
+.cc-step {
+    width: 40px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.cc-value {
+    width: 120px;
+    -unity-text-align: middle-center;
+    color: var(--pg-text, rgb(238, 242, 255));
+    margin-left: 6px;
+    margin-right: 6px;
+}
+.cc-value--wide { width: 180px; }
+
+.cc-attrs { margin-top: 12px; margin-bottom: 12px; }
+.cc-attr-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+.cc-attr-label { width: 60px; }
+.cc-step-value {
+    width: 50px;
+    -unity-text-align: middle-center;
+    color: var(--pg-text, rgb(238, 242, 255));
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.cc-status {
+    align-self: center;
+    min-height: 24px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    color: var(--pg-danger, rgb(255, 102, 102));
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.cc-confirm { align-self: center; width: 200px; margin-top: 8px; }

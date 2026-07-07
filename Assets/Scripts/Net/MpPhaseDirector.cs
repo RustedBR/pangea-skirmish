@@ -6,6 +6,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using PangeaSkirmish.UI;
 
 namespace PangeaSkirmish
 {
@@ -79,17 +80,11 @@ namespace PangeaSkirmish
             Debug.Log("[MP] Criacao de personagem: abrindo overlay CharCreationHUD");
             if (_charCreationHUD != null) return; // já aberto
 
-            EnsureOverlayCanvas();
-            var go = new GameObject("CharCreationHUD", typeof(RectTransform));
-            go.transform.SetParent(_overlayCanvas.transform, false);
-            // go ocupa a tela inteira e É o pai de TODA a UI do overlay (dimmer + painel),
-            // para que HideCharCreation (Destroy(go)) remova tudo — senão o painel fica
-            // órfão no canvas DontDestroyOnLoad e "vaza" para a cena seguinte (sandbox).
-            var goRt = go.GetComponent<RectTransform>();
-            goRt.anchorMin = Vector2.zero; goRt.anchorMax = Vector2.one;
-            goRt.offsetMin = Vector2.zero; goRt.offsetMax = Vector2.zero;
-            _charCreationHUD = go.AddComponent<CharCreationHUD>();
-            _charCreationHUD.Build(go.transform);
+            // CharCreationHUD é PangeaScreen (UI Toolkit): Spawn cria o GO com UIDocument
+            // e carrega o UXML automaticamente. O render é full-screen via PanelSettings
+            // compartilhado — não precisa de canvas pai (o dimmer no UXML cobre a cena).
+            // HideCharCreation (Destroy(go)) remove tudo, evitando vazamento p/ sandbox.
+            _charCreationHUD = PangeaScreen.Spawn<CharCreationHUD>("CharCreationHUD");
         }
 
         private void HideCharCreation()
