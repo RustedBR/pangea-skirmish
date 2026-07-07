@@ -43,6 +43,7 @@ namespace PangeaSkirmish
         private bool _gridReady;
         private bool _placementDone;
         private List<Vector2Int> _myZoneHighlights = new List<Vector2Int>();
+        private Vector2Int _lastHover = new Vector2Int(int.MinValue, int.MinValue);
         private GameObject _zoneOverlay;
 
         // ---- Todas as unidades de todos os clientes (ordenadas no spawn) -----
@@ -213,6 +214,28 @@ namespace PangeaSkirmish
         }
 
         // =========================================================================
+        // Footprint helpers (3x3 etc.) — item (A): tile de selecao representa o
+        // tamanho real da unidade, nao so 1 celula.
+        // =========================================================================
+        private List<Vector2Int> FootprintCells(Vector2Int anchor, int fp)
+        {
+            var cells = new List<Vector2Int>();
+            for (int dx = 0; dx < fp; dx++)
+                for (int dy = 0; dy < fp; dy++)
+                    cells.Add(new Vector2Int(anchor.x + dx, anchor.y + dy));
+            return cells;
+        }
+
+        private int GetMyFootprint()
+        {
+            if (RoomManager.Instance != null &&
+                RoomManager.Instance.SubmittedCharacters.TryGetValue(LocalId, out var p) &&
+                p.stats != null)
+                return p.stats.Footprint;
+            return AttributeStats.DefaultFootprint;
+        }
+
+        // =========================================================================
         // PlaceUnit
         // =========================================================================
         [ServerRpc(RequireOwnership = false)]
@@ -227,15 +250,20 @@ namespace PangeaSkirmish
 
             var anchor = new Vector2Int(x, y);
 
-            // Validações
-            if (x < 0 || y < 0 || x >= _grid.width || y >= _grid.height) { Debug.Log("[PlacementSync] rejeitado: fora do grid"); return; }
-            if (_grid.IsVoid(x, y)) { Debug.Log("[PlacementSync] rejeitado: celula void"); return; }
-            if (!IsInSpawnZone(senderId, anchor)) { Debug.Log($"[PlacementSync] rejeitado: ({x},{y}) fora da zona de {senderId}"); return; }
-            if (_occupiedCells.Contains(anchor)) { Debug.Log("[PlacementSync] rejeitado: celula ocupada"); return; }
-
-            // Buscar preset do jogador
+            // Buscar preset do jogador (precisa do Footprint p/ validar 3x3)
             if (!RoomManager.Instance.SubmittedCharacters.TryGetValue(senderId, out var preset))
             { Debug.LogWarning($"[PlacementSync] sem personagem submetido para {senderId} — posicionamento ignorado"); return; }
+            int fp = (preset.stats != null) ? preset.stats.Footprint : AttributeStats.DefaultFootprint;
+
+            // Validações (footprint-aware — item A)
+            if (x < 0 || y < 0 || x >= _grid.width || y >= _grid.height) { Debug.Log("[PlacementSync] rejeitado: fora do grid"); return; }
+            if (!_grid.IsAnchorInBounds(anchor, fp)) { Debug.Log($"[PlacementSync] rejeitado: footprint {fp}x{fp} em ({x},{y}) fora dos limites ou em celula void"); return; }
+            if (!IsInSpawnZone(senderId, anchor)) { Debug.Log($"[PlacementSync] rejeitado: ({x},{y}) fora da zona de {senderId}"); return; }
+
+            // Ocupação: TODAS as células do footprint devem estar livres
+            var cells = FootprintCells(anchor, fp);
+            for (int i = 0; i < cells.Count; i++)
+                if (_occupiedCells.Contains(cells[i])) { Debug.Log($"[PlacementSync] rejeitado: celula {cells[i]} do footprint ocupada"); return; }
 
             // Buscar slot para team
             var slots = RoomManager.Instance.Slots;
@@ -244,7 +272,7 @@ namespace PangeaSkirmish
                 if (slots[i].ClientId == senderId) { slotTeam = slots[i].Team; break; }
 
             uint unitId = _nextUnitId++;
-            _occupiedCells.Add(anchor);
+            foreach (var c in cells) _occupiedCells.Add(c);
             _placements.Add((senderId, unitId));
 
             string presetJson = JsonUtility.ToJson(preset);
@@ -323,14 +351,27 @@ namespace PangeaSkirmish
             if (_grid == null || _cam == null) return;
             if (Mouse.current == null) return;
 
+            Vector2 screen = Mouse.current.position.ReadValue();
+            float depth = Mathf.Abs(_cam.transform.position.z);
+            Vector3 world = _cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
+            var cell = _grid.WorldToCell(world);
+
+            // Preview do footprint (3x3) sob o cursor — item (A). Só redesenha quando
+            // a célula muda, e restaura o highlight da zona quando fora do alvo.
+            if (cell != _lastHover)
+            {
+                _lastHover = cell;
+                int fp = GetMyFootprint();
+                bool validTarget = _grid.IsAnchorInBounds(cell, fp) && _myZoneHighlights.Contains(cell);
+                if (validTarget)
+                    _grid.HighlightAnchors(FootprintCells(cell, fp),
+                        _tuning != null ? _tuning.playerFootprintColor : Color.cyan);
+                else
+                    _grid.HighlightAnchors(_myZoneHighlights, _grid.highlightColor);
+            }
+
             if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                Vector2 screen = Mouse.current.position.ReadValue();
-                float depth = Mathf.Abs(_cam.transform.position.z);
-                Vector3 world = _cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
-                var cell = _grid.WorldToCell(world);
-
-                // Verificar se a célula é da zona local
                 Debug.Log($"[PlacementSync] clique em {cell} — naZona={_myZoneHighlights.Contains(cell)}");
                 if (_myZoneHighlights.Contains(cell))
                 {

@@ -12,74 +12,93 @@
 
                 <ui:Label name="budget-label" text="Pontos: 0/30" class="cc-budget" />
 
-                <!-- Nome -->
-                <ui:VisualElement class="cc-field">
-                    <ui:Label text="Nome:" class="pg-label--dim cc-field-label" />
-                    <ui:TextField name="name-input" value="" class="pg-input cc-input" />
+                <ui:VisualElement name="cc-body" class="cc-body">
+
+                    <!-- Coluna esquerda: formulário -->
+                    <ui:VisualElement name="cc-form" class="cc-form">
+
+                        <!-- Personagens salvos (carregar no MP) -->
+                        <ui:VisualElement class="cc-field">
+                            <ui:Label text="Salvos:" class="pg-label--dim cc-field-label" />
+                            <ui:DropdownField name="preset-dropdown" class="pg-input cc-input" />
+                            <ui:Button name="preset-load" text="Carregar" class="pg-button cc-load" />
+                        </ui:VisualElement>
+
+                        <!-- Nome -->
+                        <ui:VisualElement class="cc-field">
+                            <ui:Label text="Nome:" class="pg-label--dim cc-field-label" />
+                            <ui:TextField name="name-input" value="" class="pg-input cc-input" />
+                        </ui:VisualElement>
+
+                        <!-- Aparência (sprite) -->
+                        <ui:VisualElement class="cc-row">
+                            <ui:Label text="Aparência:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="sprite-prev" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="sprite-label" text="Guerreiro" class="cc-value" />
+                            <ui:Button name="sprite-next" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+
+                        <!-- Arma -->
+                        <ui:VisualElement class="cc-row">
+                            <ui:Label text="Arma:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="weapon-label" text="Machado (d4/r1)" class="cc-value cc-value--wide" />
+                            <ui:Button name="weapon-next" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+
+                        <!-- 6 atributos (steppers) -->
+                        <ui:VisualElement name="attrs" class="cc-attrs">
+                            <ui:VisualElement class="cc-attr-row" name="attr-row-0">
+                                <ui:Label text="STR:" class="pg-label--dim cc-attr-label" />
+                                <ui:Button name="attr-minus-0" text="-" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-0" text="0" class="cc-step-value" />
+                                <ui:Button name="attr-plus-0" text="+" class="pg-button cc-step" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="cc-attr-row" name="attr-row-1">
+                                <ui:Label text="VIT:" class="pg-label--dim cc-attr-label" />
+                                <ui:Button name="attr-minus-1" text="-" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-1" text="0" class="cc-step-value" />
+                                <ui:Button name="attr-plus-1" text="+" class="pg-button cc-step" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="cc-attr-row" name="attr-row-2">
+                                <ui:Label text="DEX:" class="pg-label--dim cc-attr-label" />
+                                <ui:Button name="attr-minus-2" text="-" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-2" text="0" class="cc-step-value" />
+                                <ui:Button name="attr-plus-2" text="+" class="pg-button cc-step" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="cc-attr-row" name="attr-row-3">
+                                <ui:Label text="AGI:" class="pg-label--dim cc-attr-label" />
+                                <ui:Button name="attr-minus-3" text="-" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-3" text="0" class="cc-step-value" />
+                                <ui:Button name="attr-plus-3" text="+" class="pg-button cc-step" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="cc-attr-row" name="attr-row-4">
+                                <ui:Label text="INT:" class="pg-label--dim cc-attr-label" />
+                                <ui:Button name="attr-minus-4" text="-" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-4" text="0" class="cc-step-value" />
+                                <ui:Button name="attr-plus-4" text="+" class="pg-button cc-step" />
+                            </ui:VisualElement>
+                            <ui:VisualElement class="cc-attr-row" name="attr-row-5">
+                                <ui:Label text="WIS:" class="pg-label--dim cc-attr-label" />
+                                <ui:Button name="attr-minus-5" text="-" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-5" text="0" class="cc-step-value" />
+                                <ui:Button name="attr-plus-5" text="+" class="pg-button cc-step" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+
+                        <ui:Label name="status-label" text="" class="cc-status" />
+
+                        <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
+
+                    </ui:VisualElement>
+
+                    <!-- Coluna direita: preview do sprite -->
+                    <ui:VisualElement name="cc-side" class="cc-side">
+                        <ui:Label text="Preview" class="cc-side-title" />
+                        <ui:Image name="sprite-preview" class="cc-sprite-preview" />
+                    </ui:VisualElement>
+
                 </ui:VisualElement>
-
-                <!-- Aparência (sprite) -->
-                <ui:VisualElement class="cc-row">
-                    <ui:Label text="Aparência:" class="pg-label--dim cc-row-label" />
-                    <ui:Button name="sprite-prev" text="&lt;" class="pg-button cc-step" />
-                    <ui:Label name="sprite-label" text="Guerreiro" class="cc-value" />
-                    <ui:Button name="sprite-next" text="&gt;" class="pg-button cc-step" />
-                </ui:VisualElement>
-
-                <!-- Arma -->
-                <ui:VisualElement class="cc-row">
-                    <ui:Label text="Arma:" class="pg-label--dim cc-row-label" />
-                    <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
-                    <ui:Label name="weapon-label" text="Machado (d4/r1)" class="cc-value cc-value--wide" />
-                    <ui:Button name="weapon-next" text="&gt;" class="pg-button cc-step" />
-                </ui:VisualElement>
-
-                <!-- 6 atributos (steppers) -->
-                <ui:VisualElement name="attrs" class="cc-attrs">
-                    <!-- preenchido em código via template, ou declarado aqui -->
-                    <ui:VisualElement class="cc-attr-row" name="attr-row-0">
-                        <ui:Label text="STR:" class="pg-label--dim cc-attr-label" />
-                        <ui:Button name="attr-minus-0" text="-" class="pg-button cc-step" />
-                        <ui:Label name="attr-val-0" text="0" class="cc-step-value" />
-                        <ui:Button name="attr-plus-0" text="+" class="pg-button cc-step" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="cc-attr-row" name="attr-row-1">
-                        <ui:Label text="VIT:" class="pg-label--dim cc-attr-label" />
-                        <ui:Button name="attr-minus-1" text="-" class="pg-button cc-step" />
-                        <ui:Label name="attr-val-1" text="0" class="cc-step-value" />
-                        <ui:Button name="attr-plus-1" text="+" class="pg-button cc-step" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="cc-attr-row" name="attr-row-2">
-                        <ui:Label text="DEX:" class="pg-label--dim cc-attr-label" />
-                        <ui:Button name="attr-minus-2" text="-" class="pg-button cc-step" />
-                        <ui:Label name="attr-val-2" text="0" class="cc-step-value" />
-                        <ui:Button name="attr-plus-2" text="+" class="pg-button cc-step" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="cc-attr-row" name="attr-row-3">
-                        <ui:Label text="AGI:" class="pg-label--dim cc-attr-label" />
-                        <ui:Button name="attr-minus-3" text="-" class="pg-button cc-step" />
-                        <ui:Label name="attr-val-3" text="0" class="cc-step-value" />
-                        <ui:Button name="attr-plus-3" text="+" class="pg-button cc-step" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="cc-attr-row" name="attr-row-4">
-                        <ui:Label text="INT:" class="pg-label--dim cc-attr-label" />
-                        <ui:Button name="attr-minus-4" text="-" class="pg-button cc-step" />
-                        <ui:Label name="attr-val-4" text="0" class="cc-step-value" />
-                        <ui:Button name="attr-plus-4" text="+" class="pg-button cc-step" />
-                    </ui:VisualElement>
-                    <ui:VisualElement class="cc-attr-row" name="attr-row-5">
-                        <ui:Label text="WIS:" class="pg-label--dim cc-attr-label" />
-                        <ui:Button name="attr-minus-5" text="-" class="pg-button cc-step" />
-                        <ui:Label name="attr-val-5" text="0" class="cc-step-value" />
-                        <ui:Button name="attr-plus-5" text="+" class="pg-button cc-step" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-
-                <ui:Label name="status-label" text="" class="cc-status" />
-
-                <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
-
-            </ui:VisualElement>
         </ui:VisualElement>
 
     </ui:VisualElement>

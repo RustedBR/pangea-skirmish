@@ -12,7 +12,7 @@
 }
 
 .cc-panel {
-    width: 520px;
+    width: 720px;
     min-height: 640px;
     padding: 24px 28px;
     align-items: stretch;
@@ -28,9 +28,54 @@
     -unity-text-align: middle-center;
 }
 
+/* Corpo: duas colunas (formulário + preview) */
+.cc-body {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.cc-form {
+    flex-direction: column;
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 20px;
+}
+
+.cc-side {
+    flex-direction: column;
+    align-items: center;
+    width: 200px;
+    flex-shrink: 0;
+    padding-top: 8px;
+}
+
+.cc-side-title {
+    font-size: 14px;
+    color: var(--pg-dim, rgb(150, 160, 185));
+    margin-bottom: 8px;
+    -unity-text-align: middle-center;
+}
+
+.cc-sprite-preview {
+    width: 160px;
+    height: 160px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 10px;
+    -unity-slice-left: 8;
+    -unity-slice-top: 8;
+    -unity-slice-right: 8;
+    -unity-slice-bottom: 8;
+}
+
 .cc-field { margin-bottom: 12px; }
 .cc-field-label { margin-bottom: 2px; }
 .cc-input { width: 100%; }
+
+.cc-load {
+    margin-left: 8px;
+    width: 90px;
+}
 
 .cc-row {
     flex-direction: row;

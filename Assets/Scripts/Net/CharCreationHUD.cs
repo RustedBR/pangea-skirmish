@@ -8,6 +8,8 @@
 // de atributo, budget, sprite/arma picker, submit) foi preservada; só a camada de
 // apresentação mudou. O nome da classe foi mantido para não quebrar MpPhaseDirector.
 
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using PangeaSkirmish.UI;
@@ -26,10 +28,14 @@ namespace PangeaSkirmish
         private Label _budgetLbl;
         private TextField _nameInput;
         private Label _spriteLbl;
+        private Image _spritePreview;
         private Label _weaponLbl;
         private Label[] _attrValueLbls;
         private Button _confirmBtn;
         private Label _statusLbl;
+        private DropdownField _presetDropdown;
+        private Button _presetLoadBtn;
+        private List<CharacterPreset> _savedPresets = new List<CharacterPreset>();
 
         // ---- Índices de navegação -------------------------------------------
         private int _spriteIdx;
@@ -64,15 +70,22 @@ namespace PangeaSkirmish
             _budgetLbl  = r.Q<Label>("budget-label");
             _nameInput  = r.Q<TextField>("name-input");
             _spriteLbl  = r.Q<Label>("sprite-label");
+            _spritePreview = r.Q<Image>("sprite-preview");
             _weaponLbl  = r.Q<Label>("weapon-label");
             _statusLbl  = r.Q<Label>("status-label");
             _confirmBtn = r.Q<Button>("confirm-btn");
+            _presetDropdown = r.Q<DropdownField>("preset-dropdown");
+            _presetLoadBtn  = r.Q<Button>("preset-load");
 
             if (_nameInput != null)
             {
                 _nameInput.value = _editing.presetName;
                 _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
             }
+
+            // Personagens salvos (carregar no MP)
+            PopulateSavedPresets();
+            _presetLoadBtn?.RegisterCallback<ClickEvent>(_ => LoadSelectedPreset());
 
             // Sprite picker
             r.Q<Button>("sprite-prev")?.RegisterCallback<ClickEvent>(_ =>
@@ -205,6 +218,79 @@ namespace PangeaSkirmish
             if (_spriteIdx < 0 || _spriteIdx >= all.Length) _spriteIdx = 0;
             _editing.spritePath = all[_spriteIdx].resourcePath;
             if (_spriteLbl != null) _spriteLbl.text = all[_spriteIdx].displayName;
+
+            // Preview do sprite (frame walkingSE_0) — igual ao MainMenuManager.RefreshPreview
+            if (_spritePreview != null)
+            {
+                var frames = Resources.LoadAll<Sprite>(_editing.spritePath);
+                Sprite preview = null;
+                if (frames != null && frames.Length > 0)
+                {
+                    foreach (var s in frames)
+                        if (s.name == "walkingSE_0") { preview = s; break; }
+                    if (preview == null) preview = frames[0];
+                }
+                _spritePreview.image = SpriteToTexture(preview);
+            }
+        }
+
+        // =========================================================================
+        // Personagens salvos (carregar no MP)
+        // =========================================================================
+        private void PopulateSavedPresets()
+        {
+            if (_presetDropdown == null) return;
+            _savedPresets = CharacterStorage.LoadAll();
+            var names = new List<string> { "(novo)" };
+            foreach (var p in _savedPresets) names.Add(p.presetName);
+            _presetDropdown.choices = names;
+            _presetDropdown.value = names[0];
+            _presetDropdown.index = 0;
+        }
+
+        private void LoadSelectedPreset()
+        {
+            if (_presetDropdown == null || _presetDropdown.index <= 0) return;
+            int i = _presetDropdown.index - 1;
+            if (i < 0 || i >= _savedPresets.Count) return;
+
+            var p = _savedPresets[i];
+            ApplyPreset(p);
+
+            if (_statusLbl != null) _statusLbl.text = $"Carregado: {p.presetName}";
+        }
+
+        /// <summary>Deep-copy de um preset para o estado em edição, atualizando a UI.</summary>
+        private void ApplyPreset(CharacterPreset p)
+        {
+            _editing = new CharacterPreset
+            {
+                presetName = p.presetName,
+                spritePath = p.spritePath,
+                weaponId   = p.weaponId,
+                stats      = new UnitStatBlock
+                {
+                    STR = p.stats.STR, VIT = p.stats.VIT,
+                    DEX = p.stats.DEX, AGI = p.stats.AGI,
+                    INT = p.stats.INT, WIS = p.stats.WIS,
+                    Footprint = p.stats.Footprint,
+                    AttackRange = p.stats.AttackRange
+                }
+            };
+
+            // Sincronizar índices de navegação (sprite/weapon) com o preset carregado
+            var spriteDef = CharacterSpriteCatalog.GetByPath(_editing.spritePath);
+            _spriteIdx = spriteDef != null ? System.Array.IndexOf(CharacterSpriteCatalog.All, spriteDef) : 0;
+            if (_spriteIdx < 0) _spriteIdx = 0;
+            var ws = WeaponCatalog.All();
+            _weaponIdx = 0;
+            for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
+
+            if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
+            SyncSprite();
+            SyncWeapon();
+            RefreshBudgetDisplay();
+            RefreshAttrDisplay();
         }
 
         private void SyncWeapon()
@@ -243,6 +329,25 @@ namespace PangeaSkirmish
         {
             if (_confirmBtn != null) _confirmBtn.SetEnabled(true);
             if (_statusLbl != null) _statusLbl.text = $"Rejeitado: {reason}";
+        }
+
+        // Recorta a região do sprite do atlas para uma Texture2D (UI Toolkit Image só aceita Texture)
+        private static Texture2D SpriteToTexture(Sprite sprite)
+        {
+            if (sprite == null) return null;
+            var src = sprite.texture;
+            int w = Mathf.RoundToInt(sprite.rect.width);
+            int h = Mathf.RoundToInt(sprite.rect.height);
+            if (w <= 0 || h <= 0) return null;
+            var tex = new Texture2D(w, h, src.format, false);
+            tex.filterMode = src.filterMode;
+            var px = src.GetPixels(
+                Mathf.RoundToInt(sprite.rect.x),
+                Mathf.RoundToInt(sprite.rect.y),
+                w, h);
+            tex.SetPixels(px);
+            tex.Apply();
+            return tex;
         }
     }
 }
