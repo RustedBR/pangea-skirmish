@@ -109,9 +109,9 @@ Ciclo por tela: editar → `refresh_unity(compile=request)` → `read_console(ty
 **Telas — feito e a fazer (nesta ordem):**
 - ✅ MainMenu — `MainMenuManager` (troquei `BuildMenuPanel` por `Spawn<MainMenuScreen>`; menu 100% MP: só Multiplayer / Criar Personagem / Sair).
 - ✅ Lobby/Sala — `RoomHUD` reescrito como `PangeaScreen`; `Room.uxml` tem `lobby-view` + `room-view`; toda lógica de rede intacta; flexbox responsivo; UX extra (copiar código, `(host)`, badges de time, chat de sistema).
-- ⏳ **CriaçãoPersonagem** — `Assets/Scripts/Net/CharCreationHUD.cs` (~368 ln). Criado por `MpPhaseDirector` no início do round. Embutir: **preview do sprite** (hoje só o nome) e **barra de budget**.
-- ⏳ **Placement** — overlay em `Assets/Scripts/Net/PlacementSync.cs`. Embutir: mostrar as zonas de todos, confirmar posição (2 cliques), validar footprint.
-- ⏳ **BattleHUD** — `Assets/Scripts/BattleHUD.cs` (~1892 ln, a MAIOR — por último, em partes). Embutir: "quem sou eu / meu time", timer sincronizado, "aguardando plano do oponente (X/Y)", latência.
+- ✅ **CriaçãoPersonagem** — `CharCreationHUD.cs` reescrito como `PangeaScreen` (commit d72feb0). `CharCreation.uxml`/`.uss` + `MpPhaseDirector` usa `Spawn<CharCreationHUD>`. Valido: 0 erros + render Play mode OK.
+- ⚠️ **Placement** — **NÃO É TELA UI**. `PlacementSync.cs` é `NetworkBehaviour` (lógica de rede + input de clique via `Mouse.current` raycast no `GridManager`). A única "UI" dele é `SetWaitingText` que aparece no **BattleHUD** (item abaixo). O handoff original descreveu "overlay" por engano — na prática são tiles isométricos do grid (confirmado por print do Marcus, 2026-07-07). **Não há UXML/USS a criar aqui.** A migração de UI só ocorre quando o BattleHUD virar UI Toolkit e o `SetWaitingText` passar a ser `Root.Q<Label>("waiting").text = ...`.
+- ⏳ **BattleHUD** — `Assets/Scripts/BattleHUD.cs` (~1892 ln, a MAIOR — por último, em partes). Caller: `GameBootstrap.cs` (`AddComponent<BattleHUD>()`). API pública usada por TODO o jogo: `LogAction(string, Unit)`, `SetWaitingText(string)`, `HideWaitingForPlacement()`. Embutir: "quem sou eu / meu time", timer sincronizado, "aguardando plano do oponente (X/Y)", latência. Fazer em partes (ver plano em sessão Hermes 2026-07-07).
 
 **Gotchas aprendidos (não tropece de novo):**
 - `NetworkManager.ServerClientId` é **estático** (não `.Singleton.ServerClientId`).

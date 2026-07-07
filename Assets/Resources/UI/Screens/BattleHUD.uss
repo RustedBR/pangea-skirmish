@@ -1,0 +1,138 @@
+/* BattleHUD — estilo FFT (janelas azuis com moldura clara), padrão UI Toolkit.
+   Replica o visual de BattleHUD.cs (BuildFFTSprite / StyleFFTWindow) via classes bh-*. */
+
+.bh-root { flex-grow: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+
+/* Janela base FFT (gradiente + cantos arredondados) */
+.bh-window {
+  background-color: rgb(22, 34, 66);
+  border-radius: 8px;
+  border: 1px solid rgb(120, 160, 220);
+  padding: 6px;
+}
+.bh-title {
+  font-size: 11px;
+  color: rgb(189, 217, 255);
+  -unity-font-style: bold;
+  text-align: center;
+  background-color: rgb(41, 61, 117);
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-bottom: 4px;
+}
+
+/* TOPO */
+.bh-topbar {
+  position: absolute; top: 10px; left: 50%; width: 357px; height: 51px;
+  transform: translateX(-50%);
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 0 14px;
+}
+.bh-phase { font-size: 15px; color: white; -unity-font-style: bold; flex-grow: 1; }
+.bh-timer { font-size: 17px; color: rgb(180, 230, 180); -unity-font-style: bold; }
+
+/* CAMERA MODE */
+.bh-camera {
+  position: absolute; top: 10px; right: 10px; width: 110px; height: 24px;
+  align-items: center; justify-content: center; padding: 0;
+}
+.bh-camera-label { font-size: 11px; color: rgb(150, 200, 255); -unity-font-style: bold; }
+
+/* LOG */
+.bh-log {
+  position: absolute; left: 12px; top: 82px; bottom: 250px; width: 300px;
+  flex-direction: column;
+}
+.bh-log-scroll { flex-grow: 1; margin-top: 2px; }
+.bh-log-content { flex-direction: column; }
+
+/* Tooltip */
+.bh-tooltip {
+  position: absolute; left: 12px; top: 12px; width: 260px; min-height: 40px;
+  padding: 6px; display: none;
+}
+.bh-tooltip-txt { font-size: 12px; color: rgb(235, 240, 255); white-space: normal; }
+
+/* STATUS */
+.bh-status {
+  position: absolute; left: 12px; bottom: 12px; width: 360px; min-height: 220px;
+  flex-direction: column;
+}
+.bh-status-content { flex-grow: 1; margin-top: 28px; padding: 4px; }
+.bh-portrait {
+  width: 70px; height: 86px; background-color: rgb(10, 18, 41);
+  border: 1px solid rgb(120, 160, 220); border-radius: 4px; margin-right: 8px;
+}
+.bh-portrait-img { width: 100%; height: 100%; }
+.bh-unit-name { font-size: 17px; color: white; -unity-font-style: bold; }
+.bh-hp-bg { width: 248px; height: 14px; background-color: rgb(10, 18, 41); border-radius: 4px; margin-top: 2px; }
+.bh-hp-fill { width: 100%; height: 100%; background-color: rgb(90, 220, 120); }
+.bh-hp-text { font-size: 11px; color: rgb(205, 217, 235); }
+.bh-ap-text { font-size: 13px; color: rgb(255, 230, 140); }
+.bh-stats-text { font-size: 11px; color: rgb(217, 224, 242); white-space: normal; }
+.bh-hint-text { font-size: 13px; color: rgb(128, 148, 189); -unity-font-style: italic; text-align: center; }
+
+/* SEQ */
+.bh-seq {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  width: 470px; height: 60px; flex-direction: column;
+}
+.bh-seq-label { font-size: 12px; color: rgb(189, 217, 255); }
+.bh-seq-content { flex-direction: row; flex-grow: 1; margin-top: 2px; }
+
+/* COMMAND MENU */
+.bh-commands {
+  position: absolute; right: 12px; bottom: 37px; width: 232px;
+  flex-direction: column; padding: 4px;
+}
+.bh-breadcrumb {
+  font-size: 11px; color: rgb(189, 217, 255); text-align: center;
+  background-color: rgb(41, 61, 117); border-radius: 4px; padding: 2px;
+  display: none; margin-bottom: 4px;
+}
+.bh-subpanel { flex-direction: column; gap: 4px; }
+.bh-menu-btn {
+  height: 38px; background-color: rgb(54, 78, 130); color: white;
+  border-radius: 6px; border: 1px solid rgb(120, 160, 220); font-size: 15px;
+}
+.bh-confirm-btn {
+  height: 42px; background-color: rgb(36, 107, 56); color: white;
+  border-radius: 6px; border: 1px solid rgb(140, 217, 158); font-size: 15px;
+}
+.bh-inline-btn {
+  height: 34px; background-color: rgb(128, 92, 31); color: white;
+  border-radius: 6px; font-size: 13px;
+}
+.bh-inline-btn:hover { background-color: rgb(160, 115, 40); }
+
+/* MANA */
+.bh-mana-value { font-size: 18px; color: rgb(255, 230, 140); text-align: center; }
+.bh-mana-potency { font-size: 13px; color: rgb(217, 224, 242); text-align: center; }
+
+/* PROMPT */
+.bh-prompt {
+  position: absolute; right: 12px; bottom: 12px; width: 230px; height: 188px;
+  flex-direction: column; align-items: center;
+}
+.bh-bonus-timer { font-size: 15px; color: rgb(255, 140, 140); }
+.bh-prompt-text { font-size: 14px; color: rgb(255, 235, 153); white-space: normal; text-align: center; flex-grow: 1; }
+.bh-prompt-btn { height: 40px; width: 96px; border-radius: 6px; color: white; font-size: 16px; }
+.bh-sim { background-color: rgb(41, 128, 56); }
+.bh-nao { background-color: rgb(133, 41, 41); }
+
+/* END */
+.bh-end-panel {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.55); align-items: center; justify-content: center;
+  display: none;
+}
+.bh-end-win { width: 820px; height: 240px; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+.bh-end-text { font-size: 40px; color: white; text-align: center; }
+
+/* MP WAITING */
+.bh-mp-waiting {
+  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 50px; align-items: center; justify-content: center;
+  background-color: rgba(10,13,20,0.88); border-radius: 6px; display: none;
+}
+.bh-mp-waiting-text { font-size: 20px; color: rgb(235, 204, 89); text-align: center; }

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
+using PangeaSkirmish.UI;
 
 namespace PangeaSkirmish
 {
@@ -86,8 +87,7 @@ namespace PangeaSkirmish
 
             var canvas = BuildCanvas();
             BuildEventSystem();
-            var hud = gameObject.AddComponent<BattleHUD>();
-            hud.Build(canvas);
+            var hud = PangeaScreen.Spawn<BattleHUD>("BattleHUD");
 
             var planner = gameObject.AddComponent<PlanningController>();
 
