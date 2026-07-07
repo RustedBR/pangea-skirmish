@@ -4,6 +4,7 @@
 // Gera em Build/WebGL/ (index.html + Build/ + StreamingAssets/).
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 public static class BuildWebGL
@@ -26,7 +27,7 @@ public static class BuildWebGL
 
         Debug.Log($"[BuildWebGL] Iniciando build WebGL -> {opts.locationPathName} ({scenes.Length} cenas)");
         var report = BuildPipeline.BuildPlayer(opts);
-        Debug.Log($"[BuildWebGL] Resultado: {report.summary.result} | erros={report.summary.totalErrors} | tamanho={report.summary.totalSizeBytes} bytes");
+        Debug.Log($"[BuildWebGL] Resultado: {report.summary.result} | erros={report.summary.totalErrors} | tamanho={report.summary.totalSize} bytes");
         if (report.summary.result != BuildResult.Succeeded)
             EditorApplication.Exit(1);
     }
