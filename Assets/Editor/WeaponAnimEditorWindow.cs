@@ -4,16 +4,16 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace PangeaSkirmish.EditorTools
+namespace PangeaSkirmish.Editor
 {
     /// <summary>
-    /// Pangea → Weapon Anim Editor — posiciona a arma frame a frame VENDO personagem e
-    /// arma juntos, com zoom de pixel. Salva curvas de posição/rotação (stepped) direto
+    /// Pangea Skirmish → Animation → Weapon Anim Editor — posiciona a arma frame a frame VENDO
+    /// personagem e arma juntos, com zoom de pixel. Salva curvas de posição/rotação (stepped) direto
     /// nos clips {id}_Attack{SE,NE}.anim que o jogo usa (nó filho "Anim" do WeaponOverlay).
     ///
     /// Controles: arrastar arma com o mouse • setas = 1px (Shift = 4px) • Q/E = girar ±5°
     /// • ,/. = frame anterior/próximo • scroll no canvas = zoom.
-    /// O gerador (Pangea/Gerar Animações de Armas) preserva essas curvas.
+    /// O gerador (Pangea Skirmish/Animation/Gerar Animações de Armas) preserva essas curvas.
     /// </summary>
     public class WeaponAnimEditorWindow : EditorWindow
     {
@@ -50,7 +50,7 @@ namespace PangeaSkirmish.EditorTools
         private static readonly string[] WFrameLabels =
             { "0 (wind-up)", "1 (vazio na arte)", "2 (erguido)", "3 (vazio na arte)", "4 (golpe)", "5 (impacto)" };
 
-        [MenuItem("Pangea/Weapon Anim Editor")]
+        [MenuItem(PangeaMenu.Animation + "Weapon Anim Editor")]
         public static void Open()
         {
             var w = GetWindow<WeaponAnimEditorWindow>("Weapon Anim");
@@ -165,7 +165,7 @@ namespace PangeaSkirmish.EditorTools
             if (clip == null)
             {
                 EditorUtility.DisplayDialog("Weapon Anim Editor",
-                    $"Clip não encontrado:\n{ClipPath}\n\nRode Pangea/Gerar Animações de Armas primeiro.", "OK");
+                    $"Clip não encontrado:\n{ClipPath}\n\nRode Pangea Skirmish/Animation/Gerar Animações de Armas primeiro.", "OK");
                 return;
             }
 

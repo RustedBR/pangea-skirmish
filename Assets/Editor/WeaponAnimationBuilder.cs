@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 
-namespace PangeaSkirmish.EditorTools
+namespace PangeaSkirmish.Editor
 {
     /// <summary>
     /// Gera os assets de animação das armas (overlay canvas-aligned) a partir dos
@@ -33,7 +33,7 @@ namespace PangeaSkirmish.EditorTools
             path = "", type = typeof(WeaponSortDriver), propertyName = "_activeFrame"
         };
 
-        [MenuItem("Pangea/Gerar Animações de Armas")]
+        [MenuItem(PangeaMenu.Animation + "Gerar Animações de Armas")]
         public static void Generate()
         {
             if (!AssetDatabase.IsValidFolder("Assets/Resources/Animations"))

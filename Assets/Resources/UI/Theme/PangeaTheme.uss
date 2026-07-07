@@ -1,0 +1,190 @@
+/* ============================================================================
+   PangeaTheme.uss — tema base da UI (UI Toolkit) do Pangea Skirmish.
+   Variáveis de cor/tipografia + classes .pg-* reutilizáveis. Toda tela deve dar
+   à sua raiz a classe "pg-theme" (o scaffolder já faz isso). As classes usam
+   var(--x, fallback), então renderizam de forma sã mesmo sem o tema aplicado.
+   Cores de elemento portadas de GameTuning (elem*Color).
+   ============================================================================ */
+
+.pg-theme {
+    /* superfícies / painel estilo FFT (azul escuro translúcido) */
+    --pg-panel-bg: rgba(10, 16, 40, 0.92);
+    --pg-panel-bg-2: rgba(18, 26, 56, 0.96);
+    --pg-panel-border: rgb(42, 58, 106);
+    --pg-panel-highlight: rgb(106, 134, 200);
+
+    /* texto */
+    --pg-text: rgb(238, 242, 255);
+    --pg-text-dim: rgb(159, 176, 208);
+
+    /* acentos / estados */
+    --pg-accent: rgb(106, 169, 255);   /* azul primário */
+    --pg-gold: rgb(255, 204, 85);
+    --pg-danger: rgb(255, 90, 90);
+    --pg-ok: rgb(90, 209, 138);
+
+    /* times */
+    --pg-team-a: rgb(74, 144, 226);
+    --pg-team-b: rgb(226, 87, 74);
+
+    /* 6 elementos (de GameTuning) */
+    --pg-elem-magic: rgb(128, 51, 255);
+    --pg-elem-fire: rgb(255, 77, 0);
+    --pg-elem-water: rgb(26, 102, 255);
+    --pg-elem-air: rgb(179, 230, 255);
+    --pg-elem-earth: rgb(128, 89, 38);
+}
+
+/* ---- Painel -------------------------------------------------------------- */
+.pg-panel {
+    background-color: var(--pg-panel-bg, rgba(10, 16, 40, 0.92));
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-color: var(--pg-panel-highlight, rgb(106, 134, 200));
+    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 16px;
+}
+
+/* ---- Texto --------------------------------------------------------------- */
+.pg-title {
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 30px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 12px;
+}
+
+.pg-subtitle {
+    color: var(--pg-text-dim, rgb(159, 176, 208));
+    font-size: 16px;
+    -unity-text-align: middle-center;
+    margin-bottom: 8px;
+}
+
+.pg-label {
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 15px;
+}
+
+.pg-label--dim {
+    color: var(--pg-text-dim, rgb(159, 176, 208));
+}
+
+/* ---- Botão --------------------------------------------------------------- */
+.pg-button {
+    background-color: var(--pg-panel-bg-2, rgba(18, 26, 56, 0.96));
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 16px;
+    -unity-font-style: bold;
+    border-left-width: 2px;
+    border-right-width: 2px;
+    border-top-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-color: var(--pg-panel-highlight, rgb(106, 134, 200));
+    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    padding-left: 18px;
+    padding-right: 18px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin: 4px;
+    transition-property: background-color, scale;
+    transition-duration: 0.08s;
+}
+
+.pg-button:hover {
+    background-color: var(--pg-accent, rgb(106, 169, 255));
+    color: rgb(10, 16, 40);
+}
+
+.pg-button:active {
+    scale: 0.97 0.97;
+}
+
+.pg-button:disabled {
+    opacity: 0.5;
+}
+
+.pg-button--primary {
+    background-color: var(--pg-accent, rgb(106, 169, 255));
+    color: rgb(8, 14, 34);
+}
+
+.pg-button--danger {
+    border-top-color: var(--pg-danger, rgb(255, 90, 90));
+    border-bottom-color: var(--pg-danger, rgb(255, 90, 90));
+    border-left-color: var(--pg-danger, rgb(255, 90, 90));
+    border-right-color: var(--pg-danger, rgb(255, 90, 90));
+}
+
+/* ---- Campo de texto ------------------------------------------------------ */
+.pg-input {
+    background-color: rgba(0, 0, 0, 0.35);
+    color: var(--pg-text, rgb(238, 242, 255));
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    padding: 6px;
+}
+
+/* ---- Listas (jogadores, chat) ------------------------------------------- */
+.pg-list {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    padding: 6px;
+}
+
+.pg-list-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+/* ---- Chips / badges (time, elemento, host) ------------------------------ */
+.pg-badge {
+    color: rgb(255, 255, 255);
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.pg-badge--team-a { background-color: var(--pg-team-a, rgb(74, 144, 226)); }
+.pg-badge--team-b { background-color: var(--pg-team-b, rgb(226, 87, 74)); }
+
+/* utilitário */
+.pg-hidden { display: none; }

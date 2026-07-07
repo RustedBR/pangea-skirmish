@@ -3,11 +3,11 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace PangeaSkirmish.EditorTools
+namespace PangeaSkirmish.Editor
 {
     public static class PangeaSceneBuilder
     {
-        [MenuItem("Pangea/Setup All Scenes")]
+        [MenuItem(PangeaMenu.Project + "Setup All Scenes")]
         public static void Execute()
         {
             CreateMainMenuScene();

@@ -14,7 +14,7 @@ namespace PangeaSkirmish.Editor
     {
         private const string BUILD_FOLDER = "Builds";
 
-        [MenuItem("Pangea Skirmish/Build/WebGL")]
+        [MenuItem(PangeaMenu.Build + "WebGL")]
         public static void BuildWebGL()
         {
             BuildTarget target = BuildTarget.WebGL;
@@ -31,7 +31,7 @@ namespace PangeaSkirmish.Editor
             ExecuteBuild(options, "WebGL");
         }
 
-        [MenuItem("Pangea Skirmish/Build/Windows")]
+        [MenuItem(PangeaMenu.Build + "Windows")]
         public static void BuildWindows()
         {
             BuildTarget target = BuildTarget.StandaloneWindows64;
@@ -48,7 +48,7 @@ namespace PangeaSkirmish.Editor
             ExecuteBuild(options, "Windows");
         }
 
-        [MenuItem("Pangea Skirmish/Build/Linux")]
+        [MenuItem(PangeaMenu.Build + "Linux")]
         public static void BuildLinux()
         {
             BuildTarget target = BuildTarget.StandaloneLinux64;
@@ -65,7 +65,7 @@ namespace PangeaSkirmish.Editor
             ExecuteBuild(options, "Linux");
         }
 
-        [MenuItem("Pangea Skirmish/Build/All Platforms")]
+        [MenuItem(PangeaMenu.Build + "All Platforms")]
         public static void BuildAll()
         {
             BuildWebGL();
@@ -129,7 +129,7 @@ namespace PangeaSkirmish.Editor
             return scenes.ToArray();
         }
 
-        [MenuItem("Pangea Skirmish/Settings/Open Build Folder")]
+        [MenuItem(PangeaMenu.Build + "Open Build Folder")]
         public static void OpenBuildFolder()
         {
             string path = Path.GetFullPath(BUILD_FOLDER);
@@ -138,7 +138,7 @@ namespace PangeaSkirmish.Editor
             EditorUtility.RevealInFinder(path);
         }
 
-        [MenuItem("Pangea Skirmish/Settings/Clean Builds")]
+        [MenuItem(PangeaMenu.Build + "Clean Builds")]
         public static void CleanBuilds()
         {
             if (Directory.Exists(BUILD_FOLDER))

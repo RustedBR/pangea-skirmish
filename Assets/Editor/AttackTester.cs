@@ -1,36 +1,37 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace PangeaSkirmish.EditorTools
+namespace PangeaSkirmish.Editor
 {
     /// <summary>
     /// Testes de animação de ataque com o jogo RODANDO (Play mode):
-    ///  - Pangea/Teste/Golpe SE|NE|SW|NW — toca o golpe na unidade selecionada
+    ///  - Pangea Skirmish/Debug/Attack Test/Golpe SE|NE|SW|NW — toca o golpe na unidade selecionada
     ///    (clique na unidade na Hierarchy; sem seleção usa a primeira unidade do Player).
-    ///  - Pangea/Teste/Câmera Lenta — alterna timeScale 0.25x/1x para ver o golpe frame a frame.
+    ///  - Pangea Skirmish/Debug/Attack Test/Câmera Lenta — alterna timeScale 0.25x/1x para ver o golpe frame a frame.
     /// Atalho principal: Ctrl+Shift+T = Golpe SE.
     /// </summary>
     public static class AttackTester
     {
         private const float SlowScale = 0.25f;
+        private const string SlowMoMenu = PangeaMenu.Debug + "Attack Test/Câmera Lenta (0.25x) %#y";
 
-        [MenuItem("Pangea/Teste/Golpe SE %#t")]
+        [MenuItem(PangeaMenu.Debug + "Attack Test/Golpe SE %#t")]
         private static void GolpeSE() => Fire(new Vector3( 2f, -1f, 0f), "SE");
 
-        [MenuItem("Pangea/Teste/Golpe NE")]
+        [MenuItem(PangeaMenu.Debug + "Attack Test/Golpe NE")]
         private static void GolpeNE() => Fire(new Vector3( 2f,  1f, 0f), "NE");
 
-        [MenuItem("Pangea/Teste/Golpe SW")]
+        [MenuItem(PangeaMenu.Debug + "Attack Test/Golpe SW")]
         private static void GolpeSW() => Fire(new Vector3(-2f, -1f, 0f), "SW");
 
-        [MenuItem("Pangea/Teste/Golpe NW")]
+        [MenuItem(PangeaMenu.Debug + "Attack Test/Golpe NW")]
         private static void GolpeNW() => Fire(new Vector3(-2f,  1f, 0f), "NW");
 
-        [MenuItem("Pangea/Teste/Câmera Lenta (0.25x) %#y")]
+        [MenuItem(SlowMoMenu)]
         private static void ToggleSlowMo()
         {
             Time.timeScale = Mathf.Approximately(Time.timeScale, 1f) ? SlowScale : 1f;
-            Menu.SetChecked("Pangea/Teste/Câmera Lenta (0.25x) %#y", !Mathf.Approximately(Time.timeScale, 1f));
+            Menu.SetChecked(SlowMoMenu, !Mathf.Approximately(Time.timeScale, 1f));
             Debug.Log($"[AttackTester] timeScale = {Time.timeScale}");
         }
 

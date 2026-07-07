@@ -6,11 +6,11 @@ namespace PangeaSkirmish.Editor
 {
     /// <summary>
     /// Editor script to generate example UnitDefinition ScriptableObjects.
-    /// Run via menu: Pangea Skirmish > Generate Unit Definitions
+    /// Run via menu: Pangea Skirmish > Content > Generate Unit Definitions
     /// </summary>
     public static class UnitDefinitionGenerator
     {
-        [MenuItem("Pangea Skirmish/Generate Unit Definitions")]
+        [MenuItem(PangeaMenu.Content + "Generate Unit Definitions")]
         public static void GenerateUnitDefinitions()
         {
             string folder = "Assets/Resources/Units";
