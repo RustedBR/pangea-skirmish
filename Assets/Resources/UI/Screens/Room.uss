@@ -1,0 +1,101 @@
+/* Layout da tela de Sala/Lobby (visual base vem de PangeaTheme.uss). */
+
+.room__root { flex-grow: 1; }
+
+/* ---- Lobby ---- */
+.room__center { flex-grow: 1; align-items: center; justify-content: center; }
+.room__lobby { min-width: 440px; align-items: stretch; }
+.room__field { margin-top: 6px; margin-bottom: 6px; }
+.room__field-label { margin-bottom: 2px; }
+.room__or { -unity-text-align: middle-center; margin-top: 8px; margin-bottom: 6px; }
+.room__loopback { margin-top: 10px; }
+.room__status {
+    -unity-text-align: middle-center;
+    color: var(--pg-gold, rgb(255, 204, 85));
+    min-height: 24px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    white-space: normal;
+}
+
+/* ---- Sala ativa ---- */
+.room__roomview { flex-grow: 1; padding: 12px; }
+
+.room__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+.room__header-title { font-size: 24px; -unity-font-style: bold; color: var(--pg-text, rgb(238, 242, 255)); }
+.room__code-row { flex-direction: row; align-items: center; }
+.room__code {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: var(--pg-ok, rgb(90, 209, 138));
+    margin-left: 8px;
+    margin-right: 8px;
+}
+.room__copy-btn { padding-top: 4px; padding-bottom: 4px; padding-left: 10px; padding-right: 10px; }
+.room__phase { color: rgb(180, 190, 230); }
+
+.room__body { flex-grow: 1; flex-direction: row; }
+.room__col { margin: 6px; }
+.room__col--players { width: 260px; }
+.room__col--chat { flex-grow: 1; }
+.room__col--host { width: 250px; }
+.room__col-title {
+    -unity-font-style: bold;
+    color: var(--pg-text-dim, rgb(159, 176, 208));
+    margin-bottom: 6px;
+}
+.room__scroll { flex-grow: 1; }
+
+.room__chat-input-row { flex-direction: row; margin-top: 6px; }
+.room__chat-input { flex-grow: 1; margin-right: 4px; }
+
+.room__row { flex-direction: row; align-items: center; justify-content: center; }
+.room__mode-btn { flex-grow: 1; }
+.room__mode-btn--active { background-color: var(--pg-ok, rgb(90, 209, 138)); color: rgb(8, 20, 12); }
+.room__step-btn { width: 40px; }
+.room__step-value { width: 60px; -unity-text-align: middle-center; color: var(--pg-text, rgb(238, 242, 255)); }
+.room__ctrl-label { margin-top: 10px; }
+.room__advance { margin-top: 14px; font-size: 14px; white-space: normal; }
+
+.room__leave { align-self: center; margin-top: 10px; width: 200px; }
+
+/* linha de jogador (criada em código) */
+.room__player-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+.room__player-name { color: var(--pg-text, rgb(238, 242, 255)); flex-grow: 1; }
+.room__swap-btn { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; margin-left: 6px; }
+
+/* linha de chat (criada em código) */
+.room__chat-line { color: var(--pg-text, rgb(238, 242, 255)); white-space: normal; padding-top: 1px; padding-bottom: 1px; }
+.room__chat-line--system { color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-font-style: italic; }
+
+/* overlay de espera (não-host) */
+.room__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    align-items: center;
+    justify-content: center;
+}
+.room__overlay-label {
+    font-size: 30px;
+    color: var(--pg-gold, rgb(255, 204, 85));
+    -unity-text-align: middle-center;
+    white-space: normal;
+}

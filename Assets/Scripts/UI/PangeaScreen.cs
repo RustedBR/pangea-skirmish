@@ -39,6 +39,7 @@ namespace PangeaSkirmish.UI
         protected virtual void Awake()
         {
             Document = GetComponent<UIDocument>();
+            if (Document == null) Document = gameObject.AddComponent<UIDocument>();
 
             if (_sharedPanel == null)
             {

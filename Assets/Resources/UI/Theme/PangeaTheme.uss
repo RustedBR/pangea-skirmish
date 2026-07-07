@@ -149,6 +149,16 @@
     padding: 6px;
 }
 
+/* O elemento editável interno do TextField é branco por padrão — deixa escuro no tema. */
+.pg-theme .unity-base-text-field__input {
+    background-color: rgba(0, 0, 0, 0.35);
+    color: var(--pg-text, rgb(238, 242, 255));
+    border-top-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+}
+
 /* ---- Listas (jogadores, chat) ------------------------------------------- */
 .pg-list {
     background-color: rgba(0, 0, 0, 0.25);
