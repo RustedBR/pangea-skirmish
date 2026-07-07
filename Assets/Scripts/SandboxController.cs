@@ -243,12 +243,6 @@ namespace PangeaSkirmish
                         }
                     }
                     break;
-                case Phase.Allies:
-                    if (leftDown) HandleUnitClick(cell, Team.Player);
-                    break;
-                case Phase.Enemies:
-                    if (leftDown) HandleUnitClick(cell, Team.Enemy);
-                    break;
             }
 
             // Clique direito: debug — log de posição
