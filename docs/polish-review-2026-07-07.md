@@ -8,6 +8,14 @@ arquitetura/performance ficaram pendentes por limite de sessão (re-rodar após 
 
 Severidade: 🔴 CRÍTICO · 🟠 ALTO · 🟡 MÉDIO · ⚪ BAIXO · Confiança marcada por finding.
 
+> **STATUS DE EXECUÇÃO (atualizado 2026-07-07, Hermes/rusted):**
+> Verificado na fonte real — vários findings estavam **obsoletos** (já corrigidos pelo Claude):
+> - ✅ **#1 Ataque 100%** — RESOLVIDO (`rusted 29b7312`): `AttackResolver` religado a `RollHit`/`RollDamage` (BattleRng lockstep-safe). AGI=esquiva, DEX=crítico, VIT=defesa.
+> - ✅ **#2 Desync por ordenação** — JÁ ESTAVA CORRIGIDO antes (`RoundManager.cs:191` ordena por `unitId`). Finding obsoleto.
+> - ✅ **Remover Single-Player** (Dimensão 2) — CONCLUÍDO (`943796d` + `234a77a`): SP da batalha + Sandbox 100% MP.
+> - ⏳ **#3 Entrar no meio** / **#4 Queda do host** — NÃO verificados fundo; pendentes.
+> - ⏳ **Dimensões 3 (UI MP), 5 (magias), 6 (janelas anim), 7/8** — NÃO feitas.
+
 ---
 
 ## ⭐ TOP CRÍTICOS (quebram o jogo — atacar primeiro)
