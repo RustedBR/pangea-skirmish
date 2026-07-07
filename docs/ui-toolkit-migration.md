@@ -90,3 +90,45 @@ sem repetir estilo, e um ajuste de cor no tema propaga para tudo.
 ## O que NÃO migra (permanece)
 - Lógica de rede/jogo (RoomManager, LockstepBattleSync, RoundManager…). Só a camada de **apresentação** muda.
 - `UiSkin.cs` (slicing de sprite UGUI) fica obsoleto para UI; avaliar remover ao fim da migração.
+
+---
+
+## STATUS ATUAL — HANDOFF (2026-07-07)
+
+> A partir daqui o trabalho continua com o **Hermes agent**. Tudo abaixo é o estado real.
+
+**Branch:** `rusted` (NUNCA commitar em `master`). Commits de polish já feitos:
+- `b99f9db` — item 4 (menus consolidados) + fundação UI Toolkit
+- `59c05ec` — MainMenu migrado (tela-piloto)
+- `8d74395` — Lobby/Sala (RoomHUD) migrado
+
+**Como trabalhar (obrigatório para verificar):** o Unity precisa estar **aberto com o bridge MCP**.
+Ciclo por tela: editar → `refresh_unity(compile=request)` → `read_console(types=[Error])` até 0 erros →
+`manage_editor(play)` → `ScreenCapture` para ver o render → `manage_editor(stop)` → commit na `rusted`.
+
+**Telas — feito e a fazer (nesta ordem):**
+- ✅ MainMenu — `MainMenuManager` (troquei `BuildMenuPanel` por `Spawn<MainMenuScreen>`; menu 100% MP: só Multiplayer / Criar Personagem / Sair).
+- ✅ Lobby/Sala — `RoomHUD` reescrito como `PangeaScreen`; `Room.uxml` tem `lobby-view` + `room-view`; toda lógica de rede intacta; flexbox responsivo; UX extra (copiar código, `(host)`, badges de time, chat de sistema).
+- ⏳ **CriaçãoPersonagem** — `Assets/Scripts/Net/CharCreationHUD.cs` (~368 ln). Criado por `MpPhaseDirector` no início do round. Embutir: **preview do sprite** (hoje só o nome) e **barra de budget**.
+- ⏳ **Placement** — overlay em `Assets/Scripts/Net/PlacementSync.cs`. Embutir: mostrar as zonas de todos, confirmar posição (2 cliques), validar footprint.
+- ⏳ **BattleHUD** — `Assets/Scripts/BattleHUD.cs` (~1892 ln, a MAIOR — por último, em partes). Embutir: "quem sou eu / meu time", timer sincronizado, "aguardando plano do oponente (X/Y)", latência.
+
+**Gotchas aprendidos (não tropece de novo):**
+- `NetworkManager.ServerClientId` é **estático** (não `.Singleton.ServerClientId`).
+- `TextField` do UI Toolkit vem com fundo branco no elemento interno — já corrigido no tema via `.pg-theme .unity-base-text-field__input`.
+- Vários `UIDocument` compartilham o `PanelSettings`. Para não interceptar cliques da tela de baixo, **esconda pela raiz** (`Root.style.display = None`), não deixe a raiz visível com filhos escondidos.
+- Objetos de tela (RoomHUD, MainMenuScreen) são criados em runtime → só existem em **Play mode** (`FindAnyObjectByType` retorna null em edit mode).
+- Screenshot no Editor: o Play mode às vezes sai entre chamadas MCP. Agende a captura **dentro** do play: `root.schedule.Execute(() => ScreenCapture.CaptureScreenshot(path)).StartingIn(200)` e leia o arquivo depois.
+- Mudança de `.uxml`/`.uss` **não** recompila; mudança de `.cs` recompila (o domain reload derruba o bridge MCP por 1-2s — é normal, reconecta sozinho).
+
+**Fluxo para criar/migrar a próxima tela:**
+1. `Pangea Skirmish/UI/New UI Screen…` → gera `{Nome}.uxml` + `.uss` + `{Nome}Screen.cs`.
+2. `Pangea Skirmish/UI/Open UI Builder` → desenhar; dar `name` aos elementos usados no código; aplicar classes `pg-*`.
+3. Preencher `Bind()` no controller: `Root.Q<Tipo>("nome")` + ligar callbacks.
+4. Trocar a UGUI antiga por `PangeaScreen.Spawn<T>()` (ou reescrever a classe existente como `PangeaScreen` preservando a API pública, como foi feito no `RoomHUD`).
+5. Verificar no Unity e commitar na `rusted`.
+
+**Fora da migração de UI (backlog de polish — ver `docs/polish-review-2026-07-07.md`):**
+- 🔴 Bugs críticos: (1) todo ataque acerta 100% — `RollHit`/`RollDamage` são código morto (`AttackResolver.cs:71,107`); (2) desync por empate de iniciativa sem tiebreaker `unitId` (`RoundManager.cs:645,839`); (3) join no meio trava o round (`ConnectionApproval=false`); (4) queda de host = tela morta no cliente.
+- Item 3 (remover singleplayer): mapa cirúrgico no relatório. Item 7 (balanceamento de magias). Item 5 (janela de animação: spec "Sprite Animation Studio").
+- 2 dimensões da revisão não rodaram (caça-bugs geral + arquitetura/perf) — bateram no limite de sessão; rerodar.
