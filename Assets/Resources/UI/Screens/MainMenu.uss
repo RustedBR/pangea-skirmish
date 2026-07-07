@@ -1,0 +1,10 @@
+/* Estilos específicos da tela MainMenu (o visual base vem de PangeaTheme.uss). */
+.main-menu__panel {
+    min-width: 380px;
+    align-items: stretch;
+}
+
+.main-menu__btn {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}

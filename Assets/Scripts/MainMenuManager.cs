@@ -12,7 +12,7 @@ namespace PangeaSkirmish
     public class MainMenuManager : MonoBehaviour
     {
         private Font _font;
-        private GameObject _menuPanel;
+        private UI.MainMenuScreen _menuScreen;
         private GameObject _editorPanel;
         private GameObject _mapSelectPanel;
         private RoomHUD _roomHUD;
@@ -89,30 +89,25 @@ namespace PangeaSkirmish
 
         private void BuildMenuPanel(Transform parent)
         {
-            _menuPanel = MakeFullPanel(parent, "MenuPanel");
-
-            MakeLabel(_menuPanel.transform, new Vector2(0, 210), new Vector2(900, 110), 80,
-                Tuning.Get().uiTitleColor).text = "PANGEA SKIRMISH";
-            MakeLabel(_menuPanel.transform, new Vector2(0, 135), new Vector2(600, 40), 24,
-                new Color(0.55f, 0.55f, 0.60f)).text = "Tactics de combate simultâneo";
-
-            MakeMenuBtn(_menuPanel.transform, "Começar o Jogo",        new Vector2(0,  95), ShowMapSelect);
-            MakeMenuBtn(_menuPanel.transform, "Multiplayer",           new Vector2(0,  25), ShowMultiplayer);
-            MakeMenuBtn(_menuPanel.transform, "Modo Sandbox",          new Vector2(0, -45), () => SceneManager.LoadScene("Sandbox"));
-            MakeMenuBtn(_menuPanel.transform, "Criar Personagem",      new Vector2(0,-115), ShowEditor);
-            MakeMenuBtn(_menuPanel.transform, "Sair",                  new Vector2(0,-185), () => Application.Quit());
+            // Menu principal migrado para UI Toolkit (Resources/UI/Screens/MainMenu.uxml).
+            // Jogo 100% multiplayer: os antigos botões single-player ("Começar o Jogo" e
+            // "Modo Sandbox") saíram do menu. As demais ações são reaproveitadas.
+            _menuScreen = UI.PangeaScreen.Spawn<UI.MainMenuScreen>("MainMenuScreen");
+            _menuScreen.OnMultiplayer     = ShowMultiplayer;
+            _menuScreen.OnCreateCharacter = ShowEditor;
+            _menuScreen.OnQuit            = () => Application.Quit();
         }
 
         private void ShowMapSelect()
         {
-            _menuPanel.SetActive(false);
+            _menuScreen.SetVisible(false);
             RebuildMapSelectPanel();
             _mapSelectPanel.SetActive(true);
         }
 
         private void ShowEditor()
         {
-            _menuPanel.SetActive(false);
+            _menuScreen.SetVisible(false);
             RebuildPresetList();
             NewPreset();
             _editorPanel.SetActive(true);
@@ -126,7 +121,7 @@ namespace PangeaSkirmish
         private void ShowMenu()
         {
             StopWalkAnim();
-            _menuPanel.SetActive(true);
+            _menuScreen.SetVisible(true);
             _editorPanel.SetActive(false);
             _mapSelectPanel.SetActive(false);
             _roomHUD?.HideAll();
@@ -134,7 +129,7 @@ namespace PangeaSkirmish
 
         private void ShowMultiplayer()
         {
-            _menuPanel.SetActive(false);
+            _menuScreen.SetVisible(false);
             _editorPanel.SetActive(false);
             _mapSelectPanel.SetActive(false);
             _roomHUD?.ShowLobbyPanel();
