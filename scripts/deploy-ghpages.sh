@@ -41,10 +41,17 @@ cp -r "$BUILD_DIR/index.html" "$WORK/"
 [[ -d "$BUILD_DIR/Build" ]] && cp -r "$BUILD_DIR/Build" "$WORK/Build"
 [[ -d "$BUILD_DIR/TemplateData" ]] && cp -r "$BUILD_DIR/TemplateData" "$WORK/TemplateData"
 
-# 2) Remover .br: renomear e ajustar index.html
-echo ">> Removendo compressao .br (GitHub Pages nao serve brotli)..."
+# 2) Remover .br: DESCOMPRIMIR (nao so renomear) — GitHub Pages nao serve brotli.
+echo ">> Descomprimindo arquivos .br (GitHub Pages nao serve brotli)..."
 find "$WORK" -name "*.br" | while read -r f; do
-  mv "$f" "${f%.br}"
+  out="${f%.br}"
+  # brotli CLI (Arch) ou python3 fallback
+  if command -v brotli >/dev/null 2>&1; then
+    brotli -d -c "$f" > "$out"
+  else
+    python3 -c "import brotli,sys; open('$out','wb').write(brotli.decompress(open('$f','rb').read()))"
+  fi
+  rm -f "$f"
 done
 # Ajusta index.html: WebGL.data.br -> WebGL.data etc.
 sed -i \
@@ -52,6 +59,21 @@ sed -i \
   -e 's|\.wasm\.br|.wasm|g' \
   -e 's|\.framework\.js\.br|.framework.js|g' \
   -e 's|\.js\.br|.js|g' \
+  -e 's|\.loader\.js\.br|.loader.js|g' \
+  "$WORK/index.html"
+# Templates IL2CPP usam placeholders {{DATA_URL}} etc. — substitui pelos nomes reais
+# (o loader.js do Unity espera os nomes finais sem .br apos remover compressao).
+sed -i \
+  -e 's|{{DATA_URL}}|WebGL.data|g' \
+  -e 's|{{FRAMEWORK_URL}}|WebGL.framework.js|g' \
+  -e 's|{{CODE_URL}}|WebGL.wasm|g' \
+  -e 's|{{LOADING_URL}}|WebGL.loader.js|g' \
+  -e 's|{{COMPANY_NAME}}|Pangea Skirmish|g' \
+  -e 's|{{PRODUCT_NAME}}|Pangea Skirmish|g' \
+  -e 's|{{PRODUCT_VERSION}}|1.0|g' \
+  -e 's|{{BACKGROUND_FILENAME}}||g' \
+  -e 's|{{PROGRESS_BAR}}|TemplateData/progress-bar.png|g' \
+  -e 's|{{PROGRESS_BAR_FULL}}|TemplateData/progress-bar-full.png|g' \
   "$WORK/index.html"
 
 # 3) Publicar na branch gh-pages
