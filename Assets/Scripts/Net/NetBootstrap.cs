@@ -69,8 +69,13 @@ namespace PangeaSkirmish
                 foreach (var e in endpoints) if (e.ConnectionType == "ws") { chosen = e; break; }
             if (chosen == null) chosen = endpoints[0];
 
-            bool isWebSocket = chosen.ConnectionType == "ws" || chosen.ConnectionType == "wss";
-            return new RelayServerData(chosen.Host, (ushort)chosen.Port, allocationIdBytes,
+            // WebGL/Relay SEMPRE usa WebSocket (wss). O navegador nao tem UDP, entao
+            // IsWebSocket PRECISA ser 1 no RelayServerData — caso contrario o UnityTransport
+            // dispara "Relay server data isn't WebSocket" e o wasm da abort() silencioso no
+            // browser. Forcamos true independente do ConnectionType retornado pelo Relay
+            // (que as vezes vem "dtls"/"udp" mas o Relay aceita wss sob demanda).
+            bool isWebSocket = true;
+            return new Unity.Networking.Transport.Relay.RelayServerData(chosen.Host, (ushort)chosen.Port, allocationIdBytes,
                 connectionData, hostConnectionData, key, chosen.Secure, isWebSocket);
         }
     }
