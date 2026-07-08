@@ -1,20 +1,27 @@
 # Guia — Armas e Weapon Anim Editor (Pangea Skirmish)
 
-> **Estado atual (2026-07-08):** o `WeaponOverlay` está **DESLIGADO por padrão**
-> (`GameTuning.weaponOverlayEnabled = false`). Os sprites TinyTactics JÁ trazem a
-> arma desenhada e animada nos frames de corpo (attack/walking), então o overlay
-> era redundante e causava a arma **desalinhada/flutuando** por cima do corpo.
+> **Estado atual (2026-07-08):** o `WeaponOverlay` está **LIGADO por padrão**
+> (`GameTuning.weaponOverlayEnabled = true`). Os sprites TinyTactics **NÃO trazem
+> a arma na mão** (mãos vazias nos frames de ataque), então o overlay é a forma
+> de mostrar a arma do personagem. O overlay nasce com a arma **desalinhada**
+> (usa um offset padrão fixo) — alinhe na janela abaixo para cada arma/classe/direção.
 >
-> Com o overlay desligado, a arma do próprio corpo é usada e aparece alinhada.
+> Desligar o overlay (`weaponOverlayEnabled = false`) deixa o personagem
+> **DESARMADO** (sem arma nenhuma) — não faça isso a menos que os sprites passem
+> a ter arma desenhada.
 
 ---
 
-## 1. Como ligar o overlay (se quiser separar a arma do corpo)
+## 1. Estado do overlay
+
+O `WeaponOverlay` está **LIGADO por padrão** (`GameTuning.weaponOverlayEnabled = true`)
+porque os sprites TinyTactics não têm arma na mão. Para conferir/ajustar:
 
 1. No Unity, abra `Assets/Resources/GameTuning.asset`.
-2. Seção **ARMAS (OVERLAY)** → marque **`weaponOverlayEnabled` = true**.
-3. **OBRIGATÓRIO:** antes de rodar, alinhe cada arma na janela abaixo.
-   Sem alinhar, a arma volta a flutuar (usa o offset fixo `weaponAttackOffset`/`weaponCarryOffset`).
+2. Seção **ARMAS (OVERLAY)** → `weaponOverlayEnabled` deve estar **true**.
+3. Se estiver false, o personagem fica DESARMADO — ligue de volta.
+
+> O desalinhamento da arma (offset padrão) é corrigido alinhando na janela abaixo.
 
 ---
 
