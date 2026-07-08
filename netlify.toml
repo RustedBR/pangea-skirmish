@@ -1,0 +1,38 @@
+# Netlify config — Pangea Skirmish (WebGL)
+# O build é gerado pelo Unity (Assets/Editor/BuildWebGL.cs -> Build/WebGL).
+# Deploy manual via scripts/deploy-netlify.sh (não usamos o build automático
+# do Netlify pois exige o Unity no CI; fazemos local e empurramos os artefatos).
+
+[build]
+  publish = "Build/WebGL"
+
+# Headers obrigatórios: o Unity gera .br (Brotli) quando
+# webGLCompressionFormat=Brotli + webGLDecompressionFallback=0.
+# O browser descompacta via Content-Encoding: br.
+[[headers]]
+  for = "/Build/*.br"
+  [headers.values]
+    Content-Encoding = "br"
+
+[[headers]]
+  for = "/Build/WebGL.data.br"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+    Content-Encoding = "br"
+
+[[headers]]
+  for = "/Build/WebGL.wasm.br"
+  [headers.values]
+    Content-Type = "application/wasm"
+    Content-Encoding = "br"
+
+[[headers]]
+  for = "/Build/WebGL.framework.js.br"
+  [headers.values]
+    Content-Type = "application/javascript"
+    Content-Encoding = "br"
+
+[[headers]]
+  for = "/Build/WebGL.loader.js"
+  [headers.values]
+    Content-Type = "application/javascript"
