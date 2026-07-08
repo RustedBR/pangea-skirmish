@@ -25,7 +25,9 @@ public static class BuildWebGL
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
         PlayerSettings.stripEngineCode = true;
         PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
-        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
+        // Full temporariamente para surfar excecoes C# no console (debug do abort).
+        // Depois de corrigir o bug, voltar para None para build menor.
+        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.Full;
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
 
         var opts = new BuildPlayerOptions
