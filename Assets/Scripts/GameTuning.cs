@@ -167,6 +167,8 @@ namespace PangeaSkirmish
         // ═════════════════════════ ARMAS (OVERLAY) ═════════════════════════
 
         [Header("═══ ARMAS (OVERLAY) ═══")]
+        [Tooltip("Liga/desliga o WeaponOverlay (arma desenhada por cima do personagem). Os sprites TinyTactics JÁ trazem a arma desenhada e animada nos frames de corpo, então o overlay é redundante e causa arma desalinhada/flutuando. Deixe DESLIGADO (false) para usar a arma do próprio corpo. Ligue (true) + alinhe na janela Pangea → Weapon Anim Editor se quiser separar a arma do corpo.")]
+        public bool weaponOverlayEnabled = false;
         [Tooltip("Offset base da arma na pose de ataque. (0, 0.25) = alinhamento puro de canvas 32x48 sobre 32x32 — o arco do golpe já é arte. Ajustes por frame: janela Pangea → Weapon Anim Editor.")]
         public Vector2 weaponAttackOffset = new Vector2(0f, 0.25f);
         [Tooltip("Offset base da arma na pose de descanso (idle/andar), quando visível.")]

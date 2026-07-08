@@ -372,8 +372,10 @@ namespace PangeaSkirmish
                 stats.strScalesDamage = true; // unarmed sempre escala com STR
             }
 
-            // Criar overlay apenas se houver arma
-            if (w != null)
+            // Criar overlay apenas se houver arma E o overlay estiver ligado no GameTuning.
+            // Os sprites TinyTactics JÁ trazem a arma desenhada e animada nos frames de corpo;
+            // com o overlay desligado (padrão), a arma do próprio corpo é usada e não fica desalinhada.
+            if (w != null && (tuning == null || tuning.weaponOverlayEnabled))
             {
                 _weapon = gameObject.AddComponent<WeaponOverlay>();
                 _weapon.Init(w.id, spriteGoTransform);
