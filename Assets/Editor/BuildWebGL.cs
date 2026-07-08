@@ -25,9 +25,9 @@ public static class BuildWebGL
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
         PlayerSettings.stripEngineCode = true;
         PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
-        // FullWithStacktrace temporariamente para surfar excecoes C# no console (debug do abort).
-        // Depois de corrigir o bug, voltar para None (build menor e mais rapido).
-        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.FullWithStacktrace;
+        // ExplicitlyThrownExceptionsOnly: pega NRE/excecoes do codigo C# (aparece no console
+        // em vez de abortar) com build menor que FullWithStacktrace. Debug do abort no Criar Sala.
+        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
 
         var opts = new BuildPlayerOptions
         {
