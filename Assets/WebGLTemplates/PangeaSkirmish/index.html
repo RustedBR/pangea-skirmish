@@ -76,24 +76,6 @@
 
       document.querySelector("#unity-loading-bar").style.display = "block";
 
-      // === DEBUG: captura excecoes C# do Unity e exibe na tela ===
-      var debugBox = document.createElement('div');
-      debugBox.id = 'unity-debug';
-      debugBox.style = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#220000;color:#ff6666;font:12px monospace;white-space:pre-wrap;max-height:50vh;overflow:auto;padding:8px;display:none;';
-      document.body.appendChild(debugBox);
-      function showDebug(msg) {
-        debugBox.style.display = 'block';
-        debugBox.textContent += msg + "\n";
-      }
-      window.addEventListener('error', function(e) { showDebug('[window.error] ' + (e.message || e.error || e)); });
-      window.addEventListener('unhandledrejection', function(e) { showDebug('[promise] ' + (e.reason && e.reason.message ? e.reason.message : e.reason)); });
-      var _origErr = console.error;
-      console.error = function() {
-        try { showDebug('[console.error] ' + Array.from(arguments).join(' ')); } catch(_) {}
-        _origErr.apply(console, arguments);
-      };
-      // ========================================================
-
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
@@ -104,13 +86,7 @@
           document.querySelector("#unity-fullscreen-button").onclick = () => {
             unityInstance.SetFullscreen(1);
           };
-          // captura erros do wasm/abort
-          if (unityInstance.Module) {
-            unityInstance.Module.printErr = function(text) { showDebug('[wasm] ' + text); };
-            unityInstance.Module.onAbort = function(msg) { showDebug('[ABORT] ' + msg); };
-          }
         }).catch((message) => {
-          showDebug('[createUnityInstance catch] ' + message);
           alert(message);
         });
       };
