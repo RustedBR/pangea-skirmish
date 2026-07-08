@@ -26,7 +26,7 @@ public static class BuildWebGL
         PlayerSettings.stripEngineCode = true;
         PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
-        EditorUserBuildSettings.webGLCompressionFormat = WebGLCompressionFormat.Brotli;
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
 
         var opts = new BuildPlayerOptions
         {
