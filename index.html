@@ -46,16 +46,16 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/{{LOADING_URL}}";
+      var loaderUrl = buildUrl + "/WebGL.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/{{DATA_URL}}",
-        frameworkUrl: buildUrl + "/{{FRAMEWORK_URL}}",
-        codeUrl: buildUrl + "/{{CODE_URL}}",
+        dataUrl: buildUrl + "/WebGL.data.br",
+        frameworkUrl: buildUrl + "/WebGL.framework.js.br",
+        codeUrl: buildUrl + "/WebGL.wasm.br",
         streamingAssetsUrl: "StreamingAssets",
-        companyName: "{{COMPANY_NAME}}",
-        productName: "{{PRODUCT_NAME}}",
-        productVersion: "{{PRODUCT_VERSION}}",
+        companyName: "DefaultCompany",
+        productName: "Pangea Skirmish",
+        productVersion: "1.0",
         showBanner: unityShowBanner,
       };
       // FREE ASPECT + resolucao nitida (devicePixelRatio=1) para web.
