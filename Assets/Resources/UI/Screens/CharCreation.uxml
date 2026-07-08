@@ -2,7 +2,6 @@
     <Style src="../Theme/PangeaTheme.uss" />
     <Style src="CharCreation.uss" />
 
-    <!-- Fundo full-screen que cobre a cena atrás e captura cliques -->
     <ui:VisualElement name="root" class="pg-theme cc-root">
 
         <ui:VisualElement name="dimmer" class="cc-dimmer">
@@ -14,23 +13,19 @@
 
                 <ui:VisualElement name="cc-body" class="cc-body">
 
-                    <!-- Coluna esquerda: formulário -->
                     <ui:VisualElement name="cc-form" class="cc-form">
 
-                        <!-- Personagens salvos (carregar no MP) -->
                         <ui:VisualElement class="cc-field">
                             <ui:Label text="Salvos:" class="pg-label--dim cc-field-label" />
                             <ui:DropdownField name="preset-dropdown" class="pg-input cc-input" />
                             <ui:Button name="preset-load" text="Carregar" class="pg-button cc-load" />
                         </ui:VisualElement>
 
-                        <!-- Nome -->
                         <ui:VisualElement class="cc-field">
                             <ui:Label text="Nome:" class="pg-label--dim cc-field-label" />
                             <ui:TextField name="name-input" value="" class="pg-input cc-input" />
                         </ui:VisualElement>
 
-                        <!-- Aparência (sprite) -->
                         <ui:VisualElement class="cc-row">
                             <ui:Label text="Aparência:" class="pg-label--dim cc-row-label" />
                             <ui:Button name="sprite-prev" text="&lt;" class="pg-button cc-step" />
@@ -38,7 +33,6 @@
                             <ui:Button name="sprite-next" text="&gt;" class="pg-button cc-step" />
                         </ui:VisualElement>
 
-                        <!-- Arma -->
                         <ui:VisualElement class="cc-row">
                             <ui:Label text="Arma:" class="pg-label--dim cc-row-label" />
                             <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
@@ -46,7 +40,6 @@
                             <ui:Button name="weapon-next" text="&gt;" class="pg-button cc-step" />
                         </ui:VisualElement>
 
-                        <!-- 6 atributos (steppers) -->
                         <ui:VisualElement name="attrs" class="cc-attrs">
                             <ui:VisualElement class="cc-attr-row" name="attr-row-0">
                                 <ui:Label text="STR:" class="pg-label--dim cc-attr-label" />
@@ -92,13 +85,13 @@
 
                     </ui:VisualElement>
 
-                    <!-- Coluna direita: preview do sprite -->
                     <ui:VisualElement name="cc-side" class="cc-side">
                         <ui:Label text="Preview" class="cc-side-title" />
                         <ui:Image name="sprite-preview" class="cc-sprite-preview" />
                     </ui:VisualElement>
 
                 </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
 
     </ui:VisualElement>
