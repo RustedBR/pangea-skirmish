@@ -48,15 +48,25 @@ NETLIFY_AUTH_TOKEN="$(cat "$NETLIFY_TOKEN_FILE")"
 export NETLIFY_AUTH_TOKEN
 
 # 1) Substituir placeholders do index.html (o Unity NAO os substitui no template customizado)
+#    OBS: o template tem `var buildUrl = "Build"` e monta as URLs como
+#    `buildUrl + "/{{LOADING_URL}}"`. Entao {{LOADING_URL}} deve ser APENAS
+#    "WebGL.loader.js" (SEM prefixo Build/) — o prefixo vem do buildUrl.
+#    Se o index ja foi processado antes (ficou "Build/WebGL.loader.js"), os
+#    sed extras removem o prefixo duplicado para nao virar "Build/Build/...".
 echo ">> Aplicando placeholders no index.html..."
 sed -i \
-  -e 's|{{LOADING_URL}}|Build/WebGL.loader.js|g' \
-  -e 's|{{DATA_URL}}|Build/WebGL.data.br|g' \
-  -e 's|{{FRAMEWORK_URL}}|Build/WebGL.framework.js.br|g' \
-  -e 's|{{CODE_URL}}|Build/WebGL.wasm.br|g' \
+  -e 's|Build/Build/WebGL|Build/WebGL|g' \
+  -e 's|{{LOADING_URL}}|WebGL.loader.js|g' \
+  -e 's|{{DATA_URL}}|WebGL.data.br|g' \
+  -e 's|{{FRAMEWORK_URL}}|WebGL.framework.js.br|g' \
+  -e 's|{{CODE_URL}}|WebGL.wasm.br|g' \
   -e 's|{{COMPANY_NAME}}|Pangea|g' \
   -e 's|{{PRODUCT_NAME}}|Pangea Skirmish|g' \
   -e 's|{{PRODUCT_VERSION}}|1.0|g' \
+  -e 's|Build/WebGL\.loader\.js|WebGL.loader.js|g' \
+  -e 's|Build/WebGL\.data\.br|WebGL.data.br|g' \
+  -e 's|Build/WebGL\.framework\.js\.br|WebGL.framework.js.br|g' \
+  -e 's|Build/WebGL\.wasm\.br|WebGL.wasm.br|g' \
   "$BUILD_DIR/index.html"
 
 # Checagem: nenhum placeholder deve restar
