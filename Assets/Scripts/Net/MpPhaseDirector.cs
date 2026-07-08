@@ -85,6 +85,12 @@ namespace PangeaSkirmish
             // compartilhado — não precisa de canvas pai (o dimmer no UXML cobre a cena).
             // HideCharCreation (Destroy(go)) remove tudo, evitando vazamento p/ sandbox.
             _charCreationHUD = PangeaScreen.Spawn<CharCreationHUD>("CharCreationHUD");
+
+            // Garantir que fique acima de qualquer outra tela (RoomHUD, etc.) que use
+            // o mesmo PanelSettings compartilhado.
+            var doc = _charCreationHUD.GetComponent<UnityEngine.UIElements.UIDocument>();
+            if (doc != null) doc.sortingOrder = 1000;
+            Debug.Log("[MP] Criacao de personagem aberta (fase CharCreation).");
         }
 
         private void HideCharCreation()

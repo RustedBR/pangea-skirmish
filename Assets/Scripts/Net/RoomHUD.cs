@@ -207,6 +207,16 @@ namespace PangeaSkirmish
         {
             _phaseLabel.text = "Fase: " + phase.ToString();
 
+            // Durante a criacao de personagem esta tela (sala/lobby) deve sumir para
+            // que o CharCreationHUD (overlay do MpPhaseDirector) fique visivel e receba
+            // input. Sem isso, o RoomHUD ficava por cima e o menu de criacao nao abria.
+            if (phase == RoomPhase.CharCreation)
+            {
+                SetVisible(false);
+                return;
+            }
+            SetVisible(true);
+
             bool isHost = RuntimeMultiplayerSession.IsHost;
             bool isLobby = phase == RoomPhase.Lobby;
             if (_advanceBtn != null) _advanceBtn.SetEnabled(isHost && isLobby);
