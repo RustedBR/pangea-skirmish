@@ -47,12 +47,13 @@ namespace PangeaSkirmish
  private Label _reactionTimer, _reactionText;
         private VisualElement _seqBar, _seqContent;
         private VisualElement _promptPanel, _endPanel, _endWin;
-        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText;
+        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText;
         private Button _confirmButton, _moveButton, _attackUnitButton, _attackTileButton,
-                       _magicButton, _concentrateButton, _incrementButton, _aimButton,
+                       _magicButton, _concentrateButton, _incrementButton, _aimButton, _miraMagiaButton,
                        _undoButton, _clearButton, _powerStrikeButton, _quickStepButton,
                        _spellSelfButton, _spellUnitButton, _spellTileButton,
-                       _manaMinusButton, _manaPlusButton, _manaCastButton, _manaBackButton,
+                       _manaRangeMinusButton, _manaRangePlusButton, _manaPowerMinusButton, _manaPowerPlusButton,
+                       _manaCastButton, _manaBackButton,
                        _simButton, _naoButton, _endMenuButton;
         private VisualElement _mpWaitingOverlay;
         private Label  _mpWaitingText;
@@ -162,6 +163,8 @@ namespace PangeaSkirmish
             _endText          = r.Q<Label>("end-text");
             _manaValueText    = r.Q<Label>("mana-value");
             _manaPotencyText  = r.Q<Label>("mana-potency");
+            _manaRangeValueText = r.Q<Label>("mana-range-value");
+            _manaPowerValueText = r.Q<Label>("mana-power-value");
             _mpWaitingOverlay = r.Q<VisualElement>("mp-waiting");
             _mpWaitingText    = r.Q<Label>("mp-waiting-text");
             _reactionMenu     = r.Q<VisualElement>("reaction-menu");
@@ -178,13 +181,16 @@ namespace PangeaSkirmish
             _concentrateButton= r.Q<Button>("btn-concentrate");
             _incrementButton  = r.Q<Button>("btn-increment");
             _aimButton        = r.Q<Button>("btn-aim");
+            _miraMagiaButton  = r.Q<Button>("btn-mira-magia");
             _undoButton       = r.Q<Button>("btn-undo");
             _clearButton      = r.Q<Button>("btn-clear");
             _spellSelfButton  = r.Q<Button>("btn-spell-self");
             _spellUnitButton  = r.Q<Button>("btn-spell-unit");
             _spellTileButton  = r.Q<Button>("btn-spell-tile");
-            _manaMinusButton  = r.Q<Button>("mana-minus");
-            _manaPlusButton   = r.Q<Button>("mana-plus");
+            _manaRangeMinusButton = r.Q<Button>("mana-range-minus");
+            _manaRangePlusButton  = r.Q<Button>("mana-range-plus");
+            _manaPowerMinusButton = r.Q<Button>("mana-power-minus");
+            _manaPowerPlusButton  = r.Q<Button>("mana-power-plus");
             _manaCastButton   = r.Q<Button>("mana-cast");
             _manaBackButton   = r.Q<Button>("mana-back");
             _simButton        = r.Q<Button>("btn-sim");
@@ -353,26 +359,33 @@ namespace PangeaSkirmish
         public void BindConcentrate(Action a) { BindButton(_concentrateButton, a); }
         public void BindIncrement(Action a)   { BindButton(_incrementButton, a); }
         public void BindAim(Action a)         { BindButton(_aimButton, a); }
+        public void BindMiraMagia(Action a)   { BindButton(_miraMagiaButton, a); }
         public void BindUndo(Action a)        { BindButton(_undoButton, a); }
         public void BindClear(Action a)       { BindButton(_clearButton, a); }
         public void BindMagicElement(System.Action<SpellElement> a) { _magicElementClick = a; }
         public void BindSpellSelf(Action a) { BindButton(_spellSelfButton, a); }
         public void BindSpellUnit(Action a) { BindButton(_spellUnitButton, a); }
         public void BindSpellTile(Action a) { BindButton(_spellTileButton, a); }
-        public void BindManaMinus(Action a) { BindButton(_manaMinusButton, a); }
-        public void BindManaPlus(Action a)  { BindButton(_manaPlusButton, a); }
+        public void BindManaRangeMinus(Action a) { BindButton(_manaRangeMinusButton, a); }
+        public void BindManaRangePlus(Action a)  { BindButton(_manaRangePlusButton, a); }
+        public void BindManaPowerMinus(Action a) { BindButton(_manaPowerMinusButton, a); }
+        public void BindManaPowerPlus(Action a)  { BindButton(_manaPowerPlusButton, a); }
         public void BindManaCast(Action a)  { BindButton(_manaCastButton, a); }
         public void BindManaBack(Action a)  { BindButton(_manaBackButton, a); }
         public VisualElement SpellTypeMenuPanel => _spellTypeMenuPanel;
         public VisualElement ManaStepperPanel   => _manaStepperPanel;
         public VisualElement MagicMenuPanel => _magicMenuPanel;
 
-        public void SetManaPreview(int mana, int max, int potency, int range)
+        public void SetManaPreview(int manaRange, int manaPower, int max, int potency, int range)
         {
-            if (_manaValueText != null)   _manaValueText.text   = $"{mana} / {max} MP";
-            if (_manaPotencyText != null) _manaPotencyText.text = $"Alcance: {range}  •  Potência: {potency}";
-            if (_manaMinusButton != null) _manaMinusButton.SetEnabled(mana > 1);
-            if (_manaPlusButton != null)  _manaPlusButton.SetEnabled(mana < max);
+            if (_manaValueText != null)     _manaValueText.text     = $"{manaRange + manaPower} / {max} MP";
+            if (_manaRangeValueText != null) _manaRangeValueText.text = $"{manaRange}";
+            if (_manaPowerValueText != null) _manaPowerValueText.text = $"{manaPower}";
+            if (_manaPotencyText != null)    _manaPotencyText.text   = $"Alcance: {range}  •  Potência: {potency}  •  PA: {1 + manaPower}";
+            if (_manaRangeMinusButton != null) _manaRangeMinusButton.SetEnabled(manaRange > 0);
+            if (_manaRangePlusButton != null)  _manaRangePlusButton.SetEnabled(manaRange + manaPower < max);
+            if (_manaPowerMinusButton != null) _manaPowerMinusButton.SetEnabled(manaPower > 1);
+            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.SetEnabled(manaRange + manaPower < max);
         }
 
         private static readonly Dictionary<Button, Action> _btnHandlers = new Dictionary<Button, Action>();

@@ -70,12 +70,33 @@ namespace PangeaSkirmish
         public int reservedMana;
         public int rolledInitiative;
         public int plannedConcentrations;
+        public int plannedSpellBonusINT; // Mira Mágica (ação bônus de incremento): +INT na potência da magia
         public readonly List<PlannedSpell>   plannedSpells = new List<PlannedSpell>();
         public readonly List<StatusEffect>   statusEffects = new List<StatusEffect>();
 
         public int AvailableMana => currentMana - reservedMana;
 
         public Vector2Int FinalAnchor => hasPlannedBonus ? plannedBonusAnchor : plannedAnchor;
+
+        /// <summary>
+        /// Atributo efetivo = base + bônus de buffs ativos (AttrBuff).
+        /// Usado por magias (SpellBook.AttributePair) e pode ser estendido p/ ataque físico.
+        /// </summary>
+        public int EffectiveStat(Attr attr)
+        {
+            int baseVal;
+            switch (attr)
+            {
+                case Attr.STR: baseVal = Mathf.RoundToInt(stats.STR); break;
+                case Attr.VIT: baseVal = Mathf.RoundToInt(stats.VIT); break;
+                case Attr.DEX: baseVal = Mathf.RoundToInt(stats.DEX); break;
+                case Attr.AGI: baseVal = Mathf.RoundToInt(stats.AGI); break;
+                case Attr.INT: baseVal = Mathf.RoundToInt(stats.INT); break;
+                case Attr.WIS: baseVal = Mathf.RoundToInt(stats.WIS); break;
+                default: baseVal = 0; break;
+            }
+            return baseVal + StatusEffectSystem.AttrBonus(statusEffects, attr);
+        }
 
         public static event System.Action<Unit, int, bool> OnDamageTaken;
 
@@ -499,6 +520,15 @@ namespace PangeaSkirmish
             ApplySorting();
         }
 
+        /// <summary>Teleporte (magia Physical-Tile): move o caster para o tile alvo.</summary>
+        public void TeleportTo(Vector2Int cell)
+        {
+            anchor = cell;
+            plannedAnchor = cell;
+            plannedBonusAnchor = cell;
+            SnapToAnchor();
+        }
+
         private void ApplySorting()
         {
             int order = _grid.SortingFor(anchor, stats.Footprint);
@@ -740,8 +770,9 @@ namespace PangeaSkirmish
             int dmg = rawPotency;
             if (isPhysical)
             {
+                int strBuff = StatusEffectSystem.AttrBonus(statusEffects, Attr.STR);
                 dmg = Mathf.Max(Tuning.Get().spellMinDamage,
-                    rawPotency + StatusEffectSystem.ConsumeStrBuffOnHit(statusEffects) - stats.PhysicalDefense);
+                    rawPotency + strBuff - stats.PhysicalDefense);
             }
             else
             {
@@ -769,6 +800,7 @@ namespace PangeaSkirmish
             bonusDamageThisAttack = false;
             aimBonusThisAttack    = false;
             plannedConcentrations = 0;
+            plannedSpellBonusINT = 0;
             reservedMana = 0;
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;

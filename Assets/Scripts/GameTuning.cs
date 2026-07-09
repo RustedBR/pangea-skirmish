@@ -536,18 +536,6 @@ namespace PangeaSkirmish
         public int spellRangePerMana = 1;
         [Tooltip("Alcance base extra de conduíte (soma ao alcance baseado em mana).")]
         public int spellRangeBase = 0;
-        [Tooltip("Potência base do elemento Físico: multiplica par (DEX+STR).")]
-        public float physicalBasePotency = 1f;
-        [Tooltip("Potência base do elemento Mágico: multiplica par (INT+WIS).")]
-        public float magicBasePotency = 1f;
-        [Tooltip("Potência base do elemento Fogo: multiplica par (INT+VIT).")]
-        public float fireBasePotency = 1f;
-        [Tooltip("Potência base do elemento Água: multiplica par (VIT+INT).")]
-        public float waterBasePotency = 1f;
-        [Tooltip("Potência base do elemento Ar: multiplica par (AGI+INT).")]
-        public float airBasePotency = 1f;
-        [Tooltip("Potência base do elemento Terra: multiplica par (VIT+STR).")]
-        public float earthBasePotency = 1f;
         [Tooltip("Bônus multiplicativo de afinidade quando o elemento da magia coincide com a afinidade do conduíte. 0.25 = +25% de dano.")]
         public float conduitAffinityBonus = 0.25f;
         [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
@@ -760,20 +748,6 @@ namespace PangeaSkirmish
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]
         public float aooDamageMult        = 1.0f;
-
-        public float BasePotencyForElement(SpellElement e)
-        {
-            switch (e)
-            {
-                case SpellElement.Physical: return physicalBasePotency;
-                case SpellElement.Magic:    return magicBasePotency;
-                case SpellElement.Fire:     return fireBasePotency;
-                case SpellElement.Water:    return waterBasePotency;
-                case SpellElement.Air:      return airBasePotency;
-                case SpellElement.Earth:    return earthBasePotency;
-                default:                    return 1f;
-            }
-        }
     }
 
     /// <summary>

@@ -31,7 +31,8 @@ namespace PangeaSkirmish
         public uint targetUnitId;
         public int  targetTileX;
         public int  targetTileY;
-        public int  mana;
+        public int  manaRange;  // alcance/duração
+        public int  manaPower;   // potência/atributo
         public int  directionX;
         public int  directionY;
     }
@@ -113,7 +114,8 @@ namespace PangeaSkirmish
                     targetUnitId = sp.TargetUnit != null ? UnitRegistry.GetId(sp.TargetUnit) : 0u,
                     targetTileX  = sp.TargetTile.x,
                     targetTileY  = sp.TargetTile.y,
-                    mana         = sp.Mana,
+                    manaRange   = sp.ManaRange,
+                    manaPower   = sp.ManaPower,
                     directionX   = sp.Direction.x,
                     directionY   = sp.Direction.y,
                 });
@@ -174,7 +176,8 @@ namespace PangeaSkirmish
                     Target     = (SpellTargetKind)sw.targetKind,
                     TargetUnit = target,
                     TargetTile = new Vector2Int(sw.targetTileX, sw.targetTileY),
-                    Mana       = sw.mana,
+                    ManaRange = sw.manaRange,
+                    ManaPower  = sw.manaPower,
                     Direction  = new Vector2Int(sw.directionX, sw.directionY),
                 });
             }

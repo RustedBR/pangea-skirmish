@@ -312,7 +312,8 @@ namespace PangeaSkirmish
                     enemy.plannedSpells.Add(new PlannedSpell
                     {
                         Element = elem,
-                        Mana = selfMana,
+                        ManaRange = selfMana, // Self: range = duração em rounds
+                        ManaPower = 1,        // Self: power = atributo (mín 1)
                         Target = SpellTargetKind.Self,
                         TargetUnit = null,
                         TargetTile = Vector2Int.zero,
@@ -334,7 +335,7 @@ namespace PangeaSkirmish
                     if (g < bestGap) { bestGap = g; target = u; }
                 }
 
-                int range = SpellBook.SpellRange(enemy, manaGasto);
+                int range = SpellBook.SpellRange(enemy, 0); // alcance base (ManaRange=0 p/ AI)
                 if (target != null && bestGap <= range)
                 {
                     var dir = new Vector2Int(
@@ -343,7 +344,8 @@ namespace PangeaSkirmish
                     enemy.plannedSpells.Add(new PlannedSpell
                     {
                         Element = elem,
-                        Mana = manaGasto,
+                        ManaRange = 0,
+                        ManaPower = manaGasto,
                         Target = SpellTargetKind.Unit,
                         TargetUnit = target,
                         TargetTile = Vector2Int.zero,
@@ -364,7 +366,8 @@ namespace PangeaSkirmish
                     enemy.plannedSpells.Add(new PlannedSpell
                     {
                         Element = elem,
-                        Mana = manaGasto,
+                        ManaRange = 0,
+                        ManaPower = manaGasto,
                         Target = SpellTargetKind.Tile,
                         TargetUnit = null,
                         TargetTile = target != null ? target.anchor : enemy.anchor,
