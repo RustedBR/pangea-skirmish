@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="../Theme/PangeaTheme.uss" />
+    <ui:VisualElement name="root" class="pg-theme" style="flex-grow: 1; align-items: center; justify-content: center;">
+        <ui:VisualElement name="panel" class="pg-panel options__panel">
+            <ui:Label text="OPÇÕES" name="title" class="pg-title" />
+            <ui:VisualElement name="spacer" style="height: 16px;" />
+
+            <ui:Label text="Música" name="lbl-music" class="pg-label options__label" />
+            <ui:Slider name="opt-music" class="pg-slider options__slider" min-value="0" max-value="1" step="0.05" />
+
+            <ui:Label text="Efeitos (SFX)" name="lbl-sfx" class="pg-label options__label" />
+            <ui:Slider name="opt-sfx" class="pg-slider options__slider" min-value="0" max-value="1" step="0.05" />
+
+            <ui:Label text="Resolução" name="lbl-resolution" class="pg-label options__label" />
+            <ui:DropdownField name="opt-resolution" class="pg-dropdown options__dropdown" />
+
+            <ui:Toggle label="Tela Cheia (Fullscreen)" name="opt-fullscreen" class="pg-toggle options__toggle" />
+
+            <ui:VisualElement name="spacer2" style="height: 16px;" />
+            <ui:Button text="Voltar" name="opt-back" class="pg-button pg-button--primary options__btn" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

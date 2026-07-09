@@ -198,3 +198,48 @@
 
 /* utilitário */
 .pg-hidden { display: none; }
+
+/* ---- Slider (opções) ---------------------------------------------------- */
+.pg-slider {
+    width: 320px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+.pg-slider .unity-base-slider__tracker {
+    background-color: var(--pg-accent, rgb(106, 169, 255));
+}
+.pg-slider .unity-base-slider__dragger {
+    background-color: var(--pg-text, rgb(238, 242, 255));
+}
+
+/* ---- Dropdown (opções) ------------------------------------------------- */
+.pg-dropdown {
+    width: 320px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    background-color: rgba(0, 0, 0, 0.35);
+    color: var(--pg-text, rgb(238, 242, 255));
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    padding: 6px;
+}
+
+/* ---- Toggle (opções) --------------------------------------------------- */
+.pg-toggle {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    color: var(--pg-text, rgb(238, 242, 255));
+}
+.pg-toggle .unity-toggle__checkmark {
+    background-color: var(--pg-accent, rgb(106, 169, 255));
+}

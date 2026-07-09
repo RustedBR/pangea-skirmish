@@ -13,6 +13,7 @@ namespace PangeaSkirmish
     {
         private Font _font;
         private UI.MainMenuScreen _menuScreen;
+        private UI.OptionsScreen _optionsScreen;
         private GameObject _editorPanel;
         private GameObject _mapSelectPanel;
         private RoomHUD _roomHUD;
@@ -95,7 +96,18 @@ namespace PangeaSkirmish
             _menuScreen = UI.PangeaScreen.Spawn<UI.MainMenuScreen>("MainMenuScreen");
             _menuScreen.OnMultiplayer     = ShowMultiplayer;
             _menuScreen.OnCreateCharacter = ShowEditor;
+            _menuScreen.OnOptions         = ShowOptions;
             _menuScreen.OnQuit            = () => Application.Quit();
+
+            _optionsScreen = UI.PangeaScreen.Spawn<UI.OptionsScreen>("OptionsScreen");
+            _optionsScreen.OnBack = ShowMenu;
+            _optionsScreen.SetVisible(false);
+        }
+
+        private void ShowOptions()
+        {
+            _menuScreen.SetVisible(false);
+            _optionsScreen.SetVisible(true);
         }
 
         private void ShowMapSelect()

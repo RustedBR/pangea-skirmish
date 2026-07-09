@@ -15,6 +15,7 @@ namespace PangeaSkirmish.UI
 
         public Action OnMultiplayer;
         public Action OnCreateCharacter;
+        public Action OnOptions;
         public Action OnQuit;
 
         protected override void Bind()
@@ -24,6 +25,9 @@ namespace PangeaSkirmish.UI
 
             var cc = Root.Q<Button>("btn-create-char");
             if (cc != null) cc.clicked += () => OnCreateCharacter?.Invoke();
+
+            var opt = Root.Q<Button>("btn-options");
+            if (opt != null) opt.clicked += () => OnOptions?.Invoke();
 
             var quit = Root.Q<Button>("btn-quit");
             if (quit != null) quit.clicked += () => OnQuit?.Invoke();
