@@ -46,11 +46,10 @@ namespace PangeaSkirmish
         private static Color ThemeTextDim       => new Color(0.624f, 0.690f, 0.816f);         // pg-text-dim
         private static Color ThemeAccent        => new Color(0.416f, 0.663f, 1.0f);           // pg-accent (azul primário)
         private static Color ThemeGold          => Tuning.Get().uiTitleColor;                 // pg-gold
-        private static Color ThemeOk            => new Color(0.353f, 0.820f, 0.541f);         // pg-ok (verde)
         private static Color ThemeDanger        => new Color(1.0f, 0.353f, 0.353f);           // pg-danger (vermelho)
-        private static Color ThemeBack          => new Color(0.55f, 0.22f, 0.22f);            // vermelho "sair"
         private static Color ThemePanelBorder   => new Color(0.165f, 0.227f, 0.416f);         // pg-panel-border
-        private static Color ThemePanelHighlight => new Color(0.416f, 0.525f, 0.784f);        // pg-panel-highlight
+        private static Color ThemeButtonBg      => new Color(0.071f, 0.102f, 0.220f, 0.96f);  // pg-panel-bg-2 (botão normal)
+        private static Color ThemeConfirmText   => new Color(0.03f, 0.055f, 0.13f);            // texto escuro p/ botão primário
 
         private static readonly string[] AttrNames = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
 
@@ -198,8 +197,8 @@ namespace PangeaSkirmish
                 ThemeTextDim).text = "Personagens salvos";
 
             var btnNew = MakeBtn(listBg.transform, new Vector2(0.5f, 0.5f), new Vector2(0, 142), new Vector2(200, 28));
-            btnNew.GetComponent<Image>().color = ThemeOk;
-            MakeLabel(btnNew.transform, Vector2.zero, new Vector2(200, 28), 15, Color.white).text = "+ Novo";
+            btnNew.GetComponent<Image>().color = ThemeButtonBg;
+            MakeLabel(btnNew.transform, Vector2.zero, new Vector2(200, 28), 15, ThemeText).text = "+ Novo";
             btnNew.onClick.AddListener(NewPreset);
 
             // Scroll view for preset list
@@ -270,8 +269,8 @@ namespace PangeaSkirmish
                 ThemeGold);
             _classLabel.alignment = TextAnchor.MiddleLeft;
             var btnClass = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 80, top - 60), new Vector2(50, 32));
-            btnClass.GetComponent<Image>().color = ThemeAccent;
-            MakeLabel(btnClass.transform, Vector2.zero, new Vector2(50, 32), 16, Color.white).text = "→";
+            btnClass.GetComponent<Image>().color = ThemeButtonBg;
+            MakeLabel(btnClass.transform, Vector2.zero, new Vector2(50, 32), 16, ThemeText).text = "→";
             btnClass.onClick.AddListener(CycleClass);
 
             // Weapon row
@@ -281,8 +280,8 @@ namespace PangeaSkirmish
                 ThemeGold);
             _weaponLabel.alignment = TextAnchor.MiddleLeft;
             var btnWeap = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 80, top - 110), new Vector2(50, 32));
-            btnWeap.GetComponent<Image>().color = ThemeAccent;
-            MakeLabel(btnWeap.transform, Vector2.zero, new Vector2(50, 32), 16, Color.white).text = "→";
+            btnWeap.GetComponent<Image>().color = ThemeButtonBg;
+            MakeLabel(btnWeap.transform, Vector2.zero, new Vector2(50, 32), 16, ThemeText).text = "→";
             btnWeap.onClick.AddListener(CycleWeapon);
 
             // Attribute rows
@@ -298,13 +297,13 @@ namespace PangeaSkirmish
 
                 int idx = i;
                 var btnMinus = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 30, y), new Vector2(34, 32));
-                btnMinus.GetComponent<Image>().color = ThemeDanger;
-                MakeLabel(btnMinus.transform, Vector2.zero, new Vector2(34, 32), 20, Color.white).text = "−";
+                btnMinus.GetComponent<Image>().color = ThemeButtonBg;
+                MakeLabel(btnMinus.transform, Vector2.zero, new Vector2(34, 32), 20, ThemeText).text = "−";
                 btnMinus.onClick.AddListener(() => { AdjustAttr(idx, -1); });
 
                 var btnPlus = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 70, y), new Vector2(34, 32));
-                btnPlus.GetComponent<Image>().color = ThemeOk;
-                MakeLabel(btnPlus.transform, Vector2.zero, new Vector2(34, 32), 20, Color.white).text = "+";
+                btnPlus.GetComponent<Image>().color = ThemeButtonBg;
+                MakeLabel(btnPlus.transform, Vector2.zero, new Vector2(34, 32), 20, ThemeText).text = "+";
                 btnPlus.onClick.AddListener(() => { AdjustAttr(idx, +1); });
 
                 _valLabels[i] = MakeLabel(_editorPanel.transform, new Vector2(lx + 165, y), new Vector2(65, 36), 13,
@@ -344,13 +343,13 @@ namespace PangeaSkirmish
 
             // Save / Delete / Confirmar (ordem igual à referência foto 1)
             var btnSave = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 165, top - 470), new Vector2(140, 36));
-            btnSave.GetComponent<Image>().color = ThemeOk;
-            MakeLabel(btnSave.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Salvar";
+            btnSave.GetComponent<Image>().color = ThemeButtonBg;
+            MakeLabel(btnSave.transform, Vector2.zero, new Vector2(140, 36), 15, ThemeText).text = "Salvar";
             btnSave.onClick.AddListener(SavePreset);
 
             var btnDel = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 15, top - 470), new Vector2(140, 36));
-            btnDel.GetComponent<Image>().color = ThemeDanger;
-            MakeLabel(btnDel.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Deletar";
+            btnDel.GetComponent<Image>().color = ThemeButtonBg;
+            MakeLabel(btnDel.transform, Vector2.zero, new Vector2(140, 36), 15, ThemeDanger).text = "Deletar";
             btnDel.onClick.AddListener(() => {
                 if (_editing != null && !_isNewPreset)
                 {
@@ -362,13 +361,13 @@ namespace PangeaSkirmish
 
             var btnConfirm = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 135, top - 470), new Vector2(140, 36));
             btnConfirm.GetComponent<Image>().color = ThemeAccent;
-            MakeLabel(btnConfirm.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Confirmar";
+            MakeLabel(btnConfirm.transform, Vector2.zero, new Vector2(140, 36), 15, ThemeConfirmText).text = "Confirmar";
             btnConfirm.onClick.AddListener(ConfirmPreset);
 
             // Back
             var voltar = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0f), new Vector2(0, 35), new Vector2(120, 29));
-            voltar.GetComponent<Image>().color = ThemeBack;
-            MakeLabel(voltar.transform, Vector2.zero, new Vector2(120, 29), 13, Color.white).text = "← Voltar";
+            voltar.GetComponent<Image>().color = ThemeButtonBg;
+            MakeLabel(voltar.transform, Vector2.zero, new Vector2(120, 29), 13, ThemeDanger).text = "← Voltar";
             voltar.onClick.AddListener(ShowMenu);
         }
 
@@ -769,9 +768,9 @@ namespace PangeaSkirmish
 
             var btnDefault = MakeBtn(contentTransform, new Vector2(0.5f, 0.5f),
                 Vector2.zero, new Vector2(420, 48));
-            btnDefault.GetComponent<Image>().color = ThemeAccent;
+            btnDefault.GetComponent<Image>().color = ThemeButtonBg;
             MakeLabel(btnDefault.transform, Vector2.zero, new Vector2(420, 48), 24,
-                Color.white).text = "▶ Batalha Padrão";
+                ThemeText).text = "▶ Batalha Padrão";
             btnDefault.onClick.AddListener(() =>
             {
                 RuntimeMap.Selected = null;
@@ -793,9 +792,9 @@ namespace PangeaSkirmish
                 hlg.childForceExpandHeight = true;
 
                 var play = MakeBtn(row.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(250, 48));
-                play.GetComponent<Image>().color = ThemeAccent;
+                play.GetComponent<Image>().color = ThemeButtonBg;
                 play.gameObject.AddComponent<LayoutElement>().preferredWidth = 250;
-                MakeLabel(play.transform, Vector2.zero, new Vector2(240, 44), 22, Color.white).text = "▶ " + nameCopy;
+                MakeLabel(play.transform, Vector2.zero, new Vector2(240, 44), 22, ThemeText).text = "▶ " + nameCopy;
                 play.onClick.AddListener(() =>
                 {
                     RuntimeMap.Selected = MapStorage.Load(nameCopy);
@@ -803,9 +802,9 @@ namespace PangeaSkirmish
                 });
 
                 var edit = MakeBtn(row.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80, 48));
-                edit.GetComponent<Image>().color = ThemeOk;
+                edit.GetComponent<Image>().color = ThemeButtonBg;
                 edit.gameObject.AddComponent<LayoutElement>().preferredWidth = 80;
-                MakeLabel(edit.transform, Vector2.zero, new Vector2(76, 44), 18, Color.white).text = "Editar";
+                MakeLabel(edit.transform, Vector2.zero, new Vector2(76, 44), 18, ThemeText).text = "Editar";
                 edit.onClick.AddListener(() =>
                 {
                     RuntimeSandbox.MapToEdit = MapStorage.Load(nameCopy);
@@ -813,9 +812,9 @@ namespace PangeaSkirmish
                 });
 
                 var del = MakeBtn(row.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 48));
-                del.GetComponent<Image>().color = ThemeDanger;
+                del.GetComponent<Image>().color = ThemeButtonBg;
                 del.gameObject.AddComponent<LayoutElement>().preferredWidth = 70;
-                MakeLabel(del.transform, Vector2.zero, new Vector2(66, 44), 18, Color.white).text = "Apagar";
+                MakeLabel(del.transform, Vector2.zero, new Vector2(66, 44), 18, ThemeDanger).text = "Apagar";
                 del.onClick.AddListener(() =>
                 {
                     MapStorage.Delete(nameCopy);
@@ -825,9 +824,9 @@ namespace PangeaSkirmish
 
             var btnBack = MakeBtn(_mapSelectPanel.transform, new Vector2(0.5f, 0f),
                 new Vector2(0, 60), new Vector2(220, 55));
-            btnBack.GetComponent<Image>().color = ThemeBack;
+            btnBack.GetComponent<Image>().color = ThemeButtonBg;
             MakeLabel(btnBack.transform, Vector2.zero, new Vector2(220, 55), 24,
-                Color.white).text = "← Voltar";
+                ThemeDanger).text = "← Voltar";
             btnBack.onClick.AddListener(ShowMenu);
         }
 
@@ -847,9 +846,9 @@ namespace PangeaSkirmish
         {
             var btn = MakeBtn(parent, new Vector2(0.5f, 0.5f), pos, new Vector2(370, 65));
             var img = btn.GetComponent<Image>();
-            var baseColor = ThemeAccent;
+            var baseColor = ThemeButtonBg;
             UiSkin.ApplyButtonSkin(img, baseColor);
-            MakeLabel(btn.transform, Vector2.zero, new Vector2(370, 65), 28, Color.white).text = label;
+            MakeLabel(btn.transform, Vector2.zero, new Vector2(370, 65), 28, ThemeText).text = label;
             btn.onClick.AddListener(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); onClick?.Invoke(); });
         }
 
