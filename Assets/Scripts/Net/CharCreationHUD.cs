@@ -27,6 +27,8 @@ namespace PangeaSkirmish
         // ---- Modo local (sala loopback solo do menu principal) --------------
         // Em vez de enviar ao RoomManager, salva em CharacterStorage e volta ao menu.
         public bool LocalContentMode { get; set; } = false;
+        // Callback de "Voltar" (modo local): encerra a sala e retorna ao menu.
+        public Action OnBackToMenu { get; set; }
 
         // ---- UI references -------------------------------------------------
         private Label _budgetLbl;
@@ -132,6 +134,16 @@ namespace PangeaSkirmish
 
             // Confirmar
             _confirmBtn?.RegisterCallback<ClickEvent>(_ => OnConfirm());
+
+            // Voltar (só existe no modo local: encerra a sala e retorna ao menu)
+            var backBtn = r.Q<Button>("back-btn");
+            if (backBtn != null)
+            {
+                if (LocalContentMode)
+                    backBtn.RegisterCallback<ClickEvent>(_ => OnBackToMenu?.Invoke());
+                else
+                    backBtn.style.display = DisplayStyle.None; // MP: sem volta direta
+            }
 
             // Inicializar UI
             SyncSprite();

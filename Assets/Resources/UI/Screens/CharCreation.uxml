@@ -81,6 +81,7 @@
 
                         <ui:Label name="status-label" text="" class="cc-status" />
 
+                        <ui:Button name="back-btn" text="← Voltar" class="pg-button cc-confirm" />
                         <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
 
                     </ui:VisualElement>

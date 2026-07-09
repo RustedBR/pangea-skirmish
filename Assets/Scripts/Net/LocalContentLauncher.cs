@@ -54,10 +54,24 @@ namespace PangeaSkirmish
                 Instance = go.AddComponent<LocalContentLauncher>();
             }
 
-            SceneManager.sceneLoaded += Instance.OnSceneLoaded;
-            SceneManager.LoadScene("Sandbox");
-
-            Instance._pendingContent = content;
+            if (content == "char")
+            {
+                // Criar Personagem: NÃO carrega o Sandbox (evita o grid ao fundo).
+                // Abre o overlay CharCreationHUD por cima da cena atual (menu), com
+                // fundo opaco (cc-dimmer). O usuário confirma ou volta ao menu.
+                var hud = PangeaScreen.Spawn<CharCreationHUD>("CharCreationHUD");
+                var doc = hud.GetComponent<UnityEngine.UIElements.UIDocument>();
+                if (doc != null) doc.sortingOrder = 1000;
+                hud.LocalContentMode = true;
+                hud.OnBackToMenu = FinishAndReturnToMenu;
+            }
+            else
+            {
+                // Criar Mapa: carrega a cena Sandbox (só terreno).
+                SceneManager.sceneLoaded += Instance.OnSceneLoaded;
+                Instance._pendingContent = content;
+                SceneManager.LoadScene("Sandbox");
+            }
         }
 
         private string _pendingContent;
@@ -66,15 +80,6 @@ namespace PangeaSkirmish
         {
             if (scene.name != "Sandbox") return;
             SceneManager.sceneLoaded -= OnSceneLoaded;
-
-            if (_pendingContent == "char")
-            {
-                // Abre o overlay de criação de personagem em modo LOCAL.
-                var hud = PangeaScreen.Spawn<CharCreationHUD>("CharCreationHUD");
-                var doc = hud.GetComponent<UnityEngine.UIElements.UIDocument>();
-                if (doc != null) doc.sortingOrder = 1000;
-                hud.LocalContentMode = true;
-            }
             // "map": o SandboxController já entra em modo terreno sozinho (IsMultiplayer=true).
         }
 
