@@ -328,13 +328,13 @@ namespace PangeaSkirmish
                 new Color(0.65f, 0.78f, 0.92f));
             _previewText.alignment = TextAnchor.UpperCenter;
 
-            // Save / Delete
-            var btnSave = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 80, top - 470), new Vector2(140, 36));
+            // Save / Delete / Confirmar (ordem igual à referência foto 1)
+            var btnSave = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 165, top - 470), new Vector2(140, 36));
             btnSave.GetComponent<Image>().color = new Color(0.18f, 0.38f, 0.18f);
             MakeLabel(btnSave.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Salvar";
             btnSave.onClick.AddListener(SavePreset);
 
-            var btnDel = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 80, top - 470), new Vector2(140, 36));
+            var btnDel = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 15, top - 470), new Vector2(140, 36));
             btnDel.GetComponent<Image>().color = new Color(0.45f, 0.18f, 0.18f);
             MakeLabel(btnDel.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Deletar";
             btnDel.onClick.AddListener(() => {
@@ -345,6 +345,11 @@ namespace PangeaSkirmish
                     RebuildPresetList();
                 }
             });
+
+            var btnConfirm = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 135, top - 470), new Vector2(140, 36));
+            btnConfirm.GetComponent<Image>().color = new Color(0.25f, 0.42f, 0.65f);
+            MakeLabel(btnConfirm.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Confirmar";
+            btnConfirm.onClick.AddListener(ConfirmPreset);
 
             // Back
             var voltar = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0f), new Vector2(0, 35), new Vector2(120, 29));
@@ -372,12 +377,13 @@ namespace PangeaSkirmish
                 img.color = isActive ? BtnActive : BtnNormal;
 
                 string prefix = isActive ? "▶ " : "";
-                MakeLabel(row.transform, new Vector2(-38, 0), new Vector2(130, 24), 12,
-                    new Color(0.85f, 0.88f, 0.92f)).text = prefix + preset.presetName;
+                // Lobby (referência foto 1): classe em destaque à esquerda, nome menor à direita
                 var spriteDef = CharacterSpriteCatalog.GetByPath(preset.spritePath);
                 string spriteName = spriteDef != null ? spriteDef.displayName : "";
+                MakeLabel(row.transform, new Vector2(-38, 0), new Vector2(130, 24), 12,
+                    new Color(0.85f, 0.88f, 0.92f)).text = prefix + spriteName;
                 MakeLabel(row.transform, new Vector2(52, 0), new Vector2(50, 24), 10,
-                    new Color(0.55f, 0.55f, 0.60f)).text = spriteName;
+                    new Color(0.55f, 0.55f, 0.60f)).text = preset.presetName;
 
                 row.GetComponent<Button>().onClick.AddListener(() => {
                     RuntimeSelectedCharacter.Active = preset;
@@ -641,6 +647,14 @@ namespace PangeaSkirmish
             RebuildPresetList();
             SyncEditorToPreset();
             RefreshPreview();
+        }
+
+        // "Confirmar": salva e inicia a partida com este personagem (fluxo Play -> Criar)
+        private void ConfirmPreset()
+        {
+            SavePreset();
+            RuntimeSelectedCharacter.Active = _editing;
+            SceneManager.LoadScene("Battle");
         }
 
         // ---------------------------------------------------------------- MAP SELECT

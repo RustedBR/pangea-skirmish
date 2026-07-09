@@ -3,11 +3,10 @@
 // Exibido sobre a cena Sandbox após a fase MapEditing, sem trocar de cena.
 // Criado e destruído por MpPhaseDirector ao detectar fase CharCreation.
 //
-// Herda de PangeaScreen e carrega o layout de Resources/UI/Screens/CharCreation.uxml.
-// O layout espelha o editor de personagem do lobby (MainMenuManager): sidebar de
-// personagens salvos (Nome / Classe), preview central (sprite + arma + stats derivados)
-// e painel de customização (aparência/arma + steppers de atributo com texto de
-// efeito derivado). O envio ao servidor MP é disparado por "Salvar".
+// Migrado de UGUI → UI Toolkit: a classe herda de PangeaScreen e carrega
+// o layout de Resources/UI/Screens/CharCreation.uxml. A lógica de negócio (steppers
+// de atributo, budget, sprite/arma picker, submit) foi preservada; só a camada de
+// apresentação mudou. O nome da classe foi mantido para não quebrar MpPhaseDirector.
 
 using System;
 using System.Collections.Generic;
@@ -24,113 +23,35 @@ namespace PangeaSkirmish
         // ---- Estado em edição -----------------------------------------------
         private CharacterPreset _editing;
         private int _budget;
-        private bool _isNewPreset;
-        private string _origName;
 
-        // ---- UI references (sidebar) ---------------------------------------
-        private VisualElement _presetListContent;
-        private List<Button> _presetRows = new List<Button>();
-
-        // ---- UI references (preview + customização) -------------------------
+        // ---- UI references -------------------------------------------------
+        private Label _budgetLbl;
         private TextField _nameInput;
-        private Label _classLabel;
-        private Label _weaponLabel;
-        private Image _classSpriteImg;
-        private Image _weaponSpriteImg;
-        private Label _previewText;
-        private Label[] _attrLabels = new Label[6];
-        private Label[] _valLabels = new Label[6];
+        private Label _spriteLbl;
+        private Image _spritePreview;
+        private Label _weaponLbl;
+        private Label[] _attrValueLbls;
+        private Button _confirmBtn;
         private Label _statusLbl;
+        private DropdownField _presetDropdown;
+        private Button _presetLoadBtn;
+        private List<CharacterPreset> _savedPresets = new List<CharacterPreset>();
 
         // ---- Índices de navegação -------------------------------------------
         private int _spriteIdx;
         private int _weaponIdx;
+        private Sprite[] _spriteFramesCache; // cache do LoadAll do sprite atual
 
         private static readonly string[] AttrNames = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
 
         // =========================================================================
-        // Bind
+        // Bind — liga os elementos nomeados do UXML à lógica
         // =========================================================================
         protected override void Bind()
         {
             _budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
 
-            var r = Root;
-
-            _presetListContent = r.Q<VisualElement>("preset-list-content");
-            r.Q<Button>("preset-new")?.RegisterCallback<ClickEvent>(_ => NewPreset());
-
-            _nameInput  = r.Q<TextField>("name-input");
-            _classLabel = r.Q<Label>("class-label");
-            _weaponLabel = r.Q<Label>("weapon-label");
-            _classSpriteImg = r.Q<Image>("class-sprite");
-            _weaponSpriteImg = r.Q<Image>("weapon-sprite");
-            _previewText = r.Q<Label>("preview-text");
-            _statusLbl = r.Q<Label>("status-label");
-
-            if (_nameInput != null)
-                _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
-
-            r.Q<Button>("class-next")?.RegisterCallback<ClickEvent>(_ => { CycleClass(); });
-            r.Q<Button>("weapon-next")?.RegisterCallback<ClickEvent>(_ => { CycleWeapon(); });
-
-            for (int i = 0; i < 6; i++)
-            {
-                int idx = i;
-                r.Q<Button>($"attr-minus-{i}")?.RegisterCallback<ClickEvent>(_ => AdjustAttr(idx, -1));
-                r.Q<Button>($"attr-plus-{i}")?.RegisterCallback<ClickEvent>(_ => AdjustAttr(idx, +1));
-                _attrLabels[i] = r.Q<Label>($"attr-val-{i}");
-                _valLabels[i] = r.Q<Label>($"attr-effect-{i}");
-            }
-
-            r.Q<Button>("btn-back")?.RegisterCallback<ClickEvent>(_ => OnBack());
-            r.Q<Button>("btn-save")?.RegisterCallback<ClickEvent>(_ => SavePreset());
-            r.Q<Button>("btn-delete")?.RegisterCallback<ClickEvent>(_ => DeletePreset());
-            r.Q<Button>("confirm-btn")?.RegisterCallback<ClickEvent>(_ => OnConfirmMP());
-
-            if (RoomManager.Instance != null)
-                RoomManager.Instance.OnCharacterRejected += OnRejected;
-
-            RebuildPresetList();
-            NewPreset();
-        }
-
-        private void OnDestroy()
-        {
-            if (RoomManager.Instance != null)
-                RoomManager.Instance.OnCharacterRejected -= OnRejected;
-        }
-
-        // =========================================================================
-        // Sidebar — personagens salvos (Nome / Classe, igual ao lobby)
-        // =========================================================================
-        private void RebuildPresetList()
-        {
-            if (_presetListContent == null) return;
-            foreach (var row in _presetRows) row.RemoveFromHierarchy();
-            _presetRows.Clear();
-
-            var presets = CharacterStorage.LoadAll();
-            foreach (var p in presets)
-            {
-                var preset = p;
-                var row = new Button(() => LoadPreset(preset));
-                row.AddToClassList("cc-preset-row");
-                // Lobby (referência): classe em destaque + nome menor à direita
-                var spriteDef = CharacterSpriteCatalog.GetByPath(preset.spritePath);
-                row.text = spriteDef != null ? spriteDef.displayName : "";
-                var sub = new Label(preset.presetName);
-                sub.AddToClassList("cc-preset-sub");
-                row.Add(sub);
-                _presetListContent.Add(row);
-                _presetRows.Add(row);
-            }
-        }
-
-        private void NewPreset()
-        {
-            _isNewPreset = true;
-            _origName = "";
+            // Inicializar preset com valores mínimos
             _editing = new CharacterPreset
             {
                 presetName = RuntimeMultiplayerSession.PlayerName,
@@ -142,75 +63,114 @@ namespace PangeaSkirmish
                     DEX = CharacterConfig.AttrMin, AGI = CharacterConfig.AttrMin,
                     INT = CharacterConfig.AttrMin, WIS = CharacterConfig.AttrMin,
                     Footprint = 3,
+                    // AttackRange vem da arma (não 0 — senão a unidade nasce sem alcance)
                     AttackRange = WeaponCatalog.Get("Hatchet")?.range ?? 1
                 }
             };
-            SyncEditorToPreset();
-            RefreshPreview();
-        }
 
-        private void LoadPreset(CharacterPreset preset)
-        {
-            _isNewPreset = false;
-            _origName = preset.presetName;
-            _editing = new CharacterPreset
+            var r = Root;
+
+            _budgetLbl  = r.Q<Label>("budget-label");
+            _nameInput  = r.Q<TextField>("name-input");
+            _spriteLbl  = r.Q<Label>("sprite-label");
+            _spritePreview = r.Q<Image>("sprite-preview");
+            _weaponLbl  = r.Q<Label>("weapon-label");
+            _statusLbl  = r.Q<Label>("status-label");
+            _confirmBtn = r.Q<Button>("confirm-btn");
+            _presetDropdown = r.Q<DropdownField>("preset-dropdown");
+            _presetLoadBtn  = r.Q<Button>("preset-load");
+
+            if (_nameInput != null)
             {
-                presetName = preset.presetName,
-                spritePath = preset.spritePath,
-                weaponId   = preset.weaponId,
-                stats      = new UnitStatBlock
-                {
-                    STR = preset.stats.STR, VIT = preset.stats.VIT,
-                    DEX = preset.stats.DEX, AGI = preset.stats.AGI,
-                    INT = preset.stats.INT, WIS = preset.stats.WIS,
-                    Footprint = preset.stats.Footprint,
-                    AttackRange = preset.stats.AttackRange
-                }
-            };
-            SyncEditorToPreset();
-            RefreshPreview();
+                _nameInput.value = _editing.presetName;
+                _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
+            }
+
+            // Personagens salvos (carregar no MP)
+            PopulateSavedPresets();
+            _presetLoadBtn?.RegisterCallback<ClickEvent>(_ => LoadSelectedPreset());
+
+            // Sprite picker
+            r.Q<Button>("sprite-prev")?.RegisterCallback<ClickEvent>(_ =>
+            {
+                _spriteIdx = (_spriteIdx - 1 + CharacterSpriteCatalog.All.Length) % CharacterSpriteCatalog.All.Length;
+                SyncSprite();
+            });
+            r.Q<Button>("sprite-next")?.RegisterCallback<ClickEvent>(_ =>
+            {
+                _spriteIdx = (_spriteIdx + 1) % CharacterSpriteCatalog.All.Length;
+                SyncSprite();
+            });
+
+            // Arma picker
+            r.Q<Button>("weapon-prev")?.RegisterCallback<ClickEvent>(_ =>
+            {
+                var ws = WeaponCatalog.All();
+                _weaponIdx = (_weaponIdx - 1 + ws.Length) % ws.Length;
+                SyncWeapon();
+            });
+            r.Q<Button>("weapon-next")?.RegisterCallback<ClickEvent>(_ =>
+            {
+                var ws = WeaponCatalog.All();
+                _weaponIdx = (_weaponIdx + 1) % ws.Length;
+                SyncWeapon();
+            });
+
+            // Atributos (6 steppers)
+            _attrValueLbls = new Label[6];
+            for (int i = 0; i < 6; i++)
+            {
+                int idx = i;
+                r.Q<Button>($"attr-minus-{i}")?.RegisterCallback<ClickEvent>(_ => StepAttr(idx, -1));
+                r.Q<Button>($"attr-plus-{i}")?.RegisterCallback<ClickEvent>(_ => StepAttr(idx, +1));
+                _attrValueLbls[i] = r.Q<Label>($"attr-val-{i}");
+            }
+
+            // Confirmar
+            _confirmBtn?.RegisterCallback<ClickEvent>(_ => OnConfirm());
+
+            // Inicializar UI
+            SyncSprite();
+            SyncWeapon();
+            RefreshBudgetDisplay();
+            RefreshAttrDisplay();
+
+            // Escutar rejeição do servidor
+            if (RoomManager.Instance != null)
+                RoomManager.Instance.OnCharacterRejected += OnRejected;
+        }
+
+        private void OnDestroy()
+        {
+            if (RoomManager.Instance != null)
+                RoomManager.Instance.OnCharacterRejected -= OnRejected;
         }
 
         // =========================================================================
-        // Customização
+        // Lógica de atributos
         // =========================================================================
-        private void CycleClass()
+        private void StepAttr(int idx, float delta)
         {
-            var all = CharacterSpriteCatalog.All;
-            _spriteIdx = (_spriteIdx + 1) % all.Length;
-            _editing.spritePath = all[_spriteIdx].resourcePath;
-            SyncEditorToPreset();
-            RefreshPreview();
+            float[] vals = GetAttrArray();
+            float min = CharacterConfig.AttrMin;
+            float max = CharacterConfig.AttrMax;
+
+            float newVal = Mathf.Clamp(vals[idx] + delta, min, max);
+            float sumOthers = 0;
+            for (int i = 0; i < 6; i++) if (i != idx) sumOthers += vals[i];
+
+            // Não ultrapassar budget
+            if (sumOthers + newVal > _budget) return;
+
+            SetAttr(idx, newVal);
+            RefreshBudgetDisplay();
+            RefreshAttrDisplay();
         }
 
-        private void CycleWeapon()
-        {
-            var ws = WeaponCatalog.All();
-            _weaponIdx = (_weaponIdx + 1) % ws.Length;
-            _editing.weaponId = ws[_weaponIdx].id;
-            SyncEditorToPreset();
-            RefreshPreview();
-        }
-
-        private void AdjustAttr(int idx, int delta)
-        {
-            if (_editing == null) return;
-            float v = GetAttr(idx) + delta;
-            v = Mathf.Clamp(v, CharacterConfig.AttrMin, CharacterConfig.AttrMax);
-            SetAttr(idx, v);
-            SyncEditorToPreset();
-            RefreshPreview();
-        }
-
-        private float GetAttr(int idx)
+        private float[] GetAttrArray()
         {
             var s = _editing.stats;
-            return idx switch
-            {
-                0 => s.STR, 1 => s.VIT, 2 => s.DEX,
-                3 => s.AGI, 4 => s.INT, 5 => s.WIS,
-                _ => 0
-            };
+            return new[] { s.STR, s.VIT, s.DEX, s.AGI, s.INT, s.WIS };
         }
 
         private void SetAttr(int idx, float val)
@@ -227,165 +187,182 @@ namespace PangeaSkirmish
             }
         }
 
-        private void SyncEditorToPreset()
+        private int SumAttrs()
         {
-            if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
+            var s = _editing.stats;
+            return (int)(s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS);
+        }
 
-            var spriteDef = CharacterSpriteCatalog.GetByPath(_editing.spritePath);
-            if (_classLabel != null)
-                _classLabel.text = spriteDef != null ? spriteDef.displayName : "Guerreiro";
+        private void RefreshBudgetDisplay()
+        {
+            int used = SumAttrs();
+            // Exige gastar TODOS os pontos (design de "distribuir o budget")
+            bool ok = used == _budget;
+            if (_budgetLbl != null)
+            {
+                _budgetLbl.text = $"Pontos: {used}/{_budget}";
+                _budgetLbl.style.color = ok
+                    ? new StyleColor(new Color(0.35f, 0.82f, 0.54f))
+                    : new StyleColor(new Color(1f, 0.40f, 0.40f));
+            }
+            if (_confirmBtn != null) _confirmBtn.SetEnabled(ok);
+        }
 
-            var w = WeaponCatalog.Get(_editing.weaponId);
-            if (_weaponLabel != null)
-                _weaponLabel.text = w != null ? $"{w.displayName} ({w.damage}/{w.range})" : _editing.weaponId;
-
-            float[] vals = { _editing.stats.STR, _editing.stats.VIT, _editing.stats.DEX,
-                             _editing.stats.AGI, _editing.stats.INT, _editing.stats.WIS };
-            var d = _editing.stats.ToAttributeStats();
-            d.WeaponDamage = WeaponDamageForCurrent();
+        private void RefreshAttrDisplay()
+        {
+            var vals = GetAttrArray();
             for (int i = 0; i < 6; i++)
+                if (_attrValueLbls[i] != null) _attrValueLbls[i].text = ((int)vals[i]).ToString();
+        }
+
+        private void SyncSprite()
+        {
+            var all = CharacterSpriteCatalog.All;
+            if (_spriteIdx < 0 || _spriteIdx >= all.Length) _spriteIdx = 0;
+            _editing.spritePath = all[_spriteIdx].resourcePath;
+            if (_spriteLbl != null) _spriteLbl.text = all[_spriteIdx].displayName;
+
+            // Preview do sprite (frame walkingSE_0) — cacheia o LoadAll pra não reload a cada nav
+            if (_spritePreview != null)
             {
-                if (_attrLabels[i] != null) _attrLabels[i].text = vals[i].ToString("0.#");
-                if (_valLabels[i] != null) _valLabels[i].text = AttrDerivedLabel(i, d);
+                _spriteFramesCache = Resources.LoadAll<Sprite>(_editing.spritePath);
+                Sprite preview = null;
+                if (_spriteFramesCache != null && _spriteFramesCache.Length > 0)
+                {
+                    foreach (var s in _spriteFramesCache)
+                        if (s.name == "walkingSE_0") { preview = s; break; }
+                    if (preview == null) preview = _spriteFramesCache[0];
+                }
+                _spritePreview.image = SpriteToTexture(preview);
             }
         }
 
-        private int WeaponDamageForCurrent()
+        // =========================================================================
+        // Personagens salvos (carregar no MP)
+        // =========================================================================
+        private void PopulateSavedPresets()
         {
-            var w = WeaponCatalog.Get(_editing.weaponId);
-            if (w != null) return w.damage;
-            var t = RuntimeTuning.Active;
-            return t != null ? t.unarmedDamage : 1;
+            if (_presetDropdown == null) return;
+            _savedPresets = CharacterStorage.LoadAll();
+            var names = new List<string> { "(novo)" };
+            foreach (var p in _savedPresets) names.Add(p.presetName);
+            _presetDropdown.choices = names;
+            _presetDropdown.value = names[0];
+            _presetDropdown.index = 0;
         }
 
-        private string AttrDerivedLabel(int idx, AttributeStats d)
+        private void LoadSelectedPreset()
         {
-            return idx switch
+            if (_presetDropdown == null || _presetDropdown.index <= 0) return;
+            int i = _presetDropdown.index - 1;
+            if (i < 0 || i >= _savedPresets.Count) return;
+
+            var p = _savedPresets[i];
+            ApplyPreset(p);
+
+            if (_statusLbl != null) _statusLbl.text = $"Carregado: {p.presetName}";
+        }
+
+        /// <summary>Deep-copy de um preset para o estado em edição, atualizando a UI.</summary>
+        private void ApplyPreset(CharacterPreset p)
+        {
+            _editing = new CharacterPreset
             {
-                0 => $"dano {d.PhysicalDamage}",
-                1 => $"HP {d.MaxHP}  def {d.PhysicalDefense}",
-                2 => $"crit {Mathf.RoundToInt(d.CritChance * 100)}%  PAB {d.BonusActionPoints}",
-                3 => $"esq {Mathf.RoundToInt(d.DodgeChance * 100)}%  mov {d.MoveBudget}  PA {d.ActionPoints}",
-                4 => $"dano {d.MagicDamage}",
-                5 => $"mana {d.MaxMana}  res {d.MagicDefense}",
-                _ => ""
+                presetName = p.presetName,
+                spritePath = p.spritePath,
+                weaponId   = p.weaponId,
+                stats      = new UnitStatBlock
+                {
+                    STR = p.stats.STR, VIT = p.stats.VIT,
+                    DEX = p.stats.DEX, AGI = p.stats.AGI,
+                    INT = p.stats.INT, WIS = p.stats.WIS,
+                    Footprint = p.stats.Footprint,
+                    AttackRange = p.stats.AttackRange
+                }
             };
+
+            // Sincronizar índices de navegação (sprite/weapon) com o preset carregado
+            var spriteDef = CharacterSpriteCatalog.GetByPath(_editing.spritePath);
+            _spriteIdx = spriteDef != null ? System.Array.IndexOf(CharacterSpriteCatalog.All, spriteDef) : 0;
+            if (_spriteIdx < 0) _spriteIdx = 0;
+            var ws = WeaponCatalog.All();
+            _weaponIdx = 0;
+            for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
+
+            if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
+            SyncSprite();
+            SyncWeapon();
+            RefreshBudgetDisplay();
+            RefreshAttrDisplay();
+        }
+
+        private void SyncWeapon()
+        {
+            var ws = WeaponCatalog.All();
+            if (_weaponIdx < 0 || _weaponIdx >= ws.Length) _weaponIdx = 0;
+            var w = ws[_weaponIdx];
+            _editing.weaponId = w.id;
+            // AttackRange da unidade = range da arma (senão nasce sem alcance de ataque)
+            _editing.stats.AttackRange = w.range;
+            if (_weaponLbl != null)
+                _weaponLbl.text = $"{w.displayName} (d{w.damage}/r{w.range})";
         }
 
         // =========================================================================
-        // Preview (sprite + arma + stats derivados) — igual ao lobby
+        // Confirmar
         // =========================================================================
-        private void RefreshPreview()
-        {
-            if (_previewText == null) return;
-            var d = _editing.stats.ToAttributeStats();
-            d.WeaponDamage = WeaponDamageForCurrent();
-            _previewText.text = $"HP: {d.MaxHP}\n" +
-                                $"Mana: {d.MaxMana}\n" +
-                                $"Ataque: {d.PhysicalDamage}\n" +
-                                $"Mágico: {d.MagicDamage}\n" +
-                                $"Iniciativa: {d.Initiative}\n" +
-                                $"Movimento: {d.MoveBudget}\n" +
-                                $"PA: {d.ActionPoints}  PAB: {d.BonusActionPoints}\n" +
-                                $"Precisão: {Mathf.RoundToInt(d.HitChance * 100)}%\n" +
-                                $"Crítico: {Mathf.RoundToInt(d.CritChance * 100)}%\n" +
-                                $"Defesa: {d.PhysicalDefense}\n" +
-                                $"Resistência: {d.MagicDefense}";
-
-            // Sprite do personagem (frame walkingSE_0) — usa .sprite direto (UI Toolkit)
-            if (_classSpriteImg != null)
-            {
-                string path = !string.IsNullOrEmpty(_editing.spritePath)
-                    ? _editing.spritePath : CharacterSpriteCatalog.Default;
-                var all = Resources.LoadAll<Sprite>(path);
-                Sprite s = null;
-                if (all != null && all.Length > 0)
-                {
-                    foreach (var sp in all) if (sp.name == "walkingSE_0") { s = sp; break; }
-                    if (s == null) s = all[0];
-                }
-                _classSpriteImg.sprite = s;
-                _classSpriteImg.style.display = s != null ? DisplayStyle.Flex : DisplayStyle.None;
-            }
-
-            // Sprite da arma (primeiro frame attackSE) — igual ao lobby
-            if (_weaponSpriteImg != null && !string.IsNullOrEmpty(_editing.weaponId))
-            {
-                var w = WeaponCatalog.Get(_editing.weaponId);
-                Sprite ws = null;
-                if (w != null)
-                {
-                    var all = Resources.LoadAll<Sprite>($"Sprites/TinyTactics/Weapons/{_editing.weaponId}attackSE");
-                    if (all != null && all.Length > 0)
-                    {
-                        string firstKey = $"{_editing.weaponId}attackSE_0";
-                        foreach (var sp in all) if (sp.name == firstKey) { ws = sp; break; }
-                        if (ws == null) ws = all[0];
-                    }
-                }
-                _weaponSpriteImg.sprite = ws;
-                _weaponSpriteImg.style.display = ws != null ? DisplayStyle.Flex : DisplayStyle.None;
-            }
-        }
-
-        // =========================================================================
-        // Ações
-        // =========================================================================
-        private void OnBack()
-        {
-            if (_statusLbl != null) _statusLbl.text = "";
-        }
-
-        private void SavePreset()
-        {
-            if (_editing == null) return;
-            if (!_isNewPreset && !string.IsNullOrWhiteSpace(_origName) && _origName != _editing.presetName)
-                CharacterStorage.Delete(_origName);
-            CharacterStorage.Save(_editing);
-            _isNewPreset = false;
-            _origName = _editing.presetName;
-            RebuildPresetList();
-            if (_statusLbl != null) _statusLbl.text = $"Salvo: {_editing.presetName}";
-        }
-
-        private void DeletePreset()
-        {
-            if (_editing == null || _isNewPreset) return;
-            if (!string.IsNullOrEmpty(_origName))
-            {
-                CharacterStorage.Delete(_origName);
-                NewPreset();
-                RebuildPresetList();
-            }
-        }
-
-        // Envia o personagem ao servidor MP (chamado por "Salvar")
-        private void OnConfirmMP()
+        private void OnConfirm()
         {
             if (SumAttrs() != _budget) return;
             if (string.IsNullOrWhiteSpace(_editing.presetName))
                 _editing.presetName = RuntimeMultiplayerSession.PlayerName;
 
+            // Garante que o AttackRange reflete a arma escolhida no envio
             var w = WeaponCatalog.Get(_editing.weaponId);
             if (w != null) _editing.stats.AttackRange = w.range;
 
             string json = JsonUtility.ToJson(_editing);
             Debug.Log($"[MP] Personagem criado (enviando): {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId} range={_editing.stats.AttackRange}");
             RoomManager.Instance?.SubmitCharacterServerRpc(json);
+
+            // Salvar localmente para uso no GameBootstrap MP
             RuntimeMultiplayerSession.LocalCharacterPreset = _editing;
 
+            if (_confirmBtn != null) _confirmBtn.SetEnabled(false);
             if (_statusLbl != null) _statusLbl.text = "Aguardando confirmação...";
         }
 
         private void OnRejected(string reason)
         {
+            if (_confirmBtn != null) _confirmBtn.SetEnabled(true);
             if (_statusLbl != null) _statusLbl.text = $"Rejeitado: {reason}";
         }
 
-        private int SumAttrs()
+        // Recorta a região do sprite do atlas para uma Texture2D legível (WebGL-safe).
+        // Usa RenderTexture + ReadPixels para contornar atlas comprimido (ASTC/DXT5)
+        // que quebra o GetPixels direto em WebGL/mobile.
+        private static Texture2D SpriteToTexture(Sprite sprite)
         {
-            var s = _editing.stats;
-            return (int)(s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS);
+            if (sprite == null) return null;
+            int w = Mathf.RoundToInt(sprite.rect.width);
+            int h = Mathf.RoundToInt(sprite.rect.height);
+            if (w <= 0 || h <= 0) return null;
+
+            var src = sprite.texture;
+            // Cópia 1:1 do retângulo do sprite para um RT (formato RGBA32, sempre legível)
+            var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Linear);
+            var prevActive = RenderTexture.active;
+            Graphics.Blit(src, rt, new Vector2(1f, 1f), new Vector2(-sprite.rect.x, -sprite.rect.y));
+            RenderTexture.active = rt;
+
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+            tex.Apply();
+
+            RenderTexture.active = prevActive;
+            RenderTexture.ReleaseTemporary(rt);
+            return tex;
         }
     }
 }
