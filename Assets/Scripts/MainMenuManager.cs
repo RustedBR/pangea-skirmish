@@ -134,6 +134,7 @@ namespace PangeaSkirmish
         {
             StopWalkAnim();
             _menuScreen.SetVisible(true);
+            _optionsScreen?.SetVisible(false);
             _editorPanel.SetActive(false);
             _mapSelectPanel.SetActive(false);
             _roomHUD?.HideAll();
