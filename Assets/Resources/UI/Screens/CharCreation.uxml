@@ -17,7 +17,7 @@
 
                         <ui:VisualElement class="cc-field">
                             <ui:Label text="Salvos:" class="pg-label--dim cc-field-label" />
-                            <ui:DropdownField name="preset-dropdown" class="pg-input cc-input" />
+                            <ui:DropdownField name="preset-dropdown" class="pg-dropdown cc-input" />
                             <ui:Button name="preset-load" text="Carregar" class="pg-button cc-load" />
                         </ui:VisualElement>
 

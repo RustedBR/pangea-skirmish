@@ -3,7 +3,7 @@
 // Exibido sobre a cena Sandbox após a fase MapEditing, sem trocar de cena.
 // Criado e destruído por MpPhaseDirector ao detectar fase CharCreation.
 //
-// Migrado de UGUI → UI Toolkit: a classe agora herda de PangeaScreen e carrega
+// Migrado de UGUI → UI Toolkit: a classe herda de PangeaScreen e carrega
 // o layout de Resources/UI/Screens/CharCreation.uxml. A lógica de negócio (steppers
 // de atributo, budget, sprite/arma picker, submit) foi preservada; só a camada de
 // apresentação mudou. O nome da classe foi mantido para não quebrar MpPhaseDirector.
@@ -40,6 +40,7 @@ namespace PangeaSkirmish
         // ---- Índices de navegação -------------------------------------------
         private int _spriteIdx;
         private int _weaponIdx;
+        private Sprite[] _spriteFramesCache; // cache do LoadAll do sprite atual
 
         private static readonly string[] AttrNames = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
 
@@ -61,7 +62,9 @@ namespace PangeaSkirmish
                     STR = CharacterConfig.AttrMin, VIT = CharacterConfig.AttrMin,
                     DEX = CharacterConfig.AttrMin, AGI = CharacterConfig.AttrMin,
                     INT = CharacterConfig.AttrMin, WIS = CharacterConfig.AttrMin,
-                    Footprint = 3, AttackRange = 0
+                    Footprint = 3,
+                    // AttackRange vem da arma (não 0 — senão a unidade nasce sem alcance)
+                    AttackRange = WeaponCatalog.Get("Hatchet")?.range ?? 1
                 }
             };
 
@@ -182,7 +185,6 @@ namespace PangeaSkirmish
                 case 4: s.INT = val; break;
                 case 5: s.WIS = val; break;
             }
-            _editing.stats = s;
         }
 
         private int SumAttrs()
@@ -194,7 +196,8 @@ namespace PangeaSkirmish
         private void RefreshBudgetDisplay()
         {
             int used = SumAttrs();
-            bool ok = used <= _budget;
+            // Exige gastar TODOS os pontos (design de "distribuir o budget")
+            bool ok = used == _budget;
             if (_budgetLbl != null)
             {
                 _budgetLbl.text = $"Pontos: {used}/{_budget}";
@@ -219,16 +222,16 @@ namespace PangeaSkirmish
             _editing.spritePath = all[_spriteIdx].resourcePath;
             if (_spriteLbl != null) _spriteLbl.text = all[_spriteIdx].displayName;
 
-            // Preview do sprite (frame walkingSE_0) — igual ao MainMenuManager.RefreshPreview
+            // Preview do sprite (frame walkingSE_0) — cacheia o LoadAll pra não reload a cada nav
             if (_spritePreview != null)
             {
-                var frames = Resources.LoadAll<Sprite>(_editing.spritePath);
+                _spriteFramesCache = Resources.LoadAll<Sprite>(_editing.spritePath);
                 Sprite preview = null;
-                if (frames != null && frames.Length > 0)
+                if (_spriteFramesCache != null && _spriteFramesCache.Length > 0)
                 {
-                    foreach (var s in frames)
+                    foreach (var s in _spriteFramesCache)
                         if (s.name == "walkingSE_0") { preview = s; break; }
-                    if (preview == null) preview = frames[0];
+                    if (preview == null) preview = _spriteFramesCache[0];
                 }
                 _spritePreview.image = SpriteToTexture(preview);
             }
@@ -297,12 +300,12 @@ namespace PangeaSkirmish
         {
             var ws = WeaponCatalog.All();
             if (_weaponIdx < 0 || _weaponIdx >= ws.Length) _weaponIdx = 0;
-            _editing.weaponId = ws[_weaponIdx].id;
+            var w = ws[_weaponIdx];
+            _editing.weaponId = w.id;
+            // AttackRange da unidade = range da arma (senão nasce sem alcance de ataque)
+            _editing.stats.AttackRange = w.range;
             if (_weaponLbl != null)
-            {
-                var w = ws[_weaponIdx];
                 _weaponLbl.text = $"{w.displayName} (d{w.damage}/r{w.range})";
-            }
         }
 
         // =========================================================================
@@ -310,12 +313,16 @@ namespace PangeaSkirmish
         // =========================================================================
         private void OnConfirm()
         {
-            if (SumAttrs() > _budget) return;
+            if (SumAttrs() != _budget) return;
             if (string.IsNullOrWhiteSpace(_editing.presetName))
                 _editing.presetName = RuntimeMultiplayerSession.PlayerName;
 
+            // Garante que o AttackRange reflete a arma escolhida no envio
+            var w = WeaponCatalog.Get(_editing.weaponId);
+            if (w != null) _editing.stats.AttackRange = w.range;
+
             string json = JsonUtility.ToJson(_editing);
-            Debug.Log($"[MP] Personagem criado (enviando): {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId}");
+            Debug.Log($"[MP] Personagem criado (enviando): {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId} range={_editing.stats.AttackRange}");
             RoomManager.Instance?.SubmitCharacterServerRpc(json);
 
             // Salvar localmente para uso no GameBootstrap MP
@@ -331,22 +338,30 @@ namespace PangeaSkirmish
             if (_statusLbl != null) _statusLbl.text = $"Rejeitado: {reason}";
         }
 
-        // Recorta a região do sprite do atlas para uma Texture2D (UI Toolkit Image só aceita Texture)
+        // Recorta a região do sprite do atlas para uma Texture2D legível (WebGL-safe).
+        // Usa RenderTexture + ReadPixels para contornar atlas comprimido (ASTC/DXT5)
+        // que quebra o GetPixels direto em WebGL/mobile.
         private static Texture2D SpriteToTexture(Sprite sprite)
         {
             if (sprite == null) return null;
-            var src = sprite.texture;
             int w = Mathf.RoundToInt(sprite.rect.width);
             int h = Mathf.RoundToInt(sprite.rect.height);
             if (w <= 0 || h <= 0) return null;
-            var tex = new Texture2D(w, h, src.format, false);
-            tex.filterMode = src.filterMode;
-            var px = src.GetPixels(
-                Mathf.RoundToInt(sprite.rect.x),
-                Mathf.RoundToInt(sprite.rect.y),
-                w, h);
-            tex.SetPixels(px);
+
+            var src = sprite.texture;
+            // Cópia 1:1 do retângulo do sprite para um RT (formato RGBA32, sempre legível)
+            var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32,
+                RenderTextureReadWrite.Linear);
+            var prevActive = RenderTexture.active;
+            Graphics.Blit(src, rt, new Vector2(1f, 1f), new Vector2(-sprite.rect.x, -sprite.rect.y));
+            RenderTexture.active = rt;
+
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
             tex.Apply();
+
+            RenderTexture.active = prevActive;
+            RenderTexture.ReleaseTemporary(rt);
             return tex;
         }
     }
