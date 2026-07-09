@@ -580,8 +580,14 @@ namespace PangeaSkirmish
         // Reação (Ações Bônus rework) — escolha do jogador dono sincronizada via RPC
         // =========================================================================
         [ServerRpc(RequireOwnership = false)]
-        public void SubmitReactionServerRpc(uint reactorId, int kind)
+        public void SubmitReactionServerRpc(uint reactorId, int kind, ServerRpcParams rpcParams = default)
         {
+            var reactor = UnitRegistry.Get(reactorId);
+            // Autoridade: só o dono real (cliente que enviou o RPC) pode submeter a
+            // reação de sua unidade. Sem isto, um cliente não-dono poderia falsificar
+            // a escolha de outro e reagir a uma reação que não é sua.
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (reactor == null || reactor.ownerId != sender) return;
             ApplyReactionClientRpc(reactorId, kind);
         }
 

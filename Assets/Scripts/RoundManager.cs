@@ -1155,25 +1155,29 @@ namespace PangeaSkirmish
                 yield break;
             }
 
-            // Abre o menu de reação no HUD (lado direito, com timer)
-            _hud.ShowReactionMenu(reactor, options, Tuning.Get().reactionChoiceTime,
-                choice =>
-                {
-                    _pendingReactionChoice = choice;
-                    _reactionResolved = true;
-                    // Em MP, o dono manda a escolha pros outros clientes
-                    if (RuntimeMultiplayerSession.IsMultiplayer && isOwner)
-                    {
-                        submitted = true;
-                        LockstepBattleSync.Instance?.SubmitReactionServerRpc(
-                            UnitRegistry.GetId(reactor), (int)choice);
-                    }
-                });
-
-            // Se NÃO é o dono em MP, aguarda o RPC chegar (ApplyReactionRemote seta _reactionResolved).
-            // Mostra indicador "Aguardando {dono} decidir..." para o outro jogador saber quem está na decisão.
-            if (RuntimeMultiplayerSession.IsMultiplayer && !isOwner)
+            // SÓ o dono da unidade reatora abre o menu interativo. O outro cliente vê
+            // apenas o indicador "Aguardando {dono} decidir..." (sem botões clicáveis),
+            // evitando que qualquer jogador reaja a uma reação que não é sua.
+            if (isOwner)
             {
+                _hud.ShowReactionMenu(reactor, options, Tuning.Get().reactionChoiceTime,
+                    choice =>
+                    {
+                        _pendingReactionChoice = choice;
+                        _reactionResolved = true;
+                        // Em MP, o dono manda a escolha pros outros clientes
+                        if (RuntimeMultiplayerSession.IsMultiplayer)
+                        {
+                            submitted = true;
+                            LockstepBattleSync.Instance?.SubmitReactionServerRpc(
+                                UnitRegistry.GetId(reactor), (int)choice);
+                        }
+                    });
+            }
+            else if (RuntimeMultiplayerSession.IsMultiplayer)
+            {
+                // Não-dono: aguarda o RPC de decisão (ApplyReactionRemote seta _reactionResolved).
+                // Mostra indicador "Aguardando {dono} decidir..." para o outro jogador saber quem está na decisão.
                 string who = GetPlayerName(reactor.ownerId);
                 _hud.SetWaitingText($"Aguardando {who} decidir...");
                 _hud.ShowWaitingForPlacement();
