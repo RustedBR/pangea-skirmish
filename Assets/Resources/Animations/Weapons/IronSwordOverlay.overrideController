@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: IronSwordOverlay
+  m_Controller: {fileID: 9100000, guid: 78f976304ee66ea73bdca5a1ea13aee6, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 5a2462c35ad03b3d4bbbbdcd08632eb5, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 8192d59123657b824ad465bfe8ab1edd, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 7bc86dd40814a19618ca5bd2d545ca92, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 596b1feb64b93919e9ae06b9853a77a2, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 364c8df410dd1ae09850e7b3560a7f51, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: a7ac880aff1e23111a43961ad4246098, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: dd9e9029cdd99eb8fbf20667c3da90ba, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6766bcd0a4e7868dab7d7bb2816db9bc, type: 2}
