@@ -11,6 +11,13 @@
 
                 <ui:Label name="budget-label" text="Pontos: 0/30" class="cc-budget" />
 
+                <ui:VisualElement name="budget-stepper" class="cc-budget-stepper">
+                    <ui:Label text="Budget:" class="pg-label--dim cc-field-label" />
+                    <ui:Button name="budget-minus" text="-" class="pg-button cc-step" />
+                    <ui:Label name="budget-value" text="30" class="cc-step-value" />
+                    <ui:Button name="budget-plus" text="+" class="pg-button cc-step" />
+                </ui:VisualElement>
+
                 <ui:VisualElement name="cc-body" class="cc-body">
 
                     <ui:VisualElement name="cc-form" class="cc-form">

@@ -41,6 +41,7 @@ namespace PangeaSkirmish
         private Label _statusLbl;
         private DropdownField _presetDropdown;
         private Button _presetLoadBtn;
+        private VisualElement _budgetStepper;
         private List<CharacterPreset> _savedPresets = new List<CharacterPreset>();
 
         // ---- Índices de navegação -------------------------------------------
@@ -96,6 +97,14 @@ namespace PangeaSkirmish
             PopulateSavedPresets();
             _presetLoadBtn?.RegisterCallback<ClickEvent>(_ => LoadSelectedPreset());
 
+            // Seletor de budget (modo offline — em MP vem da sala)
+            _budgetStepper = r.Q<VisualElement>("budget-stepper");
+            if (_budgetStepper != null)
+            {
+                _budgetStepper.Q<Button>("budget-minus")?.RegisterCallback<ClickEvent>(_ => StepBudget(-1));
+                _budgetStepper.Q<Button>("budget-plus")?.RegisterCallback<ClickEvent>(_ => StepBudget(+1));
+            }
+
             // Sprite picker
             r.Q<Button>("sprite-prev")?.RegisterCallback<ClickEvent>(_ =>
             {
@@ -135,16 +144,6 @@ namespace PangeaSkirmish
             // Confirmar
             _confirmBtn?.RegisterCallback<ClickEvent>(_ => OnConfirm());
 
-            // Voltar (só existe no modo local: encerra a sala e retorna ao menu)
-            var backBtn = r.Q<Button>("back-btn");
-            if (backBtn != null)
-            {
-                if (LocalContentMode)
-                    backBtn.RegisterCallback<ClickEvent>(_ => OnBackToMenu?.Invoke());
-                else
-                    backBtn.style.display = DisplayStyle.None; // MP: sem volta direta
-            }
-
             // Inicializar UI
             SyncSprite();
             SyncWeapon();
@@ -156,6 +155,34 @@ namespace PangeaSkirmish
                 RoomManager.Instance.OnCharacterRejected += OnRejected;
         }
 
+        private void Start()
+        {
+            // O back-btn é configurado em Start() (não no Bind) porque o LocalContentMode
+            // é setado PELO CHAMADOR APÓS o Spawn (que dispara o Bind via OnEnable).
+            // No Bind, LocalContentMode ainda é false → esconderia o botão no modo offline.
+            var backBtn = Root.Q<Button>("back-btn");
+            if (backBtn != null)
+            {
+                if (LocalContentMode)
+                {
+                    backBtn.style.display = DisplayStyle.Flex;
+                    backBtn.RegisterCallback<ClickEvent>(_ => OnBackToMenu?.Invoke());
+                }
+                else
+                    backBtn.style.display = DisplayStyle.None; // MP: sem volta direta
+            }
+
+            // Seletor de budget (só no modo offline — em MP vem da sala)
+            if (LocalContentMode && _budgetStepper != null)
+            {
+                _budgetStepper.style.display = DisplayStyle.Flex;
+                var bv = _budgetStepper.Q<Label>("budget-value");
+                if (bv != null) bv.text = _budget.ToString();
+            }
+            else if (_budgetStepper != null)
+                _budgetStepper.style.display = DisplayStyle.None;
+        }
+
         private void OnDestroy()
         {
             if (RoomManager.Instance != null)
@@ -165,6 +192,19 @@ namespace PangeaSkirmish
         // =========================================================================
         // Lógica de atributos
         // =========================================================================
+        private void StepBudget(int delta)
+        {
+            if (!LocalContentMode) return;
+            // Limites razoáveis para o budget offline (nem 0 nem infinito)
+            int newBudget = Mathf.Clamp(_budget + delta * 5, 5, 100);
+            _budget = newBudget;
+            if (RuntimeMultiplayerSession.CurrentConfig != null)
+                RuntimeMultiplayerSession.CurrentConfig.attributeBudget = newBudget;
+            var bv2 = _budgetStepper?.Q<Label>("budget-value");
+            if (bv2 != null) bv2.text = _budget.ToString();
+            RefreshBudgetDisplay();
+        }
+
         private void StepAttr(int idx, float delta)
         {
             float[] vals = GetAttrArray();
@@ -260,13 +300,15 @@ namespace PangeaSkirmish
         private void PopulateSavedPresets()
         {
             if (_presetDropdown == null) return;
-            _savedPresets = CharacterStorage.LoadAll();
+            var all = CharacterStorage.LoadAll();
+            _savedPresets.Clear();
             var names = new List<string> { "(novo)" };
-            foreach (var p in _savedPresets)
+            foreach (var p in all)
             {
                 // Só mostra presets que cabem no budget da sala atual
                 int pts = (int)(p.stats.STR + p.stats.VIT + p.stats.DEX + p.stats.AGI + p.stats.INT + p.stats.WIS);
                 if (pts > _budget) continue;
+                _savedPresets.Add(p);
                 names.Add(p.presetName);
             }
             _presetDropdown.choices = names;
