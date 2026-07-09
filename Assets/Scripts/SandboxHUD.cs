@@ -539,6 +539,20 @@ namespace PangeaSkirmish
         /// Adapta a HUD para o modo MP: oculta fases Allies/Enemies e Save,
         /// exibe botão "Pronto" e label de espera.
         /// </summary>
+        /// <summary>
+        /// Modo criação LOCAL (sala loopback solo do menu principal): mantém o fluxo de
+        /// SALVAR (mapa vai para o disco via MapStorage) e o botão "Menu" (já existente na
+        /// top bar) encerra a sala e volta ao menu. Não esconde o painel de unidades nem o
+        /// salvar — é só-terreno com persistência local.
+        /// </summary>
+        public void SetLocalContentMode(bool local)
+        {
+            if (!local) return;
+            Debug.Log("[LocalContent] SandboxHUD.SetLocalContentMode — mantendo Salvar local + botão Menu.");
+            if (_phaseLabel != null) _phaseLabel.text = "Criar Mapa (Offline)";
+            // _saveBtn e _nextBtn/_prevBtn permanecem ativos (só terreno).
+        }
+
         public void SetMpMode(bool mp)
         {
             if (!mp) return;

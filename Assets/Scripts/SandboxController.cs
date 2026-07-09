@@ -135,7 +135,7 @@ namespace PangeaSkirmish
             if (TilePalette.Brushes.Length > 0) _brush = TilePalette.Brushes[0];
 
             // Em MP: pular fases Allies/Enemies (só terreno), registrar no CollabMapSync
-            if (RuntimeMultiplayerSession.IsMultiplayer)
+            if (RuntimeMultiplayerSession.IsMultiplayer && !RuntimeMultiplayerSession.IsLocalContentSession)
             {
                 Debug.Log($"[MP] Sandbox iniciado em modo COLABORATIVO (CollabMapSync={(CollabMapSync.Instance != null)})");
                 _phase = Phase.Terrain;
@@ -145,6 +145,14 @@ namespace PangeaSkirmish
                     Debug.LogWarning("[MP] CollabMapSync.Instance NULL no Sandbox — sincronizacao de tiles pode falhar");
                 // HUD MP: botão "Finalizar Mapa" em vez de salvar
                 _hud.SetMpMode(true);
+            }
+            else if (RuntimeMultiplayerSession.IsLocalContentSession)
+            {
+                // Sala loopback SOLO (criar mapa offline): mantém o fluxo de SALVAR local,
+                // mas adiciona um botão "Voltar ao Menu" que encerra a sala e retorna.
+                Debug.Log("[LocalContent] Sandbox iniciado em modo CRIAÇÃO LOCAL (só terreno, salvar local).");
+                _phase = Phase.Terrain;
+                _hud.SetLocalContentMode(true);
             }
             else Debug.Log("[MP] Sandbox iniciado em modo SINGLE-PLAYER (IsMultiplayer=false)");
 
@@ -971,7 +979,13 @@ namespace PangeaSkirmish
             _hud.ShowToast("Mapa salvo: " + _mapName);
         }
 
-        public void BackToMenu() => SceneManager.LoadScene("MainMenu");
+        public void BackToMenu()
+        {
+            if (RuntimeMultiplayerSession.IsLocalContentSession)
+                LocalContentLauncher.FinishAndReturnToMenu();
+            else
+                SceneManager.LoadScene("MainMenu");
+        }
 
         // ── MP: sinalizar que o jogador local está pronto ─────────────────────
         public void SetReadyMap()

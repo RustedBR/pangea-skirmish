@@ -24,6 +24,10 @@ namespace PangeaSkirmish
         private CharacterPreset _editing;
         private int _budget;
 
+        // ---- Modo local (sala loopback solo do menu principal) --------------
+        // Em vez de enviar ao RoomManager, salva em CharacterStorage e volta ao menu.
+        public bool LocalContentMode { get; set; } = false;
+
         // ---- UI references -------------------------------------------------
         private Label _budgetLbl;
         private TextField _nameInput;
@@ -323,6 +327,17 @@ namespace PangeaSkirmish
 
             string json = JsonUtility.ToJson(_editing);
             Debug.Log($"[MP] Personagem criado (enviando): {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId} range={_editing.stats.AttackRange}");
+
+            if (LocalContentMode)
+            {
+                // Modo local (offline, sala loopback solo): salva o preset no disco
+                // e fecha a sessão, voltando ao menu principal.
+                CharacterStorage.Save(_editing);
+                RuntimeMultiplayerSession.LocalCharacterPreset = _editing;
+                LocalContentLauncher.FinishAndReturnToMenu();
+                return;
+            }
+
             RoomManager.Instance?.SubmitCharacterServerRpc(json);
 
             // Salvar localmente para uso no GameBootstrap MP

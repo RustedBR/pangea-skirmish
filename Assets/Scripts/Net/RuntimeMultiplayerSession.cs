@@ -22,6 +22,15 @@ namespace PangeaSkirmish
         // ---- Estado de sessão ------------------------------------------------
         public static bool IsMultiplayer { get; set; } = false;
         public static bool IsHost { get; set; } = false;
+
+        /// <summary>
+        /// true quando estamos numa "sala" loopback SOLO criada pelo menu principal
+        /// para edição de conteúdo (criar mapa / criar personagem) OFFLINE.
+        /// Nesse modo o CharCreationHUD e o Sandbox salvam LOCALMENTE
+        /// (CharacterStorage / MapStorage) em vez de enviar ao RoomManager, e o
+        /// "voltar ao menu" faz shutdown do host loopback + Reset().
+        /// </summary>
+        public static bool IsLocalContentSession { get; set; } = false;
         public static ulong LocalClientId { get; set; } = 0;
         public static string JoinCode { get; set; } = string.Empty;
         public static string PlayerName { get; set; } = "Jogador";
@@ -52,6 +61,7 @@ namespace PangeaSkirmish
                 UnityEngine.Debug.Log($"[MP] RuntimeMultiplayerSession.Reset() chamado!\n{Environment.StackTrace}");
             IsMultiplayer = false;
             IsHost = false;
+            IsLocalContentSession = false;
             LocalClientId = 0;
             JoinCode = string.Empty;
             PlayerName = "Jogador";

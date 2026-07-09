@@ -105,10 +105,13 @@ namespace PangeaSkirmish
         {
             // Menu principal migrado para UI Toolkit (Resources/UI/Screens/MainMenu.uxml).
             // Jogo 100% multiplayer: os antigos botões single-player ("Começar o Jogo" e
-            // "Modo Sandbox") saíram do menu. As demais ações são reaproveitadas.
+            // "Modo Sandbox") saíram do menu. As ações "Criar Mapa" e "Criar Personagem"
+            // abrem uma sala loopback SOLO (LocalContentLauncher) que carrega a cena real
+            // de edição offline — fiel à experiência multiplayer.
             _menuScreen = UI.PangeaScreen.Spawn<UI.MainMenuScreen>("MainMenuScreen");
             _menuScreen.OnMultiplayer     = ShowMultiplayer;
-            _menuScreen.OnCreateCharacter = ShowEditor;
+            _menuScreen.OnCreateMap       = StartLocalMapEditor;
+            _menuScreen.OnCreateCharacter = StartLocalCharEditor;
             _menuScreen.OnOptions         = ShowOptions;
             _menuScreen.OnQuit            = () => Application.Quit();
 
@@ -130,12 +133,16 @@ namespace PangeaSkirmish
             _mapSelectPanel.SetActive(true);
         }
 
-        private void ShowEditor()
+        private void StartLocalMapEditor()
         {
             _menuScreen.SetVisible(false);
-            RebuildPresetList();
-            NewPreset();
-            _editorPanel.SetActive(true);
+            LocalContentLauncher.Launch("map");
+        }
+
+        private void StartLocalCharEditor()
+        {
+            _menuScreen.SetVisible(false);
+            LocalContentLauncher.Launch("char");
         }
 
         private void StopWalkAnim()
