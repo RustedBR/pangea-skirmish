@@ -43,6 +43,8 @@ namespace PangeaSkirmish
         private Label  _breadcrumbText;
         private VisualElement _mainMenuPanel, _actionsMenuPanel, _attackMenuPanel,
                               _magicMenuPanel, _spellTypeMenuPanel, _manaStepperPanel, _bonusMenuPanel;
+ private VisualElement _reactionMenu, _reactionButtons;
+ private Label _reactionTimer, _reactionText;
         private VisualElement _seqBar, _seqContent;
         private VisualElement _promptPanel, _endPanel, _endWin;
         private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText;
@@ -162,6 +164,10 @@ namespace PangeaSkirmish
             _manaPotencyText  = r.Q<Label>("mana-potency");
             _mpWaitingOverlay = r.Q<VisualElement>("mp-waiting");
             _mpWaitingText    = r.Q<Label>("mp-waiting-text");
+            _reactionMenu     = r.Q<VisualElement>("reaction-menu");
+            _reactionButtons  = r.Q<VisualElement>("reaction-buttons");
+            _reactionTimer    = r.Q<Label>("reaction-timer");
+            _reactionText     = r.Q<Label>("reaction-text");
 
             // Botões (via name)
             _confirmButton    = r.Q<Button>("btn-confirm");
@@ -222,6 +228,7 @@ namespace PangeaSkirmish
             _tooltipGo.style.display = DisplayStyle.None;
             _mpWaitingOverlay.style.display = DisplayStyle.None;
             SetInfoVisible(false);
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.None;
 
             // Tooltip no indicador de câmera
             r.Q<VisualElement>("camera-mode").RegisterCallback<PointerEnterEvent>(_ => ShowCameraTooltip());
@@ -669,8 +676,6 @@ namespace PangeaSkirmish
             _naoButton.clicked += hNao;
             _promptPanel.style.display = DisplayStyle.Flex;
         }
-        public void UpdateBonusTimer(float sec)
-            => _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         public void HidePrompt() => _promptPanel.style.display = DisplayStyle.None;
 
         // ── REAÇÕES (Ações Bônus rework) ──
@@ -678,19 +683,14 @@ namespace PangeaSkirmish
         public void ShowReactionMenu(Unit reactor, List<ReactionKind> options, float timer, System.Action<ReactionKind> onPick)
         {
             _reactionPick = onPick;
-            _promptText.text = $"⚡ {reactor.unitName} pode reagir!";
-            _bonusTimerText.text = timer.ToString("0.0") + "s";
+            if (_reactionText != null) _reactionText.text = $"⚡ {reactor.unitName} pode reagir!";
+            if (_reactionTimer != null) _reactionTimer.text = timer.ToString("0.0") + "s";
 
-            // Monta botões de reação dinamicamente no prompt panel
-            _simButton.style.display = DisplayStyle.None;
-            _naoButton.style.display = DisplayStyle.None;
-            _promptPanel.style.display = DisplayStyle.Flex;
-
-            // Usa o _bonusMenuPanel como container de botões de reação (limpa e repopula)
-            if (_bonusMenuPanel != null)
+            // Monta botões de reação dinamicamente no reaction-menu (fora do command-menu)
+            if (_reactionButtons != null)
             {
-                _bonusMenuPanel.Clear();
-                _bonusMenuPanel.style.display = DisplayStyle.Flex;
+                _reactionButtons.Clear();
+                _reactionButtons.style.display = DisplayStyle.Flex;
                 foreach (var opt in options)
                 {
                     var btn = new Button(() => _reactionPick?.Invoke(opt))
@@ -698,7 +698,7 @@ namespace PangeaSkirmish
                         text = ReactionLabel(opt)
                     };
                     btn.AddToClassList("pg-button");
-                    _bonusMenuPanel.Add(btn);
+                    _reactionButtons.Add(btn);
                 }
                 // Botão "Não reagir"
                 var skip = new Button(() => _reactionPick?.Invoke(ReactionKind.None))
@@ -707,18 +707,26 @@ namespace PangeaSkirmish
                 };
                 skip.AddToClassList("pg-button");
                 skip.style.backgroundColor = CorDisabled;
-                _bonusMenuPanel.Add(skip);
+                _reactionButtons.Add(skip);
             }
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.Flex;
+        }
+        public void UpdateBonusTimer(float sec)
+        {
+            if (_reactionMenu != null && _reactionMenu.style.display == DisplayStyle.Flex && _reactionTimer != null)
+                _reactionTimer.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
+            else
+                _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         }
         public void HideReactionMenu()
         {
             _reactionPick = null;
-            if (_bonusMenuPanel != null)
+            if (_reactionButtons != null)
             {
-                _bonusMenuPanel.Clear();
-                _bonusMenuPanel.style.display = DisplayStyle.None;
+                _reactionButtons.Clear();
+                _reactionButtons.style.display = DisplayStyle.None;
             }
-            _promptPanel.style.display = DisplayStyle.None;
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.None;
         }
         private static string ReactionLabel(ReactionKind k) => k switch
         {

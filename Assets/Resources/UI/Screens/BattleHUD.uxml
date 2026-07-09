@@ -112,6 +112,14 @@
       </ui:VisualElement>
     </ui:VisualElement>
 
+    <!-- REACTION MENU (Ações Bônus rework) — fora do command-menu p/ aparecer na fase de ação -->
+    <ui:VisualElement name="reaction-menu" class="bh-window bh-reaction">
+      <ui:Label name="reaction-title" text="REAGIR" class="bh-title" />
+      <ui:Label name="reaction-timer" text="" class="bh-bonus-timer" />
+      <ui:Label name="reaction-text" text="" class="bh-prompt-text" />
+      <ui:VisualElement name="reaction-buttons" class="bh-reaction-buttons" />
+    </ui:VisualElement>
+
     <!-- PROMPT DE BÔNUS -->
     <ui:VisualElement name="prompt-panel" class="bh-window bh-prompt">
       <ui:Label text="COMANDOS" class="bh-title" />

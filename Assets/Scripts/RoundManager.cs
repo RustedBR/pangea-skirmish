@@ -52,14 +52,13 @@ namespace PangeaSkirmish
 
         public RoundPhase Phase => _phase;
 
-        public void Setup(GridManager grid, PlanningController planner, BattleHUD hud, Canvas canvas,
+        public void Setup(GridManager grid, PlanningController planner, BattleHUD hud,
                           Camera cam, CameraController camCtrl, List<Unit> units, Unit playerUnit,
                           TileEffectManager tileFx = null)
         {
             _grid = grid;
             _planner = planner;
             _hud = hud;
-            _canvas = canvas;
             _cam = cam;
             _camCtrl = camCtrl;
             _units = units;
@@ -69,8 +68,11 @@ namespace PangeaSkirmish
             _camBaseCenter = _grid.CellToWorld(new Vector2Int(_grid.width / 2, _grid.height / 2));
             _planner.SetHUD(hud);
             _hud.BindConfirm(ConfirmPlan);
+            // Registro idempotente: evita handler duplicado se Setup rodar 2x
+            // (causaria rótulo de dano em duplicata no MP).
+            Unit.OnDamageTaken -= SpawnDamageLabel;
             Unit.OnDamageTaken += SpawnDamageLabel;
-            _screenFlash = ScreenFlash.Create(canvas);
+            _screenFlash = ScreenFlash.Create(hud.Document);
 
             // Indicador de modo câmera
             if (_camCtrl != null)

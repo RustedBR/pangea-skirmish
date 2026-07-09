@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using PangeaSkirmish.UI;
 
 namespace PangeaSkirmish
 {
@@ -214,7 +215,10 @@ namespace PangeaSkirmish
         private bool HandleZoom()
         {
             if (Mouse.current == null) return false;
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return false;
+            // Em UI Toolkit o EventSystem.IsPointerOverGameObject() dispara para qualquer
+            // Canvas UGUI (mesmo vazio do HUD), bloqueando o zoom no combate. Checamos o
+            // UIDocument real: só bloqueia se o ponteiro estiver sobre um botão clicável.
+            if (UIHelper.IsPointerOverClickableUI()) return false;
 
             float scroll = Mouse.current.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.01f)
