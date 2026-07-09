@@ -46,15 +46,15 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/{{LOADING_URL}}";
+      var loaderUrl = buildUrl + "/WebGL.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/{{DATA_URL}}",
-        frameworkUrl: buildUrl + "/{{FRAMEWORK_URL}}",
-        codeUrl: buildUrl + "/{{CODE_URL}}",
+        dataUrl: buildUrl + "/WebGL.data",
+        frameworkUrl: buildUrl + "/WebGL.framework.js",
+        codeUrl: buildUrl + "/WebGL.wasm",
         streamingAssetsUrl: "StreamingAssets",
-        companyName: "{{COMPANY_NAME}}",
-        productName: "{{PRODUCT_NAME}}",
+        companyName: "Pangea Skirmish",
+        productName: "Pangea Skirmish",
         productVersion: "1.0.1",
         showBanner: unityShowBanner,
       };
