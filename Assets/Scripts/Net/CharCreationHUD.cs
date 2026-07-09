@@ -249,7 +249,8 @@ namespace PangeaSkirmish
                         if (s.name == "walkingSE_0") { preview = s; break; }
                     if (preview == null) preview = _spriteFramesCache[0];
                 }
-                _spritePreview.image = SpriteToTexture(preview);
+                // Unity 6 UI Toolkit: Image usa style.backgroundImage (não .image, depreciado)
+                _spritePreview.style.backgroundImage = new StyleBackground(SpriteToTexture(preview));
             }
         }
 
@@ -261,7 +262,13 @@ namespace PangeaSkirmish
             if (_presetDropdown == null) return;
             _savedPresets = CharacterStorage.LoadAll();
             var names = new List<string> { "(novo)" };
-            foreach (var p in _savedPresets) names.Add(p.presetName);
+            foreach (var p in _savedPresets)
+            {
+                // Só mostra presets que cabem no budget da sala atual
+                int pts = (int)(p.stats.STR + p.stats.VIT + p.stats.DEX + p.stats.AGI + p.stats.INT + p.stats.WIS);
+                if (pts > _budget) continue;
+                names.Add(p.presetName);
+            }
             _presetDropdown.choices = names;
             _presetDropdown.value = names[0];
             _presetDropdown.index = 0;

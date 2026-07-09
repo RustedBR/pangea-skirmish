@@ -42,7 +42,7 @@ namespace PangeaSkirmish
 
         // ---- Estado ----------------------------------------------------------
         private int _gameMode = 0;       // 0=TDM, 1=FFA
-        private int _budgetValue = 30;
+        private int _budgetValue = 25;
         private float _planningValue = 15f;
         private bool _inRoom = false;
         private bool _boundRoom = false;

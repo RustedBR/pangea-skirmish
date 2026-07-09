@@ -65,6 +65,16 @@ namespace PangeaSkirmish
             Instance = this;
         }
 
+        private void Awake()
+        {
+            // Fallback para modo loopback solo (criação de conteúdo offline): o
+            // LockstepBattleSync não é spawnado pela rede (CheckAllPlaced só roda em MP
+            // real), mas a batalha pode iniciar localmente. Sem isto, o Instance fica
+            // null por 8s → timeout → plano perdido → jogo travado.
+            if (RuntimeMultiplayerSession.IsLocalContentSession && Instance == null)
+                Instance = this;
+        }
+
         public override void OnNetworkDespawn()
         {
             if (Instance == this) Instance = null;

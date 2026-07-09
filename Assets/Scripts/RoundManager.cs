@@ -74,6 +74,24 @@ namespace PangeaSkirmish
             Unit.OnDamageTaken += SpawnDamageLabel;
             _screenFlash = ScreenFlash.Create(hud.Document);
 
+            // Fallback loopback: em modo local (criação de conteúdo offline), o
+            // LockstepBattleSync não é spawnado pela rede (CheckAllPlaced só roda em MP
+            // real). Sem isto, Instance fica null → timeout 8s → plano perdido → trava.
+            // Criamos o prefab localmente (sem Spawn de rede) para o lockstep funcionar solo.
+            if (RuntimeMultiplayerSession.IsLocalContentSession && LockstepBattleSync.Instance == null)
+            {
+                var prefab = Resources.Load<GameObject>("Net/LockstepBattleSyncNet");
+                if (prefab != null)
+                {
+                    var go = Instantiate(prefab);
+                    DontDestroyOnLoad(go);
+                    var lbs = go.GetComponent<LockstepBattleSync>();
+                    if (lbs != null) lbs.Init(this, units);
+                    Debug.Log("[RoundManager] LockstepBattleSync criado localmente (fallback loopback).");
+                }
+                else Debug.LogError("[RoundManager] prefab Net/LockstepBattleSyncNet não encontrado para fallback loopback!");
+            }
+
             // Indicador de modo câmera
             if (_camCtrl != null)
             {
@@ -699,22 +717,38 @@ namespace PangeaSkirmish
             while (moving > 0) yield return null;
 
             // ── TRIGGER DE REAÇÃO: Contra-ataque (AoO) ──
-            // Inimigos que estavam em alcance melee de 'u' ANTES do movimento e ficaram
-            // FORA DEPOIS ganham a chance de reagir (se tiverem PAB>=2 e reação disponível).
+            // Nova regra (feedback do Marcus): o gatilho é MOVER DENTRO do alcance melee
+            // de um inimigo e sair (ou passar por ele) sem atacá-lo — não "já estava
+            // dentro e saiu". Dispara se a unidade 'u' passou por algum tile em alcance
+            // melee de 'e' durante o movimento e não tem ataque planejado contra 'e'.
             foreach (var (u, _, _) in toMove)
             {
                 if (u.IsDead) continue;
                 int ufp = u.stats.Footprint;
-                Vector2Int before = startAnchors[u];
-                Vector2Int after  = u.anchor;
+
+                // Todos os tiles por onde 'u' passou (path planejado + destino final)
+                var traversed = new List<Vector2Int>(u.plannedPath);
+                if (traversed.Count == 0 || traversed[traversed.Count - 1] != u.anchor)
+                    traversed.Add(u.anchor);
+
                 foreach (var e in _units)
                 {
                     if (e == u || e.IsDead || !e.IsHostileTo(u)) continue;
                     if (!e.CanReact()) continue;
-                    bool wasInReach = GridManager.FootprintGap(before, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
-                    bool nowOut      = GridManager.FootprintGap(after,  ufp, e.anchor, e.stats.Footprint) >  e.stats.AttackRange;
-                    if (wasInReach && nowOut)
+
+                    // 'u' vai atacar 'e' neste round? Se sim, não há AoO (já é o alvo).
+                    bool willAttackE = u.plannedAttacks.Exists(a => a.TargetUnit == e);
+                    if (willAttackE) continue;
+
+                    // Passou por dentro do alcance melee de 'e' em algum tile do trajeto?
+                    bool enteredReach = traversed.Exists(t =>
+                        GridManager.FootprintGap(t, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange);
+
+                    if (enteredReach)
+                    {
+                        _hud.LogAction($"<color=#6aa9ff>↯</color> {e.unitName}: oportunidade contra {u.unitName}!", e);
                         yield return WaitReaction(e, new List<ReactionKind> { ReactionKind.CounterAttack }, u);
+                    }
                 }
             }
 
