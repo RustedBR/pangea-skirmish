@@ -1,0 +1,92 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="../Theme/PangeaTheme.uss" />
+    <Style src="Sandbox.uss" />
+
+    <ui:VisualElement name="root" class="pg-theme sb-root">
+
+        <!-- ===== BARRA SUPERIOR ===== -->
+        <ui:VisualElement name="topbar" class="sb-topbar">
+            <ui:TextField name="map-name" value="Novo Mapa" class="pg-input sb-map-name" />
+            <ui:Button name="prev-btn" text="◀ Voltar" class="pg-button sb-topbtn" />
+            <ui:Button name="next-btn" text="Próxima ▶" class="pg-button sb-topbtn" />
+            <ui:Label name="phase-label" text="1. Terreno" class="sb-phase" />
+            <ui:Button name="save-btn" text="Salvar" class="pg-button sb-topbtn sb-save" />
+            <ui:Button name="menu-btn" text="Menu" class="pg-button sb-topbtn sb-menu" />
+        </ui:VisualElement>
+
+        <!-- ===== PAINEL ESQUERDO ===== -->
+        <ui:VisualElement name="left-panel" class="pg-panel sb-left">
+            <!-- Pincéis de terreno (fase Terreno) -->
+            <ui:VisualElement name="terrain-panel" class="sb-subpanel">
+                <ui:Label text="Pincéis de terreno" class="pg-label--dim sb-section-title" />
+                <ui:ScrollView name="brush-list" class="sb-scroll" />
+            </ui:VisualElement>
+            <!-- Sprites + presets (fases Aliados/Inimigos) -->
+            <ui:VisualElement name="units-panel" class="sb-subpanel sb-hidden">
+                <ui:Label text="Aparência / Personagem" class="pg-label--dim sb-section-title" />
+                <ui:ScrollView name="unit-list" class="sb-scroll" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- ===== PAINEL DIREITO (stats da unidade) ===== -->
+        <ui:VisualElement name="stats-panel" class="pg-panel sb-right sb-hidden">
+            <ui:TextField name="unit-name" value="Unidade" class="pg-input sb-unit-name" />
+            <ui:VisualElement class="sb-row">
+                <ui:Label text="Arma:" class="pg-label--dim sb-row-label" />
+                <ui:Label name="weapon-label" text="" class="sb-value sb-weapon-val" />
+                <ui:Button name="weapon-cycle" text="→" class="pg-button sb-step" />
+            </ui:VisualElement>
+            <ui:VisualElement name="attrs" class="sb-attrs">
+                <ui:VisualElement class="sb-attr-row" name="attr-row-0">
+                    <ui:Label text="STR:" class="pg-label--dim sb-attr-label" />
+                    <ui:Button name="attr-minus-0" text="-" class="pg-button sb-step sb-step--minus" />
+                    <ui:Label name="attr-val-0" text="0" class="sb-step-value" />
+                    <ui:Button name="attr-plus-0" text="+" class="pg-button sb-step sb-step--plus" />
+                </ui:VisualElement>
+                <ui:VisualElement class="sb-attr-row" name="attr-row-1">
+                    <ui:Label text="VIT:" class="pg-label--dim sb-attr-label" />
+                    <ui:Button name="attr-minus-1" text="-" class="pg-button sb-step sb-step--minus" />
+                    <ui:Label name="attr-val-1" text="0" class="sb-step-value" />
+                    <ui:Button name="attr-plus-1" text="+" class="pg-button sb-step sb-step--plus" />
+                </ui:VisualElement>
+                <ui:VisualElement class="sb-attr-row" name="attr-row-2">
+                    <ui:Label text="DEX:" class="pg-label--dim sb-attr-label" />
+                    <ui:Button name="attr-minus-2" text="-" class="pg-button sb-step sb-step--minus" />
+                    <ui:Label name="attr-val-2" text="0" class="sb-step-value" />
+                    <ui:Button name="attr-plus-2" text="+" class="pg-button sb-step sb-step--plus" />
+                </ui:VisualElement>
+                <ui:VisualElement class="sb-attr-row" name="attr-row-3">
+                    <ui:Label text="AGI:" class="pg-label--dim sb-attr-label" />
+                    <ui:Button name="attr-minus-3" text="-" class="pg-button sb-step sb-step--minus" />
+                    <ui:Label name="attr-val-3" text="0" class="sb-step-value" />
+                    <ui:Button name="attr-plus-3" text="+" class="pg-button sb-step sb-step--plus" />
+                </ui:VisualElement>
+                <ui:VisualElement class="sb-attr-row" name="attr-row-4">
+                    <ui:Label text="INT:" class="pg-label--dim sb-attr-label" />
+                    <ui:Button name="attr-minus-4" text="-" class="pg-button sb-step sb-step--minus" />
+                    <ui:Label name="attr-val-4" text="0" class="sb-step-value" />
+                    <ui:Button name="attr-plus-4" text="+" class="pg-button sb-step sb-step--plus" />
+                </ui:VisualElement>
+                <ui:VisualElement class="sb-attr-row" name="attr-row-5">
+                    <ui:Label text="WIS:" class="pg-label--dim sb-attr-label" />
+                    <ui:Button name="attr-minus-5" text="-" class="pg-button sb-step sb-step--minus" />
+                    <ui:Label name="attr-val-5" text="0" class="sb-step-value" />
+                    <ui:Button name="attr-plus-5" text="+" class="pg-button sb-step sb-step--plus" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label name="derived-label" text="" class="sb-derived" />
+            <ui:Button name="save-unit-btn" text="★ Salvar personagem" class="pg-button sb-save-unit" />
+            <ui:Button name="delete-unit-btn" text="Remover unidade" class="pg-button pg-button--danger sb-delete-unit" />
+        </ui:VisualElement>
+
+        <!-- ===== BOTÃO FINALIZAR MAPA (modo MP, rodapé) ===== -->
+        <ui:VisualElement name="mp-footer" class="sb-mp-footer sb-hidden">
+            <ui:Button name="ready-btn" text="Finalizar Mapa" class="pg-button sb-ready" />
+            <ui:Label name="mp-status" text="" class="sb-mp-status" />
+        </ui:VisualElement>
+
+        <!-- ===== TOAST (inferior-central) ===== -->
+        <ui:Label name="toast" text="" class="sb-toast" />
+
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,141 @@
+/* Layout do editor de mapas (Sandbox).
+   Cores/botões/inputs vêm de PangeaTheme.uss (.pg-*). Aqui só o layout específico. */
+
+.sb-root {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+
+/* ── Barra superior ── */
+.sb-topbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 80px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(5, 6, 8, 0.95);
+    padding-left: 20px;
+    padding-right: 20px;
+}
+.sb-map-name { width: 220px; margin-right: 320px; }
+.sb-topbtn { margin-left: 6px; margin-right: 6px; }
+.sb-phase {
+    color: var(--pg-gold, rgb(255, 204, 85));
+    font-size: 22px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    min-width: 200px;
+    margin-left: 24px;
+    margin-right: 24px;
+}
+.sb-save { background-color: rgba(18, 40, 20, 0.96); }
+.sb-menu { background-color: rgba(40, 16, 16, 0.96); }
+
+/* ── Painel esquerdo (pincéis / unidades) ── */
+.sb-left {
+    position: absolute;
+    left: 10px;
+    top: 90px;
+    width: 250px;
+    max-height: 600px;
+}
+.sb-subpanel { flex-direction: column; }
+.sb-section-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+    -unity-text-align: middle-left;
+}
+.sb-scroll {
+    height: 360px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+/* entrada de lista (pincel / sprite / preset) */
+.sb-entry {
+    flex-direction: row;
+    align-items: center;
+    height: 38px;
+    margin: 2px 4px;
+    padding-left: 6px;
+    background-color: var(--pg-panel-bg-2, rgba(18, 26, 56, 0.96));
+    border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px;
+    border-top-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-left-radius: 4px; border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;
+}
+.sb-entry:hover { background-color: var(--pg-accent, rgb(106, 169, 255)); }
+.sb-entry:hover .sb-entry-label { color: rgb(8, 14, 34); }
+.sb-entry--active { border-top-color: var(--pg-accent, rgb(106, 169, 255)); border-bottom-color: var(--pg-accent, rgb(106, 169, 255)); border-left-color: var(--pg-accent, rgb(106, 169, 255)); border-right-color: var(--pg-accent, rgb(106, 169, 255)); }
+.sb-entry-icon { width: 30px; height: 30px; margin-right: 8px; }
+.sb-entry-label {
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 16px;
+    -unity-text-align: middle-left;
+    flex-grow: 1;
+}
+
+/* ── Painel direito (stats) ── */
+.sb-right {
+    position: absolute;
+    right: 10px;
+    top: 90px;
+    width: 320px;
+    max-height: 640px;
+    flex-direction: column;
+}
+.sb-unit-name { width: 280px; margin-bottom: 10px; }
+.sb-row { flex-direction: row; align-items: center; margin-bottom: 8px; }
+.sb-row-label { width: 70px; }
+.sb-value { flex-grow: 1; font-size: 16px; color: var(--pg-gold, rgb(255, 204, 85)); }
+.sb-step { width: 36px; height: 32px; padding-left: 0; padding-right: 0; margin: 0; }
+.sb-step--minus { background-color: rgba(45, 18, 18, 0.96); }
+.sb-step--plus { background-color: rgba(18, 38, 18, 0.96); }
+.sb-attrs { flex-direction: column; margin-bottom: 10px; }
+.sb-attr-row { flex-direction: row; align-items: center; margin: 2px 0; }
+.sb-attr-label { width: 70px; }
+.sb-step-value { width: 50px; font-size: 18px; color: var(--pg-text, rgb(238, 242, 255)); -unity-text-align: middle-center; }
+.sb-derived {
+    font-size: 14px;
+    color: var(--pg-accent, rgb(106, 169, 255));
+    white-space: pre-wrap;
+    margin-bottom: 10px;
+}
+.sb-save-unit { background-color: rgba(20, 34, 50, 0.96); }
+.sb-delete-unit { margin-top: 4px; }
+
+/* ── Rodapé MP ── */
+.sb-mp-footer {
+    position: absolute;
+    bottom: 20px; left: 0; right: 0;
+    flex-direction: column;
+    align-items: center;
+}
+.sb-ready {
+    width: 280px; height: 58px;
+    background-color: rgba(18, 45, 22, 0.96);
+    font-size: 20px;
+}
+.sb-mp-status {
+    color: rgb(217, 217, 102);
+    font-size: 16px;
+    margin-top: 6px;
+    -unity-text-align: middle-center;
+}
+
+/* ── Toast ── */
+.sb-toast {
+    position: absolute;
+    bottom: 30px; left: 0; right: 0;
+    -unity-text-align: middle-center;
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 18px;
+    -unity-font-style: bold;
+}
