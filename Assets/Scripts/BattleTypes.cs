@@ -42,8 +42,8 @@ namespace PangeaSkirmish
 
         [Header("Precisão / Esquiva")]
         public float baseHitChance = 0.70f;
-        public float hitPerDEX    = 0.02f;
-        public float dodgePerAGI   = 0.01f;
+        public float hitPerDEX    = 0.03f;
+        public float dodgePerAGI   = 0.02f;
         public float critPerDEX    = 0.01f;
         public float critDamageMul = 1.5f;
         public float damageVariance = 0.15f;
