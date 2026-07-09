@@ -748,6 +748,19 @@ namespace PangeaSkirmish
         [Tooltip("Cor do realce interno (1px) da moldura de painel, logo depois do contorno.")]
         public Color windowFrameHighlightColor = new Color(0.55f, 0.68f, 0.92f);
 
+        // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
+        [Header("═══ REAÇÕES (Ações Bônus) ═══")]
+        [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP.")]
+        public float reactionChoiceTime   = 5f;
+        [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
+        public float dodgeReactionPerAGI  = 0.03f;
+        [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
+        public float blockReductionPerVIT = 0.03f;
+        [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
+        public float maxBlockReduction    = 0.60f;
+        [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]
+        public float aooDamageMult        = 1.0f;
+
         public float BasePotencyForElement(SpellElement e)
         {
             switch (e)

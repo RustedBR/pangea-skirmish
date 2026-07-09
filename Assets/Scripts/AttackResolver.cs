@@ -29,6 +29,55 @@ namespace PangeaSkirmish
             return best;
         }
 
+        /// <summary>
+        /// Contra-ataque (Attack of Opportunity): strike automático contra quem saiu do
+        /// alcance melee. Usa a mesma resolução de Unit attack (pode errar por dodge).
+        /// </summary>
+        public static string ResolveOpportunityStrike(Unit attacker, Unit target, IEnumerable<Unit> all)
+        {
+            if (target == null || target.IsDead || !attacker.IsHostileTo(target))
+                return null;
+            // Reusa a resolução de Unit attack (fallback:false = erra se fora de alcance,
+            // mas aqui o alvo JÁ está fora por definição do trigger — então força alcance).
+            int afp = attacker.stats.Footprint;
+            if (GridManager.FootprintGap(attacker.anchor, afp, target.anchor, target.stats.Footprint)
+                > attacker.stats.AttackRange)
+                return null; // segurança: já não estaria em alcance
+
+            bool bonus = ConsumeBonus(attacker);
+            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
+            int  dmg   = BaseDamage(attacker)
+                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
+                       + aimDmg;
+
+            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
+            if (res == HitResult.Miss)
+            {
+                ConsumeStrBuffOnHit(attacker);
+                string missTag = bonus ? " <color=#ffd700>+INCR</color>" : "";
+                return $"<color=#ff8800>⚔ AoO</color> {attacker.unitName} errou {target.unitName}{missTag}";
+            }
+
+            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
+            if (res == HitResult.Critical)
+                rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul * Tuning.Get().aooDamageMult);
+            else
+                rolled = Mathf.RoundToInt(rolled * Tuning.Get().aooDamageMult);
+            // Bloqueio (reação do alvo): reduz dano recebido
+            if (target.blockReduction > 0f)
+                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            target.TakeDamage(rolled, res == HitResult.Critical);
+            target.dodgeReactBonus = 0f; target.blockReduction = 0f; // reação é de 1 uso
+            ConsumeStrBuffOnHit(attacker);
+
+            string deathTag = "<color=#ff6666>MORTO</color>";
+            string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
+            string icon     = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
+            string tag      = (bonus || res == HitResult.Critical) ? " <color=#ffd700>+INCR</color>" : "";
+            string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
+            return $"<color=#ff8800>⚔ AoO</color> {icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}  ({hp})";
+        }
+
         /// <summary>Resolve um ataque planejado e devolve linha de log; null = sem alvo.</summary>
         public static string ResolveAttack(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all)
         {
@@ -70,7 +119,7 @@ namespace PangeaSkirmish
             int  dmg    = BaseDamage(attacker) + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0) + aimDmg;
 
             // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
-            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance);
+            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
             if (res == HitResult.Miss)
             {
                 ConsumeStrBuffOnHit(attacker);
@@ -80,6 +129,9 @@ namespace PangeaSkirmish
             int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
             if (res == HitResult.Critical)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
+            // Bloqueio (reação): reduz dano recebido
+            if (target.blockReduction > 0f)
+                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
             target.TakeDamage(rolled, res == HitResult.Critical);
             ConsumeStrBuffOnHit(attacker);
 
@@ -143,6 +195,9 @@ namespace PangeaSkirmish
             if (attacker.stats.RollCrit()) // critico ainda rola (independente de dodge)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             bool crit = attacker.stats.RollCritLast;
+            // Bloqueio (reação): reduz dano recebido (ataques de Tile também)
+            if (target.blockReduction > 0f)
+                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
             target.TakeDamage(rolled, crit);
             ConsumeStrBuffOnHit(attacker);
 

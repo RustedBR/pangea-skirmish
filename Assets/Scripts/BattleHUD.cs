@@ -673,6 +673,61 @@ namespace PangeaSkirmish
             => _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         public void HidePrompt() => _promptPanel.style.display = DisplayStyle.None;
 
+        // ── REAÇÕES (Ações Bônus rework) ──
+        private System.Action<ReactionKind> _reactionPick;
+        public void ShowReactionMenu(Unit reactor, List<ReactionKind> options, float timer, System.Action<ReactionKind> onPick)
+        {
+            _reactionPick = onPick;
+            _promptText.text = $"⚡ {reactor.unitName} pode reagir!";
+            _bonusTimerText.text = timer.ToString("0.0") + "s";
+
+            // Monta botões de reação dinamicamente no prompt panel
+            _simButton.style.display = DisplayStyle.None;
+            _naoButton.style.display = DisplayStyle.None;
+            _promptPanel.style.display = DisplayStyle.Flex;
+
+            // Usa o _bonusMenuPanel como container de botões de reação (limpa e repopula)
+            if (_bonusMenuPanel != null)
+            {
+                _bonusMenuPanel.Clear();
+                _bonusMenuPanel.style.display = DisplayStyle.Flex;
+                foreach (var opt in options)
+                {
+                    var btn = new Button(() => _reactionPick?.Invoke(opt))
+                    {
+                        text = ReactionLabel(opt)
+                    };
+                    btn.AddToClassList("pg-button");
+                    _bonusMenuPanel.Add(btn);
+                }
+                // Botão "Não reagir"
+                var skip = new Button(() => _reactionPick?.Invoke(ReactionKind.None))
+                {
+                    text = "Não reagir"
+                };
+                skip.AddToClassList("pg-button");
+                skip.style.backgroundColor = CorDisabled;
+                _bonusMenuPanel.Add(skip);
+            }
+        }
+        public void HideReactionMenu()
+        {
+            _reactionPick = null;
+            if (_bonusMenuPanel != null)
+            {
+                _bonusMenuPanel.Clear();
+                _bonusMenuPanel.style.display = DisplayStyle.None;
+            }
+            _promptPanel.style.display = DisplayStyle.None;
+        }
+        private static string ReactionLabel(ReactionKind k) => k switch
+        {
+            ReactionKind.CounterAttack => "⚔ Contra-ataque",
+            ReactionKind.Dodge         => "↯ Esquiva",
+            ReactionKind.Block         => "🛡 Bloqueio",
+            _ => "?"
+        };
+
         public void ShowEndScreen(string msg)
         {
             _endText.text = msg;

@@ -110,6 +110,8 @@ namespace PangeaSkirmish
         private IEnumerator StartRound()
         {
             _round++;
+            // Renova reações por round
+            foreach (var u in _units) if (!u.IsDead) u.ResetReactionsForRound();
             AudioManager.I?.Play(AudioManager.I.sfxRound);
             _hud.SetPhase($"Round {_round}");
             _hud.SetTimerVisible(false);
@@ -694,6 +696,26 @@ namespace PangeaSkirmish
             }
             while (moving > 0) yield return null;
 
+            // ── TRIGGER DE REAÇÃO: Contra-ataque (AoO) ──
+            // Inimigos que estavam em alcance melee de 'u' ANTES do movimento e ficaram
+            // FORA DEPOIS ganham a chance de reagir (se tiverem PAB>=2 e reação disponível).
+            foreach (var (u, _, _) in toMove)
+            {
+                if (u.IsDead) continue;
+                int ufp = u.stats.Footprint;
+                Vector2Int before = startAnchors[u];
+                Vector2Int after  = u.anchor;
+                foreach (var e in _units)
+                {
+                    if (e == u || e.IsDead || !e.IsHostileTo(u)) continue;
+                    if (!e.CanReact()) continue;
+                    bool wasInReach = GridManager.FootprintGap(before, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
+                    bool nowOut      = GridManager.FootprintGap(after,  ufp, e.anchor, e.stats.Footprint) >  e.stats.AttackRange;
+                    if (wasInReach && nowOut)
+                        yield return WaitReaction(e, new List<ReactionKind> { ReactionKind.CounterAttack }, u);
+                }
+            }
+
             // Tile effects: unidades atravessaram tiles (fogo, orbe, vento)
             foreach (var (u, _, _) in toMove)
                 if (!u.IsDead && startAnchors.TryGetValue(u, out var start) && _tileFx != null)
@@ -906,7 +928,15 @@ namespace PangeaSkirmish
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxCritical, aimPos);
 
                 // Ações que erram/falham continuam executando (logam o miss)
+                // ── TRIGGER DE REAÇÃO: Esquiva / Bloqueio (alvo sob ataque) ──
+                // Para Tile, o alvo real é descoberto dentro do resolver; reagimos só em Unit.
+                if (atk.Mode == AttackMode.Unit && attackTarget != null && attackTarget.CanReact())
+                    yield return WaitReaction(attackTarget,
+                        new List<ReactionKind> { ReactionKind.Dodge, ReactionKind.Block }, null);
+
                 string log = AttackResolver.ResolveAttack(u, atk, _units);
+                // Reação (Esquiva/Bloqueio) é de 1 uso: zera os bônus temporários após o ataque resolver
+                if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockReduction = 0f; }
                 // label auto-destroys via animation
                 if (log != null)
                 {
@@ -1056,6 +1086,145 @@ namespace PangeaSkirmish
         {
             yield return u.MoveToDestination(dest);
             onDone();
+        }
+
+        // ── REAÇÕES (Ações Bônus rework) ──
+        // Estado da reação em espera (preenchido por WaitReaction, consumido pelo HUD/RPC).
+        private ReactionKind _pendingReactionChoice = ReactionKind.None;
+        private bool _reactionResolved;
+
+        /// <summary>
+        /// Pausa a fase de ação e espera a DECISÃO do jogador (ou RPC em MP) sobre uma reação.
+        /// triggerTarget: unidade que causou o gatilho (ex.: quem se moveu, para AoO).
+        /// </summary>
+        private IEnumerator WaitReaction(Unit reactor, List<ReactionKind> options, Unit triggerTarget)
+        {
+            if (reactor == null || !reactor.CanReact() || options == null || options.Count == 0)
+                yield break;
+
+            _pendingReactionChoice = ReactionKind.None;
+            _reactionResolved = false;
+            bool submitted = false; // dono já enviou RPC (MP)
+
+            // Em MP, só o cliente DONO da unidade reatora abre o menu interativo.
+            // O outro cliente fica aguardando o RPC de decisão (aplica igual).
+            bool isOwner = !RuntimeMultiplayerSession.IsMultiplayer
+                || reactor.ownerId == RuntimeMultiplayerSession.LocalClientId;
+
+            // IA (inimigo em SP) decide automaticamente
+            if (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy)
+            {
+                var aiChoice = AutoPickReaction(reactor, options);
+                ApplyReaction(reactor, aiChoice, triggerTarget);
+                yield break;
+            }
+
+            // Abre o menu de reação no HUD (lado direito, com timer)
+            _hud.ShowReactionMenu(reactor, options, Tuning.Get().reactionChoiceTime,
+                choice =>
+                {
+                    _pendingReactionChoice = choice;
+                    _reactionResolved = true;
+                    // Em MP, o dono manda a escolha pros outros clientes
+                    if (RuntimeMultiplayerSession.IsMultiplayer && isOwner)
+                    {
+                        submitted = true;
+                        LockstepBattleSync.Instance?.SubmitReactionServerRpc(
+                            UnitRegistry.GetId(reactor), (int)choice);
+                    }
+                });
+
+            // Se NÃO é o dono em MP, aguarda o RPC chegar (ApplyReactionRemote seta _reactionResolved).
+            // Mostra indicador "Aguardando {dono} decidir..." para o outro jogador saber quem está na decisão.
+            if (RuntimeMultiplayerSession.IsMultiplayer && !isOwner)
+            {
+                string who = GetPlayerName(reactor.ownerId);
+                _hud.SetWaitingText($"Aguardando {who} decidir...");
+                _hud.ShowWaitingForPlacement();
+            }
+            float timer = Tuning.Get().reactionChoiceTime;
+            while (!_reactionResolved && timer > 0f)
+            {
+                timer -= Time.deltaTime;
+                _hud.UpdateBonusTimer(timer);
+                yield return null;
+            }
+
+            if (RuntimeMultiplayerSession.IsMultiplayer && !isOwner)
+                _hud.HideWaitingForPlacement();
+
+            _hud.HideReactionMenu();
+            _hud.UpdateBonusTimer(0f);
+
+            var final = _reactionResolved ? _pendingReactionChoice : ReactionKind.None;
+
+            // Se o dono em MP não clicou e o tempo esgotou, ainda assim avisa os outros (senão trava)
+            if (RuntimeMultiplayerSession.IsMultiplayer && isOwner && !submitted)
+                LockstepBattleSync.Instance?.SubmitReactionServerRpc(
+                    UnitRegistry.GetId(reactor), (int)ReactionKind.None);
+
+            // Em SP (ou dono em MP antes do echo), aplica localmente.
+            // Em MP non-dono, o RPC (ApplyReactionRemote) já aplicou — não re-aplica (guard em ApplyReaction).
+            if (!RuntimeMultiplayerSession.IsMultiplayer || isOwner)
+            {
+                if (final != ReactionKind.None)
+                    ApplyReaction(reactor, final, triggerTarget);
+                else
+                    _hud.LogAction($"<color=#888888>~</color> {reactor.unitName}: reação não usada", reactor);
+            }
+        }
+
+        /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>
+        private ReactionKind AutoPickReaction(Unit reactor, List<ReactionKind> options)
+        {
+            // AoO sempre prioritário se disponível
+            if (options.Contains(ReactionKind.CounterAttack)) return ReactionKind.CounterAttack;
+            // Esquiva se AGI > VIT, senão Bloqueio
+            if (options.Contains(ReactionKind.Dodge) && options.Contains(ReactionKind.Block))
+                return reactor.stats.AGI >= reactor.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
+            return options[0];
+        }
+
+        /// <summary>Aplica o efeito da reação escolhida e consome o recurso.</summary>
+        private void ApplyReaction(Unit reactor, ReactionKind kind, Unit triggerTarget)
+        {
+            if (kind == ReactionKind.None) return;
+            // Em MP o RPC pode chegar de volta ao dono (que já aplicou no clique) — ignora se já consumiu.
+            if (reactor.remainingReactions <= 0) return;
+            reactor.ConsumeReaction();
+
+            var T = Tuning.Get();
+            switch (kind)
+            {
+                case ReactionKind.CounterAttack:
+                    if (triggerTarget != null)
+                    {
+                        string log = AttackResolver.ResolveOpportunityStrike(reactor, triggerTarget, _units);
+                        if (log != null) { _hud.LogAction(log, reactor); _hud.RefreshUnitInfo(); }
+                    }
+                    break;
+                case ReactionKind.Dodge:
+                    reactor.dodgeReactBonus = Mathf.Clamp01(reactor.stats.AGI * T.dodgeReactionPerAGI);
+                    _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquiva! (+" +
+                        Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
+                    break;
+                case ReactionKind.Block:
+                    reactor.blockReduction = Mathf.Min(T.maxBlockReduction,
+                        reactor.stats.VIT * T.blockReductionPerVIT);
+                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (-" +
+                        Mathf.RoundToInt(reactor.blockReduction * 100) + "% dano)", reactor);
+                    break;
+            }
+        }
+
+        /// <summary>Chamado via RPC em MP pelo cliente remoto (aplica a escolha do dono).</summary>
+        public void ApplyReactionRemote(uint reactorId, int kind)
+        {
+            var reactor = UnitRegistry.Get(reactorId);
+            if (reactor == null) return;
+            _pendingReactionChoice = (ReactionKind)kind;
+            _reactionResolved = true;
+            ApplyReaction(reactor, (ReactionKind)kind, null);
         }
 
         /// <summary>

@@ -39,6 +39,22 @@ namespace PangeaSkirmish
         public int remainingAP;
         public int remainingBAP;
 
+        // ── Ações Bônus (rework): reações ──
+        /// <summary>Reações disponíveis neste round (1/round, renova em StartRound).</summary>
+        public int remainingReactions = 1;
+        /// <summary>Bônus de dodge temporário desta reação (somado ao DodgeChance no RollHit).</summary>
+        public float dodgeReactBonus;
+        /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
+        public float blockReduction;
+
+        public bool CanReact() => remainingBAP >= 2 && remainingReactions > 0;
+        public void ConsumeReaction()
+        {
+            remainingBAP      = Mathf.Max(0, remainingBAP - 2);
+            remainingReactions = Mathf.Max(0, remainingReactions - 1);
+        }
+        public void ResetReactionsForRound() => remainingReactions = 1;
+
         [Header("AI Parameters (per-unit override)")]
         [Range(0f, 1f)] public float aiAggression = 0.7f;
         [Range(0f, 1f)] public float aiAttackPreference = 0.5f;
@@ -756,6 +772,8 @@ namespace PangeaSkirmish
             reservedMana = 0;
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;
+            dodgeReactBonus = 0f;
+            blockReduction  = 0f;
         }
 
         public void RebuildSequenceFromLists()

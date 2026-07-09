@@ -565,6 +565,22 @@ namespace PangeaSkirmish
                 }
             }
         }
+
+        // =========================================================================
+        // Reação (Ações Bônus rework) — escolha do jogador dono sincronizada via RPC
+        // =========================================================================
+        [ServerRpc(RequireOwnership = false)]
+        public void SubmitReactionServerRpc(uint reactorId, int kind)
+        {
+            ApplyReactionClientRpc(reactorId, kind);
+        }
+
+        [ClientRpc]
+        private void ApplyReactionClientRpc(uint reactorId, int kind)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.ApplyReactionRemote(reactorId, kind);
+        }
     }
 
     // ---- DTOs de snapshot -------------------------------------------------------
