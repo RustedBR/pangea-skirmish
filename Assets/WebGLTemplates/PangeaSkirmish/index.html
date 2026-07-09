@@ -46,16 +46,16 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/{{LOADING_URL}}";
+      var loaderUrl = buildUrl + "/{{{LOADING_URL}}}";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/{{DATA_URL}}",
-        frameworkUrl: buildUrl + "/{{FRAMEWORK_URL}}",
-        codeUrl: buildUrl + "/{{CODE_URL}}",
+        dataUrl: buildUrl + "/{{{DATA_URL}}}",
+        frameworkUrl: buildUrl + "/{{{FRAMEWORK_URL}}}",
+        codeUrl: buildUrl + "/{{{CODE_URL}}}",
         streamingAssetsUrl: "StreamingAssets",
-        companyName: "{{COMPANY_NAME}}",
-        productName: "{{PRODUCT_NAME}}",
-        productVersion: "{{PRODUCT_VERSION}}",
+        companyName: "{{{COMPANY_NAME}}}",
+        productName: "{{{PRODUCT_NAME}}}",
+        productVersion: "{{{PRODUCT_VERSION}}}",
         showBanner: unityShowBanner,
       };
       // FREE ASPECT + resolucao nitida (devicePixelRatio=1) para web.
