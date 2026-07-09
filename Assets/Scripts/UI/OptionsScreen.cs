@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -27,7 +28,11 @@ namespace PangeaSkirmish.UI
 
             // Popula resoluções suportadas
             var resolutions = GetSupportedResolutions();
-            _resolutionDropdown?.Init(resolutions, resolutions.IndexOf(CurrentResolutionLabel()));
+            if (_resolutionDropdown != null)
+            {
+                _resolutionDropdown.choices = resolutions;
+                _resolutionDropdown.value = CurrentResolutionLabel();
+            }
 
             // Valores iniciais dos GameSettings
             if (_musicSlider != null)
@@ -52,7 +57,6 @@ namespace PangeaSkirmish.UI
 
             if (_resolutionDropdown != null)
             {
-                _resolutionDropdown.value = CurrentResolutionLabel();
                 _resolutionDropdown.RegisterValueChangedCallback(evt => ApplyResolution(evt.newValue));
             }
 
@@ -111,3 +115,4 @@ namespace PangeaSkirmish.UI
         }
     }
 }
+
