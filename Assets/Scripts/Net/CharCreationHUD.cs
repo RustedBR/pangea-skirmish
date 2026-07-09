@@ -5,9 +5,9 @@
 //
 // Herda de PangeaScreen e carrega o layout de Resources/UI/Screens/CharCreation.uxml.
 // O layout espelha o editor de personagem do lobby (MainMenuManager): sidebar de
-// personagens salvos, preview central (sprite + arma + stats derivados) e painel de
-// customização (aparência/arma + steppers de atributo com texto de efeito derivado),
-// botões Voltar / Salvar / Deletar.
+// personagens salvos (Nome / Classe), preview central (sprite + arma + stats derivados)
+// e painel de customização (aparência/arma + steppers de atributo com texto de
+// efeito derivado). O envio ao servidor MP é disparado por "Salvar".
 
 using System;
 using System.Collections.Generic;
@@ -71,11 +71,9 @@ namespace PangeaSkirmish
             if (_nameInput != null)
                 _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
 
-            // Aparência / Arma
             r.Q<Button>("class-next")?.RegisterCallback<ClickEvent>(_ => { CycleClass(); });
             r.Q<Button>("weapon-next")?.RegisterCallback<ClickEvent>(_ => { CycleWeapon(); });
 
-            // Atributos (6 steppers com texto de efeito)
             for (int i = 0; i < 6; i++)
             {
                 int idx = i;
@@ -85,17 +83,13 @@ namespace PangeaSkirmish
                 _valLabels[i] = r.Q<Label>($"attr-effect-{i}");
             }
 
-            // Ações
             r.Q<Button>("btn-back")?.RegisterCallback<ClickEvent>(_ => OnBack());
-            r.Q<Button>("btn-save")?.RegisterCallback<ClickEvent>(_ => SavePreset());
+            r.Q<Button>("btn-save")?.RegisterCallback<ClickEvent>(_ => { SavePreset(); OnConfirmMP(); });
             r.Q<Button>("btn-delete")?.RegisterCallback<ClickEvent>(_ => DeletePreset());
-            r.Q<Button>("confirm-btn")?.RegisterCallback<ClickEvent>(_ => { SavePreset(); OnConfirmMP(); });
 
-            // Escutar rejeição do servidor (submit MP)
             if (RoomManager.Instance != null)
                 RoomManager.Instance.OnCharacterRejected += OnRejected;
 
-            // Estado inicial
             RebuildPresetList();
             NewPreset();
         }
@@ -107,7 +101,7 @@ namespace PangeaSkirmish
         }
 
         // =========================================================================
-        // Sidebar — personagens salvos
+        // Sidebar — personagens salvos (Nome / Classe, igual ao lobby)
         // =========================================================================
         private void RebuildPresetList()
         {
@@ -121,6 +115,7 @@ namespace PangeaSkirmish
                 var preset = p;
                 var row = new Button(() => LoadPreset(preset));
                 row.AddToClassList("cc-preset-row");
+                // Lobby: nome em destaque + classe menor à direita
                 row.text = preset.presetName;
                 var spriteDef = CharacterSpriteCatalog.GetByPath(preset.spritePath);
                 var sub = new Label(spriteDef != null ? spriteDef.displayName : "");
@@ -231,7 +226,6 @@ namespace PangeaSkirmish
             }
         }
 
-        // Sincroniza labels da UI com o preset em edição (sem recalcular preview pesado)
         private void SyncEditorToPreset()
         {
             if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
@@ -297,7 +291,7 @@ namespace PangeaSkirmish
                                 $"Defesa: {d.PhysicalDefense}\n" +
                                 $"Resistência: {d.MagicDefense}";
 
-            // Sprite do personagem (frame walkingSE_0)
+            // Sprite do personagem (frame walkingSE_0) — usa .sprite direto (UI Toolkit)
             if (_classSpriteImg != null)
             {
                 string path = !string.IsNullOrEmpty(_editing.spritePath)
@@ -309,11 +303,11 @@ namespace PangeaSkirmish
                     foreach (var sp in all) if (sp.name == "walkingSE_0") { s = sp; break; }
                     if (s == null) s = all[0];
                 }
-                _classSpriteImg.image = SpriteToTexture(s);
+                _classSpriteImg.sprite = s;
                 _classSpriteImg.style.display = s != null ? DisplayStyle.Flex : DisplayStyle.None;
             }
 
-            // Sprite da arma (primeiro frame attackSE)
+            // Sprite da arma (primeiro frame attackSE) — igual ao lobby
             if (_weaponSpriteImg != null && !string.IsNullOrEmpty(_editing.weaponId))
             {
                 var w = WeaponCatalog.Get(_editing.weaponId);
@@ -328,7 +322,7 @@ namespace PangeaSkirmish
                         if (ws == null) ws = all[0];
                     }
                 }
-                _weaponSpriteImg.image = SpriteToTexture(ws);
+                _weaponSpriteImg.sprite = ws;
                 _weaponSpriteImg.style.display = ws != null ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
@@ -338,19 +332,14 @@ namespace PangeaSkirmish
         // =========================================================================
         private void OnBack()
         {
-            // Em MP não há menu anterior — apenas limpa status
             if (_statusLbl != null) _statusLbl.text = "";
         }
 
         private void SavePreset()
         {
             if (_editing == null) return;
-            if (_isNewPreset || string.IsNullOrWhiteSpace(_origName) || _origName != _editing.presetName)
-            {
-                // Novo ou renomeado: deleta o antigo se existir com outro nome
-                if (!_isNewPreset && !string.IsNullOrWhiteSpace(_origName) && _origName != _editing.presetName)
-                    CharacterStorage.Delete(_origName);
-            }
+            if (!_isNewPreset && !string.IsNullOrWhiteSpace(_origName) && _origName != _editing.presetName)
+                CharacterStorage.Delete(_origName);
             CharacterStorage.Save(_editing);
             _isNewPreset = false;
             _origName = _editing.presetName;
@@ -369,6 +358,7 @@ namespace PangeaSkirmish
             }
         }
 
+        // Envia o personagem ao servidor MP (chamado por "Salvar")
         private void OnConfirmMP()
         {
             if (SumAttrs() != _budget) return;
@@ -395,29 +385,6 @@ namespace PangeaSkirmish
         {
             var s = _editing.stats;
             return (int)(s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS);
-        }
-
-        // Recorta a região do sprite do atlas para uma Texture2D legível (WebGL-safe).
-        private static Texture2D SpriteToTexture(Sprite sprite)
-        {
-            if (sprite == null) return null;
-            int w = Mathf.RoundToInt(sprite.rect.width);
-            int h = Mathf.RoundToInt(sprite.rect.height);
-            if (w <= 0 || h <= 0) return null;
-
-            var src = sprite.texture;
-            var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
-            var prevActive = RenderTexture.active;
-            Graphics.Blit(src, rt, new Vector2(1f, 1f), new Vector2(-sprite.rect.x, -sprite.rect.y));
-            RenderTexture.active = rt;
-
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
-            tex.Apply();
-
-            RenderTexture.active = prevActive;
-            RenderTexture.ReleaseTemporary(rt);
-            return tex;
         }
     }
 }
