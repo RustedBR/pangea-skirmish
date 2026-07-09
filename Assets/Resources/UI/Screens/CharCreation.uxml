@@ -102,6 +102,7 @@
                             <ui:Button name="btn-back" text="← Voltar" class="pg-button cc-back" />
                             <ui:Button name="btn-save" text="Salvar" class="pg-button cc-save" />
                             <ui:Button name="btn-delete" text="Deletar" class="pg-button cc-delete" />
+                            <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
                         </ui:VisualElement>
 
                     </ui:VisualElement>

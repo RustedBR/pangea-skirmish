@@ -84,8 +84,9 @@ namespace PangeaSkirmish
             }
 
             r.Q<Button>("btn-back")?.RegisterCallback<ClickEvent>(_ => OnBack());
-            r.Q<Button>("btn-save")?.RegisterCallback<ClickEvent>(_ => { SavePreset(); OnConfirmMP(); });
+            r.Q<Button>("btn-save")?.RegisterCallback<ClickEvent>(_ => SavePreset());
             r.Q<Button>("btn-delete")?.RegisterCallback<ClickEvent>(_ => DeletePreset());
+            r.Q<Button>("confirm-btn")?.RegisterCallback<ClickEvent>(_ => OnConfirmMP());
 
             if (RoomManager.Instance != null)
                 RoomManager.Instance.OnCharacterRejected += OnRejected;
@@ -115,10 +116,10 @@ namespace PangeaSkirmish
                 var preset = p;
                 var row = new Button(() => LoadPreset(preset));
                 row.AddToClassList("cc-preset-row");
-                // Lobby: nome em destaque + classe menor à direita
-                row.text = preset.presetName;
+                // Lobby (referência): classe em destaque + nome menor à direita
                 var spriteDef = CharacterSpriteCatalog.GetByPath(preset.spritePath);
-                var sub = new Label(spriteDef != null ? spriteDef.displayName : "");
+                row.text = spriteDef != null ? spriteDef.displayName : "";
+                var sub = new Label(preset.presetName);
                 sub.AddToClassList("cc-preset-sub");
                 row.Add(sub);
                 _presetListContent.Add(row);
