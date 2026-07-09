@@ -9,17 +9,30 @@
 
                 <ui:Label text="Criar Personagem" class="pg-title cc-title" />
 
-                <ui:Label name="budget-label" text="Pontos: 0/30" class="cc-budget" />
-
                 <ui:VisualElement name="cc-body" class="cc-body">
 
+                    <!-- ===== Sidebar: Personagens salvos ===== -->
+                    <ui:VisualElement name="cc-sidebar" class="cc-sidebar">
+                        <ui:Label text="Personagens salvos" class="cc-sidebar-title" />
+                        <ui:Button name="preset-new" text="+ Novo" class="pg-button cc-new" />
+                        <ui:ScrollView name="preset-scroll" class="cc-scroll">
+                            <ui:VisualElement name="preset-list-content" class="cc-preset-list" />
+                        </ui:ScrollView>
+                    </ui:VisualElement>
+
+                    <!-- ===== Centro: preview (sprite + arma + stats) ===== -->
+                    <ui:VisualElement name="cc-center" class="cc-center">
+                        <ui:VisualElement name="cc-sprites" class="cc-sprites">
+                            <ui:Image name="class-sprite" class="cc-class-sprite" />
+                            <ui:Image name="weapon-sprite" class="cc-weapon-sprite" />
+                        </ui:VisualElement>
+                        <ui:Label name="preview-text" text="" class="cc-preview-text" />
+                    </ui:VisualElement>
+
+                    <!-- ===== Direita: customização ===== -->
                     <ui:VisualElement name="cc-form" class="cc-form">
 
-                        <ui:VisualElement class="cc-field">
-                            <ui:Label text="Salvos:" class="pg-label--dim cc-field-label" />
-                            <ui:DropdownField name="preset-dropdown" class="pg-dropdown cc-input" />
-                            <ui:Button name="preset-load" text="Carregar" class="pg-button cc-load" />
-                        </ui:VisualElement>
+                        <ui:Label text="Personagem" class="cc-form-title" />
 
                         <ui:VisualElement class="cc-field">
                             <ui:Label text="Nome:" class="pg-label--dim cc-field-label" />
@@ -28,68 +41,71 @@
 
                         <ui:VisualElement class="cc-row">
                             <ui:Label text="Aparência:" class="pg-label--dim cc-row-label" />
-                            <ui:Button name="sprite-prev" text="&lt;" class="pg-button cc-step" />
-                            <ui:Label name="sprite-label" text="Guerreiro" class="cc-value" />
-                            <ui:Button name="sprite-next" text="&gt;" class="pg-button cc-step" />
+                            <ui:Label name="class-label" text="Guerreiro" class="cc-gold" />
+                            <ui:Button name="class-next" text="→" class="pg-button cc-arrow" />
                         </ui:VisualElement>
 
                         <ui:VisualElement class="cc-row">
                             <ui:Label text="Arma:" class="pg-label--dim cc-row-label" />
-                            <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
-                            <ui:Label name="weapon-label" text="Machado (d4/r1)" class="cc-value cc-value--wide" />
-                            <ui:Button name="weapon-next" text="&gt;" class="pg-button cc-step" />
+                            <ui:Label name="weapon-label" text="Hatchet (4/1)" class="cc-gold" />
+                            <ui:Button name="weapon-next" text="→" class="pg-button cc-arrow" />
                         </ui:VisualElement>
 
                         <ui:VisualElement name="attrs" class="cc-attrs">
                             <ui:VisualElement class="cc-attr-row" name="attr-row-0">
                                 <ui:Label text="STR:" class="pg-label--dim cc-attr-label" />
-                                <ui:Button name="attr-minus-0" text="-" class="pg-button cc-step" />
-                                <ui:Label name="attr-val-0" text="0" class="cc-step-value" />
-                                <ui:Button name="attr-plus-0" text="+" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-0" text="1" class="cc-attr-val" />
+                                <ui:Button name="attr-minus-0" text="-" class="pg-button cc-minus" />
+                                <ui:Button name="attr-plus-0" text="+" class="pg-button cc-plus" />
+                                <ui:Label name="attr-effect-0" text="dano 6" class="cc-effect" />
                             </ui:VisualElement>
                             <ui:VisualElement class="cc-attr-row" name="attr-row-1">
                                 <ui:Label text="VIT:" class="pg-label--dim cc-attr-label" />
-                                <ui:Button name="attr-minus-1" text="-" class="pg-button cc-step" />
-                                <ui:Label name="attr-val-1" text="0" class="cc-step-value" />
-                                <ui:Button name="attr-plus-1" text="+" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-1" text="1" class="cc-attr-val" />
+                                <ui:Button name="attr-minus-1" text="-" class="pg-button cc-minus" />
+                                <ui:Button name="attr-plus-1" text="+" class="pg-button cc-plus" />
+                                <ui:Label name="attr-effect-1" text="HP 8 def 1" class="cc-effect" />
                             </ui:VisualElement>
                             <ui:VisualElement class="cc-attr-row" name="attr-row-2">
                                 <ui:Label text="DEX:" class="pg-label--dim cc-attr-label" />
-                                <ui:Button name="attr-minus-2" text="-" class="pg-button cc-step" />
-                                <ui:Label name="attr-val-2" text="0" class="cc-step-value" />
-                                <ui:Button name="attr-plus-2" text="+" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-2" text="1" class="cc-attr-val" />
+                                <ui:Button name="attr-minus-2" text="-" class="pg-button cc-minus" />
+                                <ui:Button name="attr-plus-2" text="+" class="pg-button cc-plus" />
+                                <ui:Label name="attr-effect-2" text="crit 2% PAB 1" class="cc-effect" />
                             </ui:VisualElement>
                             <ui:VisualElement class="cc-attr-row" name="attr-row-3">
                                 <ui:Label text="AGI:" class="pg-label--dim cc-attr-label" />
-                                <ui:Button name="attr-minus-3" text="-" class="pg-button cc-step" />
-                                <ui:Label name="attr-val-3" text="0" class="cc-step-value" />
-                                <ui:Button name="attr-plus-3" text="+" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-3" text="1" class="cc-attr-val" />
+                                <ui:Button name="attr-minus-3" text="-" class="pg-button cc-minus" />
+                                <ui:Button name="attr-plus-3" text="+" class="pg-button cc-plus" />
+                                <ui:Label name="attr-effect-3" text="esq 2% mov 4 PA 1" class="cc-effect" />
                             </ui:VisualElement>
                             <ui:VisualElement class="cc-attr-row" name="attr-row-4">
                                 <ui:Label text="INT:" class="pg-label--dim cc-attr-label" />
-                                <ui:Button name="attr-minus-4" text="-" class="pg-button cc-step" />
-                                <ui:Label name="attr-val-4" text="0" class="cc-step-value" />
-                                <ui:Button name="attr-plus-4" text="+" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-4" text="1" class="cc-attr-val" />
+                                <ui:Button name="attr-minus-4" text="-" class="pg-button cc-minus" />
+                                <ui:Button name="attr-plus-4" text="+" class="pg-button cc-plus" />
+                                <ui:Label name="attr-effect-4" text="dano 2" class="cc-effect" />
                             </ui:VisualElement>
                             <ui:VisualElement class="cc-attr-row" name="attr-row-5">
                                 <ui:Label text="WIS:" class="pg-label--dim cc-attr-label" />
-                                <ui:Button name="attr-minus-5" text="-" class="pg-button cc-step" />
-                                <ui:Label name="attr-val-5" text="0" class="cc-step-value" />
-                                <ui:Button name="attr-plus-5" text="+" class="pg-button cc-step" />
+                                <ui:Label name="attr-val-5" text="1" class="cc-attr-val" />
+                                <ui:Button name="attr-minus-5" text="-" class="pg-button cc-minus" />
+                                <ui:Button name="attr-plus-5" text="+" class="pg-button cc-plus" />
+                                <ui:Label name="attr-effect-5" text="mana 8 res 1" class="cc-effect" />
                             </ui:VisualElement>
                         </ui:VisualElement>
 
                         <ui:Label name="status-label" text="" class="cc-status" />
 
-                        <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
+                        <ui:VisualElement class="cc-actions">
+                            <ui:Button name="btn-back" text="← Voltar" class="pg-button cc-back" />
+                            <ui:Button name="btn-save" text="Salvar" class="pg-button cc-save" />
+                            <ui:Button name="btn-delete" text="Deletar" class="pg-button cc-delete" />
+                            <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
+                        </ui:VisualElement>
 
                     </ui:VisualElement>
-
-                    <ui:VisualElement name="cc-side" class="cc-side">
-                        <ui:Label text="Preview" class="cc-side-title" />
-                        <ui:Image name="sprite-preview" class="cc-sprite-preview" />
-                    </ui:VisualElement>
-
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
