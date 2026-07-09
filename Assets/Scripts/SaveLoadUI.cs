@@ -158,8 +158,8 @@ namespace PangeaSkirmish
             {
                 if (hasSave)
                 {
-                    // TODO: Load and display timestamp
-                    timestampText.text = "Has save data";
+                    string ts = SaveSystem.GetTimestamp(slotName);
+                    timestampText.text = string.IsNullOrEmpty(ts) ? "Has save data" : ts;
                 }
                 else
                 {

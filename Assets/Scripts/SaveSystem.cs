@@ -187,6 +187,36 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
+        /// Retorna o timestamp de um save sem deserializar o estado completo.
+        /// Lê só o campo "timestamp" do JSON (leve). Retorna string vazia se não houver.
+        /// </summary>
+        public static string GetTimestamp(string saveName)
+        {
+            try
+            {
+                string filePath = Path.Combine(SavePath, $"{saveName}.json");
+                if (!File.Exists(filePath)) return "";
+
+                string json = File.ReadAllText(filePath);
+                // Extrai "timestamp":"..." do JSON (campo direto, sem aninhamento)
+                int idx = json.IndexOf("\"timestamp\"");
+                if (idx < 0) return "";
+                int colon = json.IndexOf(':', idx);
+                if (colon < 0) return "";
+                int start = json.IndexOf('"', colon);
+                if (start < 0) return "";
+                int end = json.IndexOf('"', start + 1);
+                if (end < 0) return "";
+                return json.Substring(start + 1, end - start - 1);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to read timestamp: {e.Message}");
+                return "";
+            }
+        }
+
+        /// <summary>
         /// Check if a save file exists.
         /// </summary>
         public static bool SaveExists(string saveName)
