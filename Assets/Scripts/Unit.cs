@@ -12,6 +12,7 @@ namespace PangeaSkirmish
     public class Unit : MonoBehaviour
     {
         public string unitName = "Unit";
+        public string definitionId = ""; // unitId da UnitDefinition (se spawnada via SpawnUnit)
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
         public string weaponId = ""; // id da arma equipada (setado antes de Init)

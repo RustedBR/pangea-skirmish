@@ -46,6 +46,7 @@ namespace PangeaSkirmish
 
             var unit = go.AddComponent<Unit>();
             unit.unitName = displayName;
+            unit.definitionId = unitId;
             unit.team = team;
             unit.isPlayerCharacter = (team == Team.Player);
             unit.weaponId = defaultWeaponId;
@@ -60,6 +61,15 @@ namespace PangeaSkirmish
                 unit.aiSurvivalInstinct = aiSurvivalInstinct;
                 unit.aiUseSpells = aiUseSpells;
             }
+
+            // Init visual (sprite, cor do time, weapon overlay)
+            Color teamColor = team == Team.Player
+                ? new Color(0.4f, 0.8f, 1f)
+                : new Color(1f, 0.4f, 0.4f);
+            string spritePath = !string.IsNullOrEmpty(spriteResourcePath)
+                ? spriteResourcePath
+                : "Sprites/TinyTactics/Characters/fighter";
+            unit.Init(grid, anchor, teamColor, spritePath);
 
             return unit;
         }
