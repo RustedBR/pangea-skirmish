@@ -38,6 +38,20 @@ namespace PangeaSkirmish
 
         private static Color BtnNormal => Tuning.Get().uiButtonNormalColor;
         private static Color BtnActive => Tuning.Get().uiButtonActiveColor;
+
+        // ══ Cores do tema (PangeaTheme.uss / GameTuning) — mantém constância visual ══
+        private static Color ThemePanelBg       => new Color(0.039f, 0.063f, 0.157f, 0.92f); // pg-panel
+        private static Color ThemeListBg        => new Color(0.04f, 0.06f, 0.16f, 0.85f);
+        private static Color ThemeText          => new Color(0.933f, 0.949f, 1.0f);           // pg-text
+        private static Color ThemeTextDim       => new Color(0.624f, 0.690f, 0.816f);         // pg-text-dim
+        private static Color ThemeAccent        => new Color(0.416f, 0.663f, 1.0f);           // pg-accent (azul primário)
+        private static Color ThemeGold          => Tuning.Get().uiTitleColor;                 // pg-gold
+        private static Color ThemeOk            => new Color(0.353f, 0.820f, 0.541f);         // pg-ok (verde)
+        private static Color ThemeDanger        => new Color(1.0f, 0.353f, 0.353f);           // pg-danger (vermelho)
+        private static Color ThemeBack          => new Color(0.55f, 0.22f, 0.22f);            // vermelho "sair"
+        private static Color ThemePanelBorder   => new Color(0.165f, 0.227f, 0.416f);         // pg-panel-border
+        private static Color ThemePanelHighlight => new Color(0.416f, 0.525f, 0.784f);        // pg-panel-highlight
+
         private static readonly string[] AttrNames = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
 
         private void Start()
@@ -166,7 +180,7 @@ namespace PangeaSkirmish
         private void BuildEditorPanel(Transform parent)
         {
             _editorPanel = MakeFullPanel(parent, "EditorPanel");
-            _editorPanel.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.08f, 0.97f);
+            _editorPanel.AddComponent<Image>().color = ThemePanelBg;
 
             MakeLabel(_editorPanel.transform, new Vector2(0, 455), new Vector2(800, 60), 40,
                 Tuning.Get().uiTitleColor).text = "Criar Personagem";
@@ -178,13 +192,13 @@ namespace PangeaSkirmish
             listRt.anchorMin = listRt.anchorMax = listRt.pivot = new Vector2(0.5f, 0.5f);
             listRt.anchoredPosition = new Vector2(-490, -20);
             listRt.sizeDelta = new Vector2(240, 400);
-            listBg.AddComponent<Image>().color = new Color(0.03f, 0.04f, 0.06f, 0.90f);
+            listBg.AddComponent<Image>().color = ThemeListBg;
 
             MakeLabel(listBg.transform, new Vector2(0, 180), new Vector2(220, 24), 14,
-                new Color(0.70f, 0.74f, 0.82f)).text = "Personagens salvos";
+                ThemeTextDim).text = "Personagens salvos";
 
             var btnNew = MakeBtn(listBg.transform, new Vector2(0.5f, 0.5f), new Vector2(0, 142), new Vector2(200, 28));
-            btnNew.GetComponent<Image>().color = new Color(0.18f, 0.38f, 0.18f);
+            btnNew.GetComponent<Image>().color = ThemeOk;
             MakeLabel(btnNew.transform, Vector2.zero, new Vector2(200, 28), 15, Color.white).text = "+ Novo";
             btnNew.onClick.AddListener(NewPreset);
 
@@ -251,23 +265,23 @@ namespace PangeaSkirmish
 
             // Appearance row
             MakeLabel(_editorPanel.transform, new Vector2(lx - 160, top - 60), new Vector2(70, 36), 16,
-                new Color(0.78f, 0.80f, 0.85f)).text = "Aparência:";
+                ThemeText).text = "Aparência:";
             _classLabel = MakeLabel(_editorPanel.transform, new Vector2(lx - 10, top - 60), new Vector2(140, 36), 16,
-                new Color(1f, 0.92f, 0.6f));
+                ThemeGold);
             _classLabel.alignment = TextAnchor.MiddleLeft;
             var btnClass = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 80, top - 60), new Vector2(50, 32));
-            btnClass.GetComponent<Image>().color = new Color(0.25f, 0.42f, 0.65f);
+            btnClass.GetComponent<Image>().color = ThemeAccent;
             MakeLabel(btnClass.transform, Vector2.zero, new Vector2(50, 32), 16, Color.white).text = "→";
             btnClass.onClick.AddListener(CycleClass);
 
             // Weapon row
             MakeLabel(_editorPanel.transform, new Vector2(lx - 160, top - 110), new Vector2(70, 36), 16,
-                new Color(0.78f, 0.80f, 0.85f)).text = "Arma:";
+                ThemeText).text = "Arma:";
             _weaponLabel = MakeLabel(_editorPanel.transform, new Vector2(lx - 10, top - 110), new Vector2(140, 36), 14,
-                new Color(1f, 0.92f, 0.6f));
+                ThemeGold);
             _weaponLabel.alignment = TextAnchor.MiddleLeft;
             var btnWeap = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 80, top - 110), new Vector2(50, 32));
-            btnWeap.GetComponent<Image>().color = new Color(0.25f, 0.42f, 0.65f);
+            btnWeap.GetComponent<Image>().color = ThemeAccent;
             MakeLabel(btnWeap.transform, Vector2.zero, new Vector2(50, 32), 16, Color.white).text = "→";
             btnWeap.onClick.AddListener(CycleWeapon);
 
@@ -276,7 +290,7 @@ namespace PangeaSkirmish
             {
                 float y = top - 170 - i * 38;
                 MakeLabel(_editorPanel.transform, new Vector2(lx - 100, y), new Vector2(70, 36), 16,
-                    new Color(0.78f, 0.80f, 0.85f)).text = AttrNames[i];
+                    ThemeText).text = AttrNames[i];
 
                 _attrLabels[i] = MakeLabel(_editorPanel.transform, new Vector2(lx - 20, y), new Vector2(40, 36), 18, Color.white);
                 _attrLabels[i].name = AttrNames[i] + "Val";
@@ -284,17 +298,17 @@ namespace PangeaSkirmish
 
                 int idx = i;
                 var btnMinus = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 30, y), new Vector2(34, 32));
-                btnMinus.GetComponent<Image>().color = new Color(0.45f, 0.18f, 0.18f);
+                btnMinus.GetComponent<Image>().color = ThemeDanger;
                 MakeLabel(btnMinus.transform, Vector2.zero, new Vector2(34, 32), 20, Color.white).text = "−";
                 btnMinus.onClick.AddListener(() => { AdjustAttr(idx, -1); });
 
                 var btnPlus = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 70, y), new Vector2(34, 32));
-                btnPlus.GetComponent<Image>().color = new Color(0.18f, 0.38f, 0.18f);
+                btnPlus.GetComponent<Image>().color = ThemeOk;
                 MakeLabel(btnPlus.transform, Vector2.zero, new Vector2(34, 32), 20, Color.white).text = "+";
                 btnPlus.onClick.AddListener(() => { AdjustAttr(idx, +1); });
 
                 _valLabels[i] = MakeLabel(_editorPanel.transform, new Vector2(lx + 165, y), new Vector2(65, 36), 13,
-                    new Color(0.60f, 0.65f, 0.70f));
+                    ThemeTextDim);
                 _valLabels[i].alignment = TextAnchor.MiddleLeft;
             }
 
@@ -325,17 +339,17 @@ namespace PangeaSkirmish
             _weaponSpriteImg.preserveAspect = true;
 
             _previewText = MakeLabel(centerGo.transform, new Vector2(0, -35), new Vector2(260, 120), 13,
-                new Color(0.65f, 0.78f, 0.92f));
+                ThemeText);
             _previewText.alignment = TextAnchor.UpperCenter;
 
             // Save / Delete / Confirmar (ordem igual à referência foto 1)
             var btnSave = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 165, top - 470), new Vector2(140, 36));
-            btnSave.GetComponent<Image>().color = new Color(0.18f, 0.38f, 0.18f);
+            btnSave.GetComponent<Image>().color = ThemeOk;
             MakeLabel(btnSave.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Salvar";
             btnSave.onClick.AddListener(SavePreset);
 
             var btnDel = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx - 15, top - 470), new Vector2(140, 36));
-            btnDel.GetComponent<Image>().color = new Color(0.45f, 0.18f, 0.18f);
+            btnDel.GetComponent<Image>().color = ThemeDanger;
             MakeLabel(btnDel.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Deletar";
             btnDel.onClick.AddListener(() => {
                 if (_editing != null && !_isNewPreset)
@@ -347,13 +361,13 @@ namespace PangeaSkirmish
             });
 
             var btnConfirm = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0.5f), new Vector2(lx + 135, top - 470), new Vector2(140, 36));
-            btnConfirm.GetComponent<Image>().color = new Color(0.25f, 0.42f, 0.65f);
+            btnConfirm.GetComponent<Image>().color = ThemeAccent;
             MakeLabel(btnConfirm.transform, Vector2.zero, new Vector2(140, 36), 15, Color.white).text = "Confirmar";
             btnConfirm.onClick.AddListener(ConfirmPreset);
 
             // Back
             var voltar = MakeBtn(_editorPanel.transform, new Vector2(0.5f, 0f), new Vector2(0, 35), new Vector2(120, 29));
-            voltar.GetComponent<Image>().color = new Color(0.35f, 0.15f, 0.15f);
+            voltar.GetComponent<Image>().color = ThemeBack;
             MakeLabel(voltar.transform, Vector2.zero, new Vector2(120, 29), 13, Color.white).text = "← Voltar";
             voltar.onClick.AddListener(ShowMenu);
         }
@@ -381,9 +395,9 @@ namespace PangeaSkirmish
                 var spriteDef = CharacterSpriteCatalog.GetByPath(preset.spritePath);
                 string spriteName = spriteDef != null ? spriteDef.displayName : "";
                 MakeLabel(row.transform, new Vector2(-38, 0), new Vector2(130, 24), 12,
-                    new Color(0.85f, 0.88f, 0.92f)).text = prefix + spriteName;
+                    ThemeText).text = prefix + spriteName;
                 MakeLabel(row.transform, new Vector2(52, 0), new Vector2(50, 24), 10,
-                    new Color(0.55f, 0.55f, 0.60f)).text = preset.presetName;
+                    ThemeTextDim).text = preset.presetName;
 
                 row.GetComponent<Button>().onClick.AddListener(() => {
                     RuntimeSelectedCharacter.Active = preset;
@@ -662,7 +676,7 @@ namespace PangeaSkirmish
         private void BuildMapSelectPanel(Transform parent)
         {
             _mapSelectPanel = MakeFullPanel(parent, "MapSelectPanel");
-            _mapSelectPanel.AddComponent<Image>().color = new Color(0.05f, 0.06f, 0.08f, 0.97f);
+            _mapSelectPanel.AddComponent<Image>().color = ThemePanelBg;
 
             MakeLabel(_mapSelectPanel.transform, new Vector2(0, 455), new Vector2(800, 60), 40,
                 Tuning.Get().uiTitleColor).text = "Escolher Mapa";
@@ -755,7 +769,7 @@ namespace PangeaSkirmish
 
             var btnDefault = MakeBtn(contentTransform, new Vector2(0.5f, 0.5f),
                 Vector2.zero, new Vector2(420, 48));
-            btnDefault.GetComponent<Image>().color = new Color(0.25f, 0.25f, 0.35f);
+            btnDefault.GetComponent<Image>().color = ThemeAccent;
             MakeLabel(btnDefault.transform, Vector2.zero, new Vector2(420, 48), 24,
                 Color.white).text = "▶ Batalha Padrão";
             btnDefault.onClick.AddListener(() =>
@@ -779,7 +793,7 @@ namespace PangeaSkirmish
                 hlg.childForceExpandHeight = true;
 
                 var play = MakeBtn(row.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(250, 48));
-                play.GetComponent<Image>().color = new Color(0.25f, 0.25f, 0.35f);
+                play.GetComponent<Image>().color = ThemeAccent;
                 play.gameObject.AddComponent<LayoutElement>().preferredWidth = 250;
                 MakeLabel(play.transform, Vector2.zero, new Vector2(240, 44), 22, Color.white).text = "▶ " + nameCopy;
                 play.onClick.AddListener(() =>
@@ -789,7 +803,7 @@ namespace PangeaSkirmish
                 });
 
                 var edit = MakeBtn(row.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80, 48));
-                edit.GetComponent<Image>().color = new Color(0.20f, 0.34f, 0.20f);
+                edit.GetComponent<Image>().color = ThemeOk;
                 edit.gameObject.AddComponent<LayoutElement>().preferredWidth = 80;
                 MakeLabel(edit.transform, Vector2.zero, new Vector2(76, 44), 18, Color.white).text = "Editar";
                 edit.onClick.AddListener(() =>
@@ -799,7 +813,7 @@ namespace PangeaSkirmish
                 });
 
                 var del = MakeBtn(row.transform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(70, 48));
-                del.GetComponent<Image>().color = new Color(0.45f, 0.18f, 0.18f);
+                del.GetComponent<Image>().color = ThemeDanger;
                 del.gameObject.AddComponent<LayoutElement>().preferredWidth = 70;
                 MakeLabel(del.transform, Vector2.zero, new Vector2(66, 44), 18, Color.white).text = "Apagar";
                 del.onClick.AddListener(() =>
@@ -811,7 +825,7 @@ namespace PangeaSkirmish
 
             var btnBack = MakeBtn(_mapSelectPanel.transform, new Vector2(0.5f, 0f),
                 new Vector2(0, 60), new Vector2(220, 55));
-            btnBack.GetComponent<Image>().color = new Color(0.35f, 0.15f, 0.15f);
+            btnBack.GetComponent<Image>().color = ThemeBack;
             MakeLabel(btnBack.transform, Vector2.zero, new Vector2(220, 55), 24,
                 Color.white).text = "← Voltar";
             btnBack.onClick.AddListener(ShowMenu);
@@ -833,7 +847,7 @@ namespace PangeaSkirmish
         {
             var btn = MakeBtn(parent, new Vector2(0.5f, 0.5f), pos, new Vector2(370, 65));
             var img = btn.GetComponent<Image>();
-            var baseColor = new Color(0.18f, 0.28f, 0.52f);
+            var baseColor = ThemeAccent;
             UiSkin.ApplyButtonSkin(img, baseColor);
             MakeLabel(btn.transform, Vector2.zero, new Vector2(370, 65), 28, Color.white).text = label;
             btn.onClick.AddListener(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); onClick?.Invoke(); });
@@ -847,7 +861,7 @@ namespace PangeaSkirmish
             rt.anchorMin = rt.anchorMax = rt.pivot = anchor;
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
-            go.AddComponent<Image>().color = new Color(0.25f, 0.25f, 0.30f);
+            go.AddComponent<Image>().color = BtnNormal;
             return go.AddComponent<Button>();
         }
 
