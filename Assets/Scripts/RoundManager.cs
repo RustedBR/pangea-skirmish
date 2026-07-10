@@ -389,13 +389,13 @@ namespace PangeaSkirmish
 
         private void BeginLockstepCollection()
         {
-            // RoomManager.Slots (NetworkList da sala) é a fonte de verdade de "quantos
-            // jogadores existem" — NetworkManager.ConnectedClientsIds.Count (transporte)
-            // retornou valores incorretos em teste real, causando fechamento prematuro
-            // da coleta de planos (LockstepBattleSync.PlayerCount() usa a mesma fonte).
-            int players = RoomManager.Instance != null
-                ? RoomManager.Instance.Slots.Count
-                : (Unity.Netcode.NetworkManager.Singleton != null ? Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count : 1);
+            // Conta só jogadores AINDA VIVOS (com pelo menos uma unidade viva).
+            // Jogadores já eliminados não devem travar a fase de planejamento.
+            int players = LockstepBattleSync.Instance != null
+                ? LockstepBattleSync.Instance.AlivePlayerCount()
+                : (RoomManager.Instance != null
+                    ? RoomManager.Instance.Slots.Count
+                    : (Unity.Netcode.NetworkManager.Singleton != null ? Unity.Netcode.NetworkManager.Singleton.ConnectedClientsIds.Count : 1));
             LockstepBattleSync.Instance.BeginCollection(Mathf.Max(1, players));
         }
 
@@ -1006,7 +1006,7 @@ namespace PangeaSkirmish
                 yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
                 yield return new WaitForSeconds(preActionPause);
 
-                bool willResolve = SpellResolver.WillResolve(u, spell, _units);
+                bool willResolve = SpellResolver.WillResolve(u, spell, _units, _grid);
                 if (!willResolve)
                 {
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: magia falhou (fora de alcance/sem mana)", u);

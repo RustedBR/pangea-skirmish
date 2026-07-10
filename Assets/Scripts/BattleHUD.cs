@@ -58,6 +58,10 @@ namespace PangeaSkirmish
         private VisualElement _mpWaitingOverlay;
         private Label  _mpWaitingText;
 
+        // ── Tooltip de botões (hover > 3s) ──
+        private IVisualElementScheduledItem _pendingTip;
+        private VisualElement _tipOwner;
+
         // ── Dados do log (preservados p/ recolhimento por round) ──
         private readonly List<LogEntry> _logEntries = new List<LogEntry>();
         private sealed class LogLine
@@ -213,6 +217,9 @@ namespace PangeaSkirmish
                     OnMagicElementClick((SpellElement)(captured + 1));
                 });
             }
+
+            // ── Tooltips de botões (hover > 3s) ──
+            AttachMainButtonTooltips();
 
             // Callbacks dos botões principais
             r.Q<Button>("btn-actions").RegisterCallback<ClickEvent>(_ =>
@@ -663,6 +670,96 @@ namespace PangeaSkirmish
             _tooltipGo.style.display = DisplayStyle.Flex;
         }
         private void HideTooltip() { if (_tooltipGo != null) _tooltipGo.style.display = DisplayStyle.None; }
+
+        // ── Tooltip de botões (hover > 3s) ──
+        private void AttachMainButtonTooltips()
+        {
+            // Comandos principais
+            AttachButtonTooltip(_moveButton, "Move a unidade pelo mapa. Custa PA por tile de deslocamento.");
+            AttachButtonTooltip(_attackUnitButton, "Ataque direto a uma unidade inimiga. Custa PA; dano vem de STR/DEX.");
+            AttachButtonTooltip(_attackTileButton, "Ataque a um tile (chão/área). Custa PA.");
+            AttachButtonTooltip(_magicButton, "Conjura magia de 1 dos 6 elementos. Custa PA + Mana.");
+            AttachButtonTooltip(_concentrateButton, "Ação Bônus: acumula concentração (+dano em ataques futuros).");
+            AttachButtonTooltip(_incrementButton, "Ação Bônus: +1 no próximo dano causado (incremento).");
+            AttachButtonTooltip(_aimButton, "Ação Bônus: Mira tradicional (+precisão no próximo ataque).");
+            AttachButtonTooltip(_miraMagiaButton, "Ação Bônus (1 PAB): +INT na potência da PRÓXIMA magia.");
+            AttachButtonTooltip(_confirmButton, "Confirma o plano de ações da unidade.");
+            AttachButtonTooltip(_undoButton, "Remove a última ação adicionada ao plano.");
+            AttachButtonTooltip(_clearButton, "Remove TODAS as ações do plano.");
+
+            // Alvo da magia
+            AttachButtonTooltip(_spellSelfButton, "Buff em SI MESMO: +atributos do elemento por N rounds (ManaRange = rounds).");
+            AttachButtonTooltip(_spellUnitButton, "Dano mágico a uma unidade inimiga. Potência = atributos × ManaPower.");
+            AttachButtonTooltip(_spellTileButton, "Efeito no tile: varia por elemento (fogo, água, vento, teleporte, orbe, elevar).");
+
+            // Stepper de mana (2 pools)
+            AttachButtonTooltip(_manaRangeMinusButton, "Alcance/Duração: -1 tile de alcance ou round de buff (só gasta Mana).");
+            AttachButtonTooltip(_manaRangePlusButton, "Alcance/Duração: +1 tile de alcance ou round de buff (só gasta Mana).");
+            AttachButtonTooltip(_manaPowerMinusButton, "Potência/Atributo: -1 (menos dano ou menos atributo de buff; -1 PA).");
+            AttachButtonTooltip(_manaPowerPlusButton, "Potência/Atributo: +1 (mais dano ou mais atributo de buff; +1 PA).");
+            AttachButtonTooltip(_manaCastButton, "Conjura a magia com os parâmetros de mana escolhidos.");
+            AttachButtonTooltip(_manaBackButton, "Volta ao menu de alvo da magia.");
+
+            // Elementos (índice 0..5 = Physical, Magic, Fire, Water, Air, Earth)
+            if (_magicElementButtons.Count == 6)
+            {
+                AttachButtonTooltip(_magicElementButtons[0], "FÍSICO — Self: +DEX/+STR por rounds. Tile: teleporte. Unidade: dano físico (DEX+STR).");
+                AttachButtonTooltip(_magicElementButtons[1], "MÁGICO — Self: +INT/+WIS por rounds. Tile: orbe de mana. Unidade: dano mágico (INT+WIS).");
+                AttachButtonTooltip(_magicElementButtons[2], "FOGO — Self: +INT/+VIT. Tile: fogo (dano por round). Unidade: dano de fogo.");
+                AttachButtonTooltip(_magicElementButtons[3], "ÁGUA — Self: +VIT/+INT. Tile: água (terreno molhado). Unidade: dano de água.");
+                AttachButtonTooltip(_magicElementButtons[4], "AR — Self: +AGI/+INT. Tile: vento (empurra unidades). Unidade: dano + empurrão.");
+                AttachButtonTooltip(_magicElementButtons[5], "TERRA — Self: +VIT/+STR. Tile: eleva pedra. Unidade: dano de terra.");
+            }
+
+            // Submenus (abrem cascata)
+            var btnActions = Root.Q<Button>("btn-actions");
+            var btnBonus = Root.Q<Button>("btn-bonus");
+            var btnAttack = Root.Q<Button>("btn-attack");
+            AttachButtonTooltip(btnActions, "Ações de movimento e ataque (Mover, Atacar).");
+            AttachButtonTooltip(btnBonus, "Ações Bônus (custam PAB): Concentrar, Incremento, Mirar, Mira Mágica.");
+            AttachButtonTooltip(btnAttack, "Menu de ataque: Unidade ou Tile.");
+        }
+
+        private void AttachButtonTooltip(VisualElement el, string text)
+        {
+            if (el == null) return;
+            el.RegisterCallback<PointerEnterEvent>(_ =>
+            {
+                CancelPendingTip();
+                _tipOwner = el;
+                _pendingTip = el.schedule.Execute(() => ShowButtonTooltip(el, text)).StartingIn(3000);
+            });
+            el.RegisterCallback<PointerLeaveEvent>(_ => CancelPendingTip());
+            el.RegisterCallback<ClickEvent>(_ => CancelPendingTip());
+        }
+
+        private void CancelPendingTip()
+        {
+            if (_pendingTip != null) { _pendingTip.Pause(); _pendingTip = null; }
+            HideButtonTooltip();
+        }
+
+        private void ShowButtonTooltip(VisualElement el, string text)
+        {
+            if (_tooltipGo == null || _tooltipTxt == null || el == null) return;
+            _tooltipTxt.text = text;
+            _tooltipGo.style.display = DisplayStyle.Flex;
+            // Posiciona acima do botão (ou abaixo se não couber no topo).
+            float w = _tooltipGo.layout.width > 0 ? _tooltipGo.layout.width : 260f;
+            float h = _tooltipGo.layout.height > 0 ? _tooltipGo.layout.height : 60f;
+            float x = el.worldBound.x;
+            float y = el.worldBound.y - h - 6f;
+            if (y < 4f) y = el.worldBound.yMax + 6f;
+            if (x + w > Screen.width) x = Screen.width - w - 4f;
+            if (x < 4f) x = 4f;
+            _tooltipGo.style.left = x;
+            _tooltipGo.style.top = y;
+        }
+
+        private void HideButtonTooltip()
+        {
+            if (_tooltipGo != null) _tooltipGo.style.display = DisplayStyle.None;
+        }
 
         // ── PROMPT DE BÔNUS ──
         public void ShowPrompt(string text)

@@ -309,7 +309,7 @@ namespace PangeaSkirmish
                 GameMode = _gameMode,
                 AttributeBudget = _budgetValue,
                 PlanningTime = _planningValue,
-                MaxPlayers = 4
+                MaxPlayers = 8
             };
             RoomManager.Instance.SetConfigServerRpc(cfg);
         }

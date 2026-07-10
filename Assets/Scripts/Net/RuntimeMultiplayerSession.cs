@@ -14,7 +14,7 @@ namespace PangeaSkirmish
         public int gameMode = 0;
         public int attributeBudget = 30;
         public float planningTime = 15f;
-        public int maxPlayers = 4;
+        public int maxPlayers = 8;
     }
 
     public static class RuntimeMultiplayerSession

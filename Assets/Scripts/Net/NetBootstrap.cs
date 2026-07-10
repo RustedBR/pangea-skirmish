@@ -32,7 +32,7 @@ namespace PangeaSkirmish
         // configurada pra 2 jogadores, o Relay ainda alocava capacidade pra 4. Agora deriva
         // do maxPlayers atual da sala (default 4 se ainda não configurado).
         private static int MaxConnections =>
-            Mathf.Max(1, (RuntimeMultiplayerSession.CurrentConfig?.maxPlayers ?? 4) - 1);
+            Mathf.Max(1, (RuntimeMultiplayerSession.CurrentConfig?.maxPlayers ?? 8) - 1);
 
         public async Task ConfigureHostAsync(UnityTransport transport)
         {

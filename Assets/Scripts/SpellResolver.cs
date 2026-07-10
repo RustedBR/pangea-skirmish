@@ -24,7 +24,7 @@ namespace PangeaSkirmish
             return mana;
         }
 
-        public static bool WillResolve(Unit caster, PlannedSpell s, List<Unit> all)
+        public static bool WillResolve(Unit caster, PlannedSpell s, List<Unit> all, GridManager grid)
         {
             if (s.ManaRange < 0 || s.ManaPower < 1) return false;
             int range = SpellBook.SpellRange(caster, s.ManaRange);
@@ -37,7 +37,9 @@ namespace PangeaSkirmish
                         && GridManager.FootprintGap(caster.anchor, caster.stats.Footprint,
                             s.TargetUnit.anchor, s.TargetUnit.stats.Footprint) <= range;
                 case SpellTargetKind.Tile:
-                    // Teleporte (Physical) não tem potência — checa só alcance.
+                    // Teleporte (Physical) não tem potência — checa só alcance + tile livre.
+                    if (!grid.IsAnchorInBounds(s.TargetTile, 1) || grid.IsVoid(s.TargetTile.x, s.TargetTile.y))
+                        return false;
                     return GridManager.FootprintGap(caster.anchor, caster.stats.Footprint,
                         s.TargetTile, 1) <= range;
             }
@@ -126,6 +128,10 @@ namespace PangeaSkirmish
         {
             var cell = s.TargetTile;
             var dir = s.Direction;
+
+            // Validação comum: tile alvo deve estar dentro do mapa e não ser void.
+            if (!grid.IsAnchorInBounds(cell, 1) || grid.IsVoid(cell.x, cell.y))
+                return ($"{caster.unitName} magia em tile inválido ({cell})", null);
 
             switch (s.Element)
             {
