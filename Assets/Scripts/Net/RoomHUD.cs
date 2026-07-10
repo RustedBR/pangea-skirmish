@@ -358,18 +358,59 @@ namespace PangeaSkirmish
                 string joinCode;
                 if (bootstrap.useLoopback)
                 {
-                    bootstrap.HostLoopback();
-                    joinCode = "LOOPBACK";
+                    try
+                    {
+                        bootstrap.HostLoopback();
+                        joinCode = "LOOPBACK";
+                    }
+                    catch (Exception ex)
+                    {
+                        MpDiag.Log("RoomHUD", $"HostLoopback FAILED: {ex.GetType().FullName}: {ex.Message}");
+                        SetLobbyStatus($"Erro loopback: {ex.Message}");
+                        Debug.LogError($"[RoomHUD] HostLoopback: {ex}");
+                        return;
+                    }
                 }
                 else
                 {
-                    await bootstrap.InitUgsAsync(playerName);
+                    MpDiag.Log("RoomHUD", "InitUgsAsync...");
+                    try
+                    {
+                        await bootstrap.InitUgsAsync(playerName);
+                    }
+                    catch (Exception ex)
+                    {
+                        MpDiag.Log("RoomHUD", $"InitUgsAsync FAILED: {ex.GetType().FullName}: {ex.Message}");
+                        SetLobbyStatus($"Erro init UGS: {ex.Message}");
+                        Debug.LogError($"[RoomHUD] InitUgsAsync: {ex}");
+                        return;
+                    }
+
                     MpDiag.Log("RoomHUD", "InitUgsAsync OK, chamando HostRelayAsync...");
-                    joinCode = await bootstrap.HostRelayAsync();
+                    try
+                    {
+                        joinCode = await bootstrap.HostRelayAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        MpDiag.Log("RoomHUD", $"HostRelayAsync FAILED: {ex.GetType().FullName}: {ex.Message}");
+                        SetLobbyStatus($"Erro Relay: {ex.Message}");
+                        Debug.LogError($"[RoomHUD] HostRelayAsync: {ex}");
+                        return;
+                    }
+
                     MpDiag.Log("RoomHUD", "HostRelayAsync retornou, criando lobby...");
 
-                    var (lobbyCode, err) = await LobbyService.CreateLobbyAsync(roomName, 4, joinCode);
-                    if (err != null) Debug.LogWarning($"[RoomHUD] Lobby criado com aviso: {err}");
+                    try
+                    {
+                        var (lobbyCode, err) = await LobbyService.CreateLobbyAsync(roomName, 4, joinCode);
+                        if (err != null) Debug.LogWarning($"[RoomHUD] Lobby criado com aviso: {err}");
+                    }
+                    catch (Exception ex)
+                    {
+                        MpDiag.Log("RoomHUD", $"CreateLobbyAsync FAILED: {ex.GetType().FullName}: {ex.Message}");
+                        Debug.LogError($"[RoomHUD] CreateLobbyAsync: {ex}");
+                    }
                 }
 
                 RuntimeMultiplayerSession.PlayerName = playerName;

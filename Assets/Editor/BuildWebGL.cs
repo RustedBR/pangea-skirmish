@@ -33,7 +33,10 @@ public static class BuildWebGL
         // wasm fica ~70-90MB mas exceptionSupport=None mantém < 100MB (limite Pages).
         PlayerSettings.SetManagedStrippingLevel(
             UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Disabled);
-        // exceptionSupport OFF (None): build cabe no GitHub Pages (<100MB).
+        // exceptionSupport None: OBRIGATÓRIO para deploy — medição 2026-07-10:
+        // Full+Disabled=153MB, Full+Medium=123MB (Pages rejeita >100MB, GH001);
+        // None+Disabled=71MB, None+Medium=58MB. Para debug com exceções visíveis
+        // use _TestBuilds.BuildBaseline etc. (builds locais WebGL_*_full).
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
         // TEMPLATE OBRIGATÓRIO: forçar o custom PangeaSkirmish (free-aspect + 3-chaves).
         // Se o build usar o template DEFAULT, o index.html fica com dataUrl vazio
@@ -57,6 +60,31 @@ public static class BuildWebGL
         Debug.Log($"[BuildWebGL] Resultado: {report.summary.result} | erros={report.summary.totalErrors} | tamanho={report.summary.totalSize} bytes");
         if (report.summary.result != BuildResult.Succeeded)
             EditorApplication.Exit(1);
+
+        FixWebGLIndexUrls(opts.locationPathName);
+    }
+
+    private static void FixWebGLIndexUrls(string locationPathName)
+    {
+        var indexPath = System.IO.Path.Combine(locationPathName, "index.html");
+        if (!System.IO.File.Exists(indexPath))
+        {
+            Debug.LogWarning("[BuildWebGL] index.html não encontrado para post-fix.");
+            return;
+        }
+
+        var html = System.IO.File.ReadAllText(indexPath);
+        var original = html;
+        html = html.Replace("var loaderUrl = buildUrl + \"/\";", "var loaderUrl = buildUrl + \"/WebGL.loader.js\";")
+                   .Replace("dataUrl: buildUrl + \"/\",", "dataUrl: buildUrl + \"/WebGL.data\",")
+                   .Replace("frameworkUrl: buildUrl + \"/\",", "frameworkUrl: buildUrl + \"/WebGL.framework.js\",")
+                   .Replace("codeUrl: buildUrl + \"/\",", "codeUrl: buildUrl + \"/WebGL.wasm\",");
+
+        if (html != original)
+        {
+            System.IO.File.WriteAllText(indexPath, html);
+            Debug.Log("[BuildWebGL] Index URLs dos assets corrigidas para WebGL.*.");
+        }
     }
 
     private struct SceneAssetEntry

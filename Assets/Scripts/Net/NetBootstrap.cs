@@ -57,15 +57,36 @@ namespace PangeaSkirmish
         public async Task ConfigureHostAsync(UnityTransport transport)
         {
             MpDiag.Log("Host", $"CreateAllocationAsync(Max={MaxConnections})...");
-            Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
+            Allocation allocation = null;
+            try
+            {
+                allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
+            }
+            catch (Exception ex)
+            {
+                MpDiag.Log("Host", $"CreateAllocationAsync FAILED: {ex.GetType().FullName}: {ex.Message}");
+                throw;
+            }
+
             MpDiag.Log("Host", $"Allocation OK id={allocation.AllocationId} #endpoints={allocation.ServerEndpoints.Count}");
             foreach (var e in allocation.ServerEndpoints)
                 MpDiag.Log("Host", $"  endpoint: type='{e.ConnectionType}' host={e.Host} port={e.Port} secure={e.Secure}");
-            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+            string joinCode = null;
+            try
+            {
+                joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            }
+            catch (Exception ex)
+            {
+                MpDiag.Log("Host", $"GetJoinCodeAsync FAILED: {ex.GetType().FullName}: {ex.Message}");
+                throw;
+            }
+
             RuntimeMultiplayerSession.JoinCode = joinCode;
             MpDiag.Log("Host", $"JoinCode={joinCode}");
 
-            RelayServerData relayData = BuildRelayData(allocation.ServerEndpoints,
+            var relayData = BuildRelayData(allocation.ServerEndpoints,
                 allocation.AllocationIdBytes, allocation.ConnectionData,
                 allocation.ConnectionData, allocation.Key);
             transport.UseWebSockets = true;
@@ -77,11 +98,23 @@ namespace PangeaSkirmish
         public async Task ConfigureClientAsync(UnityTransport transport, string joinCode)
         {
             MpDiag.Log("Client", $"JoinAllocationAsync(code={joinCode})...");
-            JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+
+            JoinAllocation allocation = null;
+            try
+            {
+                allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            }
+            catch (Exception ex)
+            {
+                MpDiag.Log("Client", $"JoinAllocationAsync FAILED: {ex.GetType().FullName}: {ex.Message}");
+                throw;
+            }
+
             MpDiag.Log("Client", $"Join OK #endpoints={allocation.ServerEndpoints.Count}");
             foreach (var e in allocation.ServerEndpoints)
                 MpDiag.Log("Client", $"  endpoint: type='{e.ConnectionType}' host={e.Host} port={e.Port} secure={e.Secure}");
-            RelayServerData relayData = BuildRelayData(allocation.ServerEndpoints,
+
+            var relayData = BuildRelayData(allocation.ServerEndpoints,
                 allocation.AllocationIdBytes, allocation.ConnectionData,
                 allocation.HostConnectionData, allocation.Key);
             transport.UseWebSockets = true;
