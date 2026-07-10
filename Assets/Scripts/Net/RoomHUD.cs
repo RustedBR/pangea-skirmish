@@ -335,7 +335,7 @@ namespace PangeaSkirmish
         // Handlers de botão
         // =====================================================================
 
-        public async void OnClickCreateRoom()
+        private async void OnClickCreateRoom()
         {
             MpDiag.Log("RoomHUD", "OnClickCreateRoom INICIO");
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)

@@ -75,23 +75,7 @@ namespace PangeaSkirmish
             BuildMapSelectPanel(canvas.transform);
             BuildMultiplayerHUD(canvas.transform);
             ShowMenu();
-
-#if UNITY_WEBGL
-            // AUTO-DIAG: no browser, dispara o fluxo de Host sozinho após 2s para
-            // capturar os logs [MP-DIAG] no <pre id="mpdiag"> e identificar o abort.
-            Debug.Log("[MP-DIAG][MainMenu] AUTO-DIAG WebGL: agendando OnClickCreateRoom em 2s");
-            Invoke("AutoDiagMp", 2f);
-#endif
         }
-
-#if UNITY_WEBGL
-        private void AutoDiagMp()
-        {
-            MpDiag.Log("MainMenu", "AUTO-DIAG WebGL: ShowMultiplayer + OnClickCreateRoom");
-            ShowMultiplayer();
-            if (_roomHUD != null) _roomHUD.OnClickCreateRoom();
-        }
-#endif
 
         // ---------------------------------------------------------------- MENU
 

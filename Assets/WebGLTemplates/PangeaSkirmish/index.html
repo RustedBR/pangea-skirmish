@@ -23,10 +23,13 @@
         <div id="unity-build-title">Pangea Skirmish</div>
       </div>
     </div>
-    <pre id="mpdiag" style="position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow:auto;background:rgba(0,0,0,0.85);color:#0f0;font:11px monospace;padding:4px;z-index:99999;white-space:pre-wrap;"></pre>
+    <pre id="mpdiag" style="display:none;position:fixed;bottom:0;left:0;right:0;max-height:40vh;overflow:auto;background:rgba(0,0,0,0.85);color:#0f0;font:11px monospace;padding:4px;z-index:99999;white-space:pre-wrap;"></pre>
     <script>
-      // Captura logs [MP-DIAG] do jogo em um <pre> visivel (o console do browser
-      // nao e acessivel via ferramentas headless; isso permite ler os logs no screenshot).
+      // Overlay de diagnostico MP: oculto por padrao (producao); abrir com ?mpdiag na URL.
+      // Os logs [MP-DIAG] continuam sendo acumulados mesmo oculto.
+      if (location.search.indexOf('mpdiag') !== -1) {
+        document.getElementById('mpdiag').style.display = 'block';
+      }
       window.MpDiagLog = function(msg) {
         try {
           var el = document.getElementById('mpdiag');
