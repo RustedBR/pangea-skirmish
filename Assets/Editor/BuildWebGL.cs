@@ -23,20 +23,26 @@ public static class BuildWebGL
         // - Compression Brotli: .data menor
         // - Exceptions None: corta o runtime de exceções (web só)
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
-        PlayerSettings.stripEngineCode = true;
-        PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
-        // exceptionSupport DEVE ficar OFF (None) para o build caber no GitHub Pages.
-        // ON embedding o runtime de exceções no wasm: 54MB (None) -> 112MB (ON),
-        // e o Pages tem limite HARD de 100MB/arquivo -> push rejeitado (GH001).
-        // Debug de runtime é feito no Editor / localhost (explicar ao Marcus: "abort()" silencioso
-        // em WebGL com None é esperado — verificar no Editor, não no browser).
+        // Managed stripping: DESLIGADO.
+        // Com HIGH, o UnityLinker remove o código de Multiplayer (NetBootstrap/RoomHUD/Relay)
+        // porque a referência é via AddComponent<RoomHUD>() reflexivo em runtime — o linker
+        // não enxerga e stripa como dead code. Resultado: clique em MP -> código ausente ->
+        // abort() silencioso no browser (exceptionSupport=None esconde a exceção).
+        // link.xml (preserve=all) NÃO basta: o IL2CPP ainda faz DCE em nível de método.
+        // Desligar o stripping garante que TODO o PangeaSkirmish.dll entra no wasm.
+        // wasm fica ~70-90MB mas exceptionSupport=None mantém < 100MB (limite Pages).
+        PlayerSettings.SetManagedStrippingLevel(
+            UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Disabled);
+        // exceptionSupport OFF (None): build cabe no GitHub Pages (<100MB).
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
         // TEMPLATE OBRIGATÓRIO: forçar o custom PangeaSkirmish (free-aspect + 3-chaves).
-        // Se o build headless usar o template DEFAULT, o index.html fica com dataUrl vazio
+        // Se o build usar o template DEFAULT, o index.html fica com dataUrl vazio
         // ("DefaultCompany"/"My project") e o jogo NAO CARREGA (404 no wasm).
-        // Forçar aqui evita dependência do cache do ProjectSettings/Library.
+        // O BuildPlayer programático IGNORA o template em memória a menos que seja
+        // salvo em disco ANTES do build — por isso SaveAssets() é obrigatório aqui.
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
         PlayerSettings.WebGL.template = "PROJECT:PangeaSkirmish";
-        // compression brotli (.br) — o deploy descomprime antes do push (abordagem B da skill).
+        AssetDatabase.SaveAssets();
 
         var opts = new BuildPlayerOptions
         {

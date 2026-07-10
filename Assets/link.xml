@@ -1,0 +1,18 @@
+<linker>
+  <!-- Preserva o assembly do jogo (PangeaSkirmish) inteiro no build WebGL.
+       Sem isso, o managed stripping HIGH remove o código de multiplayer
+       (NetBootstrap / RoomHUD / Relay) porque o IL2CPP não enxerga a
+       referência estática feita via AddComponent<RoomHUD>() em runtime.
+       Resultado: clique em Multiplayer -> código ausente -> abort() silencioso
+       (exceptionSupport=None esconde a exceção no browser). -->
+  <assembly fullname="PangeaSkirmish" preserve="all"/>
+
+  <!-- Pacotes de rede/UGS referenciados por código reflexivo/em runtime. -->
+  <assembly fullname="Unity.Netcode.Runtime" preserve="all"/>
+  <assembly fullname="Unity.Networking.Transport" preserve="all"/>
+  <assembly fullname="Unity.Networking.Transport.Relay" preserve="all"/>
+  <assembly fullname="Unity.Services.Relay" preserve="all"/>
+  <assembly fullname="Unity.Services.Lobbies" preserve="all"/>
+  <assembly fullname="Unity.Services.Authentication" preserve="all"/>
+  <assembly fullname="Unity.Services.Core" preserve="all"/>
+</linker>

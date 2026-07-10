@@ -25,6 +25,26 @@ namespace PangeaSkirmish
         Task ConfigureClientAsync(UnityTransport transport, string connectParam);
     }
 
+    /// <summary>Log de diagnóstico multiplayer — evita abort silencioso no WebGL
+    /// (exceptionSupport=None remove blocos catch, mas Debug.Log NÃO é removido).
+    /// Classe estática acessível de RelayWssStrategy e NetBootstrap.</summary>
+    internal static class MpDiag
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        [System.Runtime.InteropServices.DllImport("__Internal")]
+        private static extern void MpDiagLogJS(string msg);
+#endif
+        public static void Log(string tag, string msg)
+        {
+            var line = $"[MP-DIAG][{tag}] {msg}";
+            Debug.Log(line);
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Espelha no <pre id="mpdiag"> do index.html (legível via screenshot headless).
+            try { MpDiagLogJS(line); } catch (System.Exception) {}
+#endif
+        }
+    }
+
     /// <summary>Relay via WebSocket — padrão para WebGL.</summary>
     public class RelayWssStrategy : ITransportStrategy
     {
@@ -36,26 +56,38 @@ namespace PangeaSkirmish
 
         public async Task ConfigureHostAsync(UnityTransport transport)
         {
+            MpDiag.Log("Host", $"CreateAllocationAsync(Max={MaxConnections})...");
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
+            MpDiag.Log("Host", $"Allocation OK id={allocation.AllocationId} #endpoints={allocation.ServerEndpoints.Count}");
+            foreach (var e in allocation.ServerEndpoints)
+                MpDiag.Log("Host", $"  endpoint: type='{e.ConnectionType}' host={e.Host} port={e.Port} secure={e.Secure}");
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             RuntimeMultiplayerSession.JoinCode = joinCode;
+            MpDiag.Log("Host", $"JoinCode={joinCode}");
 
-            // Host: hostConnectionData == connectionData (docs do RelayServerData).
             RelayServerData relayData = BuildRelayData(allocation.ServerEndpoints,
                 allocation.AllocationIdBytes, allocation.ConnectionData,
                 allocation.ConnectionData, allocation.Key);
             transport.UseWebSockets = true;
+            MpDiag.Log("Host", $"UseWebSockets={transport.UseWebSockets}");
             transport.SetRelayServerData(relayData);
+            MpDiag.Log("Host", "SetRelayServerData OK");
         }
 
         public async Task ConfigureClientAsync(UnityTransport transport, string joinCode)
         {
+            MpDiag.Log("Client", $"JoinAllocationAsync(code={joinCode})...");
             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            MpDiag.Log("Client", $"Join OK #endpoints={allocation.ServerEndpoints.Count}");
+            foreach (var e in allocation.ServerEndpoints)
+                MpDiag.Log("Client", $"  endpoint: type='{e.ConnectionType}' host={e.Host} port={e.Port} secure={e.Secure}");
             RelayServerData relayData = BuildRelayData(allocation.ServerEndpoints,
                 allocation.AllocationIdBytes, allocation.ConnectionData,
                 allocation.HostConnectionData, allocation.Key);
             transport.UseWebSockets = true;
+            MpDiag.Log("Client", $"UseWebSockets={transport.UseWebSockets}");
             transport.SetRelayServerData(relayData);
+            MpDiag.Log("Client", "SetRelayServerData OK");
         }
 
         /// <summary>Monta RelayServerData escolhendo o endpoint wss (fallback ws → primeiro).</summary>
@@ -68,6 +100,7 @@ namespace PangeaSkirmish
             if (chosen == null)
                 foreach (var e in endpoints) if (e.ConnectionType == "ws") { chosen = e; break; }
             if (chosen == null) chosen = endpoints[0];
+            MpDiag.Log("BuildRelayData", $"chosen: type='{chosen.ConnectionType}' host={chosen.Host} port={chosen.Port} secure={chosen.Secure}");
 
             // WebGL/Relay SEMPRE usa WebSocket (wss). O navegador nao tem UDP, entao
             // IsWebSocket PRECISA ser 1 no RelayServerData — caso contrario o UnityTransport
@@ -75,8 +108,10 @@ namespace PangeaSkirmish
             // browser. Forcamos true independente do ConnectionType retornado pelo Relay
             // (que as vezes vem "dtls"/"udp" mas o Relay aceita wss sob demanda).
             bool isWebSocket = true;
-            return new Unity.Networking.Transport.Relay.RelayServerData(chosen.Host, (ushort)chosen.Port, allocationIdBytes,
+            var data = new Unity.Networking.Transport.Relay.RelayServerData(chosen.Host, (ushort)chosen.Port, allocationIdBytes,
                 connectionData, hostConnectionData, key, chosen.Secure, isWebSocket);
+            MpDiag.Log("BuildRelayData", $"RelayServerData criado: isWebSocket={isWebSocket} secure={chosen.Secure}");
+            return data;
         }
     }
 
@@ -157,6 +192,9 @@ namespace PangeaSkirmish
             return bootstrap;
         }
 
+        // ---- Log de diagnostico multiplayer (abort silencioso no WebGL) ----------
+        // (agora em MpDiag.Log, classe estatica — veja acima)
+
         private bool _callbacksSubscribed;
         private void SubscribeCallbacks()
         {
@@ -217,12 +255,21 @@ namespace PangeaSkirmish
         public async Task InitUgsAsync(string playerName)
         {
             RuntimeMultiplayerSession.PlayerName = playerName;
+            MpDiag.Log("InitUgs", $"UnityServices.State={UnityServices.State}");
 
             if (UnityServices.State == ServicesInitializationState.Uninitialized)
+            {
+                MpDiag.Log("InitUgs", "UnityServices.InitializeAsync()...");
                 await UnityServices.InitializeAsync();
+                MpDiag.Log("InitUgs", "UnityServices.InitializeAsync() OK");
+            }
 
             if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                MpDiag.Log("InitUgs", "AuthenticationService.SignInAnonymouslyAsync()...");
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                MpDiag.Log("InitUgs", $"SignIn OK playerId={AuthenticationService.Instance.PlayerId}");
+            }
         }
 
         // -------------------------------------------------------------------------
@@ -230,8 +277,11 @@ namespace PangeaSkirmish
         // -------------------------------------------------------------------------
         public async Task<string> HostRelayAsync()
         {
+            MpDiag.Log("HostRelay", "ConfigureHostAsync...");
             await _strategy.ConfigureHostAsync(_transport);
+            MpDiag.Log("HostRelay", "ConfigureHostAsync OK. StartHost()...");
             _networkManager.StartHost();
+            MpDiag.Log("HostRelay", "StartHost() retornou (host iniciado, conexao Relay assincrona em andamento).");
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = true;
             RuntimeMultiplayerSession.LocalClientId = _networkManager.LocalClientId;
@@ -245,8 +295,11 @@ namespace PangeaSkirmish
         // -------------------------------------------------------------------------
         public async Task JoinRelayAsync(string joinCode)
         {
+            MpDiag.Log("JoinRelay", "ConfigureClientAsync...");
             await _strategy.ConfigureClientAsync(_transport, joinCode);
+            MpDiag.Log("JoinRelay", "ConfigureClientAsync OK. StartClient()...");
             _networkManager.StartClient();
+            MpDiag.Log("JoinRelay", "StartClient() retornou (cliente iniciado, conexao Relay assincrona em andamento).");
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = false;
             RuntimeMultiplayerSession.JoinCode = joinCode;

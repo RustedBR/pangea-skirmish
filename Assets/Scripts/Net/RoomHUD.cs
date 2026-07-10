@@ -335,8 +335,9 @@ namespace PangeaSkirmish
         // Handlers de botão
         // =====================================================================
 
-        private async void OnClickCreateRoom()
+        public async void OnClickCreateRoom()
         {
+            MpDiag.Log("RoomHUD", "OnClickCreateRoom INICIO");
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
 
@@ -363,7 +364,9 @@ namespace PangeaSkirmish
                 else
                 {
                     await bootstrap.InitUgsAsync(playerName);
+                    MpDiag.Log("RoomHUD", "InitUgsAsync OK, chamando HostRelayAsync...");
                     joinCode = await bootstrap.HostRelayAsync();
+                    MpDiag.Log("RoomHUD", "HostRelayAsync retornou, criando lobby...");
 
                     var (lobbyCode, err) = await LobbyService.CreateLobbyAsync(roomName, 4, joinCode);
                     if (err != null) Debug.LogWarning($"[RoomHUD] Lobby criado com aviso: {err}");
@@ -376,6 +379,7 @@ namespace PangeaSkirmish
             }
             catch (Exception ex)
             {
+                MpDiag.Log("RoomHUD", $"EXCECAO CAPTURADA no OnClickCreateRoom: {ex}");
                 SetLobbyStatus($"Erro: {ex.Message}");
                 Debug.LogError($"[RoomHUD] OnClickCreateRoom: {ex}");
             }
