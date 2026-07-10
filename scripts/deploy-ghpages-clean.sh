@@ -48,6 +48,34 @@ find . -name "*.br" | while read -r f; do
   rm -f "$f"
 done
 
+# 4b) Injeta project_id no UnityServicesProjectConfiguration.json (UGS Auth/Relay)
+# BUG: sem project_id, SignInAnonymouslyAsync/Relay falham SILENCIOSAMENTE no WebGL
+# (exceptionSupport=None esconde a exceção -> abort("")). O Unity só grava project_id
+# no config quando os servicos UGS estao habilitados (m_Enabled=1); aqui estao 0.
+# Injeta manualmente para o MP funcionar no browser.
+CFG=$(find . -name "UnityServicesProjectConfiguration.json" | head -1)
+if [[ -n "$CFG" ]]; then
+  python3 - "$CFG" <<'PY'
+import json, sys
+p = sys.argv[1]
+with open(p) as f:
+    cfg = json.load(f)
+keys = cfg.get("Keys", [])
+vals = cfg.get("Values", [])
+PID = "dcd4e4ce-3fe1-4eac-8305-78719eaa279f"
+if "project_id" not in keys:
+    keys.append("project_id")
+    vals.append({"m_Value": PID, "m_IsReadOnly": False})
+    cfg["Keys"] = keys
+    cfg["Values"] = vals
+    with open(p, "w") as f:
+        json.dump(cfg, f, indent=0)
+    print("   project_id injetado:", PID)
+else:
+    print("   project_id ja presente, ok")
+PY
+fi
+
 # 5) Ajusta index.html (placeholders -> nomes reais, sem .br)
 sed -i \
   -e 's|{{DATA_URL}}|WebGL.data|g' \
