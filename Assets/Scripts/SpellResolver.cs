@@ -93,8 +93,8 @@ namespace PangeaSkirmish
             {
                 case SpellElement.Physical: fx.DexBonus = amt; fx.StrBonus = amt; attrDesc = $"+{amt}DEX/+{amt}STR"; break;
                 case SpellElement.Magic:    fx.IntBonus = amt; fx.WisBonus = amt; attrDesc = $"+{amt}INT/+{amt}WIS"; break;
-                case SpellElement.Fire:     fx.IntBonus = amt; fx.VitBonus = amt; attrDesc = $"+{amt}INT/+{amt}VIT"; break;
-                case SpellElement.Water:    fx.VitBonus = amt; fx.IntBonus = amt; attrDesc = $"+{amt}VIT/+{amt}INT"; break;
+                case SpellElement.Fire:     fx.IntBonus = amt; fx.AgiBonus = amt; attrDesc = $"+{amt}INT/+{amt}AGI"; break;
+                case SpellElement.Water:    fx.WisBonus = amt; fx.VitBonus = amt; attrDesc = $"+{amt}WIS/+{amt}VIT"; break;
                 case SpellElement.Air:      fx.AgiBonus = amt; fx.IntBonus = amt; attrDesc = $"+{amt}AGI/+{amt}INT"; break;
                 case SpellElement.Earth:    fx.VitBonus = amt; fx.StrBonus = amt; attrDesc = $"+{amt}VIT/+{amt}STR"; break;
                 default: return ($"{caster.unitName} magia desconhecida", null);

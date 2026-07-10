@@ -44,6 +44,7 @@ MonoBehaviour:
     incrementAttackDamage: 3
     incrementMoveTiles: 1
     baseHitChance: 0.9
+    hitPerDEX: 0.03
     dodgePerAGI: 0.02
     critPerDEX: 0.02
     critDamageMul: 1.5
@@ -102,74 +103,74 @@ MonoBehaviour:
   weapons:
   - id: Hatchet
     displayName: Machado
-    damage: 4
-    range: 2
+    damage: 10
+    range: 1
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 1
   - id: IronAxe
     displayName: Machado de Ferro
-    damage: 7
+    damage: 8
     range: 2
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 6
   - id: WoodenSword
     displayName: Espada de Madeira
-    damage: 3
-    range: 2
-    spellPowerMult: 1
-    spellRangeBonus: 0
-    elementAffinity: 0
-  - id: IronSword
-    displayName: Espada de Ferro
-    damage: 5
-    range: 2
-    spellPowerMult: 1
-    spellRangeBonus: 0
-    elementAffinity: 0
-  - id: WoodenStaff
-    displayName: Cajado
-    damage: 1
+    damage: 6
     range: 3
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 4
+  - id: IronSword
+    displayName: Espada de Ferro
+    damage: 4
+    range: 4
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 3
+  - id: WoodenStaff
+    displayName: Cajado
+    damage: 3
+    range: 7
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 2
   - id: Scepter
     displayName: Cetro
     damage: 3
-    range: 3
+    range: 6
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
-    damage: 3
-    range: 3
+    damage: 2
+    range: 8
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 5
   - id: LongBow
     displayName: Arco Longo
-    damage: 5
-    range: 5
+    damage: 1
+    range: 10
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 5
   - id: ApprenticeWand
     displayName: Varinha
     damage: 2
-    range: 3
-    spellPowerMult: 1
-    spellRangeBonus: 0
-    elementAffinity: 0
-  - id: ArcaneStaff
-    displayName: Cajado Arcano
-    damage: 6
     range: 5
     spellPowerMult: 1
     spellRangeBonus: 0
-    elementAffinity: 0
+    elementAffinity: 4
+  - id: ArcaneStaff
+    displayName: Cajado Arcano
+    damage: 3
+    range: 7
+    spellPowerMult: 1
+    spellRangeBonus: 0
+    elementAffinity: 6
   attributeMin: 1
   attributeMax: 20
   aiAggression: 0.3
@@ -208,13 +209,14 @@ MonoBehaviour:
   bonusMoveDuration: 2
   hitFlashDuration: 0.16
   deathFadeDuration: 0.9
+  weaponOverlayEnabled: 1
   weaponAttackOffset: {x: 0, y: 0.25}
   weaponCarryOffset: {x: 0, y: 0.25}
   weaponShowWhileIdle: 0
   followSpeed: 7
   camInitialSize: 15
-  zoomSize: 6
-  zoomSpeed: 2
+  zoomSize: 10
+  zoomSpeed: 3
   zoomScrollFactor: 0.1
   zoomMin: 5
   zoomMax: 20
@@ -227,25 +229,25 @@ MonoBehaviour:
   camManualTimeout: 2
   camSettleThreshold: 0.05
   camSettleTimeout: 1.2
-  camSettleMinDuration: 0.2
-  camSettleExtra: 0.6
-  attackFocusSettleExtra: 0.4
+  camSettleMinDuration: 1
+  camSettleExtra: 1
+  attackFocusSettleExtra: 1
   autoFramePadding: 1.5
   autoFrameZoomMin: 3
   autoFrameZoomMax: 20
   initiativeContestMinRadius: 3
   initiativeContestZoomPadding: 3.5
-  camMoveDuration: 1
-  preActionPause: 0.55
-  postActionPause: 0.75
+  camMoveDuration: 2
+  preActionPause: 0.8
+  postActionPause: 1
   initiativeHold: 1.75
   slotPause: 0.15
   revealDelay: 1
   roundBannerHold: 0.4
   roundEndPause: 0.5
-  initiativeCollapseExtraPause: 1
-  attackLabelLeadPause: 1
-  attackAreaFocusDuration: 1
+  initiativeCollapseExtraPause: 3
+  attackLabelLeadPause: 3
+  attackAreaFocusDuration: 5
   shakeDurationCrit: 0.25
   shakeMagnitudeCrit: 0.2
   shakeDurationNormal: 0.15
@@ -260,15 +262,15 @@ MonoBehaviour:
   flashDurationWhite: 0.15
   flashIntensityWhite: 0.5
   flashHoldRatio: 0.5
-  battleLabelDuration: 3
-  battleLabelFadeTime: 2
-  attackLabelDuration: 1
+  battleLabelDuration: 6
+  battleLabelFadeTime: 10
+  attackLabelDuration: 6
   damageRiseHeight: 1
-  damageRiseDuration: 1
+  damageRiseDuration: 5
   critRiseHeight: 1
-  critRiseDuration: 1
+  critRiseDuration: 5
   missRiseHeight: 1
-  missRiseDuration: 1
+  missRiseDuration: 5
   battleLabelStackSpacing: 0.9
   battleLabelStackRadius: 2
   seqStackSpacing: 1.2
@@ -370,12 +372,6 @@ MonoBehaviour:
   concentrateManaGain: 3
   spellRangePerMana: 1
   spellRangeBase: 4
-  physicalBasePotency: 1
-  magicBasePotency: 1
-  fireBasePotency: 1
-  waterBasePotency: 1
-  airBasePotency: 1
-  earthBasePotency: 1
   conduitAffinityBonus: 0.25
   spellMinDamage: 1
   spellResistFactor: 0.5
@@ -397,8 +393,8 @@ MonoBehaviour:
   spellProjectileSpeed: 14
   wallImpactDamage: 2
   spellProjectileArc: 0.6
-  spellCastAnimDuration: 0.5
-  spellImpactPause: 0.35
+  spellCastAnimDuration: 1
+  spellImpactPause: 0.5
   tileEffectAnimFps: 6
   tileEffectOverlayAlpha: 0.65
   elemPhysicalColor: {r: 0.8, g: 0.6, b: 0.3, a: 1}
@@ -411,6 +407,7 @@ MonoBehaviour:
   attackRangeColor: {r: 1, g: 0.82, b: 0.3, a: 0.35}
   enemyRangeColor: {r: 1, g: 0.28, b: 0.22, a: 0.45}
   seqChipSpellColor: {r: 0.6, g: 0.2, b: 0.8, a: 1}
+  seqChipConcentrateColor: {r: 0.15, g: 0.55, b: 0.55, a: 1}
   manaTextColor: {r: 0.4, g: 0.6, b: 1, a: 1}
   projectileSheetPhysical: Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 1A
   projectileSheetMagic: Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 2A
@@ -463,3 +460,10 @@ MonoBehaviour:
   windowFrameEnabled: 1
   windowFrameCorner: 6
   windowFrameBorderPx: 2
+  windowFrameBorderColor: {r: 0.04, g: 0.05, b: 0.09, a: 1}
+  windowFrameHighlightColor: {r: 0.55, g: 0.68, b: 0.92, a: 1}
+  reactionChoiceTime: 5
+  dodgeReactionPerAGI: 0.03
+  blockReductionPerVIT: 0.03
+  maxBlockReduction: 0.6
+  aooDamageMult: 1
