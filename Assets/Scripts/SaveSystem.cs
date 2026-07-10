@@ -187,6 +187,36 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
+        /// Retorna o timestamp de um save sem deserializar o estado completo.
+        /// Lê só o campo "timestamp" do JSON (leve). Retorna string vazia se não houver.
+        /// </summary>
+        public static string GetTimestamp(string saveName)
+        {
+            try
+            {
+                string filePath = Path.Combine(SavePath, $"{saveName}.json");
+                if (!File.Exists(filePath)) return "";
+
+                string json = File.ReadAllText(filePath);
+                // Extrai "timestamp":"..." do JSON (campo direto, sem aninhamento)
+                int idx = json.IndexOf("\"timestamp\"");
+                if (idx < 0) return "";
+                int colon = json.IndexOf(':', idx);
+                if (colon < 0) return "";
+                int start = json.IndexOf('"', colon);
+                if (start < 0) return "";
+                int end = json.IndexOf('"', start + 1);
+                if (end < 0) return "";
+                return json.Substring(start + 1, end - start - 1);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to read timestamp: {e.Message}");
+                return "";
+            }
+        }
+
+        /// <summary>
         /// Check if a save file exists.
         /// </summary>
         public static bool SaveExists(string saveName)
@@ -208,7 +238,7 @@ namespace PangeaSkirmish
             {
                 var unitState = new UnitState
                 {
-                    unitId = unit.unitName,
+                    unitId = !string.IsNullOrEmpty(unit.definitionId) ? unit.definitionId : unit.unitName,
                     unitName = unit.unitName,
                     team = unit.team,
                     anchor = unit.anchor,
@@ -237,7 +267,20 @@ namespace PangeaSkirmish
             {
                 state.grid.width = grid.width;
                 state.grid.height = grid.height;
-                // TODO: Capture tile data if needed
+                // Captura todos os tiles (índice + altura) para reconstruir o terreno
+                state.grid.tiles.Clear();
+                for (int y = 0; y < grid.height; y++)
+                {
+                    for (int x = 0; x < grid.width; x++)
+                    {
+                        state.grid.tiles.Add(new TileState
+                        {
+                            position = new Vector2Int(x, y),
+                            tileId   = grid.GetTileIndex(x, y),
+                            height   = grid.GetHeight(x, y)
+                        });
+                    }
+                }
             }
 
             return state;
@@ -269,23 +312,55 @@ namespace PangeaSkirmish
                 return;
             }
 
+            // Restore grid tiles
+            if (grid != null && state.grid.tiles.Count > 0)
+            {
+                grid.width = state.grid.width;
+                grid.height = state.grid.height;
+                foreach (var tile in state.grid.tiles)
+                {
+                    grid.SetCell(tile.position.x, tile.position.y, tile.tileId, tile.height);
+                }
+            }
+
+            // Restore units
             foreach (var unitState in state.units)
             {
-                // TODO: Spawn unit from UnitDefinition
-                // For now, create a basic unit
-                var go = new GameObject(unitState.unitName);
-                go.transform.position = grid.CellToWorld(unitState.anchor);
+                Unit unit;
+                var def = UnitDefinitionRegistry.Get(unitState.unitId);
+                if (def != null)
+                {
+                    // Spawn correto a partir da definição (stats, arma, IA, visual)
+                    unit = def.SpawnUnit(grid, unitState.anchor, unitState.team);
+                }
+                else
+                {
+                    Debug.LogWarning($"[SaveSystem] UnitDefinition '{unitState.unitId}' não encontrada — criando unit básica.");
+                    var go = new GameObject(unitState.unitName);
+                    go.transform.position = grid.CellToWorld(unitState.anchor);
+                    unit = go.AddComponent<Unit>();
+                    unit.unitName = unitState.unitName;
+                    unit.team = unitState.team;
+                }
 
-                var unit = go.AddComponent<Unit>();
-                unit.unitName = unitState.unitName;
-                unit.team = unitState.team;
                 unit.anchor = unitState.anchor;
                 unit.currentHP = unitState.currentHP;
                 unit.currentMana = unitState.currentMana;
                 unit.remainingAP = unitState.remainingAP;
                 unit.remainingBAP = unitState.remainingBAP;
 
-                // TODO: Restore status effects
+                // Restaura efeitos de status
+                foreach (var se in unitState.statusEffects)
+                {
+                    if (System.Enum.TryParse<StatusEffectKind>(se.effectId, out var kind))
+                    {
+                        unit.statusEffects.Add(new StatusEffect
+                        {
+                            Kind = kind,
+                            RoundsLeft = se.remainingRounds
+                        });
+                    }
+                }
             }
 
             Debug.Log($"Game state restored: {state.saveName}");

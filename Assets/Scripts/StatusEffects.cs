@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace PangeaSkirmish
 {
-    public enum StatusEffectKind { PhysicalMight, MagicShield, ElementResist }
+    public enum StatusEffectKind { PhysicalMight, MagicShield, ElementResist, AttrBuff }
 
     [Serializable]
     public class StatusEffect
@@ -12,8 +12,16 @@ namespace PangeaSkirmish
         public StatusEffectKind Kind;
         public SpellElement Element;
 
+        // Bônus de atributo (para AttrBuff — buffs Self rework).
+        // Cada elemento buffa os 2 atributos do seu par (ver SpellBook.AttributePair).
         public int StrBonus;
         public int VitBonus;
+        public int DexBonus;
+        public int AgiBonus;
+        public int IntBonus;
+        public int WisBonus;
+
+        // Legados (ainda usados por MagicShield / ElementResist durante transição).
         public int ShieldRemaining;
         public int ResistAmount;
         public int RoundsLeft;
@@ -22,6 +30,7 @@ namespace PangeaSkirmish
         public bool IsPhysicalMight => Kind == StatusEffectKind.PhysicalMight;
         public bool IsMagicShield => Kind == StatusEffectKind.MagicShield;
         public bool IsElementResist => Kind == StatusEffectKind.ElementResist;
+        public bool IsAttrBuff => Kind == StatusEffectKind.AttrBuff;
     }
 
     public static class StatusEffectSystem
@@ -33,6 +42,10 @@ namespace PangeaSkirmish
             {
                 existing.StrBonus = Mathf.Max(existing.StrBonus, incoming.StrBonus);
                 existing.VitBonus = Mathf.Max(existing.VitBonus, incoming.VitBonus);
+                existing.DexBonus = Mathf.Max(existing.DexBonus, incoming.DexBonus);
+                existing.AgiBonus = Mathf.Max(existing.AgiBonus, incoming.AgiBonus);
+                existing.IntBonus = Mathf.Max(existing.IntBonus, incoming.IntBonus);
+                existing.WisBonus = Mathf.Max(existing.WisBonus, incoming.WisBonus);
                 existing.ShieldRemaining = Mathf.Max(existing.ShieldRemaining, incoming.ShieldRemaining);
                 existing.ResistAmount = Mathf.Max(existing.ResistAmount, incoming.ResistAmount);
                 existing.RoundsLeft = Mathf.Max(existing.RoundsLeft, incoming.RoundsLeft);
@@ -41,6 +54,26 @@ namespace PangeaSkirmish
             {
                 list.Add(incoming);
             }
+        }
+
+        /// <summary>Soma de todos os bônus de um atributo entre os buffs ativos.</summary>
+        public static int AttrBonus(List<StatusEffect> effects, Attr attr)
+        {
+            int sum = 0;
+            foreach (var fx in effects)
+            {
+                if (!fx.IsAttrBuff || fx.IsExpired) continue;
+                switch (attr)
+                {
+                    case Attr.STR: sum += fx.StrBonus; break;
+                    case Attr.VIT: sum += fx.VitBonus; break;
+                    case Attr.DEX: sum += fx.DexBonus; break;
+                    case Attr.AGI: sum += fx.AgiBonus; break;
+                    case Attr.INT: sum += fx.IntBonus; break;
+                    case Attr.WIS: sum += fx.WisBonus; break;
+                }
+            }
+            return sum;
         }
 
         public static int ReduceIncomingDamage(List<StatusEffect> effects, int amount)
@@ -60,13 +93,20 @@ namespace PangeaSkirmish
             return Mathf.Max(0, reduced);
         }
 
+        // Mantido por compatibilidade (PhysicalMight antigo consumia STR no hit).
+        // No rework os buffs de atributo NÃO são consumidos por hit — duram os rounds inteiros.
         public static int ConsumeStrBuffOnHit(List<StatusEffect> effects)
         {
-            var fx = effects.Find(s => s.IsPhysicalMight && s.StrBonus > 0);
-            if (fx == null) return 0;
-            int bonus = fx.StrBonus;
-            fx.StrBonus = 0;
-            if (fx.VitBonus <= 0) fx.RoundsLeft = 0;
+            int bonus = 0;
+            foreach (var fx in effects)
+            {
+                if (fx.IsPhysicalMight && fx.StrBonus > 0)
+                {
+                    bonus += fx.StrBonus;
+                    fx.StrBonus = 0;
+                    if (fx.VitBonus <= 0) fx.RoundsLeft = 0;
+                }
+            }
             return bonus;
         }
 
@@ -104,6 +144,7 @@ namespace PangeaSkirmish
                 if (fx.IsPhysicalMight) parts.Add($"Poder Físico (+{fx.StrBonus}STR/+{fx.VitBonus}VIT, {fx.RoundsLeft}r)");
                 else if (fx.IsMagicShield) parts.Add($"Escudo Mágico ({fx.ShieldRemaining}, {fx.RoundsLeft}r)");
                 else if (fx.IsElementResist) parts.Add($"Resist {SpellBook.ElementName(fx.Element)} ({fx.ResistAmount}, {fx.RoundsLeft}r)");
+                else if (fx.IsAttrBuff) parts.Add($"Buff {SpellBook.ElementName(fx.Element)} (r{fx.RoundsLeft})");
             }
             return string.Join(" | ", parts);
         }

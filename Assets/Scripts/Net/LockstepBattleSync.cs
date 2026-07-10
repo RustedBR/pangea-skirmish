@@ -65,6 +65,16 @@ namespace PangeaSkirmish
             Instance = this;
         }
 
+        private void Awake()
+        {
+            // Fallback para modo loopback solo (criação de conteúdo offline): o
+            // LockstepBattleSync não é spawnado pela rede (CheckAllPlaced só roda em MP
+            // real), mas a batalha pode iniciar localmente. Sem isto, o Instance fica
+            // null por 8s → timeout → plano perdido → jogo travado.
+            if (RuntimeMultiplayerSession.IsLocalContentSession && Instance == null)
+                Instance = this;
+        }
+
         public override void OnNetworkDespawn()
         {
             if (Instance == this) Instance = null;
@@ -175,22 +185,37 @@ namespace PangeaSkirmish
         /// qualquer cenário onde a contagem coincida mas os remetentes reais não sejam os
         /// jogadores esperados (ex.: duplicidade). Ver PlayerCount() para o porquê de não
         /// usar NetworkManager.ConnectedClientsIds aqui.
+        /// Jogadores já eliminados (sem unidades vivas) são IGNORADOS — a fase de
+        /// planejamento não deve esperar por quem já morreu.
         /// </summary>
         private bool AllSlotsHaveSubmitted()
         {
             if (RoomManager.Instance == null) return _receivedPlans.Count >= PlayerCount();
             var slots = RoomManager.Instance.Slots;
             if (slots.Count == 0) return false;
+            var alive = AliveOwnerIds();
+            if (alive.Count == 0) return true; // ninguém vivo: fecha o round
             foreach (var slot in slots)
-                if (!_receivedPlans.ContainsKey(slot.ClientId)) return false;
+                if (alive.Contains(slot.ClientId) && !_receivedPlans.ContainsKey(slot.ClientId))
+                    return false;
             return true;
         }
 
-        /// <summary>Fonte de verdade para "quantos jogadores esperar" — RoomManager.Slots
-        /// (NetworkList da sala), com fallback para ConnectedClientsIds só se o RoomManager
-        /// ainda não existir por algum motivo.</summary>
-        private static int PlayerCount()
+        /// <summary>Donos (clientIds) que ainda têm ao menos uma unidade viva.</summary>
+        private HashSet<ulong> AliveOwnerIds()
         {
+            var alive = new HashSet<ulong>();
+            if (_units != null)
+                foreach (var u in _units)
+                    if (!u.IsDead) alive.Add(u.ownerId);
+            return alive;
+        }
+
+        /// <summary>Fonte de verdade para "quantos jogadores esperar" — donos de unidades
+        /// vivas (ignora jogadores já eliminados). Fallback para Slots.Count se _units nulo.</summary>
+        private int PlayerCount()
+        {
+            if (_units != null && _units.Count > 0) return AliveOwnerIds().Count;
             if (RoomManager.Instance != null) return RoomManager.Instance.Slots.Count;
             return NetworkManager.Singleton != null ? NetworkManager.Singleton.ConnectedClientsIds.Count : 1;
         }
@@ -198,6 +223,14 @@ namespace PangeaSkirmish
         // =========================================================================
         // Início da coleta (chamado pelo RoundManager ao entrar em Planning em MP)
         // =========================================================================
+        /// <summary>Contagem de jogadores ainda vivos (com pelo menos uma unidade viva).
+        /// Usado pelo RoundManager para iniciar a coleta de planos sem esperar eliminados.</summary>
+        public int AlivePlayerCount()
+        {
+            if (_units != null && _units.Count > 0) return AliveOwnerIds().Count;
+            if (RoomManager.Instance != null) return RoomManager.Instance.Slots.Count;
+            return 1;
+        }
         public void BeginCollection(int expectedPlayers)
         {
             if (!IsServer) return;
@@ -564,6 +597,28 @@ namespace PangeaSkirmish
                     Debug.Log($"[Lockstep] Unidade {u.unitName} eliminada por desconexão de {clientId}");
                 }
             }
+        }
+
+        // =========================================================================
+        // Reação (Ações Bônus rework) — escolha do jogador dono sincronizada via RPC
+        // =========================================================================
+        [ServerRpc(RequireOwnership = false)]
+        public void SubmitReactionServerRpc(uint reactorId, int kind, ServerRpcParams rpcParams = default)
+        {
+            var reactor = UnitRegistry.Get(reactorId);
+            // Autoridade: só o dono real (cliente que enviou o RPC) pode submeter a
+            // reação de sua unidade. Sem isto, um cliente não-dono poderia falsificar
+            // a escolha de outro e reagir a uma reação que não é sua.
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (reactor == null || reactor.ownerId != sender) return;
+            ApplyReactionClientRpc(reactorId, kind);
+        }
+
+        [ClientRpc]
+        private void ApplyReactionClientRpc(uint reactorId, int kind)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.ApplyReactionRemote(reactorId, kind);
         }
     }
 

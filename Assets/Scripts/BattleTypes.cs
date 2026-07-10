@@ -41,8 +41,9 @@ namespace PangeaSkirmish
         public int incrementMoveTiles    = 1;
 
         [Header("Precisão / Esquiva")]
-        public float baseHitChance = 0.90f;
-        public float dodgePerAGI   = 0.01f;
+        public float baseHitChance = 0.70f;
+        public float hitPerDEX    = 0.03f;
+        public float dodgePerAGI   = 0.02f;
         public float critPerDEX    = 0.01f;
         public float critDamageMul = 1.5f;
         public float damageVariance = 0.15f;
@@ -109,7 +110,7 @@ namespace PangeaSkirmish
 
         public int ManaRegen => Mathf.RoundToInt(F.manaRegenBase + WIS * F.manaRegenPerWIS);
 
-        public float HitChance => Mathf.Clamp01(F.baseHitChance);
+        public float HitChance => Mathf.Clamp01(F.baseHitChance + DEX * F.hitPerDEX);
         public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI);
         public float CritChance => Mathf.Clamp01(DEX * F.critPerDEX);
         public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT);
@@ -124,6 +125,15 @@ namespace PangeaSkirmish
             if (BattleRng.Roll10000() < Mathf.RoundToInt(effectiveChance * 10000f))
                 return HitResult.Hit;
             return HitResult.Miss;
+        }
+
+        /// <summary>Critico independente de dodge (usado em ataques de tile, que nao rolam esquiva).</summary>
+        private bool _rollCritLast;
+        public bool RollCritLast => _rollCritLast;
+        public bool RollCrit()
+        {
+            _rollCritLast = BattleRng.Roll10000() < Mathf.RoundToInt(CritChance * 10000f);
+            return _rollCritLast;
         }
 
         public int RollDamage(int baseDamage, bool isPhysical)
@@ -177,6 +187,9 @@ namespace PangeaSkirmish
     // ------------------------------------------------------------------ ATAQUE
 
     public enum AttackMode { Auto, Unit, Tile }
+
+    /// <summary>Reações do rework de Ações Bônus. Disparadas por trigger na fase de ação.</summary>
+    public enum ReactionKind { None, CounterAttack, Dodge, Block }
 
     /// <summary>Ataque planejado pelo jogador (ou IA) com alvo específico ou posição.</summary>
     public struct PlannedAttack

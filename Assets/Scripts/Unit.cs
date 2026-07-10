@@ -12,6 +12,7 @@ namespace PangeaSkirmish
     public class Unit : MonoBehaviour
     {
         public string unitName = "Unit";
+        public string definitionId = ""; // unitId da UnitDefinition (se spawnada via SpawnUnit)
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
         public string weaponId = ""; // id da arma equipada (setado antes de Init)
@@ -38,6 +39,22 @@ namespace PangeaSkirmish
         public int remainingAP;
         public int remainingBAP;
 
+        // ── Ações Bônus (rework): reações ──
+        /// <summary>Reações disponíveis neste round (1/round, renova em StartRound).</summary>
+        public int remainingReactions = 1;
+        /// <summary>Bônus de dodge temporário desta reação (somado ao DodgeChance no RollHit).</summary>
+        public float dodgeReactBonus;
+        /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
+        public float blockReduction;
+
+        public bool CanReact() => remainingBAP >= 2 && remainingReactions > 0;
+        public void ConsumeReaction()
+        {
+            remainingBAP      = Mathf.Max(0, remainingBAP - 2);
+            remainingReactions = Mathf.Max(0, remainingReactions - 1);
+        }
+        public void ResetReactionsForRound() => remainingReactions = 1;
+
         [Header("AI Parameters (per-unit override)")]
         [Range(0f, 1f)] public float aiAggression = 0.7f;
         [Range(0f, 1f)] public float aiAttackPreference = 0.5f;
@@ -53,12 +70,33 @@ namespace PangeaSkirmish
         public int reservedMana;
         public int rolledInitiative;
         public int plannedConcentrations;
+        public int plannedSpellBonusINT; // Mira Mágica (ação bônus de incremento): +INT na potência da magia
         public readonly List<PlannedSpell>   plannedSpells = new List<PlannedSpell>();
         public readonly List<StatusEffect>   statusEffects = new List<StatusEffect>();
 
         public int AvailableMana => currentMana - reservedMana;
 
         public Vector2Int FinalAnchor => hasPlannedBonus ? plannedBonusAnchor : plannedAnchor;
+
+        /// <summary>
+        /// Atributo efetivo = base + bônus de buffs ativos (AttrBuff).
+        /// Usado por magias (SpellBook.AttributePair) e pode ser estendido p/ ataque físico.
+        /// </summary>
+        public int EffectiveStat(Attr attr)
+        {
+            int baseVal;
+            switch (attr)
+            {
+                case Attr.STR: baseVal = Mathf.RoundToInt(stats.STR); break;
+                case Attr.VIT: baseVal = Mathf.RoundToInt(stats.VIT); break;
+                case Attr.DEX: baseVal = Mathf.RoundToInt(stats.DEX); break;
+                case Attr.AGI: baseVal = Mathf.RoundToInt(stats.AGI); break;
+                case Attr.INT: baseVal = Mathf.RoundToInt(stats.INT); break;
+                case Attr.WIS: baseVal = Mathf.RoundToInt(stats.WIS); break;
+                default: baseVal = 0; break;
+            }
+            return baseVal + StatusEffectSystem.AttrBonus(statusEffects, attr);
+        }
 
         public static event System.Action<Unit, int, bool> OnDamageTaken;
 
@@ -484,6 +522,15 @@ namespace PangeaSkirmish
             ApplySorting();
         }
 
+        /// <summary>Teleporte (magia Physical-Tile): move o caster para o tile alvo.</summary>
+        public void TeleportTo(Vector2Int cell)
+        {
+            anchor = cell;
+            plannedAnchor = cell;
+            plannedBonusAnchor = cell;
+            SnapToAnchor();
+        }
+
         private void ApplySorting()
         {
             int order = _grid.SortingFor(anchor, stats.Footprint);
@@ -725,8 +772,9 @@ namespace PangeaSkirmish
             int dmg = rawPotency;
             if (isPhysical)
             {
+                int strBuff = StatusEffectSystem.AttrBonus(statusEffects, Attr.STR);
                 dmg = Mathf.Max(Tuning.Get().spellMinDamage,
-                    rawPotency + StatusEffectSystem.ConsumeStrBuffOnHit(statusEffects) - stats.PhysicalDefense);
+                    rawPotency + strBuff - stats.PhysicalDefense);
             }
             else
             {
@@ -754,9 +802,12 @@ namespace PangeaSkirmish
             bonusDamageThisAttack = false;
             aimBonusThisAttack    = false;
             plannedConcentrations = 0;
+            plannedSpellBonusINT = 0;
             reservedMana = 0;
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;
+            dodgeReactBonus = 0f;
+            blockReduction  = 0f;
         }
 
         public void RebuildSequenceFromLists()

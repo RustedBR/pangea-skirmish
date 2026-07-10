@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
-using UnityEngine.UI;
 using PangeaSkirmish.UI;
 
 namespace PangeaSkirmish
@@ -14,7 +13,6 @@ namespace PangeaSkirmish
 
         // Referências públicas para uso pelo PlacementSync e RoundManager em MP
         [HideInInspector] public GridManager MpGrid;
-        [HideInInspector] public Canvas MpCanvas;
         [HideInInspector] public BattleHUD MpHUD;
         [HideInInspector] public PlanningController MpPlanner;
         [HideInInspector] public RoundManager MpRoundManager;
@@ -88,7 +86,6 @@ namespace PangeaSkirmish
             camCtrl.SetPanBounds(new Vector2(centerX - panRangeX, centerY - panRangeY),
                                  new Vector2(centerX + panRangeX, centerY + panRangeY));
 
-            var canvas = BuildCanvas();
             BuildEventSystem();
             var hud = PangeaScreen.Spawn<BattleHUD>("BattleHUD");
 
@@ -114,7 +111,6 @@ namespace PangeaSkirmish
             // (O jogo é 100% multiplayer — o modo Single-Player foi removido em 2026-07-07.)
             UnitRegistry.Clear();
             MpGrid          = grid;
-            MpCanvas        = canvas;
             MpHUD           = hud;
             MpPlanner       = planner;
             MpRoundManager  = round;
@@ -122,15 +118,14 @@ namespace PangeaSkirmish
             // RoundManager e PlanningController ficam prontos mas NÃO começam
             // PlacementSync vai spawnar unidades e chamar Begin() via StartBattleClientRpc
             planner.Setup(grid, cam, new System.Collections.Generic.List<Unit>());
-            round.Setup(grid, planner, hud, canvas, cam, camCtrl,
+            round.Setup(grid, planner, hud, cam, camCtrl,
                 new System.Collections.Generic.List<Unit>(), null, tileFx);
 
-            // Mostrar HUD "Aguardando posicionamento"
             hud.ShowWaitingForPlacement();
 
             // Notificar PlacementSync de que o grid está pronto
             if (PlacementSync.Instance != null)
-                PlacementSync.Instance.OnGridReady(grid, canvas, hud, cam, camCtrl, round, planner, tileFx, tuning);
+                PlacementSync.Instance.OnGridReady(grid, hud, cam, camCtrl, round, planner, tileFx, tuning);
             else
                 Debug.LogError("[GameBootstrap] MP: PlacementSync.Instance NULL na cena Battle — o objeto de rede nao sobreviveu a troca de cena; posicionamento nao inicia.");
         }
@@ -148,18 +143,6 @@ namespace PangeaSkirmish
             u.stats = (block ?? new UnitStatBlock()).ToAttributeStats();
             u.Init(grid, anchor, teamColor, resourcePath);
             return u;
-        }
-
-        private Canvas BuildCanvas()
-        {
-            var go = new GameObject("Canvas");
-            var canvas = go.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = go.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            go.AddComponent<GraphicRaycaster>();
-            return canvas;
         }
 
         private void BuildEventSystem()

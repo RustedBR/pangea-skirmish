@@ -25,7 +25,6 @@ namespace PangeaSkirmish
 
         // ---- Referências injetadas pelo GameBootstrap -------------------------
         private GridManager _grid;
-        private Canvas _canvas;
         private BattleHUD _hud;
         private Camera _cam;
         private CameraController _camCtrl;
@@ -69,7 +68,7 @@ namespace PangeaSkirmish
         // =========================================================================
         // Chamado pelo GameBootstrap quando o grid da cena Battle está pronto
         // =========================================================================
-        public void OnGridReady(GridManager grid, Canvas canvas, BattleHUD hud,
+        public void OnGridReady(GridManager grid, BattleHUD hud,
             Camera cam, CameraController camCtrl,
             RoundManager round, PlanningController planner,
             TileEffectManager tileFx, GameTuning tuning)
@@ -81,7 +80,6 @@ namespace PangeaSkirmish
             if (IsServer) ResetPlacementState();
 
             _grid    = grid;
-            _canvas  = canvas;
             _hud     = hud;
             _cam     = cam;
             _camCtrl = camCtrl;
@@ -394,7 +392,7 @@ namespace PangeaSkirmish
 
             // Configurar PlanningController e RoundManager com todas as unidades
             _planner.Setup(_grid, _cam, _allUnits);
-            _round.Setup(_grid, _planner, _hud, _canvas, _cam, _camCtrl,
+            _round.Setup(_grid, _planner, _hud, _cam, _camCtrl,
                 _allUnits, _controlled, _tileFx);
 
             // Chat na batalha: mensagens do RoomManager aparecem no log do BattleHUD.

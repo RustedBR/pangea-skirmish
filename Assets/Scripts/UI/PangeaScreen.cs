@@ -26,7 +26,7 @@ namespace PangeaSkirmish.UI
 
         private static PanelSettings _sharedPanel;
 
-        protected UIDocument Document { get; private set; }
+        public UIDocument Document { get; private set; }
 
         /// <summary>Raiz da árvore visual desta tela (null até Awake rodar).</summary>
         protected VisualElement Root => Document != null ? Document.rootVisualElement : null;

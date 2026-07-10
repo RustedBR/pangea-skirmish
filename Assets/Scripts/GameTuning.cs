@@ -538,18 +538,6 @@ namespace PangeaSkirmish
         public int spellRangePerMana = 1;
         [Tooltip("Alcance base extra de conduíte (soma ao alcance baseado em mana).")]
         public int spellRangeBase = 0;
-        [Tooltip("Potência base do elemento Físico: multiplica par (DEX+STR).")]
-        public float physicalBasePotency = 1f;
-        [Tooltip("Potência base do elemento Mágico: multiplica par (INT+WIS).")]
-        public float magicBasePotency = 1f;
-        [Tooltip("Potência base do elemento Fogo: multiplica par (INT+VIT).")]
-        public float fireBasePotency = 1f;
-        [Tooltip("Potência base do elemento Água: multiplica par (VIT+INT).")]
-        public float waterBasePotency = 1f;
-        [Tooltip("Potência base do elemento Ar: multiplica par (AGI+INT).")]
-        public float airBasePotency = 1f;
-        [Tooltip("Potência base do elemento Terra: multiplica par (VIT+STR).")]
-        public float earthBasePotency = 1f;
         [Tooltip("Bônus multiplicativo de afinidade quando o elemento da magia coincide com a afinidade do conduíte. 0.25 = +25% de dano.")]
         public float conduitAffinityBonus = 0.25f;
         [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
@@ -750,19 +738,18 @@ namespace PangeaSkirmish
         [Tooltip("Cor do realce interno (1px) da moldura de painel, logo depois do contorno.")]
         public Color windowFrameHighlightColor = new Color(0.55f, 0.68f, 0.92f);
 
-        public float BasePotencyForElement(SpellElement e)
-        {
-            switch (e)
-            {
-                case SpellElement.Physical: return physicalBasePotency;
-                case SpellElement.Magic:    return magicBasePotency;
-                case SpellElement.Fire:     return fireBasePotency;
-                case SpellElement.Water:    return waterBasePotency;
-                case SpellElement.Air:      return airBasePotency;
-                case SpellElement.Earth:    return earthBasePotency;
-                default:                    return 1f;
-            }
-        }
+        // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
+        [Header("═══ REAÇÕES (Ações Bônus) ═══")]
+        [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP.")]
+        public float reactionChoiceTime   = 5f;
+        [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
+        public float dodgeReactionPerAGI  = 0.03f;
+        [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
+        public float blockReductionPerVIT = 0.03f;
+        [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
+        public float maxBlockReduction    = 0.60f;
+        [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]
+        public float aooDamageMult        = 1.0f;
     }
 
     /// <summary>

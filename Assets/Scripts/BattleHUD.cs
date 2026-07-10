@@ -43,17 +43,24 @@ namespace PangeaSkirmish
         private Label  _breadcrumbText;
         private VisualElement _mainMenuPanel, _actionsMenuPanel, _attackMenuPanel,
                               _magicMenuPanel, _spellTypeMenuPanel, _manaStepperPanel, _bonusMenuPanel;
+ private VisualElement _reactionMenu, _reactionButtons;
+ private Label _reactionTimer, _reactionText;
         private VisualElement _seqBar, _seqContent;
         private VisualElement _promptPanel, _endPanel, _endWin;
-        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText;
+        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText;
         private Button _confirmButton, _moveButton, _attackUnitButton, _attackTileButton,
-                       _magicButton, _concentrateButton, _incrementButton, _aimButton,
+                       _magicButton, _concentrateButton, _incrementButton, _aimButton, _miraMagiaButton,
                        _undoButton, _clearButton, _powerStrikeButton, _quickStepButton,
                        _spellSelfButton, _spellUnitButton, _spellTileButton,
-                       _manaMinusButton, _manaPlusButton, _manaCastButton, _manaBackButton,
+                       _manaRangeMinusButton, _manaRangePlusButton, _manaPowerMinusButton, _manaPowerPlusButton,
+                       _manaCastButton, _manaBackButton,
                        _simButton, _naoButton, _endMenuButton;
         private VisualElement _mpWaitingOverlay;
         private Label  _mpWaitingText;
+
+        // ── Tooltip de botões (hover > 3s) ──
+        private IVisualElementScheduledItem _pendingTip;
+        private VisualElement _tipOwner;
 
         // ── Dados do log (preservados p/ recolhimento por round) ──
         private readonly List<LogEntry> _logEntries = new List<LogEntry>();
@@ -160,8 +167,14 @@ namespace PangeaSkirmish
             _endText          = r.Q<Label>("end-text");
             _manaValueText    = r.Q<Label>("mana-value");
             _manaPotencyText  = r.Q<Label>("mana-potency");
+            _manaRangeValueText = r.Q<Label>("mana-range-value");
+            _manaPowerValueText = r.Q<Label>("mana-power-value");
             _mpWaitingOverlay = r.Q<VisualElement>("mp-waiting");
             _mpWaitingText    = r.Q<Label>("mp-waiting-text");
+            _reactionMenu     = r.Q<VisualElement>("reaction-menu");
+            _reactionButtons  = r.Q<VisualElement>("reaction-buttons");
+            _reactionTimer    = r.Q<Label>("reaction-timer");
+            _reactionText     = r.Q<Label>("reaction-text");
 
             // Botões (via name)
             _confirmButton    = r.Q<Button>("btn-confirm");
@@ -172,13 +185,16 @@ namespace PangeaSkirmish
             _concentrateButton= r.Q<Button>("btn-concentrate");
             _incrementButton  = r.Q<Button>("btn-increment");
             _aimButton        = r.Q<Button>("btn-aim");
+            _miraMagiaButton  = r.Q<Button>("btn-mira-magia");
             _undoButton       = r.Q<Button>("btn-undo");
             _clearButton      = r.Q<Button>("btn-clear");
             _spellSelfButton  = r.Q<Button>("btn-spell-self");
             _spellUnitButton  = r.Q<Button>("btn-spell-unit");
             _spellTileButton  = r.Q<Button>("btn-spell-tile");
-            _manaMinusButton  = r.Q<Button>("mana-minus");
-            _manaPlusButton   = r.Q<Button>("mana-plus");
+            _manaRangeMinusButton = r.Q<Button>("mana-range-minus");
+            _manaRangePlusButton  = r.Q<Button>("mana-range-plus");
+            _manaPowerMinusButton = r.Q<Button>("mana-power-minus");
+            _manaPowerPlusButton  = r.Q<Button>("mana-power-plus");
             _manaCastButton   = r.Q<Button>("mana-cast");
             _manaBackButton   = r.Q<Button>("mana-back");
             _simButton        = r.Q<Button>("btn-sim");
@@ -202,6 +218,9 @@ namespace PangeaSkirmish
                 });
             }
 
+            // ── Tooltips de botões (hover > 3s) ──
+            AttachMainButtonTooltips();
+
             // Callbacks dos botões principais
             r.Q<Button>("btn-actions").RegisterCallback<ClickEvent>(_ =>
             { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ShowSubMenu(_actionsMenuPanel, "Ações"); });
@@ -222,6 +241,7 @@ namespace PangeaSkirmish
             _tooltipGo.style.display = DisplayStyle.None;
             _mpWaitingOverlay.style.display = DisplayStyle.None;
             SetInfoVisible(false);
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.None;
 
             // Tooltip no indicador de câmera
             r.Q<VisualElement>("camera-mode").RegisterCallback<PointerEnterEvent>(_ => ShowCameraTooltip());
@@ -346,26 +366,33 @@ namespace PangeaSkirmish
         public void BindConcentrate(Action a) { BindButton(_concentrateButton, a); }
         public void BindIncrement(Action a)   { BindButton(_incrementButton, a); }
         public void BindAim(Action a)         { BindButton(_aimButton, a); }
+        public void BindMiraMagia(Action a)   { BindButton(_miraMagiaButton, a); }
         public void BindUndo(Action a)        { BindButton(_undoButton, a); }
         public void BindClear(Action a)       { BindButton(_clearButton, a); }
         public void BindMagicElement(System.Action<SpellElement> a) { _magicElementClick = a; }
         public void BindSpellSelf(Action a) { BindButton(_spellSelfButton, a); }
         public void BindSpellUnit(Action a) { BindButton(_spellUnitButton, a); }
         public void BindSpellTile(Action a) { BindButton(_spellTileButton, a); }
-        public void BindManaMinus(Action a) { BindButton(_manaMinusButton, a); }
-        public void BindManaPlus(Action a)  { BindButton(_manaPlusButton, a); }
+        public void BindManaRangeMinus(Action a) { BindButton(_manaRangeMinusButton, a); }
+        public void BindManaRangePlus(Action a)  { BindButton(_manaRangePlusButton, a); }
+        public void BindManaPowerMinus(Action a) { BindButton(_manaPowerMinusButton, a); }
+        public void BindManaPowerPlus(Action a)  { BindButton(_manaPowerPlusButton, a); }
         public void BindManaCast(Action a)  { BindButton(_manaCastButton, a); }
         public void BindManaBack(Action a)  { BindButton(_manaBackButton, a); }
         public VisualElement SpellTypeMenuPanel => _spellTypeMenuPanel;
         public VisualElement ManaStepperPanel   => _manaStepperPanel;
         public VisualElement MagicMenuPanel => _magicMenuPanel;
 
-        public void SetManaPreview(int mana, int max, int potency, int range)
+        public void SetManaPreview(int manaRange, int manaPower, int max, int potency, int range)
         {
-            if (_manaValueText != null)   _manaValueText.text   = $"{mana} / {max} MP";
-            if (_manaPotencyText != null) _manaPotencyText.text = $"Alcance: {range}  •  Potência: {potency}";
-            if (_manaMinusButton != null) _manaMinusButton.SetEnabled(mana > 1);
-            if (_manaPlusButton != null)  _manaPlusButton.SetEnabled(mana < max);
+            if (_manaValueText != null)     _manaValueText.text     = $"{manaRange + manaPower} / {max} MP";
+            if (_manaRangeValueText != null) _manaRangeValueText.text = $"{manaRange}";
+            if (_manaPowerValueText != null) _manaPowerValueText.text = $"{manaPower}";
+            if (_manaPotencyText != null)    _manaPotencyText.text   = $"Alcance: {range}  •  Potência: {potency}  •  PA: {1 + manaPower}";
+            if (_manaRangeMinusButton != null) _manaRangeMinusButton.SetEnabled(manaRange > 0);
+            if (_manaRangePlusButton != null)  _manaRangePlusButton.SetEnabled(manaRange + manaPower < max);
+            if (_manaPowerMinusButton != null) _manaPowerMinusButton.SetEnabled(manaPower > 1);
+            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.SetEnabled(manaRange + manaPower < max);
         }
 
         private static readonly Dictionary<Button, Action> _btnHandlers = new Dictionary<Button, Action>();
@@ -644,6 +671,96 @@ namespace PangeaSkirmish
         }
         private void HideTooltip() { if (_tooltipGo != null) _tooltipGo.style.display = DisplayStyle.None; }
 
+        // ── Tooltip de botões (hover > 3s) ──
+        private void AttachMainButtonTooltips()
+        {
+            // Comandos principais
+            AttachButtonTooltip(_moveButton, "Move a unidade pelo mapa. Custa PA por tile de deslocamento.");
+            AttachButtonTooltip(_attackUnitButton, "Ataque direto a uma unidade inimiga. Custa PA; dano vem de STR/DEX.");
+            AttachButtonTooltip(_attackTileButton, "Ataque a um tile (chão/área). Custa PA.");
+            AttachButtonTooltip(_magicButton, "Conjura magia de 1 dos 6 elementos. Custa PA + Mana.");
+            AttachButtonTooltip(_concentrateButton, "Ação Bônus: acumula concentração (+dano em ataques futuros).");
+            AttachButtonTooltip(_incrementButton, "Ação Bônus: +1 no próximo dano causado (incremento).");
+            AttachButtonTooltip(_aimButton, "Ação Bônus: Mira tradicional (+precisão no próximo ataque).");
+            AttachButtonTooltip(_miraMagiaButton, "Ação Bônus (1 PAB): +INT na potência da PRÓXIMA magia.");
+            AttachButtonTooltip(_confirmButton, "Confirma o plano de ações da unidade.");
+            AttachButtonTooltip(_undoButton, "Remove a última ação adicionada ao plano.");
+            AttachButtonTooltip(_clearButton, "Remove TODAS as ações do plano.");
+
+            // Alvo da magia
+            AttachButtonTooltip(_spellSelfButton, "Buff em SI MESMO: +atributos do elemento por N rounds (ManaRange = rounds).");
+            AttachButtonTooltip(_spellUnitButton, "Dano mágico a uma unidade inimiga. Potência = atributos × ManaPower.");
+            AttachButtonTooltip(_spellTileButton, "Efeito no tile: varia por elemento (fogo, água, vento, teleporte, orbe, elevar).");
+
+            // Stepper de mana (2 pools)
+            AttachButtonTooltip(_manaRangeMinusButton, "Alcance/Duração: -1 tile de alcance ou round de buff (só gasta Mana).");
+            AttachButtonTooltip(_manaRangePlusButton, "Alcance/Duração: +1 tile de alcance ou round de buff (só gasta Mana).");
+            AttachButtonTooltip(_manaPowerMinusButton, "Potência/Atributo: -1 (menos dano ou menos atributo de buff; -1 PA).");
+            AttachButtonTooltip(_manaPowerPlusButton, "Potência/Atributo: +1 (mais dano ou mais atributo de buff; +1 PA).");
+            AttachButtonTooltip(_manaCastButton, "Conjura a magia com os parâmetros de mana escolhidos.");
+            AttachButtonTooltip(_manaBackButton, "Volta ao menu de alvo da magia.");
+
+            // Elementos (índice 0..5 = Physical, Magic, Fire, Water, Air, Earth)
+            if (_magicElementButtons.Count == 6)
+            {
+                AttachButtonTooltip(_magicElementButtons[0], "FÍSICO — Self: +DEX/+STR por rounds. Tile: teleporte. Unidade: dano físico (DEX+STR).");
+                AttachButtonTooltip(_magicElementButtons[1], "MÁGICO — Self: +INT/+WIS por rounds. Tile: orbe de mana. Unidade: dano mágico (INT+WIS).");
+                AttachButtonTooltip(_magicElementButtons[2], "FOGO — Self: +INT/+VIT. Tile: fogo (dano por round). Unidade: dano de fogo.");
+                AttachButtonTooltip(_magicElementButtons[3], "ÁGUA — Self: +VIT/+INT. Tile: água (terreno molhado). Unidade: dano de água.");
+                AttachButtonTooltip(_magicElementButtons[4], "AR — Self: +AGI/+INT. Tile: vento (empurra unidades). Unidade: dano + empurrão.");
+                AttachButtonTooltip(_magicElementButtons[5], "TERRA — Self: +VIT/+STR. Tile: eleva pedra. Unidade: dano de terra.");
+            }
+
+            // Submenus (abrem cascata)
+            var btnActions = Root.Q<Button>("btn-actions");
+            var btnBonus = Root.Q<Button>("btn-bonus");
+            var btnAttack = Root.Q<Button>("btn-attack");
+            AttachButtonTooltip(btnActions, "Ações de movimento e ataque (Mover, Atacar).");
+            AttachButtonTooltip(btnBonus, "Ações Bônus (custam PAB): Concentrar, Incremento, Mirar, Mira Mágica.");
+            AttachButtonTooltip(btnAttack, "Menu de ataque: Unidade ou Tile.");
+        }
+
+        private void AttachButtonTooltip(VisualElement el, string text)
+        {
+            if (el == null) return;
+            el.RegisterCallback<PointerEnterEvent>(_ =>
+            {
+                CancelPendingTip();
+                _tipOwner = el;
+                _pendingTip = el.schedule.Execute(() => ShowButtonTooltip(el, text)).StartingIn(3000);
+            });
+            el.RegisterCallback<PointerLeaveEvent>(_ => CancelPendingTip());
+            el.RegisterCallback<ClickEvent>(_ => CancelPendingTip());
+        }
+
+        private void CancelPendingTip()
+        {
+            if (_pendingTip != null) { _pendingTip.Pause(); _pendingTip = null; }
+            HideButtonTooltip();
+        }
+
+        private void ShowButtonTooltip(VisualElement el, string text)
+        {
+            if (_tooltipGo == null || _tooltipTxt == null || el == null) return;
+            _tooltipTxt.text = text;
+            _tooltipGo.style.display = DisplayStyle.Flex;
+            // Posiciona acima do botão (ou abaixo se não couber no topo).
+            float w = _tooltipGo.layout.width > 0 ? _tooltipGo.layout.width : 260f;
+            float h = _tooltipGo.layout.height > 0 ? _tooltipGo.layout.height : 60f;
+            float x = el.worldBound.x;
+            float y = el.worldBound.y - h - 6f;
+            if (y < 4f) y = el.worldBound.yMax + 6f;
+            if (x + w > Screen.width) x = Screen.width - w - 4f;
+            if (x < 4f) x = 4f;
+            _tooltipGo.style.left = x;
+            _tooltipGo.style.top = y;
+        }
+
+        private void HideButtonTooltip()
+        {
+            if (_tooltipGo != null) _tooltipGo.style.display = DisplayStyle.None;
+        }
+
         // ── PROMPT DE BÔNUS ──
         public void ShowPrompt(string text)
         {
@@ -669,9 +786,65 @@ namespace PangeaSkirmish
             _naoButton.clicked += hNao;
             _promptPanel.style.display = DisplayStyle.Flex;
         }
-        public void UpdateBonusTimer(float sec)
-            => _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         public void HidePrompt() => _promptPanel.style.display = DisplayStyle.None;
+
+        // ── REAÇÕES (Ações Bônus rework) ──
+        private System.Action<ReactionKind> _reactionPick;
+        public void ShowReactionMenu(Unit reactor, List<ReactionKind> options, float timer, System.Action<ReactionKind> onPick)
+        {
+            _reactionPick = onPick;
+            if (_reactionText != null) _reactionText.text = $"⚡ {reactor.unitName} pode reagir!";
+            if (_reactionTimer != null) _reactionTimer.text = timer.ToString("0.0") + "s";
+
+            // Monta botões de reação dinamicamente no reaction-menu (fora do command-menu)
+            if (_reactionButtons != null)
+            {
+                _reactionButtons.Clear();
+                _reactionButtons.style.display = DisplayStyle.Flex;
+                foreach (var opt in options)
+                {
+                    var btn = new Button(() => _reactionPick?.Invoke(opt))
+                    {
+                        text = ReactionLabel(opt)
+                    };
+                    btn.AddToClassList("pg-button");
+                    _reactionButtons.Add(btn);
+                }
+                // Botão "Não reagir"
+                var skip = new Button(() => _reactionPick?.Invoke(ReactionKind.None))
+                {
+                    text = "Não reagir"
+                };
+                skip.AddToClassList("pg-button");
+                skip.style.backgroundColor = CorDisabled;
+                _reactionButtons.Add(skip);
+            }
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.Flex;
+        }
+        public void UpdateBonusTimer(float sec)
+        {
+            if (_reactionMenu != null && _reactionMenu.style.display == DisplayStyle.Flex && _reactionTimer != null)
+                _reactionTimer.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
+            else
+                _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
+        }
+        public void HideReactionMenu()
+        {
+            _reactionPick = null;
+            if (_reactionButtons != null)
+            {
+                _reactionButtons.Clear();
+                _reactionButtons.style.display = DisplayStyle.None;
+            }
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.None;
+        }
+        private static string ReactionLabel(ReactionKind k) => k switch
+        {
+            ReactionKind.CounterAttack => "⚔ Contra-ataque",
+            ReactionKind.Dodge         => "↯ Esquiva",
+            ReactionKind.Block         => "🛡 Bloqueio",
+            _ => "?"
+        };
 
         public void ShowEndScreen(string msg)
         {

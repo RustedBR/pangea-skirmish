@@ -31,7 +31,11 @@ namespace PangeaSkirmish
         private Unit     _lastTargetedUnit = null; // rastreia unidade em destaque p/ limpar após sair do hover
         private SpellElement _spellElement = SpellElement.None;
         private SpellTargetKind _spellTargetKind = SpellTargetKind.Self;
-        private int _spellMana = 1; // mana escolhida no stepper para a conjuração atual
+        // Duas pools de mana SEPARADAS (ver SpellTypes.PlannedSpell):
+        //  _spellManaRange = alcance (dano/tile) OU duração em rounds (Self). Só custa mana.
+        //  _spellManaPower = potência (multiplica dano/atributo). Cada ponto = +1 PA + mana.
+        private int _spellManaRange = 0;
+        private int _spellManaPower = 1;
 
         // Range preview (alcance destacado no grid). _baseRange é o range da unidade
         // controlada (mostrado em Idle e nos pickings de unidade); ao passar o mouse
@@ -75,12 +79,15 @@ namespace PangeaSkirmish
             _hud.BindConcentrate(OnConcentrateClick);
             _hud.BindIncrement(OnIncrementClick);
             _hud.BindAim(OnAimClick);
+            _hud.BindMiraMagia(OnMiraMagiaClick);
             _hud.BindMagicElement(OnMagicElementChosen);
             _hud.BindSpellSelf(OnSpellTargetSelf);
             _hud.BindSpellUnit(OnSpellTargetUnit);
             _hud.BindSpellTile(OnSpellTargetTile);
-            _hud.BindManaMinus(OnManaMinus);
-            _hud.BindManaPlus(OnManaPlus);
+            _hud.BindManaRangeMinus(OnManaRangeMinus);
+            _hud.BindManaRangePlus(OnManaRangePlus);
+            _hud.BindManaPowerMinus(OnManaPowerMinus);
+            _hud.BindManaPowerPlus(OnManaPowerPlus);
             _hud.BindManaCast(OnManaCast);
             _hud.BindManaBack(OnManaBack);
             _hud.BindUndo(OnUndoClick);
@@ -469,6 +476,44 @@ namespace PangeaSkirmish
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
         }
 
+        /// <summary>
+        /// Mira Mágica: ação bônus de incremento que soma +INT ao bônus de potência da
+        /// PRÓXIMA magia conjurada neste turno (espelho de Golpe Poderoso, mas para magia).
+        /// Toggle: 1º clique gasta 1 PAB e adiciona +INT; 2º clique devolve o PAB e zera.
+        /// </summary>
+        private void OnMiraMagiaClick()
+        {
+            if (!_active || _controlled == null) return;
+
+            int intVal = Mathf.RoundToInt(_controlled.stats.INT);
+            if (intVal <= 0)
+            {
+                Debug.Log("INT insuficiente para Mira Mágica");
+                return;
+            }
+
+            if (_controlled.plannedSpellBonusINT > 0)
+            {
+                // Toggle off: devolve o PAB e zera o bônus
+                _controlled.plannedSpellBonusINT = 0;
+                _controlled.remainingBAP++;
+            }
+            else
+            {
+                if (_controlled.remainingBAP <= 0)
+                {
+                    Debug.Log("PAB insuficiente para Mira Mágica");
+                    return;
+                }
+                _controlled.plannedSpellBonusINT = intVal;
+                _controlled.remainingBAP--;
+            }
+
+            _hud.UpdateAPDisplay(_controlled);
+            SyncButtonStates();
+            _hud.ShowMainMenu();
+        }
+
         // Handler para clique nos botões de elemento no menu de magia
         private void OnMagicElementChosen(SpellElement element)
         {
@@ -506,8 +551,7 @@ namespace PangeaSkirmish
             _spellTargetKind = kind;
             OpenManaStepper();
         }
-
-        /// <summary>Abre o stepper de mana (escolha livre) com preview de potência.</summary>
+        /// <summary>Abre o stepper de mana (2 pools: alcance/duração + potência) com preview ao vivo.</summary>
         private void OpenManaStepper()
         {
             if (_controlled.AvailableMana < 1)
@@ -515,49 +559,72 @@ namespace PangeaSkirmish
                 _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName} sem mana disponível", _controlled);
                 return;
             }
-            int def;
-            switch (_spellTargetKind)
-            {
-                case SpellTargetKind.Self: def = Tuning.Get().spellSelfManaCost; break;
-                case SpellTargetKind.Unit: def = Tuning.Get().spellUnitManaCost; break;
-                default:                   def = Tuning.Get().spellTileManaCost; break;
-            }
-            _spellMana = Mathf.Clamp(def, 1, _controlled.AvailableMana);
+
+            // Self: Range = duração em rounds (mín 1), Power = atributo (mín 1).
+            // Unit/Tile: Range = alcance (mín 0), Power = potência (mín 1).
+            int defPower = (_spellTargetKind == SpellTargetKind.Self)
+                ? Mathf.Clamp(Tuning.Get().spellSelfManaCost, 1, _controlled.AvailableMana)
+                : 1;
+            int defRange = (_spellTargetKind == SpellTargetKind.Self)
+                ? Mathf.Clamp(Tuning.Get().spellSelfManaCost, 1, _controlled.AvailableMana)
+                : 0;
+
+            _spellManaPower = Mathf.Clamp(defPower, 1, _controlled.AvailableMana);
+            _spellManaRange = Mathf.Clamp(defRange, 0, _controlled.AvailableMana - _spellManaPower);
+
             _hud.ShowSubMenu(_hud.ManaStepperPanel, $"Magia > {SpellBook.ElementName(_spellElement)} > Mana");
             SetMode(PlanMode.SpellManaPicking);
             RefreshManaPreview();
-            Debug.Log($"[Magia] stepper aberto: alvo={_spellTargetKind}, mana={_spellMana}/{_controlled.AvailableMana}");
+            Debug.Log($"[Magia] stepper aberto: alvo={_spellTargetKind}, range={_spellManaRange}, power={_spellManaPower}/{_controlled.AvailableMana}");
         }
 
         private void RefreshManaPreview()
         {
-            int range = SpellBook.SpellRange(_controlled, _spellMana);
-            int pot = SpellBook.Potency(_controlled, _spellElement);
-            _hud.SetManaPreview(_spellMana, _controlled.AvailableMana, pot, range);
+            int range = SpellBook.SpellRange(_controlled, _spellManaRange);
+            int pot = SpellBook.Potency(_controlled, _spellElement, _spellManaPower);
+            _hud.SetManaPreview(_spellManaRange, _spellManaPower, _controlled.AvailableMana, pot, range);
         }
 
-        private void OnManaMinus()
+        private void OnManaRangeMinus()
         {
             if (_mode != PlanMode.SpellManaPicking) return;
-            _spellMana = Mathf.Max(1, _spellMana - 1);
+            if (_spellManaRange <= 0) return;
+            _spellManaRange--;
             RefreshManaPreview();
         }
 
-        private void OnManaPlus()
+        private void OnManaRangePlus()
         {
             if (_mode != PlanMode.SpellManaPicking) return;
-            _spellMana = Mathf.Min(_controlled.AvailableMana, _spellMana + 1);
+            if (_spellManaRange + _spellManaPower >= _controlled.AvailableMana) return;
+            _spellManaRange++;
+            RefreshManaPreview();
+        }
+
+        private void OnManaPowerMinus()
+        {
+            if (_mode != PlanMode.SpellManaPicking) return;
+            if (_spellManaPower <= 1) return;
+            _spellManaPower--;
+            RefreshManaPreview();
+        }
+
+        private void OnManaPowerPlus()
+        {
+            if (_mode != PlanMode.SpellManaPicking) return;
+            if (_spellManaRange + _spellManaPower >= _controlled.AvailableMana) return;
+            _spellManaPower++;
             RefreshManaPreview();
         }
 
         private void OnManaCast()
         {
             if (_mode != PlanMode.SpellManaPicking) return;
-            Debug.Log($"[Magia] conjurar {SpellBook.ElementName(_spellElement)} alvo={_spellTargetKind} mana={_spellMana} alcance={SpellBook.SpellRange(_controlled, _spellMana)} potência={SpellBook.Potency(_controlled, _spellElement)}");
+            Debug.Log($"[Magia] conjurar {SpellBook.ElementName(_spellElement)} alvo={_spellTargetKind} range={_spellManaRange} power={_spellManaPower} alcance={SpellBook.SpellRange(_controlled, _spellManaRange)} potência={SpellBook.Potency(_controlled, _spellElement, _spellManaPower)}");
             switch (_spellTargetKind)
             {
                 case SpellTargetKind.Self: CommitSpellSelf(); break;
-                case SpellTargetKind.Unit: EnterSpellUnitPicking(); break; // pick no grid usa _spellMana
+                case SpellTargetKind.Unit: EnterSpellUnitPicking(); break; // pick no grid usa range/power
                 case SpellTargetKind.Tile: EnterSpellTilePicking(); break;
             }
         }
@@ -578,7 +645,7 @@ namespace PangeaSkirmish
             SetMode(PlanMode.SpellUnitPicking);
             // Range de magia (pode ser maior que o de ataque, via conduíte).
             int fp = _controlled.stats.Footprint;
-            SetBaseRange(RangeAnchors(_controlled.plannedAnchor, fp, SpellBook.SpellRange(_controlled, _spellMana)),
+            SetBaseRange(RangeAnchors(_controlled.plannedAnchor, fp, SpellBook.SpellRange(_controlled, _spellManaRange)),
                          Tuning.Get().spellTargetHighlightColor);
         }
 
@@ -588,7 +655,7 @@ namespace PangeaSkirmish
             var from = _controlled.plannedAnchor;
             _attackable.Clear();
             int fp = _controlled.stats.Footprint;
-            int range = SpellBook.SpellRange(_controlled, _spellMana);
+            int range = SpellBook.SpellRange(_controlled, _spellManaRange);
             int budget = range + fp;
             for (int dx = -budget; dx <= budget; dx++)
             for (int dy = -budget; dy <= budget; dy++)
@@ -606,9 +673,10 @@ namespace PangeaSkirmish
 
         private void CommitSpellSelf()
         {
-            int mana = Mathf.Clamp(_spellMana, 1, _controlled.AvailableMana);
-            if (mana <= 0) return;
-            _controlled.reservedMana += mana;
+            int manaRange = Mathf.Clamp(_spellManaRange, 1, _controlled.AvailableMana);
+            int manaPower = Mathf.Clamp(_spellManaPower, 1, _controlled.AvailableMana - manaRange);
+            if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
+            _controlled.reservedMana += manaRange + manaPower;
 
             var spell = new PlannedSpell
             {
@@ -616,7 +684,8 @@ namespace PangeaSkirmish
                 Target = SpellTargetKind.Self,
                 TargetUnit = null,
                 TargetTile = Vector2Int.zero,
-                Mana = mana,
+                ManaRange = manaRange,
+                ManaPower = manaPower,
                 Direction = Vector2Int.right,
             };
             _controlled.plannedSpells.Add(spell);
@@ -627,7 +696,8 @@ namespace PangeaSkirmish
                 IsBonus = false,
                 BonusStep = Vector2Int.zero
             });
-            _controlled.remainingAP--;
+            // Self: Range = duração (só mana), Power = atributo (cada ponto = +1 PA).
+            _controlled.remainingAP -= (1 + manaPower);
 
             var ghostColor = SpellBook.ElementColor(_spellElement);
             _pathGhosts.Add(CreateGhostAt(_controlled.anchor, ghostColor));
@@ -644,9 +714,10 @@ namespace PangeaSkirmish
         {
             if (target == null || target.IsDead) return;
 
-            int mana = Mathf.Clamp(_spellMana, 1, _controlled.AvailableMana);
-            if (mana <= 0) return;
-            _controlled.reservedMana += mana;
+            int manaRange = Mathf.Clamp(_spellManaRange, 0, _controlled.AvailableMana);
+            int manaPower = Mathf.Clamp(_spellManaPower, 1, _controlled.AvailableMana - manaRange);
+            if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
+            _controlled.reservedMana += manaRange + manaPower;
 
             Vector2Int dir = target.anchor - _controlled.anchor;
             if (dir.x == 0 && dir.y == 0) dir = Vector2Int.right;
@@ -657,7 +728,8 @@ namespace PangeaSkirmish
                 Target = SpellTargetKind.Unit,
                 TargetUnit = target,
                 TargetTile = Vector2Int.zero,
-                Mana = mana,
+                ManaRange = manaRange,
+                ManaPower = manaPower,
                 Direction = dir,
             };
             _controlled.plannedSpells.Add(spell);
@@ -668,7 +740,7 @@ namespace PangeaSkirmish
                 IsBonus = false,
                 BonusStep = Vector2Int.zero
             });
-            _controlled.remainingAP--;
+            _controlled.remainingAP -= (1 + manaPower);
 
             target.SetAttackMarked(true);
             var marker = new GameObject("SpellMarker");
@@ -687,9 +759,10 @@ namespace PangeaSkirmish
         {
             if (!_attackable.Contains(anchor)) return;
 
-            int mana = Mathf.Clamp(_spellMana, 1, _controlled.AvailableMana);
-            if (mana <= 0) return;
-            _controlled.reservedMana += mana;
+            int manaRange = Mathf.Clamp(_spellManaRange, 0, _controlled.AvailableMana);
+            int manaPower = Mathf.Clamp(_spellManaPower, 1, _controlled.AvailableMana - manaRange);
+            if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
+            _controlled.reservedMana += manaRange + manaPower;
 
             Vector2Int dir = anchor - _controlled.anchor;
             if (dir.x == 0 && dir.y == 0) dir = Vector2Int.right;
@@ -700,7 +773,8 @@ namespace PangeaSkirmish
                 Target = SpellTargetKind.Tile,
                 TargetUnit = null,
                 TargetTile = anchor,
-                Mana = mana,
+                ManaRange = manaRange,
+                ManaPower = manaPower,
                 Direction = dir,
             };
             _controlled.plannedSpells.Add(spell);
@@ -711,7 +785,7 @@ namespace PangeaSkirmish
                 IsBonus = false,
                 BonusStep = Vector2Int.zero
             });
-            _controlled.remainingAP--;
+            _controlled.remainingAP -= (1 + manaPower);
 
             var ghostColor = SpellBook.ElementColor(_spellElement);
             _pathGhosts.Add(CreateGhostAt(anchor, ghostColor));
@@ -1036,9 +1110,9 @@ namespace PangeaSkirmish
                 int li = _controlled.plannedSpells.Count - 1;
                 if (li >= 0)
                 {
-                    // Devolve a mana reservada para a conjuração desfeita.
-                    _controlled.reservedMana = Mathf.Max(0, _controlled.reservedMana - _controlled.plannedSpells[li].Mana);
+                    // Devolve a mana reservada (ManaRange + ManaPower) para a conjuração desfeita.
                     var undoneSpell = _controlled.plannedSpells[li];
+                    _controlled.reservedMana = Mathf.Max(0, _controlled.reservedMana - (undoneSpell.ManaRange + undoneSpell.ManaPower));
                     if (undoneSpell.Target == SpellTargetKind.Unit && undoneSpell.TargetUnit != null)
                         undoneSpell.TargetUnit.SetAttackMarked(false);
                     _controlled.plannedSpells.RemoveAt(li);
@@ -1248,8 +1322,8 @@ namespace PangeaSkirmish
                 if (Keyboard.current != null)
                 {
                     var kb = Keyboard.current;
-                    if (kb.numpadPlusKey.wasPressedThisFrame || kb.equalsKey.wasPressedThisFrame) { OnManaPlus(); return; }
-                    if (kb.numpadMinusKey.wasPressedThisFrame || kb.minusKey.wasPressedThisFrame) { OnManaMinus(); return; }
+                    if (kb.numpadPlusKey.wasPressedThisFrame || kb.equalsKey.wasPressedThisFrame) { OnManaPowerPlus(); return; }
+                    if (kb.numpadMinusKey.wasPressedThisFrame || kb.minusKey.wasPressedThisFrame) { OnManaPowerMinus(); return; }
                     if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame) { OnManaCast(); return; }
                     if (kb.escapeKey.wasPressedThisFrame) { OnManaBack(); return; }
                 }

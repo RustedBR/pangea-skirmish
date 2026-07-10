@@ -11,13 +11,20 @@
 
                 <ui:Label name="budget-label" text="Pontos: 0/30" class="cc-budget" />
 
+                <ui:VisualElement name="budget-stepper" class="cc-budget-stepper">
+                    <ui:Label text="Budget:" class="pg-label--dim cc-field-label" />
+                    <ui:Button name="budget-minus" text="-" class="pg-button cc-step" />
+                    <ui:Label name="budget-value" text="30" class="cc-step-value" />
+                    <ui:Button name="budget-plus" text="+" class="pg-button cc-step" />
+                </ui:VisualElement>
+
                 <ui:VisualElement name="cc-body" class="cc-body">
 
                     <ui:VisualElement name="cc-form" class="cc-form">
 
                         <ui:VisualElement class="cc-field">
                             <ui:Label text="Salvos:" class="pg-label--dim cc-field-label" />
-                            <ui:DropdownField name="preset-dropdown" class="pg-input cc-input" />
+                            <ui:DropdownField name="preset-dropdown" class="pg-dropdown cc-input" />
                             <ui:Button name="preset-load" text="Carregar" class="pg-button cc-load" />
                         </ui:VisualElement>
 
@@ -81,6 +88,7 @@
 
                         <ui:Label name="status-label" text="" class="cc-status" />
 
+                        <ui:Button name="back-btn" text="← Voltar" class="pg-button cc-confirm" />
                         <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
 
                     </ui:VisualElement>

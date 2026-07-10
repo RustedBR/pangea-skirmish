@@ -1,38 +1,35 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace PangeaSkirmish
 {
     /// <summary>
-    /// Flash de tela inteira (overlay UI). Cria via ScreenFlash.Create(canvas).
+    /// Flash de tela inteira (overlay UI Toolkit). Cria um VisualElement que ocupa
+    /// a tela toda e fica acima de tudo (picked:false para não bloquear cliques).
     /// </summary>
     public class ScreenFlash : MonoBehaviour
     {
-        private Image _image;
+        private VisualElement _image;
         private static ScreenFlash _instance;
 
-        public static ScreenFlash Create(Canvas canvas)
+        public static ScreenFlash Create(UIDocument doc)
         {
-            if (canvas == null) return null;
+            if (doc == null || doc.rootVisualElement == null) return null;
             if (_instance != null) return _instance;
 
-            var go = new GameObject("ScreenFlash");
-            go.transform.SetParent(canvas.transform, false);
-            var sf = go.AddComponent<ScreenFlash>();
+            var ve = new VisualElement();
+            ve.name = "ScreenFlash";
+            ve.style.position = Position.Absolute;
+            ve.style.left = 0; ve.style.top = 0; ve.style.right = 0; ve.style.bottom = 0;
+            ve.style.backgroundColor = new Color(1f, 0f, 0f, 0f);
+            ve.pickingMode = PickingMode.Ignore; // não bloqueia cliques de jogo
 
-            var img = go.AddComponent<Image>();
-            img.color = new Color(1f, 0f, 0f, 0f); // transparente inicial
-            img.raycastTarget = false;
+            doc.rootVisualElement.Add(ve);
+            ve.BringToFront(); // acima de tudo
 
-            // Stretch to fill entire screen
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
-
-            sf._image = img;
+            var sf = doc.gameObject.AddComponent<ScreenFlash>();
+            sf._image = ve;
             _instance = sf;
             return sf;
         }
@@ -58,15 +55,13 @@ namespace PangeaSkirmish
 
         private IEnumerator FlashCoroutine(Color peakColor, float duration)
         {
-            _image.color = peakColor;
+            _image.style.backgroundColor = peakColor;
             float holdRatio = Tuning.Get().flashHoldRatio;
             float hold = duration * holdRatio;
             float fade = Mathf.Max(0.01f, duration - hold);
 
-            // Segura no pico, depois desvanece
             yield return new WaitForSeconds(hold);
 
-            // Fade out
             float elapsed = 0f;
             while (elapsed < fade)
             {
@@ -74,11 +69,11 @@ namespace PangeaSkirmish
                 float t = elapsed / fade;
                 Color c = peakColor;
                 c.a = Mathf.Lerp(peakColor.a, 0f, t);
-                _image.color = c;
+                _image.style.backgroundColor = c;
                 yield return null;
             }
 
-            _image.color = new Color(peakColor.r, peakColor.g, peakColor.b, 0f);
+            _image.style.backgroundColor = new Color(peakColor.r, peakColor.g, peakColor.b, 0f);
         }
     }
 }

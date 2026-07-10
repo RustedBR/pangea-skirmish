@@ -18,11 +18,6 @@ public class SpellBookTests
         tuning.conduitAffinityBonus = 0.25f;
         tuning.spellRangePerMana = 1;
         tuning.spellRangeBase = 0;
-        tuning.fireBasePotency = 1f;
-        tuning.waterBasePotency = 1f;
-        tuning.magicBasePotency = 1f;
-        tuning.airBasePotency = 1f;
-        tuning.earthBasePotency = 1f;
         RuntimeTuning.Active = tuning;
 
         // Create caster
@@ -46,11 +41,10 @@ public class SpellBookTests
         var element = SpellElement.Fire;
 
         // Act
-        int potency = SpellBook.Potency(caster, element);
+        int potency = SpellBook.Potency(caster, element, 1); // manaPower=1 (sem multiplicador)
 
         // Assert
         // Fire: INT (4) + VIT (2) = 6
-        // BasePotency(Fire) = 1, no conduit
         // Raw: 6 × 1 = 6
         Assert.AreEqual(6, potency);
     }
@@ -62,11 +56,10 @@ public class SpellBookTests
         var element = SpellElement.Water;
 
         // Act
-        int potency = SpellBook.Potency(caster, element);
+        int potency = SpellBook.Potency(caster, element, 1);
 
         // Assert
         // Water: VIT (2) + INT (4) = 6
-        // BasePotency(Water) = 1
         // Raw: 6 × 1 = 6
         Assert.AreEqual(6, potency);
     }
@@ -78,11 +71,10 @@ public class SpellBookTests
         var element = SpellElement.Magic;
 
         // Act
-        int potency = SpellBook.Potency(caster, element);
+        int potency = SpellBook.Potency(caster, element, 1);
 
         // Assert
         // Magic: INT (4) + WIS (3) = 7
-        // BasePotency(Magic) = 1
         // Raw: 7 × 1 = 7
         Assert.AreEqual(7, potency);
     }
@@ -95,11 +87,29 @@ public class SpellBookTests
         var element = SpellElement.Magic;
 
         // Act
-        int potency = SpellBook.Potency(caster, element);
+        int potency = SpellBook.Potency(caster, element, 1);
 
         // Assert
         // Raw: (1+1) × 1 = 2, min is 1, so potency=2 ≥ 1
         Assert.GreaterOrEqual(potency, tuning.spellMinDamage);
+    }
+
+    [Test]
+    public void Potency_ScalesWithManaPower()
+    {
+        // Arrange
+        caster.stats = new AttributeStats { INT = 4f, WIS = 3f };
+        var element = SpellElement.Magic; // INT+WIS = 7
+
+        // Act
+        int pot1 = SpellBook.Potency(caster, element, 1);
+        int pot3 = SpellBook.Potency(caster, element, 3);
+
+        // Assert
+        // pot1 = 7 × 1 = 7
+        // pot3 = 7 × 3 = 21
+        Assert.AreEqual(7, pot1);
+        Assert.AreEqual(21, pot3);
     }
 
     [Test]
@@ -169,26 +179,6 @@ public class SpellBookTests
     }
 
     [Test]
-    public void Potency_ScalesWithBasePotencyPerElement()
-    {
-        // Arrange
-        tuning.fireBasePotency = 2f;   // override for this test
-        tuning.waterBasePotency = 3f;
-        caster.stats = new AttributeStats { INT = 4f, VIT = 2f };
-        int pairSum = 6; // INT + VIT
-
-        // Act
-        int firePot = SpellBook.Potency(caster, SpellElement.Fire);
-        int waterPot = SpellBook.Potency(caster, SpellElement.Water);
-
-        // Assert
-        // Fire: 6 × 2 = 12
-        // Water: 6 × 3 = 18
-        Assert.AreEqual(12, firePot);
-        Assert.AreEqual(18, waterPot);
-    }
-
-    [Test]
     public void Potency_AirElement_UsesAGIAndINT()
     {
         // Arrange
@@ -196,11 +186,10 @@ public class SpellBookTests
         var element = SpellElement.Air;
 
         // Act
-        int potency = SpellBook.Potency(caster, element);
+        int potency = SpellBook.Potency(caster, element, 1);
 
         // Assert
         // Air: AGI (5) + INT (3) = 8
-        // BasePotency(Air) = 1
         // Raw: 8 × 1 = 8
         Assert.AreEqual(8, potency);
     }
@@ -213,11 +202,10 @@ public class SpellBookTests
         var element = SpellElement.Earth;
 
         // Act
-        int potency = SpellBook.Potency(caster, element);
+        int potency = SpellBook.Potency(caster, element, 1);
 
         // Assert
         // Earth: VIT (4) + STR (3) = 7
-        // BasePotency(Earth) = 1
         // Raw: 7 × 1 = 7
         Assert.AreEqual(7, potency);
     }

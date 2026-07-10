@@ -39,6 +39,9 @@ namespace PangeaSkirmish
         private AudioSource _sfxSource;
         private AudioSource _musicSource;
 
+        /// <summary>AudioSource da música (para ajuste de volume em runtime pelo GameSettings).</summary>
+        public AudioSource musicSource => _musicSource;
+
         private void Awake()
         {
             if (I != null) { Destroy(gameObject); return; }
@@ -52,6 +55,8 @@ namespace PangeaSkirmish
             _musicSource = gameObject.AddComponent<AudioSource>();
             _musicSource.playOnAwake = false;
             _musicSource.loop = true;
+            // Respeita volume salvo em GameSettings (PlayerPrefs)
+            _musicSource.volume = GameSettings.MusicVolume;
 
             string path = "Audio/";
             sfxStep          = Resources.Load<AudioClip>(path + "sfx_step");
@@ -77,19 +82,19 @@ namespace PangeaSkirmish
         public void Play(AudioClip clip)
         {
             if (clip == null || _sfxSource == null) return;
-            _sfxSource.PlayOneShot(clip, Tuning.Get().sfxVolume);
+            _sfxSource.PlayOneShot(clip, GameSettings.SfxVolume);
         }
 
         public void PlayAtPoint(AudioClip clip, Vector3 pos)
         {
             if (clip == null) return;
-            AudioSource.PlayClipAtPoint(clip, pos, Tuning.Get().sfxVolume);
+            AudioSource.PlayClipAtPoint(clip, pos, GameSettings.SfxVolume);
         }
 
         public void PlayMusic(AudioClip clip)
         {
             if (clip == null || _musicSource == null) return;
-            _musicSource.volume = Tuning.Get().musicVolume;
+            _musicSource.volume = GameSettings.MusicVolume;
             if (_musicSource.clip == clip && _musicSource.isPlaying) return;
             _musicSource.Stop();
             _musicSource.clip = clip;

@@ -5,8 +5,10 @@
             <ui:Label text="PANGEA SKIRMISH" name="title" class="pg-title" />
             <ui:Label text="Tactics de combate simultâneo" name="subtitle" class="pg-subtitle" />
             <ui:VisualElement name="spacer" style="height: 12px;" />
-            <ui:Button text="Multiplayer" name="btn-multiplayer" class="pg-button pg-button--primary main-menu__btn" />
+            <ui:Button text="Criar Mapa" name="btn-create-map" class="pg-button pg-button--primary main-menu__btn" />
             <ui:Button text="Criar Personagem" name="btn-create-char" class="pg-button main-menu__btn" />
+            <ui:Button text="Multiplayer" name="btn-multiplayer" class="pg-button main-menu__btn" />
+            <ui:Button text="Opções" name="btn-options" class="pg-button main-menu__btn" />
             <ui:Button text="Sair" name="btn-quit" class="pg-button main-menu__btn" />
         </ui:VisualElement>
     </ui:VisualElement>

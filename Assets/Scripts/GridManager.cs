@@ -714,6 +714,17 @@ namespace PangeaSkirmish
         public static bool FootprintsOverlap(Vector2Int a, Vector2Int b, int size = AttributeStats.DefaultFootprint)
             => FootprintsOverlap(a, size, b, size);
 
+        /// <summary>True se QUALQUER unidade (exceto ignore) ocupa o cell de footprint size.</summary>
+        public static bool FootprintsOverlapAny(Vector2Int cell, int size, Unit ignore = null)
+        {
+            foreach (var u in UnityEngine.Object.FindObjectsOfType<Unit>())
+            {
+                if (u == ignore || u.IsDead) continue;
+                if (FootprintsOverlap(cell, size, u.anchor, u.stats.Footprint)) return true;
+            }
+            return false;
+        }
+
         public static int FootprintGap(Vector2Int a, int sA, Vector2Int b, int sB)
         {
             int hGap = Mathf.Max(0, Mathf.Max(a.x - (b.x + sB - 1), b.x - (a.x + sA - 1)));

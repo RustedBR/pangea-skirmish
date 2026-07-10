@@ -98,15 +98,7 @@ namespace PangeaSkirmish
             _grid.height = gridH;
             _grid.Build();
 
-            // Canvas + EventSystem
-            var canvasGo = new GameObject("Canvas");
-            var canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            canvasGo.AddComponent<GraphicRaycaster>();
-
+            // EventSystem (necessário para input do UI Toolkit / UIDocument)
             if (FindAnyObjectByType<EventSystem>() == null)
             {
                 var esGo = new GameObject("EventSystem");
@@ -114,8 +106,8 @@ namespace PangeaSkirmish
                 esGo.AddComponent<InputSystemUIInputModule>();
             }
 
-            _hud = gameObject.AddComponent<SandboxHUD>();
-            _hud.Build(canvas.transform, this);
+            _hud = UI.PangeaScreen.Spawn<SandboxHUD>("SandboxHUD");
+            _hud.Init(this);
             _hud.SetMapName(_mapName);
 
             // Recriar unidades do mapa carregado
@@ -135,7 +127,7 @@ namespace PangeaSkirmish
             if (TilePalette.Brushes.Length > 0) _brush = TilePalette.Brushes[0];
 
             // Em MP: pular fases Allies/Enemies (só terreno), registrar no CollabMapSync
-            if (RuntimeMultiplayerSession.IsMultiplayer)
+            if (RuntimeMultiplayerSession.IsMultiplayer && !RuntimeMultiplayerSession.IsLocalContentSession)
             {
                 Debug.Log($"[MP] Sandbox iniciado em modo COLABORATIVO (CollabMapSync={(CollabMapSync.Instance != null)})");
                 _phase = Phase.Terrain;
@@ -145,6 +137,14 @@ namespace PangeaSkirmish
                     Debug.LogWarning("[MP] CollabMapSync.Instance NULL no Sandbox — sincronizacao de tiles pode falhar");
                 // HUD MP: botão "Finalizar Mapa" em vez de salvar
                 _hud.SetMpMode(true);
+            }
+            else if (RuntimeMultiplayerSession.IsLocalContentSession)
+            {
+                // Sala loopback SOLO (criar mapa offline): mantém o fluxo de SALVAR local,
+                // mas adiciona um botão "Voltar ao Menu" que encerra a sala e retorna.
+                Debug.Log("[LocalContent] Sandbox iniciado em modo CRIAÇÃO LOCAL (só terreno, salvar local).");
+                _phase = Phase.Terrain;
+                _hud.SetLocalContentMode(true);
             }
             else Debug.Log("[MP] Sandbox iniciado em modo SINGLE-PLAYER (IsMultiplayer=false)");
 
@@ -292,17 +292,24 @@ namespace PangeaSkirmish
             return Mathf.Max(dx, dy);
         }
 
-        /// <summary>Só retorna true se o ponteiro estiver sobre um Button — permite
-        /// cliques no grid mesmo atrás de painéis/backgrounds.</summary>
+        /// <summary>Só retorna true se o ponteiro estiver sobre um elemento clicável da UI
+        /// (Button/Label dentro do painel do UIDocument) — permite cliques no grid mesmo
+        /// atrás de painéis/backgrounds. Usa UI Toolkit (panel.Pick), não EventSystem UGUI.</summary>
         private bool IsOverButton()
         {
-            if (EventSystem.current == null || Mouse.current == null) return false;
-            var pe = new PointerEventData(EventSystem.current) { position = Mouse.current.position.ReadValue() };
-            var results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(pe, results);
-            foreach (var r in results)
-                if (r.gameObject.GetComponent<Button>() != null)
-                    return true;
+            if (_hud == null || Mouse.current == null) return false;
+            var panel = _hud.UiPanel;
+            if (panel == null) return false;
+            var pos = Mouse.current.position.ReadValue();
+            var picked = panel.Pick(new Vector2(pos.x, panel.visualTree.layout.height - pos.y));
+            if (picked == null) return false;
+            // sobe na árvore procurando um Button (ou elemento com name de botão)
+            var e = picked;
+            while (e != null)
+            {
+                if (e is Button) return true;
+                e = e.parent;
+            }
             return false;
         }
 
@@ -971,7 +978,13 @@ namespace PangeaSkirmish
             _hud.ShowToast("Mapa salvo: " + _mapName);
         }
 
-        public void BackToMenu() => SceneManager.LoadScene("MainMenu");
+        public void BackToMenu()
+        {
+            if (RuntimeMultiplayerSession.IsLocalContentSession)
+                LocalContentLauncher.FinishAndReturnToMenu();
+            else
+                SceneManager.LoadScene("MainMenu");
+        }
 
         // ── MP: sinalizar que o jogador local está pronto ─────────────────────
         public void SetReadyMap()

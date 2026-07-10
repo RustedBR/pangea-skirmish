@@ -14,16 +14,24 @@ namespace PangeaSkirmish.UI
         protected override string UxmlResource => "UI/Screens/MainMenu";
 
         public Action OnMultiplayer;
+        public Action OnCreateMap;
         public Action OnCreateCharacter;
+        public Action OnOptions;
         public Action OnQuit;
 
         protected override void Bind()
         {
-            var mp = Root.Q<Button>("btn-multiplayer");
-            if (mp != null) mp.clicked += () => OnMultiplayer?.Invoke();
+            var cm = Root.Q<Button>("btn-create-map");
+            if (cm != null) cm.clicked += () => OnCreateMap?.Invoke();
 
             var cc = Root.Q<Button>("btn-create-char");
             if (cc != null) cc.clicked += () => OnCreateCharacter?.Invoke();
+
+            var mp = Root.Q<Button>("btn-multiplayer");
+            if (mp != null) mp.clicked += () => OnMultiplayer?.Invoke();
+
+            var opt = Root.Q<Button>("btn-options");
+            if (opt != null) opt.clicked += () => OnOptions?.Invoke();
 
             var quit = Root.Q<Button>("btn-quit");
             if (quit != null) quit.clicked += () => OnQuit?.Invoke();
