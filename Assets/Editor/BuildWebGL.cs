@@ -31,6 +31,11 @@ public static class BuildWebGL
         // Debug de runtime é feito no Editor / localhost (explicar ao Marcus: "abort()" silencioso
         // em WebGL com None é esperado — verificar no Editor, não no browser).
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
+        // TEMPLATE OBRIGATÓRIO: forçar o custom PangeaSkirmish (free-aspect + 3-chaves).
+        // Se o build headless usar o template DEFAULT, o index.html fica com dataUrl vazio
+        // ("DefaultCompany"/"My project") e o jogo NAO CARREGA (404 no wasm).
+        // Forçar aqui evita dependência do cache do ProjectSettings/Library.
+        PlayerSettings.WebGL.template = "PROJECT:PangeaSkirmish";
         // compression brotli (.br) — o deploy descomprime antes do push (abordagem B da skill).
 
         var opts = new BuildPlayerOptions

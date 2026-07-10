@@ -64,6 +64,18 @@ sed -i \
 # tambem troca qualquer .br residual por extensão limpa (segurança)
 sed -i -e 's|\.data\.br|.data|g' -e 's|\.wasm\.br|.wasm|g' -e 's|\.js\.br|.js|g' index.html
 
+# FALLBACK: se o Unity NAO substituiu os 3-chaves {{{DATA_URL}}} (template custom
+# nao aplicado no headless), os URLs ficam Vazios (buildUrl + "/") e o jogo
+# NAO CARREGA (404 no wasm). Preenche os nomes reais:
+sed -i \
+  -e 's|var loaderUrl = buildUrl + "/";|var loaderUrl = buildUrl + "/WebGL.loader.js";|g' \
+  -e 's|dataUrl: buildUrl + "/",|dataUrl: buildUrl + "/WebGL.data",|g' \
+  -e 's|frameworkUrl: buildUrl + "/",|frameworkUrl: buildUrl + "/WebGL.framework.js",|g' \
+  -e 's|codeUrl: buildUrl + "/",|codeUrl: buildUrl + "/WebGL.wasm",|g' \
+  -e 's|companyName: "DefaultCompany",|companyName: "Pangea Skirmish",|g' \
+  -e 's|productName: "My project",|productName: "Pangea Skirmish",|g' \
+  index.html
+
 echo ">> Verificando tamanho do wasm (limite 100MB)..."
 WASM=$(find . -name 'WebGL.wasm' | head -1)
 if [[ -n "$WASM" ]]; then
@@ -73,6 +85,14 @@ if [[ -n "$WASM" ]]; then
     echo "ERRO: wasm ${SZ}MB > 100MB (limite Pages). Build com exceptionSupport=None!"
     exit 1
   fi
+fi
+
+# VERIFICACAO DE TEMPLATE (nao publicar build com template default/quebrado)
+echo ">> Verificando template do index.html..."
+if ! grep -q "WebGL.data" index.html; then
+  echo "ERRO: index.html sem 'WebGL.data' — build usou template DEFAULT (jogo nao carrega)."
+  echo "       Rebuild com PlayerSettings.WebGL.template=PROJECT:PangeaSkirmish."
+  exit 1
 fi
 
 # 6) Commit + push (fast-forward, sem --force)
