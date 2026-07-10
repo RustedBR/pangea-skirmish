@@ -25,8 +25,13 @@ public static class BuildWebGL
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
         PlayerSettings.stripEngineCode = true;
         PlayerSettings.SetManagedStrippingLevel(BuildTargetGroup.WebGL, ManagedStrippingLevel.High);
-        // exceptionSupport omitido = default (None). Build menor (~30MB wasm), passa no
-        // limite de 100MB do GitHub Pages. Debug de runtime sera feito no Editor/localhost.
+        // exceptionSupport DEVE ficar OFF (None) para o build caber no GitHub Pages.
+        // ON embedding o runtime de exceções no wasm: 54MB (None) -> 112MB (ON),
+        // e o Pages tem limite HARD de 100MB/arquivo -> push rejeitado (GH001).
+        // Debug de runtime é feito no Editor / localhost (explicar ao Marcus: "abort()" silencioso
+        // em WebGL com None é esperado — verificar no Editor, não no browser).
+        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
+        // compression brotli (.br) — o deploy descomprime antes do push (abordagem B da skill).
 
         var opts = new BuildPlayerOptions
         {
