@@ -43,8 +43,10 @@ namespace PangeaSkirmish
 
                 _currentLobby = await Unity.Services.Lobbies.LobbyService.Instance
                     .CreateLobbyAsync(roomName, maxPlayers, options);
-                _currentLobbyId = _currentLobby.LobbyCode;
+                _currentLobbyId = _currentLobby.Id;   // ← GUID do lobby (JoinLobbyByIdAsync usa isso)
                 _isHost = true;
+
+                Debug.Log($"[LobbyService] Lobby criado: Id={_currentLobby.Id} Code={_currentLobby.LobbyCode} Nome={roomName} Max={maxPlayers} RelayNoData={(relayJoinCode ?? "NULL")}");
 
                 StartHeartbeat();
                 return (_currentLobby.LobbyCode, null);
@@ -109,6 +111,10 @@ namespace PangeaSkirmish
                     {
                         Count = count
                     });
+
+                Debug.Log($"[LobbyService] QueryLobbies retornou {response.Results.Count} sala(s)");
+                foreach (var l in response.Results)
+                    Debug.Log($"[LobbyService]   → Id={l.Id} Nome={l.Name} Players={l.Players?.Count ?? 0}/{l.MaxPlayers} Relay={(l.Data != null && l.Data.TryGetValue(RelayCodeKey, out var d) ? d.Value : "NULL")}");
 
                 var result = new List<LobbyInfo>(response.Results.Count);
                 foreach (var l in response.Results)

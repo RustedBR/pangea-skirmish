@@ -504,6 +504,7 @@ namespace PangeaSkirmish
             try
             {
                 var lobbies = await LobbyService.QueryPublicLobbiesAsync();
+                Debug.Log($"[RoomHUD] RefreshRoomList: {lobbies.Count} sala(s) recebidas da query");
                 PopulateRoomList(lobbies);
                 SetLobbyStatus(lobbies.Count == 0
                     ? "Nenhuma sala ativa no momento. Crie uma sala ou aguarde."
