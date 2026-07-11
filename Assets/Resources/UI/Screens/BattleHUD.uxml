@@ -54,44 +54,44 @@
     <!-- INFERIOR DIR: menu de comandos (cascata) -->
     <ui:VisualElement name="command-menu" class="bh-window bh-commands">
       <ui:Label name="breadcrumb" text="" class="bh-breadcrumb" />
-      <!-- MAIN (menu raiz de planejamento) -->
-      <ui:VisualElement name="main-menu" class="bh-subpanel bh-cm">
-        <ui:Label text="COMANDOS" class="bh-title bh-cm-title" />
-        <ui:Button name="btn-actions"  text="1 - Ações"   class="bh-menu-btn bh-cm-btn" />
-        <ui:Button name="btn-bonus"   text="2 - Bônus"   class="bh-menu-btn bh-cm-btn" />
-        <ui:Button name="btn-magic"   text="3 - Magia"   class="bh-menu-btn bh-cm-btn" />
-        <ui:Button name="btn-confirm" text="Confirmar plano" class="bh-confirm-btn bh-cm-confirm" />
-        <ui:Button name="btn-undo"    text="Desfazer" class="bh-inline-btn bh-cm-inline" />
-        <ui:Button name="btn-clear"   text="Limpar"   class="bh-inline-btn bh-cm-inline" />
+      <!-- MAIN -->
+      <ui:VisualElement name="main-menu" class="bh-subpanel">
+        <ui:Label text="COMANDOS" class="bh-title" />
+        <ui:Button name="btn-actions"  text="1 - Ações"   class="bh-menu-btn" />
+        <ui:Button name="btn-bonus"   text="2 - Bônus"   class="bh-menu-btn" />
+        <ui:Button name="btn-magic"   text="3 - Magia"   class="bh-menu-btn" />
+        <ui:Button name="btn-confirm" text="Confirmar plano" class="bh-confirm-btn" />
+        <ui:Button name="btn-undo"    text="Desfazer" class="bh-inline-btn" />
+        <ui:Button name="btn-clear"   text="Limpar"   class="bh-inline-btn" />
       </ui:VisualElement>
       <!-- ACTIONS -->
-      <ui:VisualElement name="actions-menu" class="bh-subpanel bh-am">
-        <ui:Label text="AÇÕES" class="bh-title bh-am-title" />
-        <ui:Button name="btn-move"     text="1 - Mover"        class="bh-menu-btn bh-am-btn" />
-        <ui:Button name="btn-attack"   text="2 - Atacar"       class="bh-menu-btn bh-am-btn" />
+      <ui:VisualElement name="actions-menu" class="bh-subpanel">
+        <ui:Label text="AÇÕES" class="bh-title" />
+        <ui:Button name="btn-move"     text="1 - Mover"        class="bh-menu-btn" />
+        <ui:Button name="btn-attack"   text="2 - Atacar"       class="bh-menu-btn" />
       </ui:VisualElement>
       <!-- ATTACK -->
-      <ui:VisualElement name="attack-menu" class="bh-subpanel bh-atm">
-        <ui:Label text="ATACAR" class="bh-title bh-atm-title" />
-        <ui:Button name="btn-attack-unit" text="1 - Atacar Unidade" class="bh-menu-btn bh-atm-btn" />
-        <ui:Button name="btn-attack-tile" text="2 - Atacar Tile"   class="bh-menu-btn bh-atm-btn" />
+      <ui:VisualElement name="attack-menu" class="bh-subpanel">
+        <ui:Label text="ATACAR" class="bh-title" />
+        <ui:Button name="btn-attack-unit" text="1 - Atacar Unidade" class="bh-menu-btn" />
+        <ui:Button name="btn-attack-tile" text="2 - Atacar Tile"   class="bh-menu-btn" />
       </ui:VisualElement>
       <!-- MAGIC -->
-      <ui:VisualElement name="magic-menu" class="bh-subpanel bh-mgm">
-        <ui:Label text="MAGIA" class="bh-title bh-mgm-title" />
-        <ui:Button name="btn-elem-physical" text="1 - Físico" class="bh-menu-btn bh-mgm-btn" />
-        <ui:Button name="btn-elem-magic"    text="2 - Mágico" class="bh-menu-btn bh-mgm-btn" />
-        <ui:Button name="btn-elem-fire"     text="3 - Fogo"   class="bh-menu-btn bh-mgm-btn" />
-        <ui:Button name="btn-elem-water"    text="4 - Água"   class="bh-menu-btn bh-mgm-btn" />
-        <ui:Button name="btn-elem-air"      text="5 - Ar"     class="bh-menu-btn bh-mgm-btn" />
-        <ui:Button name="btn-elem-earth"    text="6 - Terra"  class="bh-menu-btn bh-mgm-btn" />
+      <ui:VisualElement name="magic-menu" class="bh-subpanel">
+        <ui:Label text="MAGIA" class="bh-title" />
+        <ui:Button name="btn-elem-physical" text="1 - Físico" class="bh-menu-btn" />
+        <ui:Button name="btn-elem-magic"    text="2 - Mágico" class="bh-menu-btn" />
+        <ui:Button name="btn-elem-fire"     text="3 - Fogo"   class="bh-menu-btn" />
+        <ui:Button name="btn-elem-water"    text="4 - Água"   class="bh-menu-btn" />
+        <ui:Button name="btn-elem-air"      text="5 - Ar"     class="bh-menu-btn" />
+        <ui:Button name="btn-elem-earth"    text="6 - Terra"  class="bh-menu-btn" />
       </ui:VisualElement>
       <!-- SPELL TYPE -->
-      <ui:VisualElement name="spelltype-menu" class="bh-subpanel bh-stm">
-        <ui:Label text="ALVO DA MAGIA" class="bh-title bh-stm-title" />
-        <ui:Button name="btn-spell-self"  text="1 - Self"   class="bh-menu-btn bh-stm-btn" />
-        <ui:Button name="btn-spell-unit"  text="2 - Unidade" class="bh-menu-btn bh-stm-btn" />
-        <ui:Button name="btn-spell-tile"  text="3 - Tile"    class="bh-menu-btn bh-stm-btn" />
+      <ui:VisualElement name="spelltype-menu" class="bh-subpanel">
+        <ui:Label text="ALVO DA MAGIA" class="bh-title" />
+        <ui:Button name="btn-spell-self"  text="1 - Self"   class="bh-menu-btn" />
+        <ui:Button name="btn-spell-unit"  text="2 - Unidade" class="bh-menu-btn" />
+        <ui:Button name="btn-spell-tile"  text="3 - Tile"    class="bh-menu-btn" />
       </ui:VisualElement>
       <!-- MANA STEPPER — tabela 2x3 (só menu de conjurar magia, classes bh-mm-* escopadas) -->
       <ui:VisualElement name="mana-menu" class="bh-subpanel bh-mm">
@@ -122,18 +122,18 @@
         </ui:VisualElement>
       </ui:VisualElement>
       <!-- BONUS -->
-      <ui:VisualElement name="bonus-menu" class="bh-subpanel bh-bm">
-        <ui:Label text="AÇÕES BÔNUS" class="bh-title bh-bm-title" />
-        <ui:Button name="btn-concentrate" text="1 - Concentrar" class="bh-menu-btn bh-bm-btn" />
-        <ui:Button name="btn-increment"  text="2 - Incremento" class="bh-menu-btn bh-bm-btn" />
-        <ui:Button name="btn-aim"        text="3 - Mirar"       class="bh-menu-btn bh-bm-btn" />
-        <ui:Button name="btn-mira-magia" text="4 - Mira Mágica" class="bh-menu-btn bh-bm-btn" />
+      <ui:VisualElement name="bonus-menu" class="bh-subpanel">
+        <ui:Label text="AÇÕES BÔNUS" class="bh-title" />
+        <ui:Button name="btn-concentrate" text="1 - Concentrar" class="bh-menu-btn" />
+        <ui:Button name="btn-increment"  text="2 - Incremento" class="bh-menu-btn" />
+        <ui:Button name="btn-aim"        text="3 - Mirar"       class="bh-menu-btn" />
+        <ui:Button name="btn-mira-magia" text="4 - Mira Mágica" class="bh-menu-btn" />
       </ui:VisualElement>
     </ui:VisualElement>
 
     <!-- REACTION MENU (Ações Bônus rework) — fora do command-menu p/ aparecer na fase de ação -->
-    <ui:VisualElement name="reaction-menu" class="bh-window bh-reaction bh-rm">
-      <ui:Label name="reaction-title" text="REAGIR" class="bh-title bh-rm-title" />
+    <ui:VisualElement name="reaction-menu" class="bh-window bh-reaction">
+      <ui:Label name="reaction-title" text="REAGIR" class="bh-title" />
       <ui:Label name="reaction-timer" text="" class="bh-bonus-timer" />
       <ui:Label name="reaction-text" text="" class="bh-prompt-text" />
       <ui:VisualElement name="reaction-buttons" class="bh-reaction-buttons" />
