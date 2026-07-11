@@ -22,18 +22,10 @@ namespace PangeaSkirmish
         public float bonusConfirmSeconds = 3f;
         [Tooltip("Segundos para escolher o destino do passo rápido (ação bônus). Menor = escolha mais apressada.")]
         public float bonusStepSeconds = 5f;
-        [Tooltip("Custo de movimento por tile andado. Maior = unidades andam menos com o mesmo orçamento.")]
-        public float moveCostPerTile = 1f;
-        [Tooltip("Custo extra ao mudar de direção no caminho. Maior = caminhos retos ficam mais vantajosos.")]
-        public float turnCost = 0.5f;
-        [Tooltip("Multiplicador de custo ao subir/descer elevação. Maior = terreno alto vira barreira tática.")]
-        public float heightCostMultiplier = 1.5f;
         [Tooltip("Piso de Pontos de Ação por round — toda unidade age pelo menos isso, mesmo com stats baixos.")]
         public int minActionPoints = 1;
         [Tooltip("Dano mínimo após mitigação por defesa. 1 = todo golpe acertado tira pelo menos 1 de HP.")]
         public int minDamageFloor = 1;
-        [Tooltip("Fração de STR somada ao dano do ataque em Tile. 1 = soma STR inteira; 0.5 = metade; 0 = sem bônus.")]
-        public float tileAttackStrMultiplier = 1f;
         [Tooltip("Dano de ataque sem arma equipada.")]
         public int unarmedDamage = 1;
         [Tooltip("Alcance (tiles) do ataque sem arma equipada. 0 = só alcança com a base.")]
@@ -58,10 +50,6 @@ namespace PangeaSkirmish
         public UnitStatBlock ladino    = new UnitStatBlock { STR = 3, VIT = 5,  DEX = 8, AGI = 10, INT = 1, WIS = 1, Footprint = 3 };
         [Tooltip("Atributos iniciais do Goblin (inimigo básico).")]
         public UnitStatBlock goblin    = new UnitStatBlock { STR = 3, VIT = 3,  DEX = 3, AGI = 3,  INT = 1, WIS = 1, Footprint = 2 };
-        [Tooltip("Atributos iniciais do Arqueiro.")]
-        public UnitStatBlock arqueiro  = new UnitStatBlock { STR = 5, VIT = 5,  DEX = 10, AGI = 7, INT = 1, WIS = 2, Footprint = 3 };
-        [Tooltip("Atributos iniciais do Mago.")]
-        public UnitStatBlock mago      = new UnitStatBlock { STR = 1, VIT = 4,  DEX = 2, AGI = 4,  INT = 10, WIS = 8, Footprint = 3 };
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
         public WeaponDef[] weapons = {
@@ -85,15 +73,10 @@ namespace PangeaSkirmish
         // ═════════════════════════ IA DO INIMIGO ═════════════════════════
 
         [Header("═══ IA DO INIMIGO ═══")]
-        [Tooltip("0 = passiva (espera), 1 = avança sempre para cima do jogador.")]
         [Range(0f, 1f)] public float aiAggression = 0.7f;
-        [Tooltip("0 = prefere reposicionar, 1 = ataca sempre que possível.")]
         [Range(0f, 1f)] public float aiAttackPreference = 0.6f;
-        [Tooltip("0 = decisões aleatórias, 1 = escolhe alvos e posições ótimos.")]
         [Range(0f, 1f)] public float aiIntelligence = 0.5f;
-        [Tooltip("0 = ignora o próprio HP, 1 = recua muito cedo ao se machucar.")]
         [Range(0f, 1f)] public float aiSurvivalInstinct = 0.3f;
-        [Tooltip("Fração de HP abaixo da qual a IA considera modo sobrevivência (escalado pelo instinto). Maior = recua com mais vida.")]
         [Range(0f, 1f)] public float aiSurvivalHpThreshold = 0.6f;
         [Tooltip("Distância (tiles) que a IA usa para flanquear. Maior = manobras mais amplas.")]
         public int aiFlankRange = 4;
@@ -119,7 +102,6 @@ namespace PangeaSkirmish
         public float spriteFootOffsetRatio = -0.2017f;
         [Tooltip("Fração da altura do sprite onde nascem labels de dano (posição da 'cabeça'). Maior = labels mais altos.")]
         public float headHeightRatio = 0.9f;
-        [Tooltip("Transparência do losango de footprint sob as unidades. 0 = invisível.")]
         [Range(0f, 1f)] public float footprintAlpha = 0.50f;
         [Tooltip("Cor do footprint das unidades do jogador.")]
         public Color playerFootprintColor = new Color(0.30f, 0.60f, 1.00f, 0.80f);
@@ -133,7 +115,6 @@ namespace PangeaSkirmish
         public Color attackMarkColor = new Color(0.20f, 0.03f, 0.03f, 0.95f);
         [Tooltip("Cor misturada ao selecionar uma unidade.")]
         public Color selectedTintColor = new Color(1f, 1f, 0.6f);
-        [Tooltip("Intensidade da mistura de seleção. 0 = sem efeito; 1 = cor pura.")]
         [Range(0f, 1f)] public float selectedTintStrength = 0.5f;
         [Tooltip("Cor do flash no sprite ao tomar dano.")]
         public Color hitFlashColor = new Color(1f, 0.35f, 0.35f);
@@ -201,10 +182,6 @@ namespace PangeaSkirmish
         public float edgePanReferenceZoom = 13f;
         [Tooltip("Velocidade do arrasto com botão direito.")]
         public float dragSpeed = 1f;
-        [Tooltip("Folga (unidades) além do grid que a câmera pode alcançar.")]
-        public float panMargin = 2f;
-        [Tooltip("Duração (s) das transições suaves da câmera automática.")]
-        public float camTransitionDuration = 0.3f;
         [Tooltip("Segundos que o modo Manual dura após o jogador arrastar/zoom, antes de voltar ao Auto.")]
         public float camManualTimeout = 2f;
         [Tooltip("Distância mínima ao destino para considerar a câmera 'assentada'. Maior = corta transições mais cedo.")]
@@ -241,8 +218,6 @@ namespace PangeaSkirmish
         public float initiativeHold = 1.1f;
         [Tooltip("Pausa (s) entre slots de ação consecutivos.")]
         public float slotPause = 0.3f;
-        [Tooltip("Delay (s) entre a UI aparecer e o resultado ser revelado.")]
-        public float revealDelay = 1.0f;
         [Tooltip("Pausa (s) após o banner 'Round N' antes do planejamento abrir.")]
         public float roundBannerHold = 0.4f;
         [Tooltip("Pausa (s) entre o fim da fase de ação e o próximo round.")]
@@ -283,28 +258,17 @@ namespace PangeaSkirmish
         public float flashDurationWhite = 0.15f;
         [Tooltip("Opacidade máxima do flash branco.")]
         public float flashIntensityWhite = 0.5f;
-        [Tooltip("Fração da duração em que o flash segura no pico antes de sumir. Maior = clarão mais longo no auge.")]
         [Range(0f, 1f)] public float flashHoldRatio = 0.5f;
 
         // ═════════════════════════ EFEITOS: LABELS ═════════════════════════
 
         [Header("═══ LABELS: COMPORTAMENTO ═══")]
-        [Tooltip("Segundos que labels de batalha ficam na tela.")]
-        public float battleLabelDuration = 1.8f;
-        [Tooltip("Segundos do fade-out dos labels.")]
-        public float battleLabelFadeTime = 0.4f;
         [Tooltip("Segundos que o label de anúncio de ataque fica visível.")]
         public float attackLabelDuration = 0.8f;
-        [Tooltip("Altura (unidades) que o número de dano sobe ao flutuar.")]
-        public float damageRiseHeight = 0.7f;
         [Tooltip("Duração (s) da subida do número de dano.")]
         public float damageRiseDuration = 0.35f;
-        [Tooltip("Altura da subida do número de dano CRÍTICO (maior = mais espetaculoso).")]
-        public float critRiseHeight = 1.0f;
         [Tooltip("Duração (s) da subida do dano crítico.")]
         public float critRiseDuration = 0.5f;
-        [Tooltip("Altura da subida do label MISS.")]
-        public float missRiseHeight = 0.6f;
         [Tooltip("Duração (s) da subida do MISS.")]
         public float missRiseDuration = 0.3f;
         [Tooltip("Espaço vertical entre labels de dano empilhados no mesmo lugar.")]
@@ -331,7 +295,6 @@ namespace PangeaSkirmish
         public int attackLabelMaxNameChars = 12;
         [Tooltip("Cor do texto do anúncio de ataque.")]
         public Color attackLabelTextColor = new Color(1f, 0.75f, 0.25f);
-        [Tooltip("Fração da duração usada no fade do label de ataque.")]
         [Range(0f, 1f)] public float attackLabelFadeRatio = 0.5f;
         [Tooltip("Escala do label de dano crítico relativa ao normal. Maior = crítico mais gritante.")]
         public float critLabelScale = 1.35f;
@@ -353,8 +316,6 @@ namespace PangeaSkirmish
         // ═════════════════════════ PLANEJAMENTO: CORES & GHOSTS ═════════════════════════
 
         [Header("═══ PLANEJAMENTO: CORES & GHOSTS ═══")]
-        [Tooltip("Segundos do pulso de highlight ao selecionar tiles.")]
-        public float highlightDuration = 0.5f;
         [Tooltip("Cor/alpha do ghost branco em cada waypoint de movimento confirmado.")]
         public Color moveGhostColor = new Color(1f, 1f, 1f, 0.30f);
         [Tooltip("Cor do destaque vermelho na unidade alvo durante a mira.")]
@@ -441,8 +402,6 @@ namespace PangeaSkirmish
         public Color logSystemColor = new Color(0.82f, 0.85f, 0.92f);
         [Tooltip("Cor/alpha do highlight ao passar o mouse nas linhas do log.")]
         public Color logHoverColor = new Color(0.25f, 0.38f, 0.65f, 0.35f);
-        [Tooltip("Sensibilidade do scroll do histórico de batalha. Maior = rola mais por 'dente'.")]
-        public float logScrollSensitivity = 40f;
         [Tooltip("Cor do chip 'Mover' na fila de ações.")]
         public Color seqChipMoveColor = new Color(0.18f, 0.36f, 0.66f);
         [Tooltip("Cor do chip 'Atacar' na fila de ações.")]
@@ -451,14 +410,7 @@ namespace PangeaSkirmish
         public Color seqChipMoveBonusColor = new Color(0.60f, 0.20f, 0.92f);
         [Tooltip("Cor do chip 'Atacar' bônus (BAP).")]
         public Color seqChipAttackBonusColor = new Color(0.95f, 0.50f, 0.08f);
-        [Tooltip("Quanto o chip selecionado clareia (mistura com branco). Maior = seleção mais óbvia.")]
         [Range(0f, 1f)] public float seqChipSelectedLighten = 0.4f;
-        [Tooltip("Cor do topo do gradiente das janelas (tema FFT).")]
-        public Color windowGradientTopColor = new Color(0.11f, 0.15f, 0.32f, 0.97f);
-        [Tooltip("Cor da base do gradiente das janelas.")]
-        public Color windowGradientBottomColor = new Color(0.02f, 0.04f, 0.11f, 0.97f);
-        [Tooltip("Cor da moldura/borda das janelas.")]
-        public Color windowBorderColor = new Color(0.50f, 0.64f, 0.92f);
         [Tooltip("Cor normal do timer de fase.")]
         public Color timerNormalColor = new Color(1f, 0.9f, 0.55f);
         [Tooltip("Cor do timer quando o tempo está acabando.")]
@@ -467,25 +419,19 @@ namespace PangeaSkirmish
         public Color cameraAutoColor = new Color(0.55f, 0.95f, 0.55f);
         [Tooltip("Cor do indicador de câmera em modo Manual.")]
         public Color cameraManualColor = new Color(1f, 0.75f, 0.35f);
-        [Tooltip("Opacidade do fundo do indicador de câmera.")]
         [Range(0f, 1f)] public float cameraIndicatorBgAlpha = 0.85f;
-        [Tooltip("Fração de HP abaixo da qual a barra fica AMARELA.")]
         [Range(0f, 1f)] public float hpBarYellowThreshold = 0.50f;
-        [Tooltip("Fração de HP abaixo da qual a barra fica VERMELHA.")]
         [Range(0f, 1f)] public float hpBarRedThreshold = 0.25f;        [Tooltip("Cor da barra de HP cheia.")]
         public Color hpBarHighColor = new Color(0.20f, 0.78f, 0.28f);
         [Tooltip("Cor da barra de HP média.")]
         public Color hpBarMidColor = new Color(0.85f, 0.72f, 0.10f);
         [Tooltip("Cor da barra de HP crítica.")]
         public Color hpBarLowColor = new Color(0.82f, 0.20f, 0.20f);
-        [Tooltip("Opacidade do escurecimento na tela de Vitória/Derrota.")]
         [Range(0f, 1f)] public float endScreenDimAlpha = 0.78f;
 
         // ═════════════════════════ MENU & SANDBOX ═════════════════════════
 
         [Header("═══ MENU & SANDBOX ═══")]
-        [Tooltip("Segundos entre frames da caminhada no preview do editor de personagem.")]
-        public float menuWalkAnimFrameDelay = 0.35f;
         [Tooltip("Cor de fundo do menu principal.")]
         public Color menuBackgroundColor = new Color(0.06f, 0.07f, 0.09f);
         [Tooltip("Cor de botão de lista em estado normal (menu e sandbox).")]
@@ -494,10 +440,6 @@ namespace PangeaSkirmish
         public Color uiButtonActiveColor = new Color(0.28f, 0.50f, 0.82f);
         [Tooltip("Cor dourada dos títulos e labels de destaque.")]
         public Color uiTitleColor = new Color(0.92f, 0.80f, 0.35f);
-        [Tooltip("Cor/alpha de fundo dos painéis laterais do Sandbox.")]
-        public Color uiPanelBgColor = new Color(0.08f, 0.09f, 0.12f, 0.92f);
-        [Tooltip("Cor do texto de toasts/avisos.")]
-        public Color toastTextColor = new Color(1f, 0.92f, 0.6f);
         [Tooltip("Zoom (ortho) inicial da câmera no Sandbox.")]
         public float sandboxCameraSize = 12f;
         [Tooltip("Cor de fundo da câmera no Sandbox.")]
@@ -516,28 +458,16 @@ namespace PangeaSkirmish
         // ═════════════════════════ ÁUDIO ═════════════════════════
 
         [Header("═══ ÁUDIO ═══")]
-        [Tooltip("Volume dos efeitos sonoros (golpes, passos, etc).")]
         [Range(0f, 1f)] public float sfxVolume = 1f;
-        [Tooltip("Volume da música de fundo.")]
         [Range(0f, 1f)] public float musicVolume = 1f;
 
         // ═════════════════════════ MAGIA ═════════════════════════
 
         [Header("═══ MAGIA: CUSTO & ALCANCE ═══")]
-        [Tooltip("PA gasto por conjuração.")]
-        public int spellApCost = 1;
         [Tooltip("Mana gasta por magia Self (buff).")]
         public int spellSelfManaCost = 2;
-        [Tooltip("Mana gasta por magia de projétil (Unit).")]
-        public int spellUnitManaCost = 3;
-        [Tooltip("Mana gasta por magia de tile (terreno).")]
-        public int spellTileManaCost = 4;
-        [Tooltip("Mana recuperada ao usar Concentrar.")]
-        public int concentrateManaGain = 3;
         [Tooltip("Tiles de alcance por mana gasta. Alcance = mana × spellRangePerMana + bônus do conduíte.")]
         public int spellRangePerMana = 1;
-        [Tooltip("Alcance base extra de conduíte (soma ao alcance baseado em mana).")]
-        public int spellRangeBase = 0;
         [Tooltip("Bônus multiplicativo de afinidade quando o elemento da magia coincide com a afinidade do conduíte. 0.25 = +25% de dano.")]
         public float conduitAffinityBonus = 0.25f;
         [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
@@ -548,18 +478,6 @@ namespace PangeaSkirmish
         public float spellPotencyBaseBuff = 0.75f;
 
         [Header("═══ MAGIA: SELF (BUFFS) ═══")]
-        [Tooltip("Fator de potência para resistência elemental de buffs Self. P × fator = resistência concedida.")]
-        public float spellResistFactor = 0.5f;
-        [Tooltip("Duração (rounds) de buffs elementais (Fogo/Água/Ar/Terra Self).")]
-        public int spellBuffDurationRounds = 3;
-        [Tooltip("Duração (rounds) do buff Físico Self (PhysicalMight).")]
-        public int physicalBuffDurationRounds = 3;
-        [Tooltip("Fração da potência virada em bônus de STR no buff PhysicalMight.")]
-        public float physicalBuffStrFactor = 0.5f;
-        [Tooltip("Fração da potência virada em absorção VIT no buff PhysicalMight.")]
-        public float physicalBuffVitFactor = 0.5f;
-        [Tooltip("Fator de capacidade do escudo mágico: P × fator = absorção total do shield.")]
-        public float shieldCapacityFactor = 1f;
 
         [Header("═══ MAGIA: TILE (TERRENO) ═══")]
         [Tooltip("Fator de dano de fogo em tile: potência do fogo × fator = dano por tique. Maior = chamas mais letais.")]
@@ -576,10 +494,6 @@ namespace PangeaSkirmish
         public int earthStoneTileIndex = 8;
         [Tooltip("Quantidade de altura adicionada ao tile de Pedra por Terra-Tile.")]
         public int earthRaiseAmount = 1;
-        [Tooltip("Fator de conversão de mana para potência de orbe: mana × fator = mana recuperável ao pegar.")]
-        public float orbManaFactor = 1f;
-        [Tooltip("Tamanho máximo do grid após dobra espacial (lado maior).")]
-        public int spellFoldMaxGridSize = 40;
 
         [Header("═══ MAGIA: PROJÉTIL & RITMO ═══")]
         [Tooltip("Nº de tiles que um projétil de Ar empurra o alvo ao acertar.")]
@@ -592,11 +506,6 @@ namespace PangeaSkirmish
         public float spellProjectileArc = 0.6f;
         [Tooltip("Duração (s) da animação de conjuração (charging frames).")]
         public float spellCastAnimDuration = 0.5f;
-        [Tooltip("Pausa (s) após impacto do projétil antes de resolver.")]
-        public float spellImpactPause = 0.35f;
-        [Tooltip("FPS da animação de overlay de tile (ex: fogo tremendo).")]
-        public float tileEffectAnimFps = 6f;
-        [Tooltip("Alpha do overlay de efeito em tile (0=invisível, 1=sólido).")]
         [Range(0f, 1f)] public float tileEffectOverlayAlpha = 0.65f;
 
         [Header("═══ MAGIA: CORES ═══")]
@@ -666,8 +575,6 @@ namespace PangeaSkirmish
         public bool aiUseSpells = true;
         [Tooltip("Par mínimo de atributos (soma) para IA considerar conjurar. Menor = IA conjura com atributos baixos.")]
         public int aiSpellMinPair = 8;
-        [Tooltip("Fração da mana disponível que a IA gasta por conjuração. 0.34 = ~1/3 da mana.")]
-        public float aiSpellManaFraction = 0.34f;
         [Tooltip("Threshold de mana para IA considerar Concentração. 0 = sempre tenta concentrar quando sem mana.")]
         public int aiConcentrationThreshold = 0;
 
@@ -731,16 +638,6 @@ namespace PangeaSkirmish
         [Tooltip("Borda 9-slice da pílula da barra (left,bottom,right,top em px).")]
         public Vector4 worldBarPillBorder = new Vector4(8, 3, 8, 3);
 
-        [Tooltip("Aplica uma moldura pixel-art gerada (contorno preto + realce claro) sobre os painéis FFT (StyleFFTWindow), pra combinar com a skin dos botões. O kit BDragon1727 não tem um frame de painel pronto, então essa moldura é gerada em runtime.")]
-        public bool windowFrameEnabled = true;
-        [Tooltip("Raio do canto arredondado da moldura de painel, em px (referência ~32ppu).")]
-        public int windowFrameCorner = 10;
-        [Tooltip("Espessura do contorno preto da moldura de painel, em px.")]
-        public int windowFrameBorderPx = 2;
-        [Tooltip("Cor do contorno externo da moldura de painel.")]
-        public Color windowFrameBorderColor = new Color(0.04f, 0.05f, 0.09f);
-        [Tooltip("Cor do realce interno (1px) da moldura de painel, logo depois do contorno.")]
-        public Color windowFrameHighlightColor = new Color(0.55f, 0.68f, 0.92f);
 
         // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
