@@ -118,6 +118,20 @@
 .bh-btn-sm { height: 30px; font-size: 13px; flex-grow: 1; }
 .bh-mana-compact { gap: 3px; }
 
+/* MANA — ancorado SÓ ao mana-menu (sem vazar pros outros menus).
+   Usa seletor descendente #mana-menu para vencer as classes globais
+   acima SÓ dentro do sub-painel de conjuração. */
+#mana-menu .bh-step-btn {
+  width: 24px; height: 24px; font-size: 14px;
+}
+#mana-menu .bh-stepper-compact { gap: 4px; }
+#mana-menu .bh-stepper-label { font-size: 11px; min-width: 84px; color: rgb(217, 224, 242); }
+#mana-menu .bh-stepper-value { font-size: 13px; min-width: 20px; }
+#mana-menu .bh-mana-value { font-size: 16px; color: rgb(255, 230, 140); }
+#mana-menu .bh-mana-potency { font-size: 12px; color: rgb(200, 210, 235); }
+#mana-menu .bh-btn-sm { height: 28px; font-size: 12px; }
+#mana-menu .bh-mana-actions { margin-top: 4px; }
+
 /* MANA */
 .bh-mana-value { font-size: 18px; color: rgb(255, 230, 140); text-align: center; }
 .bh-mana-potency { font-size: 13px; color: rgb(217, 224, 242); text-align: center; }
