@@ -746,11 +746,12 @@ namespace PangeaSkirmish
         {
             if (el == null) return;
             // MouseEnterEvent é mais confiável que PointerEnterEvent no WebGL build.
-            el.RegisterCallback<MouseEnterEvent>(_ =>
+            el.RegisterCallback<MouseEnterEvent>(evt =>
             {
                 CancelPendingTip();
                 _tipOwner = el;
-                _pendingTip = el.schedule.Execute(() => ShowButtonTooltip(el, text)).StartingIn(400);
+                Vector2 mp = evt.mousePosition;   // posição do mouse no painel (root)
+                _pendingTip = el.schedule.Execute(() => ShowButtonTooltip(el, text, mp)).StartingIn(400);
             });
             el.RegisterCallback<MouseLeaveEvent>(_ => CancelPendingTip());
             el.RegisterCallback<ClickEvent>(_ => CancelPendingTip());
@@ -762,20 +763,22 @@ namespace PangeaSkirmish
             HideButtonTooltip();
         }
 
-        private void ShowButtonTooltip(VisualElement el, string text)
+        private void ShowButtonTooltip(VisualElement el, string text, Vector2 mousePos)
         {
             if (_tooltipGo == null || _tooltipTxt == null || el == null) return;
             _tooltipGo.BringToFront();   // garante que fica ACIMA dos botões (z-order)
             _tooltipTxt.text = text;
             _tooltipGo.style.display = DisplayStyle.Flex;
-            // Posiciona acima do botão (ou abaixo se não couber no topo).
+            // Posiciona 3px ACIMA do cursor (não do botão).
             float w = _tooltipGo.layout.width > 0 ? _tooltipGo.layout.width : 260f;
             float h = _tooltipGo.layout.height > 0 ? _tooltipGo.layout.height : 60f;
-            float x = el.worldBound.x;
-            float y = el.worldBound.y - h - 6f;
-            if (y < 4f) y = el.worldBound.yMax + 6f;
+            float x = mousePos.x;
+            float y = mousePos.y - h - 3f;   // 3px acima do mouse
+            // Clamps pra não sair da tela.
+            if (y < 4f) y = mousePos.y + 3f;                    // se não cabe acima, vai abaixo
             if (x + w > Screen.width) x = Screen.width - w - 4f;
             if (x < 4f) x = 4f;
+            if (y + h > Screen.height) y = Screen.height - h - 4f;
             _tooltipGo.style.left = x;
             _tooltipGo.style.top = y;
         }
