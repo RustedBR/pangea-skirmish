@@ -47,6 +47,11 @@ namespace PangeaSkirmish
         private Label _maxLabel;
         private Button _maxMinus, _maxPlus;
 
+        // ---- Abas da sala (Sala / Tuning) ----
+        private Button _tabRoomBtn, _tabTuningBtn, _resetTuningBtn;
+        private VisualElement _hostRoomTab, _hostTuningTab, _tuningList;
+        private bool _tuningBuilt = false;
+
         // ---- Estado ----------------------------------------------------------
         private int _gameMode = 0;       // 0=TDM, 1=FFA
         private int _budgetValue = 30;
@@ -105,6 +110,17 @@ namespace PangeaSkirmish
             _planMinus       = r.Q<Button>("btn-plan-minus");
             _planPlus        = r.Q<Button>("btn-plan-plus");
             _advanceBtn      = r.Q<Button>("btn-advance");
+
+            // --- abas da sala (Sala / Tuning) ---
+            _tabRoomBtn    = r.Q<Button>("btn-tab-room");
+            _tabTuningBtn  = r.Q<Button>("btn-tab-tuning");
+            _hostRoomTab   = r.Q<VisualElement>("host-room-tab");
+            _hostTuningTab = r.Q<VisualElement>("host-tuning-tab");
+            _tuningList    = r.Q<VisualElement>("tuning-list");
+            _resetTuningBtn = r.Q<Button>("btn-reset-tuning");
+            _tabRoomBtn.clicked   += () => ShowHostTab("room");
+            _tabTuningBtn.clicked += () => { ShowHostTab("tuning"); if (!_tuningBuilt) BuildTuningTab(); };
+            _resetTuningBtn.clicked += ResetTuningToDefault;
 
             r.Q<Button>("btn-copy-code").clicked += OnClickCopyCode;
             r.Q<Button>("btn-send").clicked      += () => OnChatSubmit(_chatInput.value);
@@ -181,6 +197,7 @@ namespace PangeaSkirmish
 
             // Controles do host visíveis para todos; só o host interage (demais em read-only).
             SetHostControlsInteractable(RuntimeMultiplayerSession.IsHost);
+            if (RuntimeMultiplayerSession.IsHost) BuildTuningTab();
             if (_roomNameInput != null)
                 _roomNameInput.SetEnabled(RuntimeMultiplayerSession.IsHost);
 
@@ -333,6 +350,193 @@ namespace PangeaSkirmish
             if (_planLabel != null) _planLabel.text = _planningValue + "s";
             if (_maxLabel != null) _maxLabel.text = _maxPlayersValue.ToString();
             RebuildPlayerList(); // rótulos de time dependem do modo
+        }
+
+        // =====================================================================
+        // Abas da sala (Sala / Tuning) + GameTuning por reflection
+        // =====================================================================
+
+        private void ShowHostTab(string which)
+        {
+            bool room = which == "room";
+            if (_hostRoomTab != null)   _hostRoomTab.style.display   = room ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_hostTuningTab != null) _hostTuningTab.style.display = room ? DisplayStyle.None : DisplayStyle.Flex;
+            if (_tabRoomBtn != null)    _tabRoomBtn.RemoveFromClassList("pg-button--primary");
+            if (_tabTuningBtn != null)  _tabTuningBtn.RemoveFromClassList("pg-button--primary");
+            // destaca a aba ativa
+            if (room && _tabRoomBtn != null) _tabRoomBtn.AddToClassList("pg-button--primary");
+            if (!room && _tabTuningBtn != null) _tabTuningBtn.AddToClassList("pg-button--primary");
+        }
+
+        /// <summary>
+        /// Constrói a lista de controles do GameTuning via reflection.
+        /// O host edita RuntimeTuning.Active localmente; o sync acontece SÓ ao
+        /// avançar para CharCreation (RoomManager.ApplyPhaseDefaults).
+        /// Clientes veem a lista mas não podem editar.
+        /// </summary>
+        private void BuildTuningTab()
+        {
+            if (_tuningList == null) return;
+            _tuningList.Clear();
+
+            // Garante que temos um GameTuning ativo (host edita este; clientes recebem por RPC).
+            if (RuntimeTuning.Active == null)
+                RuntimeTuning.Active = Resources.Load<GameTuning>("GameTuning")
+                                       ?? ScriptableObject.CreateInstance<GameTuning>();
+
+            var tuning = RuntimeTuning.Active;
+            bool editable = RuntimeMultiplayerSession.IsHost;
+            var fields = typeof(GameTuning).GetFields(System.Reflection.BindingFlags.Public
+                                                      | System.Reflection.BindingFlags.Instance);
+
+            foreach (var f in fields)
+            {
+                // pula tipos complexos que não mapeamos em UI simples (StatFormulas, arrays, etc.)
+                if (f.FieldType == typeof(StatFormulas)
+                    || f.FieldType.IsArray
+                    || (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(List<>)))
+                    continue;
+
+                var row = new VisualElement();
+                row.AddToClassList("tuning__row");
+
+                var label = new Label(PrettyName(f.Name));
+                label.AddToClassList("tuning__label");
+                row.Add(label);
+
+                object val = f.GetValue(tuning);
+
+                if (f.FieldType == typeof(bool))
+                {
+                    var toggle = new Toggle();
+                    toggle.value = (bool)val;
+                    toggle.SetEnabled(editable);
+                    toggle.RegisterValueChangedCallback(evt =>
+                    {
+                        f.SetValue(RuntimeTuning.Active, evt.newValue);
+                        OnTuningChanged();
+                    });
+                    row.Add(toggle);
+                }
+                else if (f.FieldType == typeof(int) || f.FieldType == typeof(float))
+                {
+                    var field = new TextField();
+                    field.value = val.ToString();
+                    field.AddToClassList("tuning__input");
+                    field.SetEnabled(editable);
+                    field.RegisterValueChangedCallback(evt =>
+                    {
+                        if (f.FieldType == typeof(int))
+                        {
+                            if (int.TryParse(evt.newValue, out int iv)) { f.SetValue(RuntimeTuning.Active, iv); OnTuningChanged(); }
+                        }
+                        else
+                        {
+                            if (float.TryParse(evt.newValue, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float fv))
+                            { f.SetValue(RuntimeTuning.Active, fv); OnTuningChanged(); }
+                        }
+                    });
+                    row.Add(field);
+                }
+                else if (f.FieldType == typeof(Color))
+                {
+                    var field = new TextField();
+                    var c = (Color)val;
+                    field.value = $"{(int)(c.r*255)},{(int)(c.g*255)},{(int)(c.b*255)}";
+                    field.AddToClassList("tuning__input");
+                    field.SetEnabled(editable);
+                    field.RegisterValueChangedCallback(evt =>
+                    {
+                        var parts = evt.newValue.Split(',');
+                        if (parts.Length == 3
+                            && byte.TryParse(parts[0].Trim(), out byte r)
+                            && byte.TryParse(parts[1].Trim(), out byte g)
+                            && byte.TryParse(parts[2].Trim(), out byte b))
+                        {
+                            f.SetValue(RuntimeTuning.Active, new Color(r/255f, g/255f, b/255f, ((Color)val).a));
+                            OnTuningChanged();
+                        }
+                    });
+                    row.Add(field);
+                }
+                else if (f.FieldType == typeof(Vector2))
+                {
+                    var field = new TextField();
+                    var v = (Vector2)val;
+                    field.value = $"{v.x},{v.y}";
+                    field.AddToClassList("tuning__input");
+                    field.SetEnabled(editable);
+                    field.RegisterValueChangedCallback(evt =>
+                    {
+                        var parts = evt.newValue.Split(',');
+                        if (parts.Length == 2
+                            && float.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float x)
+                            && float.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float y))
+                        {
+                            f.SetValue(RuntimeTuning.Active, new Vector2(x, y));
+                            OnTuningChanged();
+                        }
+                    });
+                    row.Add(field);
+                }
+                else if (f.FieldType == typeof(string))
+                {
+                    var field = new TextField();
+                    field.value = (string)val;
+                    field.AddToClassList("tuning__input");
+                    field.SetEnabled(editable);
+                    field.RegisterValueChangedCallback(evt =>
+                    {
+                        f.SetValue(RuntimeTuning.Active, evt.newValue);
+                        OnTuningChanged();
+                    });
+                    row.Add(field);
+                }
+                else
+                {
+                    // tipo não mapeado: só mostra o valor (read-only)
+                    var valLabel = new Label(val?.ToString() ?? "—");
+                    valLabel.AddToClassList("tuning__value");
+                    row.Add(valLabel);
+                }
+
+                _tuningList.Add(row);
+            }
+
+            _tuningBuilt = true;
+            // garante que a aba Sala comece visível
+            ShowHostTab("room");
+        }
+
+        private static string PrettyName(string name)
+        {
+            // insere espaço antes de maiúsculas (camelCase -> "camel Case")
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]) && !char.IsUpper(name[i-1]))
+                    sb.Append(' ');
+                sb.Append(name[i]);
+            }
+            return sb.ToString();
+        }
+
+        private void OnTuningChanged()
+        {
+            // Host editou localmente. O sync real acontece em RoomManager.ApplyPhaseDefaults(CharCreation).
+            // Aqui só garantimos que RuntimeTuning.Active está pronto.
+            if (RuntimeTuning.Active == null)
+                RuntimeTuning.Active = ScriptableObject.CreateInstance<GameTuning>();
+        }
+
+        private void ResetTuningToDefault()
+        {
+            if (!RuntimeMultiplayerSession.IsHost) return;
+            RuntimeTuning.Active = Resources.Load<GameTuning>("GameTuning")
+                                   ?? ScriptableObject.CreateInstance<GameTuning>();
+            _tuningBuilt = false;
+            BuildTuningTab();
+            OnTuningChanged();
         }
 
         private void SyncConfig()

@@ -15,6 +15,9 @@ namespace PangeaSkirmish
         public int attributeBudget = 30;
         public float planningTime = 15f;
         public int maxPlayers = 8;
+        /// <summary>Snapshot do GameTuning (JSON) enviado ao servidor quando a sala entra em CharCreation.
+        /// Clientes aplicam em RuntimeTuning.Active. Vazio = usa GameTuning.asset default.</summary>
+        public string tuningJson = "";
     }
 
     public static class RuntimeMultiplayerSession

@@ -352,6 +352,19 @@ namespace PangeaSkirmish
             {
                 // Permanece na cena Sandbox (CharCreationHUD será exibido por overlay)
                 PhaseChangedClientRpc(phase);
+
+                // Sync do GameTuning: SÓ agora (ao entrar em CharCreation) o host envia
+                // o snapshot completo do tuning que ele editou na aba da sala.
+                if (IsServer)
+                {
+                    var active = RuntimeTuning.Active
+                        ?? Resources.Load<GameTuning>("GameTuning")
+                        ?? ScriptableObject.CreateInstance<GameTuning>();
+                    string json = JsonUtility.ToJson(active);
+                    RuntimeMultiplayerSession.CurrentConfig.tuningJson = json;
+                    SyncTuningClientRpc(json);
+                    Debug.Log($"[MP] Tuning enviado aos clientes ({json.Length} bytes JSON).");
+                }
             }
             else if (phase == RoomPhase.Placement)
             {
@@ -527,6 +540,17 @@ namespace PangeaSkirmish
         {
             RuntimeMultiplayerSession.BattleSeed = initiativeSeed;
             OnBattleStart?.Invoke(initiativeSeed);
+        }
+
+        // --- Sync do GameTuning: enviado SÓ ao entrar em CharCreation ---------
+        [ClientRpc]
+        private void SyncTuningClientRpc(string tuningJson, ClientRpcParams rpc = default)
+        {
+            if (string.IsNullOrEmpty(tuningJson)) return;
+            if (RuntimeTuning.Active == null)
+                RuntimeTuning.Active = ScriptableObject.CreateInstance<GameTuning>();
+            JsonUtility.FromJsonOverwrite(tuningJson, RuntimeTuning.Active);
+            Debug.Log("[MP] Tuning recebido e aplicado (RuntimeTuning.Active atualizado).");
         }
 
         public event Action<int> OnBattleStart;

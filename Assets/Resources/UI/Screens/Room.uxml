@@ -53,37 +53,50 @@
                 </ui:VisualElement>
 
                 <ui:VisualElement name="host-controls" class="pg-panel room__col room__col--host">
-                    <ui:Label text="Modo" class="room__col-title" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-tdm" text="TDM" class="pg-button room__mode-btn" />
-                        <ui:Button name="btn-ffa" text="FFA" class="pg-button room__mode-btn" />
+                    <ui:VisualElement class="room__row room__tabbar">
+                        <ui:Button name="btn-tab-room" text="Sala" class="pg-button pg-button--primary room__tab-btn" />
+                        <ui:Button name="btn-tab-tuning" text="⚙ Tuning" class="pg-button room__tab-btn" />
                     </ui:VisualElement>
 
-                    <ui:Label text="Nome da sala" class="pg-label--dim room__ctrl-label" />
-                    <ui:TextField name="roomname-input" value="Sala" class="pg-input" />
+                    <ui:VisualElement name="host-room-tab" class="room__tab-content">
+                        <ui:Label text="Modo" class="room__col-title" />
+                        <ui:VisualElement class="room__row">
+                            <ui:Button name="btn-tdm" text="TDM" class="pg-button room__mode-btn" />
+                            <ui:Button name="btn-ffa" text="FFA" class="pg-button room__mode-btn" />
+                        </ui:VisualElement>
 
-                    <ui:Label text="Jogadores (máx)" class="pg-label--dim room__ctrl-label" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-max-minus" text="-" class="pg-button room__step-btn" />
-                        <ui:Label name="max-label" text="4" class="room__step-value" />
-                        <ui:Button name="btn-max-plus" text="+" class="pg-button room__step-btn" />
+                        <ui:Label text="Nome da sala" class="pg-label--dim room__ctrl-label" />
+                        <ui:TextField name="roomname-input" value="Sala" class="pg-input" />
+
+                        <ui:Label text="Jogadores (máx)" class="pg-label--dim room__ctrl-label" />
+                        <ui:VisualElement class="room__row">
+                            <ui:Button name="btn-max-minus" text="-" class="pg-button room__step-btn" />
+                            <ui:Label name="max-label" text="4" class="room__step-value" />
+                            <ui:Button name="btn-max-plus" text="+" class="pg-button room__step-btn" />
+                        </ui:VisualElement>
+
+                        <ui:Label text="Budget de atributos" class="pg-label--dim room__ctrl-label" />
+                        <ui:VisualElement class="room__row">
+                            <ui:Button name="btn-budget-minus" text="-" class="pg-button room__step-btn" />
+                            <ui:Label name="budget-label" text="30" class="room__step-value" />
+                            <ui:Button name="btn-budget-plus" text="+" class="pg-button room__step-btn" />
+                        </ui:VisualElement>
+
+                        <ui:Label text="Tempo de planejamento" class="pg-label--dim room__ctrl-label" />
+                        <ui:VisualElement class="room__row">
+                            <ui:Button name="btn-plan-minus" text="-" class="pg-button room__step-btn" />
+                            <ui:Label name="plan-label" text="15s" class="room__step-value" />
+                            <ui:Button name="btn-plan-plus" text="+" class="pg-button room__step-btn" />
+                        </ui:VisualElement>
+
+                        <ui:Button name="btn-advance" text="Iniciar (Criar Personagens)" class="pg-button pg-button--primary room__advance" />
                     </ui:VisualElement>
 
-                    <ui:Label text="Budget de atributos" class="pg-label--dim room__ctrl-label" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-budget-minus" text="-" class="pg-button room__step-btn" />
-                        <ui:Label name="budget-label" text="30" class="room__step-value" />
-                        <ui:Button name="btn-budget-plus" text="+" class="pg-button room__step-btn" />
+                    <ui:VisualElement name="host-tuning-tab" class="room__tab-content" style="display: none;">
+                        <ui:Label text="GameTuning (host edita)" class="room__col-title" />
+                        <ui:ScrollView name="tuning-list" class="pg-list room__scroll room__tuning-list" />
+                        <ui:Button name="btn-reset-tuning" text="Resetar p/ Default" class="pg-button" />
                     </ui:VisualElement>
-
-                    <ui:Label text="Tempo de planejamento" class="pg-label--dim room__ctrl-label" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-plan-minus" text="-" class="pg-button room__step-btn" />
-                        <ui:Label name="plan-label" text="15s" class="room__step-value" />
-                        <ui:Button name="btn-plan-plus" text="+" class="pg-button room__step-btn" />
-                    </ui:VisualElement>
-
-                    <ui:Button name="btn-advance" text="Iniciar (Criar Personagens)" class="pg-button pg-button--primary room__advance" />
                 </ui:VisualElement>
             </ui:VisualElement>
 

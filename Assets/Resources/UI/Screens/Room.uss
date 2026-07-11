@@ -119,3 +119,39 @@
     -unity-text-align: middle-center;
     white-space: normal;
 }
+
+/* ---- Abas (Sala / Tuning) ---- */
+.room__tabbar { margin-bottom: 8px; justify-content: flex-start; }
+.room__tab-btn { flex-grow: 1; margin-right: 4px; }
+.room__tab-btn:last-child { margin-right: 0; }
+.room__tab-content { margin-top: 4px; }
+.room__tuning-list { max-height: 360px; margin-bottom: 6px; }
+
+/* ---- Linha de campo do tuning (gerada por reflection) ---- */
+.tuning__row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-bottom: 2px;
+}
+.tuning__label {
+    color: var(--pg-text-dim, rgb(159, 176, 208));
+    flex-grow: 1;
+    font-size: 12px;
+    white-space: normal;
+    margin-right: 6px;
+}
+.tuning__value {
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 12px;
+    min-width: 56px;
+    -unity-text-align: middle-right;
+    margin-right: 6px;
+}
+.tuning__slider { width: 120px; }
+.tuning__input { width: 80px; }
+
