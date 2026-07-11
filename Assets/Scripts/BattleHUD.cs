@@ -383,12 +383,14 @@ namespace PangeaSkirmish
         public VisualElement ManaStepperPanel   => _manaStepperPanel;
         public VisualElement MagicMenuPanel => _magicMenuPanel;
 
-        public void SetManaPreview(int manaRange, int manaPower, int max, int potency, int range)
+        public void SetManaPreview(int manaRange, int manaPower, int max, int value, int range, bool isBuff)
         {
             if (_manaValueText != null)     _manaValueText.text     = $"{manaRange + manaPower} / {max} MP";
             if (_manaRangeValueText != null) _manaRangeValueText.text = $"{manaRange}";
             if (_manaPowerValueText != null) _manaPowerValueText.text = $"{manaPower}";
-            if (_manaPotencyText != null)    _manaPotencyText.text   = $"Alcance: {range}  •  Potência: {potency}  •  PA: {1 + manaPower}";
+            // Mostra o que o jogador VAI ganhar/causar, não "potência" genérico.
+            string label = isBuff ? $"Buff: +{value}" : $"Dano: {value}";
+            if (_manaPotencyText != null)    _manaPotencyText.text   = $"Alcance: {range}  •  {label}  •  Custo: {1 + manaPower} PA";
             if (_manaRangeMinusButton != null) _manaRangeMinusButton.SetEnabled(manaRange > 0);
             if (_manaRangePlusButton != null)  _manaRangePlusButton.SetEnabled(manaRange + manaPower < max);
             if (_manaPowerMinusButton != null) _manaPowerMinusButton.SetEnabled(manaPower > 1);

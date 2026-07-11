@@ -374,6 +374,8 @@ MonoBehaviour:
   spellRangeBase: 4
   conduitAffinityBonus: 0.25
   spellMinDamage: 1
+  spellPotencyBaseDamage: 0.15
+  spellPotencyBaseBuff: 0.75
   spellResistFactor: 0.5
   spellBuffDurationRounds: 3
   physicalBuffDurationRounds: 3
@@ -462,7 +464,7 @@ MonoBehaviour:
   windowFrameBorderPx: 2
   windowFrameBorderColor: {r: 0.04, g: 0.05, b: 0.09, a: 1}
   windowFrameHighlightColor: {r: 0.55, g: 0.68, b: 0.92, a: 1}
-  reactionChoiceTime: 5
+  reactionChoiceTime: 50
   dodgeReactionPerAGI: 0.03
   blockReductionPerVIT: 0.03
   maxBlockReduction: 0.6

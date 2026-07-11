@@ -581,8 +581,11 @@ namespace PangeaSkirmish
         private void RefreshManaPreview()
         {
             int range = SpellBook.SpellRange(_controlled, _spellManaRange);
-            int pot = SpellBook.Potency(_controlled, _spellElement, _spellManaPower);
-            _hud.SetManaPreview(_spellManaRange, _spellManaPower, _controlled.AvailableMana, pot, range);
+            // Previsão mostra o que o jogador VAI receber (buff) ou VAI causar (dano), não "potência" genérica.
+            int value = _spellTargetKind == SpellTargetKind.Self
+                ? SpellBook.BuffPotency(_controlled, _spellElement, _spellManaPower)
+                : SpellBook.DamagePotency(_controlled, _spellElement, _spellManaPower);
+            _hud.SetManaPreview(_spellManaRange, _spellManaPower, _controlled.AvailableMana, value, range, _spellTargetKind == SpellTargetKind.Self);
         }
 
         private void OnManaRangeMinus()
@@ -612,7 +615,10 @@ namespace PangeaSkirmish
         private void OnManaPowerPlus()
         {
             if (_mode != PlanMode.SpellManaPicking) return;
+            // Limite de potência atrelado a QUANTAS AÇÕES CABEM: manaPower não pode exceder PA disponível - 1 (1 PA do cast).
+            int maxPower = Mathf.Min(_controlled.AvailableMana - _spellManaRange, _controlled.remainingAP - 1);
             if (_spellManaRange + _spellManaPower >= _controlled.AvailableMana) return;
+            if (_spellManaPower >= maxPower) return;
             _spellManaPower++;
             RefreshManaPreview();
         }
@@ -620,7 +626,10 @@ namespace PangeaSkirmish
         private void OnManaCast()
         {
             if (_mode != PlanMode.SpellManaPicking) return;
-            Debug.Log($"[Magia] conjurar {SpellBook.ElementName(_spellElement)} alvo={_spellTargetKind} range={_spellManaRange} power={_spellManaPower} alcance={SpellBook.SpellRange(_controlled, _spellManaRange)} potência={SpellBook.Potency(_controlled, _spellElement, _spellManaPower)}");
+            int previewValue = _spellTargetKind == SpellTargetKind.Self
+                ? SpellBook.BuffPotency(_controlled, _spellElement, _spellManaPower)
+                : SpellBook.DamagePotency(_controlled, _spellElement, _spellManaPower);
+            Debug.Log($"[Magia] conjurar {SpellBook.ElementName(_spellElement)} alvo={_spellTargetKind} range={_spellManaRange} power={_spellManaPower} alcance={SpellBook.SpellRange(_controlled, _spellManaRange)} {( _spellTargetKind == SpellTargetKind.Self ? "buff=+" : "dano=" )}{previewValue}");
             switch (_spellTargetKind)
             {
                 case SpellTargetKind.Self: CommitSpellSelf(); break;
@@ -674,7 +683,10 @@ namespace PangeaSkirmish
         private void CommitSpellSelf()
         {
             int manaRange = Mathf.Clamp(_spellManaRange, 1, _controlled.AvailableMana);
-            int manaPower = Mathf.Clamp(_spellManaPower, 1, _controlled.AvailableMana - manaRange);
+            // BUG FIX (Marcus 2026-07-10): limite de potência atrelado ao PA disponível, não só mana.
+            int maxPower = Mathf.Min(_controlled.AvailableMana - manaRange, _controlled.remainingAP - 1);
+            int manaPower = Mathf.Clamp(_spellManaPower, 1, maxPower);
+            if (manaPower < 1) return;   // sem PA/mana suficiente → nem agenda
             if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
             _controlled.reservedMana += manaRange + manaPower;
 
@@ -715,7 +727,9 @@ namespace PangeaSkirmish
             if (target == null || target.IsDead) return;
 
             int manaRange = Mathf.Clamp(_spellManaRange, 0, _controlled.AvailableMana);
-            int manaPower = Mathf.Clamp(_spellManaPower, 1, _controlled.AvailableMana - manaRange);
+            int maxPower = Mathf.Min(_controlled.AvailableMana - manaRange, _controlled.remainingAP - 1);
+            int manaPower = Mathf.Clamp(_spellManaPower, 1, maxPower);
+            if (manaPower < 1) return;
             if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
             _controlled.reservedMana += manaRange + manaPower;
 
@@ -760,7 +774,9 @@ namespace PangeaSkirmish
             if (!_attackable.Contains(anchor)) return;
 
             int manaRange = Mathf.Clamp(_spellManaRange, 0, _controlled.AvailableMana);
-            int manaPower = Mathf.Clamp(_spellManaPower, 1, _controlled.AvailableMana - manaRange);
+            int maxPower = Mathf.Min(_controlled.AvailableMana - manaRange, _controlled.remainingAP - 1);
+            int manaPower = Mathf.Clamp(_spellManaPower, 1, maxPower);
+            if (manaPower < 1) return;
             if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
             _controlled.reservedMana += manaRange + manaPower;
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using PangeaSkirmish;
@@ -12,19 +13,19 @@ public class SpellBookTests
     [SetUp]
     public void SetUp()
     {
-        // Create test GameTuning
-        tuning = ScriptableObject.CreateInstance<GameTuning>();
-        tuning.spellMinDamage = 1;
-        tuning.conduitAffinityBonus = 0.25f;
-        tuning.spellRangePerMana = 1;
-        tuning.spellRangeBase = 0;
-        RuntimeTuning.Active = tuning;
-
-        // Create caster
         casterGo = new GameObject("Caster");
         caster = casterGo.AddComponent<Unit>();
-        caster.stats = new AttributeStats { INT = 4f, WIS = 3f, VIT = 2f };
-        caster.team = 0;
+        caster.stats = new AttributeStats
+        {
+            INT = 4f, WIS = 3f, VIT = 2f, STR = 1f, AGI = 5f, DEX = 1f
+        };
+        tuning = ScriptableObject.CreateInstance<GameTuning>();
+        // Bases decididas com Marcus 2026-07-10.
+        tuning.spellPotencyBaseDamage = 0.15f;
+        tuning.spellPotencyBaseBuff = 0.75f;
+        tuning.spellMinDamage = 1;
+        tuning.conduitAffinityBonus = 0f;
+        RuntimeTuning.Active = tuning;
     }
 
     [TearDown]
@@ -35,94 +36,68 @@ public class SpellBookTests
     }
 
     [Test]
-    public void Potency_FireElement_UsesINTAndVIT()
+    public void DamagePotency_FireElement_UsesINTAndVIT()
     {
-        // Arrange
         var element = SpellElement.Fire;
-
-        // Act
-        int potency = SpellBook.Potency(caster, element, 1); // manaPower=1 (sem multiplicador)
-
-        // Assert
-        // Fire: INT (4) + VIT (2) = 6
-        // Raw: 6 × 1 = 6
-        Assert.AreEqual(6, potency);
+        int potency = SpellBook.DamagePotency(caster, element, 1);
+        // Fire: INT (4) + VIT (2) = 6 → 1 × 0.15 × 6 = 0.9 → round 1 (min)
+        Assert.AreEqual(1, potency);
     }
 
     [Test]
-    public void Potency_WaterElement_UsesVITAndINT()
+    public void DamagePotency_WaterElement_UsesVITAndINT()
     {
-        // Arrange
         var element = SpellElement.Water;
-
-        // Act
-        int potency = SpellBook.Potency(caster, element, 1);
-
-        // Assert
-        // Water: VIT (2) + INT (4) = 6
-        // Raw: 6 × 1 = 6
-        Assert.AreEqual(6, potency);
+        int potency = SpellBook.DamagePotency(caster, element, 1);
+        // Water: VIT (2) + INT (4) = 6 → 1 × 0.15 × 6 = 0.9 → round 1 (min)
+        Assert.AreEqual(1, potency);
     }
 
     [Test]
-    public void Potency_MagicElement_UsesINTAndWIS()
+    public void DamagePotency_MagicElement_UsesINTAndWIS()
     {
-        // Arrange
         var element = SpellElement.Magic;
-
-        // Act
-        int potency = SpellBook.Potency(caster, element, 1);
-
-        // Assert
-        // Magic: INT (4) + WIS (3) = 7
-        // Raw: 7 × 1 = 7
-        Assert.AreEqual(7, potency);
+        int potency = SpellBook.DamagePotency(caster, element, 1);
+        // Magic: INT (4) + WIS (3) = 7 → 1 × 0.15 × 7 = 1.05 → round 1
+        Assert.AreEqual(1, potency);
     }
 
     [Test]
-    public void Potency_RespectsMinimumDamage()
+    public void DamagePotency_RespectsMinimumDamage()
     {
-        // Arrange
         caster.stats = new AttributeStats { INT = 1f, WIS = 1f };
         var element = SpellElement.Magic;
-
-        // Act
-        int potency = SpellBook.Potency(caster, element, 1);
-
-        // Assert
-        // Raw: (1+1) × 1 = 2, min is 1, so potency=2 ≥ 1
+        int potency = SpellBook.DamagePotency(caster, element, 1);
+        // Raw: (1+1) × 0.15 = 0.3 → round 0 → max(min=1, 0) = 1
         Assert.GreaterOrEqual(potency, tuning.spellMinDamage);
     }
 
     [Test]
-    public void Potency_ScalesWithManaPower()
+    public void DamagePotency_ScalesWithManaPower()
     {
-        // Arrange
         caster.stats = new AttributeStats { INT = 4f, WIS = 3f };
         var element = SpellElement.Magic; // INT+WIS = 7
+        int pot1 = SpellBook.DamagePotency(caster, element, 1); // 7 × 0.15 = 1.05 → 1
+        int pot3 = SpellBook.DamagePotency(caster, element, 3); // 7 × 0.15 × 3 = 3.15 → 3
+        Assert.AreEqual(1, pot1);
+        Assert.AreEqual(3, pot3);
+    }
 
-        // Act
-        int pot1 = SpellBook.Potency(caster, element, 1);
-        int pot3 = SpellBook.Potency(caster, element, 3);
-
-        // Assert
-        // pot1 = 7 × 1 = 7
-        // pot3 = 7 × 3 = 21
-        Assert.AreEqual(7, pot1);
-        Assert.AreEqual(21, pot3);
+    [Test]
+    public void BuffPotency_Self_UsesHigherBase()
+    {
+        caster.stats = new AttributeStats { VIT = 10f, STR = 10f };
+        var element = SpellElement.Earth; // VIT+STR = 20
+        int buff = SpellBook.BuffPotency(caster, element, 1); // 20 × 0.75 × 1 = 15
+        Assert.AreEqual(15, buff);
     }
 
     [Test]
     public void SpellRange_DependsOnMana_WithoutConduit()
     {
-        // Arrange
         caster.weaponId = null; // no conduit
         int mana = 5;
-
-        // Act
         int range = SpellBook.SpellRange(caster, mana);
-
-        // Assert
         // Range = mana × spellRangePerMana + 0 (no conduit)
         // = 5 × 1 = 5
         Assert.AreEqual(5, range);
@@ -131,82 +106,49 @@ public class SpellBookTests
     [Test]
     public void ElementName_Fire_ReturnsCorrectName()
     {
-        // Act
-        string name = SpellBook.ElementName(SpellElement.Fire);
-
-        // Assert
-        Assert.AreEqual("Fogo", name);
+        Assert.AreEqual("Fogo", SpellBook.ElementName(SpellElement.Fire));
     }
 
     [Test]
     public void ElementName_Water_ReturnsCorrectName()
     {
-        // Act
-        string name = SpellBook.ElementName(SpellElement.Water);
-
-        // Assert
-        Assert.AreEqual("Água", name);
+        Assert.AreEqual("Água", SpellBook.ElementName(SpellElement.Water));
     }
 
     [Test]
     public void ElementName_Air_ReturnsCorrectName()
     {
-        // Act
-        string name = SpellBook.ElementName(SpellElement.Air);
-
-        // Assert
-        Assert.AreEqual("Ar", name);
+        Assert.AreEqual("Ar", SpellBook.ElementName(SpellElement.Air));
     }
 
     [Test]
     public void ElementName_Earth_ReturnsCorrectName()
     {
-        // Act
-        string name = SpellBook.ElementName(SpellElement.Earth);
-
-        // Assert
-        Assert.AreEqual("Terra", name);
+        Assert.AreEqual("Terra", SpellBook.ElementName(SpellElement.Earth));
     }
 
     [Test]
     public void ElementColor_Fire_ReturnsColor()
     {
-        // Act
         Color color = SpellBook.ElementColor(SpellElement.Fire);
-
-        // Assert
         Assert.AreNotEqual(Color.clear, color);
     }
 
     [Test]
-    public void Potency_AirElement_UsesAGIAndINT()
+    public void BuffPotency_AirElement_UsesAGIAndINT()
     {
-        // Arrange
         caster.stats = new AttributeStats { AGI = 5f, INT = 3f };
         var element = SpellElement.Air;
-
-        // Act
-        int potency = SpellBook.Potency(caster, element, 1);
-
-        // Assert
-        // Air: AGI (5) + INT (3) = 8
-        // Raw: 8 × 1 = 8
-        Assert.AreEqual(8, potency);
+        int buff = SpellBook.BuffPotency(caster, element, 1); // (5+3) × 0.75 = 6
+        Assert.AreEqual(6, buff);
     }
 
     [Test]
-    public void Potency_EarthElement_UsesVITAndSTR()
+    public void BuffPotency_EarthElement_UsesVITAndSTR()
     {
-        // Arrange
         caster.stats = new AttributeStats { VIT = 4f, STR = 3f };
         var element = SpellElement.Earth;
-
-        // Act
-        int potency = SpellBook.Potency(caster, element, 1);
-
-        // Assert
-        // Earth: VIT (4) + STR (3) = 7
-        // Raw: 7 × 1 = 7
-        Assert.AreEqual(7, potency);
+        int buff = SpellBook.BuffPotency(caster, element, 1); // (4+3) × 0.75 = 5.25 → 5
+        Assert.AreEqual(5, buff);
     }
 }

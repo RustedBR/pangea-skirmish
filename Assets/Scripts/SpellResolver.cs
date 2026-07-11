@@ -52,13 +52,13 @@ namespace PangeaSkirmish
             if (spent <= 0)
                 return ($"<color=#888888>x</color> {caster.unitName} magia falhou sem mana", null);
 
-            int P = SpellBook.Potency(caster, s.Element, s.ManaPower);
+            int P = SpellBook.DamagePotency(caster, s.Element, s.ManaPower);
             PendingPush? push = null;
 
             switch (s.Target)
             {
                 case SpellTargetKind.Self:
-                    return ResolveSelf(caster, s.Element, s.ManaRange, s.ManaPower, s.Direction);
+                    return ResolveSelf(caster, s.Element, s.ManaRange, SpellBook.BuffPotency(caster, s.Element, s.ManaPower), s.Direction);
                 case SpellTargetKind.Unit:
                     return ResolveUnit(caster, s, s.TargetUnit, P, all, ref push);
                 case SpellTargetKind.Tile:

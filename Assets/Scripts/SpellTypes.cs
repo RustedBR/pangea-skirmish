@@ -44,22 +44,40 @@ namespace PangeaSkirmish
         public static WeaponDef Conduit(Unit u) => WeaponCatalog.Get(u.weaponId);
 
         /// <summary>
-        /// Potência (dano/atributo) da magia.
-        /// Potência = (A + B + bônusINT de Mira Mágica) × ManaPower × conduíte.
-        /// ManaPower É o multiplicador (mínimo 1). A mana de alcance NÃO entra aqui.
+        /// Cálculo de potência (decisão Marcus 2026-07-10):
+        ///   Pot = manaPower × base × (A + B do elemento)
+        ///   - PA NÃO entra dobrado (só 1 PA por ponto de potência, cobrado em outro lugar).
+        ///   - Sem teto (nem dano, nem buff).
+        ///   - base separado: dano = spellPotencyBaseDamage, buff = spellPotencyBaseBuff.
+        ///   - manaPower já vem clampado ao PA disponível (PlanningController), então nunca excede.
         /// </summary>
-        public static int Potency(Unit caster, SpellElement e, int manaPower)
+        public static int DamagePotency(Unit caster, SpellElement e, int manaPower)
         {
             var T = Tuning.Get();
             var pair = AttributePair(caster, e);
-            float basePotency = (pair.a + pair.b) + caster.plannedSpellBonusINT;
+            float attrSum = (pair.a + pair.b) + caster.plannedSpellBonusINT;
             float condMult = 1f;
             var cond = Conduit(caster);
             if (cond != null) condMult = cond.spellPowerMult;
             float affinity = 1f;
             if (cond != null && cond.elementAffinity == e) affinity = 1f + T.conduitAffinityBonus;
-            float raw = basePotency * Mathf.Max(1, manaPower) * condMult * affinity;
+            float raw = Mathf.Max(1, manaPower) * T.spellPotencyBaseDamage * attrSum * condMult * affinity;
             return Mathf.Max(T.spellMinDamage, Mathf.RoundToInt(raw));
+        }
+
+        /// <summary>Mesma fórmula de DamagePotency, mas usa a base de BUFF (mais alta).</summary>
+        public static int BuffPotency(Unit caster, SpellElement e, int manaPower)
+        {
+            var T = Tuning.Get();
+            var pair = AttributePair(caster, e);
+            float attrSum = (pair.a + pair.b) + caster.plannedSpellBonusINT;
+            float condMult = 1f;
+            var cond = Conduit(caster);
+            if (cond != null) condMult = cond.spellPowerMult;
+            float affinity = 1f;
+            if (cond != null && cond.elementAffinity == e) affinity = 1f + T.conduitAffinityBonus;
+            float raw = Mathf.Max(1, manaPower) * T.spellPotencyBaseBuff * attrSum * condMult * affinity;
+            return Mathf.Max(1, Mathf.RoundToInt(raw));
         }
 
         public static int SpellRange(Unit caster, int manaRange)

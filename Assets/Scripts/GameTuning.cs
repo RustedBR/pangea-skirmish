@@ -542,6 +542,10 @@ namespace PangeaSkirmish
         public float conduitAffinityBonus = 0.25f;
         [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
         public int spellMinDamage = 1;
+        [Tooltip("Base de POTÊNCIA DE DANO: P = manaPower × base × (atributos do elemento). Decisão Marcus 2026-07-10 (sem teto).")]
+        public float spellPotencyBaseDamage = 0.15f;
+        [Tooltip("Base de POTÊNCIA DE BUFF (Self): mesmo cálculo de dano, base mais alta. Decisão Marcus 2026-07-10 (sem teto).")]
+        public float spellPotencyBaseBuff = 0.75f;
 
         [Header("═══ MAGIA: SELF (BUFFS) ═══")]
         [Tooltip("Fator de potência para resistência elemental de buffs Self. P × fator = resistência concedida.")]
@@ -740,8 +744,8 @@ namespace PangeaSkirmish
 
         // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
-        [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP.")]
-        public float reactionChoiceTime   = 5f;
+        [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
+        public float reactionChoiceTime   = 50f;
         [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
         public float dodgeReactionPerAGI  = 0.03f;
         [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
