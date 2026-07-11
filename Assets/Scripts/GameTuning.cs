@@ -473,9 +473,9 @@ namespace PangeaSkirmish
         [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
         public int spellMinDamage = 1;
         [Tooltip("Base de POTÊNCIA DE DANO: P = manaPower × base × (atributos do elemento). Decisão Marcus 2026-07-10 (sem teto).")]
-        public float spellPotencyBaseDamage = 0.15f;
+        public float spellPotencyBaseDamage = 0.075f;
         [Tooltip("Base de POTÊNCIA DE BUFF (Self): mesmo cálculo de dano, base mais alta. Decisão Marcus 2026-07-10 (sem teto).")]
-        public float spellPotencyBaseBuff = 0.75f;
+        public float spellPotencyBaseBuff = 0.375f;
 
         [Header("═══ MAGIA: SELF (BUFFS) ═══")]
 

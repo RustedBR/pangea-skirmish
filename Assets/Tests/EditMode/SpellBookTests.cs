@@ -21,8 +21,8 @@ public class SpellBookTests
         };
         tuning = ScriptableObject.CreateInstance<GameTuning>();
         // Bases decididas com Marcus 2026-07-10.
-        tuning.spellPotencyBaseDamage = 0.15f;
-        tuning.spellPotencyBaseBuff = 0.75f;
+        tuning.spellPotencyBaseDamage = 0.075f;
+        tuning.spellPotencyBaseBuff = 0.375f;
         tuning.spellMinDamage = 1;
         tuning.conduitAffinityBonus = 0f;
         RuntimeTuning.Active = tuning;
