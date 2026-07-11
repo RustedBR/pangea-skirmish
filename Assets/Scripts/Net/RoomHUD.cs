@@ -47,10 +47,15 @@ namespace PangeaSkirmish
         private Label _maxLabel;
         private Button _maxMinus, _maxPlus;
 
-        // ---- Abas da sala (Sala / Tuning) ----
-        private Button _tabRoomBtn, _tabTuningBtn, _resetTuningBtn;
-        private VisualElement _hostRoomTab, _hostTuningTab, _tuningList;
+        // ---- Abas da sala (Chat / Room / Game) ----
+        private Button _tabChatBtn, _tabRoomBtn, _tabGameBtn, _resetTuningBtn;
+        private VisualElement _tabChat, _tabRoom, _tabGame, _tuningList;
         private bool _tuningBuilt = false;
+        // Tooltip estilo BattleHUD
+        private VisualElement _tooltipGo;
+        private Label _tooltipTxt;
+        private VisualElement _tipOwner;
+        private IVisualElementScheduledItem _pendingTip;
 
         // ---- Estado ----------------------------------------------------------
         private int _gameMode = 0;       // 0=TDM, 1=FFA
@@ -111,16 +116,31 @@ namespace PangeaSkirmish
             _planPlus        = r.Q<Button>("btn-plan-plus");
             _advanceBtn      = r.Q<Button>("btn-advance");
 
-            // --- abas da sala (Sala / Tuning) ---
-            _tabRoomBtn    = r.Q<Button>("btn-tab-room");
-            _tabTuningBtn  = r.Q<Button>("btn-tab-tuning");
-            _hostRoomTab   = r.Q<VisualElement>("host-room-tab");
-            _hostTuningTab = r.Q<VisualElement>("host-tuning-tab");
-            _tuningList    = r.Q<VisualElement>("tuning-list");
+            // --- abas da sala (Chat / Room / Game) ---
+            _tabChatBtn  = r.Q<Button>("btn-tab-chat");
+            _tabRoomBtn  = r.Q<Button>("btn-tab-room");
+            _tabGameBtn  = r.Q<Button>("btn-tab-game");
+            _tabChat     = r.Q<VisualElement>("tab-chat");
+            _tabRoom     = r.Q<VisualElement>("tab-room");
+            _tabGame     = r.Q<VisualElement>("tab-game");
+            _tuningList  = r.Q<VisualElement>("tuning-list");
             _resetTuningBtn = r.Q<Button>("btn-reset-tuning");
-            _tabRoomBtn.clicked   += () => ShowHostTab("room");
-            _tabTuningBtn.clicked += () => { ShowHostTab("tuning"); if (!_tuningBuilt) BuildTuningTab(); };
+            _tabChatBtn.clicked  += () => { ShowTab("chat"); };
+            _tabRoomBtn.clicked  += () => { ShowTab("room"); };
+            _tabGameBtn.clicked  += () => { ShowTab("game"); if (!_tuningBuilt) BuildTuningTab(); };
             _resetTuningBtn.clicked += ResetTuningToDefault;
+
+            // Tooltip estilo BattleHUD (criado em runtime, append no Root)
+            _tooltipGo = new VisualElement();
+            _tooltipGo.name = "room-tooltip";
+            _tooltipGo.AddToClassList("room__tooltip");
+            _tooltipGo.style.display = DisplayStyle.None;
+            _tooltipGo.pickingMode = PickingMode.Ignore;
+            _tooltipTxt = new Label("");
+            _tooltipTxt.AddToClassList("room__tooltip-txt");
+            _tooltipTxt.pickingMode = PickingMode.Ignore;
+            _tooltipGo.Add(_tooltipTxt);
+            Root.Add(_tooltipGo);
 
             r.Q<Button>("btn-copy-code").clicked += OnClickCopyCode;
             r.Q<Button>("btn-send").clicked      += () => OnChatSubmit(_chatInput.value);
@@ -356,16 +376,70 @@ namespace PangeaSkirmish
         // Abas da sala (Sala / Tuning) + GameTuning por reflection
         // =====================================================================
 
-        private void ShowHostTab(string which)
+        private void ShowTab(string which)
         {
+            bool chat = which == "chat";
             bool room = which == "room";
-            if (_hostRoomTab != null)   _hostRoomTab.style.display   = room ? DisplayStyle.Flex : DisplayStyle.None;
-            if (_hostTuningTab != null) _hostTuningTab.style.display = room ? DisplayStyle.None : DisplayStyle.Flex;
-            if (_tabRoomBtn != null)    _tabRoomBtn.RemoveFromClassList("pg-button--primary");
-            if (_tabTuningBtn != null)  _tabTuningBtn.RemoveFromClassList("pg-button--primary");
+            bool game = which == "game";
+            if (_tabChat != null) _tabChat.style.display = chat ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_tabRoom != null) _tabRoom.style.display = room ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_tabGame != null) _tabGame.style.display = game ? DisplayStyle.Flex : DisplayStyle.None;
+            // remove highlight de todas
+            if (_tabChatBtn != null)  _tabChatBtn.RemoveFromClassList("pg-button--primary");
+            if (_tabRoomBtn != null)  _tabRoomBtn.RemoveFromClassList("pg-button--primary");
+            if (_tabGameBtn != null)  _tabGameBtn.RemoveFromClassList("pg-button--primary");
             // destaca a aba ativa
-            if (room && _tabRoomBtn != null) _tabRoomBtn.AddToClassList("pg-button--primary");
-            if (!room && _tabTuningBtn != null) _tabTuningBtn.AddToClassList("pg-button--primary");
+            if (chat && _tabChatBtn != null)  _tabChatBtn.AddToClassList("pg-button--primary");
+            if (room && _tabRoomBtn != null)  _tabRoomBtn.AddToClassList("pg-button--primary");
+            if (game && _tabGameBtn != null)  _tabGameBtn.AddToClassList("pg-button--primary");
+        }
+
+        // --- Tooltip estilo BattleHUD (hover 400ms, flip/clamp) ---
+        private void AttachTuningTooltip(VisualElement el, string text)
+        {
+            el.RegisterCallback<MouseEnterEvent>(evt =>
+            {
+                CancelPendingTip();
+                _tipOwner = el;
+                Vector2 mp = evt.mousePosition;
+                _pendingTip = el.schedule.Execute(() => ShowTuningTooltip(el, text, mp)).StartingIn(400);
+            });
+            el.RegisterCallback<MouseLeaveEvent>(_ => CancelPendingTip());
+            el.RegisterCallback<ClickEvent>(_ => CancelPendingTip());
+        }
+
+        private void CancelPendingTip()
+        {
+            if (_pendingTip != null) { _pendingTip.Pause(); _pendingTip = null; }
+            HideTuningTooltip();
+        }
+
+        private void HideTuningTooltip()
+        {
+            if (_tooltipGo != null) _tooltipGo.style.display = DisplayStyle.None;
+            _tipOwner = null;
+        }
+
+        private void ShowTuningTooltip(VisualElement el, string text, Vector2 mousePos)
+        {
+            if (_tooltipGo == null || _tooltipTxt == null || el == null) return;
+            _tooltipGo.BringToFront();
+            _tooltipTxt.text = text;
+            _tooltipGo.style.display = DisplayStyle.Flex;
+            float w = _tooltipGo.layout.width > 0 ? _tooltipGo.layout.width : 260f;
+            float h = _tooltipGo.layout.height > 0 ? _tooltipGo.layout.height : 60f;
+            var root = el.panel != null ? el.panel.visualTree : null;
+            float boundW = (root != null && root.layout.width > 0) ? root.layout.width : Screen.width;
+            float boundH = (root != null && root.layout.height > 0) ? root.layout.height : Screen.height;
+            float x = mousePos.x;
+            float y = mousePos.y - h - 3f;
+            if (y < 4f) y = mousePos.y + 3f;
+            if (x + w > boundW - 4f) x = mousePos.x - w - 3f;
+            if (x < 4f) x = 4f;
+            if (x + w > boundW - 4f) x = boundW - w - 4f;
+            if (y + h > boundH - 4f) y = boundH - h - 4f;
+            _tooltipGo.style.left = x;
+            _tooltipGo.style.top = y;
         }
 
         /// <summary>
@@ -500,12 +574,20 @@ namespace PangeaSkirmish
                     row.Add(valLabel);
                 }
 
+                // Tooltip estilo BattleHUD (hover 400ms, flip/clamp)
+                string tip = PrettyName(f.Name);
+                var tipAttr = (TooltipAttribute)Attribute.GetCustomAttribute(f, typeof(TooltipAttribute));
+                if (tipAttr != null && !string.IsNullOrEmpty(tipAttr.tooltip))
+                    tip += "\n\n" + tipAttr.tooltip;
+                tip += $"\n\nTipo: {f.FieldType.Name}\nValor: {val}";
+                AttachTuningTooltip(row, tip);
+
                 _tuningList.Add(row);
             }
 
             _tuningBuilt = true;
             // garante que a aba Sala comece visível
-            ShowHostTab("room");
+            ShowTab("room");
         }
 
         private static string PrettyName(string name)

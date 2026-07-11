@@ -120,12 +120,37 @@
     white-space: normal;
 }
 
-/* ---- Abas (Sala / Tuning) ---- */
-.room__tabbar { margin-bottom: 8px; justify-content: flex-start; }
+/* ---- Abas (Chat / Room / Game) ---- */
+.room__tabbar {
+    flex-direction: row;
+    margin-bottom: 8px;
+    justify-content: flex-start;
+}
 .room__tab-btn { flex-grow: 1; margin-right: 4px; }
 .room__tab-btn:last-child { margin-right: 0; }
-.room__tab-content { margin-top: 4px; }
-.room__tuning-list { max-height: 360px; margin-bottom: 6px; }
+.room__tabpanel {
+    flex-grow: 1;
+    flex-direction: row;
+    margin-bottom: 8px;
+}
+.room__host-panel { flex-grow: 1; margin: 6px; }
+.room__tuning-list { max-height: 420px; margin-bottom: 6px; }
+
+/* Tooltip estilo BattleHUD (hover 400ms, flip/clamp) */
+.room__tooltip {
+    position: absolute;
+    background-color: rgba(8, 12, 28, 0.96);
+    border: 1px solid rgb(106, 169, 255);
+    border-radius: 6px;
+    padding: 6px 8px;
+    max-width: 280px;
+    white-space: normal;
+}
+.room__tooltip-txt {
+    color: rgb(238, 242, 255);
+    font-size: 12px;
+    white-space: normal;
+}
 
 /* ---- Linha de campo do tuning (gerada por reflection) ---- */
 .tuning__row {
