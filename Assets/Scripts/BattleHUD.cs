@@ -772,13 +772,18 @@ namespace PangeaSkirmish
             // Posiciona 3px ACIMA do cursor (não do botão).
             float w = _tooltipGo.layout.width > 0 ? _tooltipGo.layout.width : 260f;
             float h = _tooltipGo.layout.height > 0 ? _tooltipGo.layout.height : 60f;
+            // Limites em COORDENADAS DO PANEL (não Screen.width, que difere se há scaling de resolução).
+            var root = el.panel != null ? el.panel.visualTree : null;
+            float boundW = (root != null && root.layout.width > 0) ? root.layout.width : Screen.width;
+            float boundH = (root != null && root.layout.height > 0) ? root.layout.height : Screen.height;
             float x = mousePos.x;
             float y = mousePos.y - h - 3f;   // 3px acima do mouse
-            // Clamps pra não sair da tela.
-            if (y < 4f) y = mousePos.y + 3f;                    // se não cabe acima, vai abaixo
-            if (x + w > Screen.width) x = Screen.width - w - 4f;
-            if (x < 4f) x = 4f;
-            if (y + h > Screen.height) y = Screen.height - h - 4f;
+            // Clamps pra ficar DENTRO da área da câmera (não vaza à direita do BattleHUD).
+            if (y < 4f) y = mousePos.y + 3f;                       // não cabe acima → abaixo
+            if (x + w > boundW - 4f) x = mousePos.x - w - 3f;       // vaza à direita → à esquerda do mouse
+            if (x < 4f) x = 4f;                                     // não deixa sair à esquerda
+            if (x + w > boundW - 4f) x = boundW - w - 4f;           // garante dentro da largura
+            if (y + h > boundH - 4f) y = boundH - h - 4f;           // não sai embaixo
             _tooltipGo.style.left = x;
             _tooltipGo.style.top = y;
         }
