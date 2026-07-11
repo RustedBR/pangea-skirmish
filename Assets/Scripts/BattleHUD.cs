@@ -47,7 +47,7 @@ namespace PangeaSkirmish
  private Label _reactionTimer, _reactionText;
         private VisualElement _seqBar, _seqContent;
         private VisualElement _promptPanel, _endPanel, _endWin;
-        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText, _manaRangeLabel, _manaPowerLabel;
+        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText, _manaPowerCostLabel, _manaRangeCostLabel;
         private Button _confirmButton, _moveButton, _attackUnitButton, _attackTileButton,
                        _magicButton, _concentrateButton, _incrementButton, _aimButton, _miraMagiaButton,
                        _undoButton, _clearButton, _powerStrikeButton, _quickStepButton,
@@ -169,8 +169,8 @@ namespace PangeaSkirmish
             _manaPotencyText  = r.Q<Label>("mana-potency");
             _manaRangeValueText = r.Q<Label>("mana-range-value");
             _manaPowerValueText = r.Q<Label>("mana-power-value");
-            _manaRangeLabel = r.Q<Label>("mana-range-label");
-            _manaPowerLabel = r.Q<Label>("mana-power-label");
+            _manaPowerCostLabel = r.Q<Label>("mana-power-cost-label");
+            _manaRangeCostLabel = r.Q<Label>("mana-range-cost-label");
             _mpWaitingOverlay = r.Q<VisualElement>("mp-waiting");
             _mpWaitingText    = r.Q<Label>("mp-waiting-text");
             _reactionMenu     = r.Q<VisualElement>("reaction-menu");
@@ -393,16 +393,16 @@ namespace PangeaSkirmish
             if (_manaRangeValueText != null) _manaRangeValueText.text = $"{manaRange}";
             if (_manaPowerValueText != null) _manaPowerValueText.text = $"{manaPower}";
 
-            // Headers contextuais (Sugestão 1)
-            if (_manaRangeLabel != null) _manaRangeLabel.text = isSelf ? "Duração (Rounds)" : "Alcance (Tiles)";
-            if (_manaPowerLabel != null) _manaPowerLabel.text = isSelf ? "Buff (+Atributo)" : "Dano (Potência)";
+            // Linha 1/2: custo de mana de cada parte (tabela 2x3, só menu de conjurar magia)
+            string rangeWord = isSelf ? "Duração" : "Alcance";
+            if (_manaPowerCostLabel != null) _manaPowerCostLabel.text = $"Potência — mana: {manaPower}";
+            if (_manaRangeCostLabel != null) _manaRangeCostLabel.text = $"{rangeWord} — mana: {manaRange}";
 
-            // Preview claro com custo detalhado (Sugestão 4)
+            // Linha 3: custo total (PA + MP)
             string label = isBuff ? $"Buff: +{value}" : $"Dano: {value}";
-            string scope = isSelf ? $"Duração: {range} rounds" : $"Alcance: {range} tiles";
             int paCost = 1 + manaPower;
             if (_manaPotencyText != null)
-                _manaPotencyText.text = $"{scope}  •  {label}  •  Custo: {paCost} PA ({manaRange} MP + {manaPower} PA)";
+                _manaPotencyText.text = $"{paCost} PA ({manaRange} MP + {manaPower} PA)";
 
             // Botões +/- mostram só o símbolo (custo detalhado está no preview + tooltip).
             if (_manaRangePlusButton != null)  _manaRangePlusButton.text  = "+";
