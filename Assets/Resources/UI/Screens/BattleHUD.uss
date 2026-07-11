@@ -118,6 +118,18 @@
 .bh-btn-sm { height: 30px; font-size: 13px; flex-grow: 1; }
 .bh-mana-compact { gap: 3px; }
 
+/* MANA GRID 2x3 (descrição | stepper/resultado) */
+.bh-mana-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px; row-gap: 5px; align-items: center;
+  margin-top: 2px;
+}
+.bh-mana-row-label { font-size: 11px; color: rgb(217, 224, 242); white-space: normal; }
+.bh-stepper-inline { flex-direction: row; align-items: center; gap: 4px; }
+.bh-stepper-inline .bh-stepper-value { font-size: 14px; min-width: 20px; text-align: center; }
+.bh-mana-result { font-size: 14px; color: rgb(255, 230, 140); text-align: right; }
+
 /* MANA */
 .bh-mana-value { font-size: 18px; color: rgb(255, 230, 140); text-align: center; }
 .bh-mana-potency { font-size: 13px; color: rgb(217, 224, 242); text-align: center; }
