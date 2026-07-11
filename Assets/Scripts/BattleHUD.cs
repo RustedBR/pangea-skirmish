@@ -404,10 +404,10 @@ namespace PangeaSkirmish
             if (_manaPotencyText != null)
                 _manaPotencyText.text = $"{scope}  •  {label}  •  Custo: {paCost} PA ({manaRange} MP + {manaPower} PA)";
 
-            // Custo explícito nos botões +/- (Sugestão 2)
-            if (_manaRangePlusButton != null)  _manaRangePlusButton.text  = "+ (1 MP)";
+            // Botões +/- mostram só o símbolo (custo detalhado está no preview + tooltip).
+            if (_manaRangePlusButton != null)  _manaRangePlusButton.text  = "+";
             if (_manaRangeMinusButton != null) _manaRangeMinusButton.text = "−";
-            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.text  = "+ (1 PA)";
+            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.text  = "+";
             if (_manaPowerMinusButton != null) _manaPowerMinusButton.text = "−";
 
             if (_manaRangeMinusButton != null) _manaRangeMinusButton.SetEnabled(manaRange > 0);

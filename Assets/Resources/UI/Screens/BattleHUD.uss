@@ -105,6 +105,19 @@
 }
 .bh-inline-btn:hover { background-color: rgb(160, 115, 40); }
 
+/* MANA COMPACTA — steppers menores + botões Conjurar/Voltar lado a lado */
+.bh-stepper-compact { gap: 6px; align-items: center; }
+.bh-stepper-compact .bh-stepper-label { font-size: 12px; flex-grow: 1; min-width: 90px; }
+.bh-stepper-compact .bh-stepper-value { font-size: 14px; min-width: 22px; text-align: center; }
+.bh-step-btn {
+  width: 26px; height: 26px; font-size: 15px; flex-shrink: 0;
+  background-color: rgb(128, 92, 31); color: white; border-radius: 5px;
+}
+.bh-step-btn:hover { background-color: rgb(160, 115, 40); }
+.bh-mana-actions { flex-direction: row; gap: 6px; margin-top: 2px; }
+.bh-btn-sm { height: 30px; font-size: 13px; flex-grow: 1; }
+.bh-mana-compact { gap: 3px; }
+
 /* MANA */
 .bh-mana-value { font-size: 18px; color: rgb(255, 230, 140); text-align: center; }
 .bh-mana-potency { font-size: 13px; color: rgb(217, 224, 242); text-align: center; }
