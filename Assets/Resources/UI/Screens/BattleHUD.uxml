@@ -23,8 +23,8 @@
     </ui:VisualElement>
 
     <!-- Tooltip do log -->
-    <ui:VisualElement name="log-tooltip" class="bh-window bh-tooltip">
-      <ui:Label name="tooltip-txt" text="" class="bh-tooltip-txt" />
+    <ui:VisualElement name="log-tooltip" class="bh-window bh-tooltip" picking-mode="Ignore">
+      <ui:Label name="tooltip-txt" text="" class="bh-tooltip-txt" picking-mode="Ignore" />
     </ui:VisualElement>
 
     <!-- INFERIOR ESQ: status do personagem -->
@@ -99,14 +99,14 @@
         <ui:Label name="mana-value" text="0 MP" class="bh-mana-value" />
         <!-- Pool ALCANCE / DURAÇÃO (só mana) -->
         <ui:VisualElement class="bh-stepper-row">
-          <ui:Label text="Alcance/Duração" class="bh-stepper-label" />
+          <ui:Label name="mana-range-label" text="Alcance/Duração" class="bh-stepper-label" />
           <ui:Button name="mana-range-minus" text="−" class="bh-inline-btn" />
           <ui:Label name="mana-range-value" text="0" class="bh-stepper-value" />
           <ui:Button name="mana-range-plus"  text="+" class="bh-inline-btn" />
         </ui:VisualElement>
         <!-- Pool POTÊNCIA / ATRIBUTO (mana + 1 PA por ponto) -->
         <ui:VisualElement class="bh-stepper-row">
-          <ui:Label text="Potência/Atributo" class="bh-stepper-label" />
+          <ui:Label name="mana-power-label" text="Potência/Atributo" class="bh-stepper-label" />
           <ui:Button name="mana-power-minus" text="−" class="bh-inline-btn" />
           <ui:Label name="mana-power-value" text="1" class="bh-stepper-value" />
           <ui:Button name="mana-power-plus"  text="+" class="bh-inline-btn" />

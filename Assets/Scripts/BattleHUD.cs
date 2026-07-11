@@ -47,7 +47,7 @@ namespace PangeaSkirmish
  private Label _reactionTimer, _reactionText;
         private VisualElement _seqBar, _seqContent;
         private VisualElement _promptPanel, _endPanel, _endWin;
-        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText;
+        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText, _manaRangeLabel, _manaPowerLabel;
         private Button _confirmButton, _moveButton, _attackUnitButton, _attackTileButton,
                        _magicButton, _concentrateButton, _incrementButton, _aimButton, _miraMagiaButton,
                        _undoButton, _clearButton, _powerStrikeButton, _quickStepButton,
@@ -169,6 +169,8 @@ namespace PangeaSkirmish
             _manaPotencyText  = r.Q<Label>("mana-potency");
             _manaRangeValueText = r.Q<Label>("mana-range-value");
             _manaPowerValueText = r.Q<Label>("mana-power-value");
+            _manaRangeLabel = r.Q<Label>("mana-range-label");
+            _manaPowerLabel = r.Q<Label>("mana-power-label");
             _mpWaitingOverlay = r.Q<VisualElement>("mp-waiting");
             _mpWaitingText    = r.Q<Label>("mp-waiting-text");
             _reactionMenu     = r.Q<VisualElement>("reaction-menu");
@@ -260,6 +262,7 @@ namespace PangeaSkirmish
         private void ShowCameraTooltip()
         {
             if (_tooltipGo == null || _tooltipTxt == null) return;
+            _tooltipGo.BringToFront();
             _tooltipGo.style.display = DisplayStyle.Flex;
             _tooltipTxt.text = "Câmera automática segue as ações.\n" +
                                $"Arrastar/zoom ativa modo Manual ({Tuning.Get().camManualTimeout:0.#}s).";
@@ -385,12 +388,28 @@ namespace PangeaSkirmish
 
         public void SetManaPreview(int manaRange, int manaPower, int max, int value, int range, bool isBuff)
         {
+            bool isSelf = isBuff; // Self buff => o "alcance" é duração em rounds
             if (_manaValueText != null)     _manaValueText.text     = $"{manaRange + manaPower} / {max} MP";
             if (_manaRangeValueText != null) _manaRangeValueText.text = $"{manaRange}";
             if (_manaPowerValueText != null) _manaPowerValueText.text = $"{manaPower}";
-            // Mostra o que o jogador VAI ganhar/causar, não "potência" genérico.
+
+            // Headers contextuais (Sugestão 1)
+            if (_manaRangeLabel != null) _manaRangeLabel.text = isSelf ? "Duração (Rounds)" : "Alcance (Tiles)";
+            if (_manaPowerLabel != null) _manaPowerLabel.text = isSelf ? "Buff (+Atributo)" : "Dano (Potência)";
+
+            // Preview claro com custo detalhado (Sugestão 4)
             string label = isBuff ? $"Buff: +{value}" : $"Dano: {value}";
-            if (_manaPotencyText != null)    _manaPotencyText.text   = $"Alcance: {range}  •  {label}  •  Custo: {1 + manaPower} PA";
+            string scope = isSelf ? $"Duração: {range} rounds" : $"Alcance: {range} tiles";
+            int paCost = 1 + manaPower;
+            if (_manaPotencyText != null)
+                _manaPotencyText.text = $"{scope}  •  {label}  •  Custo: {paCost} PA ({manaRange} MP + {manaPower} PA)";
+
+            // Custo explícito nos botões +/- (Sugestão 2)
+            if (_manaRangePlusButton != null)  _manaRangePlusButton.text  = "+ (1 MP)";
+            if (_manaRangeMinusButton != null) _manaRangeMinusButton.text = "−";
+            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.text  = "+ (1 PA)";
+            if (_manaPowerMinusButton != null) _manaPowerMinusButton.text = "−";
+
             if (_manaRangeMinusButton != null) _manaRangeMinusButton.SetEnabled(manaRange > 0);
             if (_manaRangePlusButton != null)  _manaRangePlusButton.SetEnabled(manaRange + manaPower < max);
             if (_manaPowerMinusButton != null) _manaPowerMinusButton.SetEnabled(manaPower > 1);
@@ -668,6 +687,7 @@ namespace PangeaSkirmish
             if (entryIdx < 0 || entryIdx >= _logEntries.Count) return;
             string tip = _logEntries[entryIdx].tooltipText;
             if (string.IsNullOrEmpty(tip)) return;
+            _tooltipGo.BringToFront();
             _tooltipTxt.text = tip;
             _tooltipGo.style.display = DisplayStyle.Flex;
         }
@@ -695,10 +715,10 @@ namespace PangeaSkirmish
             AttachButtonTooltip(_spellTileButton, "Efeito no tile: varia por elemento (fogo, água, vento, teleporte, orbe, elevar).");
 
             // Stepper de mana (2 pools)
-            AttachButtonTooltip(_manaRangeMinusButton, "Alcance/Duração: -1 tile de alcance ou round de buff (só gasta Mana).");
-            AttachButtonTooltip(_manaRangePlusButton, "Alcance/Duração: +1 tile de alcance ou round de buff (só gasta Mana).");
-            AttachButtonTooltip(_manaPowerMinusButton, "Potência/Atributo: -1 (menos dano ou menos atributo de buff; -1 PA).");
-            AttachButtonTooltip(_manaPowerPlusButton, "Potência/Atributo: +1 (mais dano ou mais atributo de buff; +1 PA).");
+            AttachButtonTooltip(_manaRangeMinusButton, "Duração/Alcance: -1 round de buff OU -1 tile de alcance (só gasta Mana).");
+            AttachButtonTooltip(_manaRangePlusButton, "Duração/Alcance: +1 round de buff OU +1 tile de alcance (só gasta Mana).");
+            AttachButtonTooltip(_manaPowerMinusButton, "Buff/Dano: -1 (menos atributo de buff ou menos dano; -1 PA).");
+            AttachButtonTooltip(_manaPowerPlusButton, "Buff/Dano: +1 (mais atributo de buff ou mais dano; +1 PA).");
             AttachButtonTooltip(_manaCastButton, "Conjura a magia com os parâmetros de mana escolhidos.");
             AttachButtonTooltip(_manaBackButton, "Volta ao menu de alvo da magia.");
 
@@ -725,13 +745,14 @@ namespace PangeaSkirmish
         private void AttachButtonTooltip(VisualElement el, string text)
         {
             if (el == null) return;
-            el.RegisterCallback<PointerEnterEvent>(_ =>
+            // MouseEnterEvent é mais confiável que PointerEnterEvent no WebGL build.
+            el.RegisterCallback<MouseEnterEvent>(_ =>
             {
                 CancelPendingTip();
                 _tipOwner = el;
-                _pendingTip = el.schedule.Execute(() => ShowButtonTooltip(el, text)).StartingIn(3000);
+                _pendingTip = el.schedule.Execute(() => ShowButtonTooltip(el, text)).StartingIn(400);
             });
-            el.RegisterCallback<PointerLeaveEvent>(_ => CancelPendingTip());
+            el.RegisterCallback<MouseLeaveEvent>(_ => CancelPendingTip());
             el.RegisterCallback<ClickEvent>(_ => CancelPendingTip());
         }
 
@@ -744,6 +765,7 @@ namespace PangeaSkirmish
         private void ShowButtonTooltip(VisualElement el, string text)
         {
             if (_tooltipGo == null || _tooltipTxt == null || el == null) return;
+            _tooltipGo.BringToFront();   // garante que fica ACIMA dos botões (z-order)
             _tooltipTxt.text = text;
             _tooltipGo.style.display = DisplayStyle.Flex;
             // Posiciona acima do botão (ou abaixo se não couber no topo).
