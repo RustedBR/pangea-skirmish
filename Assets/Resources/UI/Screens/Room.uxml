@@ -12,15 +12,11 @@
                     <ui:Label text="Seu nome" class="pg-label--dim room__field-label" />
                     <ui:TextField name="name-input" value="Jogador" class="pg-input" />
                 </ui:VisualElement>
-                <ui:VisualElement class="room__field">
-                    <ui:Label text="Nome da sala" class="pg-label--dim room__field-label" />
-                    <ui:TextField name="roomname-input" value="Sala do Marcus" class="pg-input" />
-                </ui:VisualElement>
 
                 <ui:Button name="btn-create" text="Criar Sala" class="pg-button pg-button--primary" />
-                <ui:Label text="ou" class="pg-label--dim room__or" />
-                <ui:TextField name="joincode-input" class="pg-input" />
-                <ui:Button name="btn-join" text="Entrar na Sala" class="pg-button" />
+                <ui:Label text="ou entre numa sala ativa" class="pg-label--dim room__or" />
+                <ui:Button name="btn-browse" text="Buscar Salas" class="pg-button" />
+                <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
 
                 <ui:Toggle name="loopback-toggle" label="Modo local (sem UGS/internet)" class="room__loopback" />
                 <ui:Label name="lobby-status" text="" class="room__status" />
@@ -60,6 +56,16 @@
                     <ui:VisualElement class="room__row">
                         <ui:Button name="btn-tdm" text="TDM" class="pg-button room__mode-btn" />
                         <ui:Button name="btn-ffa" text="FFA" class="pg-button room__mode-btn" />
+                    </ui:VisualElement>
+
+                    <ui:Label text="Nome da sala" class="pg-label--dim room__ctrl-label" />
+                    <ui:TextField name="roomname-input" value="Sala" class="pg-input" />
+
+                    <ui:Label text="Jogadores (máx)" class="pg-label--dim room__ctrl-label" />
+                    <ui:VisualElement class="room__row">
+                        <ui:Button name="btn-max-minus" text="-" class="pg-button room__step-btn" />
+                        <ui:Label name="max-label" text="4" class="room__step-value" />
+                        <ui:Button name="btn-max-plus" text="+" class="pg-button room__step-btn" />
                     </ui:VisualElement>
 
                     <ui:Label text="Budget de atributos" class="pg-label--dim room__ctrl-label" />

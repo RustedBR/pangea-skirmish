@@ -95,6 +95,114 @@ namespace PangeaSkirmish
         }
 
         // -------------------------------------------------------------------------
+        // Buscar lobbies públicos ativos (Server Browser)
+        // -------------------------------------------------------------------------
+        public static async Task<List<LobbyInfo>> QueryPublicLobbiesAsync(int count = 25)
+        {
+            try
+            {
+                var response = await Unity.Services.Lobbies.LobbyService.Instance
+                    .QueryLobbiesAsync(new QueryLobbiesOptions
+                    {
+                        Count = count,
+                        Filters = new List<QueryFilter>
+                        {
+                            // Só salas com pelo menos 1 vaga (players < max).
+                            new QueryFilter(QueryFilter.FieldCode.AvailableSlots, "0", QueryFilter.OpCode.GT)
+                        }
+                    });
+
+                var result = new List<LobbyInfo>(response.Results.Count);
+                foreach (var l in response.Results)
+                {
+                    result.Add(new LobbyInfo
+                    {
+                        LobbyId   = l.Id,
+                        Name      = l.Name,
+                        Players   = l.Players != null ? l.Players.Count : 0,
+                        MaxPlayers = l.MaxPlayers,
+                        RelayCode = l.Data != null && l.Data.TryGetValue(RelayCodeKey, out var d) ? d.Value : null
+                    });
+                }
+                return result;
+            }
+            catch (LobbyServiceException ex)
+            {
+                Debug.LogWarning($"[LobbyService] Erro ao buscar lobbies: {ex.Message}");
+                return new List<LobbyInfo>();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyService] Erro inesperado ao buscar lobbies: {ex.Message}");
+                return new List<LobbyInfo>();
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Entrar em lobby por ID (clique no browser — sem digitar código)
+        // -------------------------------------------------------------------------
+        public static async Task<(string relayCode, string error)> JoinLobbyByIdAsync(string lobbyId)
+        {
+            try
+            {
+                _currentLobby = await Unity.Services.Lobbies.LobbyService.Instance
+                    .JoinLobbyByIdAsync(lobbyId);
+                _currentLobbyId = _currentLobby.Id;
+                _isHost = false;
+
+                string relayCode = null;
+                if (_currentLobby.Data != null && _currentLobby.Data.TryGetValue(RelayCodeKey, out var data))
+                    relayCode = data.Value;
+
+                if (string.IsNullOrEmpty(relayCode))
+                    return (null, "Lobby encontrado mas sem relay code.");
+
+                return (relayCode, null);
+            }
+            catch (LobbyServiceException ex)
+            {
+                Debug.LogWarning($"[LobbyService] Erro ao entrar no lobby: {ex.Message}");
+                return (null, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyService] Erro inesperado ao entrar: {ex.Message}");
+                return (null, ex.Message);
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Atualizar nome da sala (host, editável dentro da sala)
+        // -------------------------------------------------------------------------
+        public static async Task<bool> UpdateLobbyNameAsync(string newName)
+        {
+            if (string.IsNullOrEmpty(_currentLobbyId) || !_isHost) return false;
+            try
+            {
+                _currentLobby = await Unity.Services.Lobbies.LobbyService.Instance
+                    .UpdateLobbyAsync(_currentLobbyId, new UpdateLobbyOptions { Name = newName });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LobbyService] Erro ao renomear lobby: {ex.Message}");
+                return false;
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // DTO enxuto p/ a UI (browser)
+        // -------------------------------------------------------------------------
+        public class LobbyInfo
+        {
+            public string LobbyId;
+            public string Name;
+            public int    Players;
+            public int    MaxPlayers;
+            public string RelayCode; // nulo se o host ainda não colocou (raro)
+        }
+
+        // -------------------------------------------------------------------------
         // Sair do lobby
         // -------------------------------------------------------------------------
         public static async Task LeaveAsync()

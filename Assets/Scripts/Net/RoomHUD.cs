@@ -27,8 +27,9 @@ namespace PangeaSkirmish
         private VisualElement _lobbyView, _roomView;
 
         // ---- Widgets do lobby ------------------------------------------------
-        private TextField _nameInput, _roomNameInput, _joinCodeInput;
-        private Toggle _loopbackToggle;
+        private TextField _nameInput;
+        private ScrollView _roomList;
+        private Button _browseBtn;
         private Label _lobbyStatus;
 
         // ---- Widgets da sala -------------------------------------------------
@@ -39,10 +40,14 @@ namespace PangeaSkirmish
         private Label _budgetLabel, _planLabel;
         private VisualElement _hostControls, _waitingOverlay;
         private Label _waitingLabel;
+        private TextField _roomNameInput;
+        private Label _maxLabel;
+        private Button _maxMinus, _maxPlus;
 
         // ---- Estado ----------------------------------------------------------
         private int _gameMode = 0;       // 0=TDM, 1=FFA
-        private int _budgetValue = 25;
+        private int _budgetValue = 30;
+        private int _maxPlayersValue = 4;
         private float _planningValue = 15f;
         private bool _inRoom = false;
         private bool _boundRoom = false;
@@ -65,12 +70,12 @@ namespace PangeaSkirmish
 
             // --- lobby ---
             _nameInput      = r.Q<TextField>("name-input");
-            _roomNameInput  = r.Q<TextField>("roomname-input");
-            _joinCodeInput  = r.Q<TextField>("joincode-input");
+            _roomList       = r.Q<ScrollView>("room-list");
+            _browseBtn      = r.Q<Button>("btn-browse");
             _loopbackToggle = r.Q<Toggle>("loopback-toggle");
             _lobbyStatus    = r.Q<Label>("lobby-status");
             r.Q<Button>("btn-create").clicked += OnClickCreateRoom;
-            r.Q<Button>("btn-join").clicked   += OnClickJoinRoom;
+            _browseBtn.clicked                += OnClickBrowse;
             r.Q<Button>("btn-back").clicked   += () => { HideAll(); OnBackToMenu?.Invoke(); };
 
             // --- sala ---
@@ -84,6 +89,10 @@ namespace PangeaSkirmish
             _waitingLabel    = r.Q<Label>("waiting-label");
             _budgetLabel     = r.Q<Label>("budget-label");
             _planLabel       = r.Q<Label>("plan-label");
+            _roomNameInput   = r.Q<TextField>("roomname-input");
+            _maxLabel        = r.Q<Label>("max-label");
+            _maxMinus        = r.Q<Button>("btn-max-minus");
+            _maxPlus         = r.Q<Button>("btn-max-plus");
             _tdmBtn          = r.Q<Button>("btn-tdm");
             _ffaBtn          = r.Q<Button>("btn-ffa");
             _budgetMinus     = r.Q<Button>("btn-budget-minus");
@@ -103,6 +112,22 @@ namespace PangeaSkirmish
             _budgetPlus.clicked  += () => { _budgetValue = Mathf.Min(100, _budgetValue + 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); };
             _planMinus.clicked   += () => { _planningValue = Mathf.Max(5f, _planningValue - 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
             _planPlus.clicked    += () => { _planningValue = Mathf.Min(120f, _planningValue + 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
+
+            // Max players (host) — padrão 4, editável na sala.
+            _maxMinus.clicked += () => { _maxPlayersValue = Mathf.Max(2, _maxPlayersValue - 1); _maxLabel.text = _maxPlayersValue.ToString(); SyncConfig(); };
+            _maxPlus.clicked  += () => { _maxPlayersValue = Mathf.Min(8, _maxPlayersValue + 1); _maxLabel.text = _maxPlayersValue.ToString(); SyncConfig(); };
+
+            // Renomear sala (host) — confirma com Enter.
+            _roomNameInput.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter)
+                {
+                    var newName = _roomNameInput.value.Trim();
+                    if (!string.IsNullOrEmpty(newName) && RuntimeMultiplayerSession.IsHost)
+                        _ = LobbyService.UpdateLobbyNameAsync(newName);
+                    evt.StopPropagation();
+                }
+            });
 
             // Enviar chat com Enter
             _chatInput.RegisterCallback<KeyDownEvent>(evt =>
@@ -151,6 +176,8 @@ namespace PangeaSkirmish
 
             // Controles do host visíveis para todos; só o host interage (demais em read-only).
             SetHostControlsInteractable(RuntimeMultiplayerSession.IsHost);
+            if (_roomNameInput != null)
+                _roomNameInput.SetEnabled(RuntimeMultiplayerSession.IsHost);
 
             // No CLIENTE o RoomManager é replicado alguns frames após conectar — tentamos já e,
             // se ainda não existir, uma corrotina fica tentando até ele aparecer.
@@ -295,9 +322,11 @@ namespace PangeaSkirmish
             _gameMode = cfg.GameMode;
             _budgetValue = cfg.AttributeBudget;
             _planningValue = cfg.PlanningTime;
+            _maxPlayersValue = cfg.MaxPlayers;
             UpdateModeHighlight();
             if (_budgetLabel != null) _budgetLabel.text = _budgetValue.ToString();
             if (_planLabel != null) _planLabel.text = _planningValue + "s";
+            if (_maxLabel != null) _maxLabel.text = _maxPlayersValue.ToString();
             RebuildPlayerList(); // rótulos de time dependem do modo
         }
 
@@ -309,7 +338,7 @@ namespace PangeaSkirmish
                 GameMode = _gameMode,
                 AttributeBudget = _budgetValue,
                 PlanningTime = _planningValue,
-                MaxPlayers = 8
+                MaxPlayers = _maxPlayersValue
             };
             RoomManager.Instance.SetConfigServerRpc(cfg);
         }
@@ -328,6 +357,9 @@ namespace PangeaSkirmish
             _budgetPlus?.SetEnabled(on);
             _planMinus?.SetEnabled(on);
             _planPlus?.SetEnabled(on);
+            _maxMinus?.SetEnabled(on);
+            _maxPlus?.SetEnabled(on);
+            _roomNameInput?.SetEnabled(on);
             _advanceBtn?.SetEnabled(on);
         }
 
@@ -346,8 +378,8 @@ namespace PangeaSkirmish
             {
                 string playerName = _nameInput.value.Trim();
                 if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
-                string roomName = _roomNameInput.value.Trim();
-                if (string.IsNullOrEmpty(roomName)) roomName = "Sala";
+                // Nome da sala automático: "Sala de {playerName}". Editável DENTRO da sala (host).
+                string roomName = "Sala de " + playerName;
 
                 // ANTES de StartHost: o slot do host lê RuntimeMultiplayerSession.PlayerName no spawn.
                 RuntimeMultiplayerSession.PlayerName = playerName;
@@ -403,7 +435,7 @@ namespace PangeaSkirmish
 
                     try
                     {
-                        var (lobbyCode, err) = await LobbyService.CreateLobbyAsync(roomName, 4, joinCode);
+                        var (lobbyCode, err) = await LobbyService.CreateLobbyAsync(roomName, _maxPlayersValue, joinCode);
                         if (err != null) Debug.LogWarning($"[RoomHUD] Lobby criado com aviso: {err}");
                     }
                     catch (Exception ex)
@@ -414,7 +446,7 @@ namespace PangeaSkirmish
                 }
 
                 RuntimeMultiplayerSession.PlayerName = playerName;
-                Debug.Log($"[MP] Sala criada (host): jogador={playerName} loopback={bootstrap.useLoopback} codigo={joinCode}");
+                Debug.Log($"[MP] Sala criada (host): jogador={playerName} sala={roomName} loopback={bootstrap.useLoopback} codigo={joinCode}");
                 SetLobbyStatus("Sala criada!");
                 EnterRoom(joinCode);
             }
@@ -426,14 +458,87 @@ namespace PangeaSkirmish
             }
         }
 
-        private async void OnClickJoinRoom()
+        // =====================================================================
+        // Server Browser — busca salas públicas e popula a lista
+        // =====================================================================
+        private async void OnClickBrowse()
         {
-            string code = _joinCodeInput.value.Trim().ToUpper();
-            if (string.IsNullOrEmpty(code)) { SetLobbyStatus("Digite o código."); return; }
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
 
-            SetLobbyStatus("Conectando...");
+            SetLobbyStatus("Buscando salas...");
+            try
+            {
+                var bootstrap = NetBootstrap.EnsureExists();
+                // Browser online exige auth UGS (necessário para QueryLobbies).
+                if (!bootstrap.useLoopback)
+                {
+                    string playerName = _nameInput.value.Trim();
+                    if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                    RuntimeMultiplayerSession.PlayerName = playerName;
+                    try { await bootstrap.InitUgsAsync(playerName); }
+                    catch (Exception ex)
+                    {
+                        SetLobbyStatus($"Erro auth: {ex.Message}");
+                        Debug.LogError($"[RoomHUD] InitUgsAsync (browser): {ex}");
+                        return;
+                    }
+                }
+
+                var lobbies = await LobbyService.QueryPublicLobbiesAsync();
+                PopulateRoomList(lobbies);
+                SetLobbyStatus(lobbies.Count == 0 ? "Nenhuma sala ativa." : $"{lobbies.Count} sala(s) encontrada(s).");
+            }
+            catch (Exception ex)
+            {
+                SetLobbyStatus($"Erro: {ex.Message}");
+                Debug.LogError($"[RoomHUD] OnClickBrowse: {ex}");
+            }
+        }
+
+        private void PopulateRoomList(List<LobbyService.LobbyInfo> lobbies)
+        {
+            if (_roomList == null) return;
+            _roomList.Clear();
+
+            if (lobbies == null || lobbies.Count == 0)
+            {
+                var empty = new Label("Nenhuma sala ativa no momento.");
+                empty.AddToClassList("room__room-empty");
+                _roomList.Add(empty);
+                return;
+            }
+
+            foreach (var info in lobbies)
+            {
+                if (string.IsNullOrEmpty(info.RelayCode)) continue; // sala sem relay ainda (host iniciando)
+
+                var row = new VisualElement();
+                row.AddToClassList("room__room-row");
+
+                var nameLbl = new Label(info.Name);
+                nameLbl.AddToClassList("room__room-name");
+                row.Add(nameLbl);
+
+                var slotsLbl = new Label($"{info.Players}/{info.MaxPlayers}");
+                slotsLbl.AddToClassList("room__room-slots");
+                row.Add(slotsLbl);
+
+                // Clique na linha = entrar na sala (sem digitar código).
+                string lobbyId = info.LobbyId;
+                string relayCode = info.RelayCode;
+                row.RegisterCallback<ClickEvent>(_ => _ = JoinLobbyAsync(lobbyId, relayCode));
+
+                _roomList.Add(row);
+            }
+        }
+
+        private async Task JoinLobbyAsync(string lobbyId, string relayCode)
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
+
+            SetLobbyStatus("Entrando na sala...");
             try
             {
                 string playerName = _nameInput.value.Trim();
@@ -441,28 +546,28 @@ namespace PangeaSkirmish
                 RuntimeMultiplayerSession.PlayerName = playerName;
 
                 var bootstrap = NetBootstrap.EnsureExists();
-                bootstrap.useLoopback = _loopbackToggle != null && _loopbackToggle.value;
-
                 if (bootstrap.useLoopback)
                 {
-                    bootstrap.JoinLoopback();
-                }
-                else
-                {
-                    await bootstrap.InitUgsAsync(playerName);
-                    await bootstrap.JoinRelayAsync(code);
+                    SetLobbyStatus("Modo local não tem browser — use Criar Sala.");
+                    return;
                 }
 
-                Debug.Log($"[MP] Entrou na sala (cliente): jogador={playerName} loopback={bootstrap.useLoopback} codigo={code}");
+                // Confirma o relay code via lobby (caso o browser tenha trazido stale).
+                var (freshCode, err) = await LobbyService.JoinLobbyByIdAsync(lobbyId);
+                if (err != null) { SetLobbyStatus($"Erro: {err}"); return; }
+                string code = freshCode ?? relayCode;
+
+                await bootstrap.JoinRelayAsync(code);
+
+                Debug.Log($"[MP] Entrou na sala (cliente): jogador={playerName} codigo={code}");
                 SetLobbyStatus("Conectado!");
                 EnterRoom(code);
-
                 StartCoroutine(SendNameAfterConnect(playerName));
             }
             catch (Exception ex)
             {
                 SetLobbyStatus($"Erro: {ex.Message}");
-                Debug.LogError($"[RoomHUD] OnClickJoinRoom: {ex}");
+                Debug.LogError($"[RoomHUD] JoinLobbyAsync: {ex}");
             }
         }
 

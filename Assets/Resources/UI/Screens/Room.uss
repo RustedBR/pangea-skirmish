@@ -82,6 +82,26 @@
 .room__chat-line { color: var(--pg-text, rgb(238, 242, 255)); white-space: normal; padding-top: 1px; padding-bottom: 1px; }
 .room__chat-line--system { color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-font-style: italic; }
 
+/* lista de salas (browser) */
+.room__room-list { max-height: 220px; margin-top: 6px; }
+.room__room-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+    background-color: var(--pg-panel-bg-2, rgb(18, 26, 56));
+    margin-bottom: 4px;
+}
+.room__room-row:hover { background-color: var(--pg-accent, rgb(106, 169, 255)); }
+.room__room-name { color: var(--pg-text, rgb(238, 242, 255)); flex-grow: 1; font-size: 15px; }
+.room__room-slots { color: var(--pg-text-dim, rgb(159, 176, 208)); margin-left: 8px; }
+.room__room-empty { color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-text-align: middle-center; padding-top: 12px; }
+
+/* edição de nome da sala (host) */
+
 /* overlay de espera (não-host) */
 .room__overlay {
     position: absolute;
