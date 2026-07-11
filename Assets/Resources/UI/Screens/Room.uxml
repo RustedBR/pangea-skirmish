@@ -17,6 +17,7 @@
                 <ui:Label text="ou entre numa sala ativa" class="pg-label--dim room__or" />
                 <ui:Button name="btn-browse" text="Buscar Salas" class="pg-button" />
                 <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
+                <ui:Button name="btn-refresh" text="Atualizar Lista" class="pg-button room__refresh-btn" />
 
                 <ui:Toggle name="loopback-toggle" label="Modo local (sem UGS/internet)" class="room__loopback" />
                 <ui:Label name="lobby-status" text="" class="room__status" />

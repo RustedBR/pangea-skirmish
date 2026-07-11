@@ -98,7 +98,7 @@
 .room__room-row:hover { background-color: var(--pg-accent, rgb(106, 169, 255)); }
 .room__room-name { color: var(--pg-text, rgb(238, 242, 255)); flex-grow: 1; font-size: 15px; }
 .room__room-slots { color: var(--pg-text-dim, rgb(159, 176, 208)); margin-left: 8px; }
-.room__room-empty { color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-text-align: middle-center; padding-top: 12px; }
+.room__refresh-btn { margin-top: 4px; align-self: stretch; }
 
 /* edição de nome da sala (host) */
 

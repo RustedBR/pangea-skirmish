@@ -31,6 +31,7 @@ namespace PangeaSkirmish
         private TextField _nameInput;
         private ScrollView _roomList;
         private Button _browseBtn;
+        private Button _refreshBtn;
         private Toggle _loopbackToggle;
         private Label _lobbyStatus;
 
@@ -74,11 +75,13 @@ namespace PangeaSkirmish
             _nameInput      = r.Q<TextField>("name-input");
             _roomList       = r.Q<ScrollView>("room-list");
             _browseBtn      = r.Q<Button>("btn-browse");
+            _refreshBtn     = r.Q<Button>("btn-refresh");
             _loopbackToggle = r.Q<Toggle>("loopback-toggle");
             _lobbyStatus    = r.Q<Label>("lobby-status");
             r.Q<Button>("btn-create").clicked += OnClickCreateRoom;
             _browseBtn.clicked                += OnClickBrowse;
-            r.Q<Button>("btn-back").clicked   += () => { HideAll(); OnBackToMenu?.Invoke(); };
+            _refreshBtn.clicked               += () => _ = RefreshRoomListAsync();
+            r.Q<Button>("btn-back").clicked   += () => { StopAutoRefresh(); HideAll(); OnBackToMenu?.Invoke(); };
 
             // --- sala ---
             _joinCodeDisplay = r.Q<Label>("joincode-display");
@@ -468,33 +471,68 @@ namespace PangeaSkirmish
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
             { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
 
-            SetLobbyStatus("Buscando salas...");
+            SetLobbyStatus("Conectando ao servidor de salas...");
             try
             {
-                var bootstrap = NetBootstrap.EnsureExists();
-                // Browser online exige auth UGS (necessário para QueryLobbies).
-                if (!bootstrap.useLoopback)
+                // O browser SEMPRE usa UGS (mesmo que o toggle "modo local" esteja marcado
+                // para criar sala loopback). Não dá pra listar salas sem auth.
+                string playerName = _nameInput.value.Trim();
+                if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                RuntimeMultiplayerSession.PlayerName = playerName;
+
+                try { await NetBootstrap.EnsureExists().InitUgsAsync(playerName); }
+                catch (Exception ex)
                 {
-                    string playerName = _nameInput.value.Trim();
-                    if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
-                    RuntimeMultiplayerSession.PlayerName = playerName;
-                    try { await bootstrap.InitUgsAsync(playerName); }
-                    catch (Exception ex)
-                    {
-                        SetLobbyStatus($"Erro auth: {ex.Message}");
-                        Debug.LogError($"[RoomHUD] InitUgsAsync (browser): {ex}");
-                        return;
-                    }
+                    SetLobbyStatus($"Erro ao conectar (UGS): {ex.Message}. Verifique se o UGS está configurado no projeto.");
+                    Debug.LogError($"[RoomHUD] InitUgsAsync (browser): {ex}");
+                    return;
                 }
 
-                var lobbies = await LobbyService.QueryPublicLobbiesAsync();
-                PopulateRoomList(lobbies);
-                SetLobbyStatus(lobbies.Count == 0 ? "Nenhuma sala ativa." : $"{lobbies.Count} sala(s) encontrada(s).");
+                // Busca imediata + auto-refresh enquanto na tela de lobby.
+                await RefreshRoomListAsync();
+                StartAutoRefresh();
             }
             catch (Exception ex)
             {
                 SetLobbyStatus($"Erro: {ex.Message}");
                 Debug.LogError($"[RoomHUD] OnClickBrowse: {ex}");
+            }
+        }
+
+        private async Task RefreshRoomListAsync()
+        {
+            try
+            {
+                var lobbies = await LobbyService.QueryPublicLobbiesAsync();
+                PopulateRoomList(lobbies);
+                SetLobbyStatus(lobbies.Count == 0
+                    ? "Nenhuma sala ativa no momento. Crie uma sala ou aguarde."
+                    : $"{lobbies.Count} sala(s) encontrada(s).");
+            }
+            catch (Exception ex)
+            {
+                SetLobbyStatus($"Erro ao atualizar: {ex.Message}");
+                Debug.LogError($"[RoomHUD] RefreshRoomListAsync: {ex}");
+            }
+        }
+
+        private float _autoRefreshTimer;
+        private const float AutoRefreshInterval = 5f;
+        private bool _autoRefreshing;
+
+        private void StartAutoRefresh() => _autoRefreshing = true;
+        private void StopAutoRefresh() => _autoRefreshing = false;
+
+        private void Update()
+        {
+            if (!_autoRefreshing || _roomList == null) return;
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            { _autoRefreshing = false; return; }
+            _autoRefreshTimer += Time.deltaTime;
+            if (_autoRefreshTimer >= AutoRefreshInterval)
+            {
+                _autoRefreshTimer = 0f;
+                _ = RefreshRoomListAsync();
             }
         }
 
@@ -513,8 +551,8 @@ namespace PangeaSkirmish
 
             foreach (var info in lobbies)
             {
-                if (string.IsNullOrEmpty(info.RelayCode)) continue; // sala sem relay ainda (host iniciando)
-
+                // Mostra TODAS as salas (mesmo sem relayCode ainda — o JoinLobbyByIdAsync
+                // busca o code fresco ao clicar). Isso evita salas "somerem" por race condition.
                 var row = new VisualElement();
                 row.AddToClassList("room__room-row");
 
@@ -593,6 +631,7 @@ namespace PangeaSkirmish
         private void OnClickLeaveRoom()
         {
             _inRoom = false;
+            StopAutoRefresh();
             if (_boundRoom && RoomManager.Instance != null)
             {
                 RoomManager.Instance.Slots.OnListChanged -= OnSlotsChanged;

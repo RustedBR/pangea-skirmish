@@ -97,19 +97,17 @@ namespace PangeaSkirmish
         // -------------------------------------------------------------------------
         // Buscar lobbies públicos ativos (Server Browser)
         // -------------------------------------------------------------------------
-        public static async Task<List<LobbyInfo>> QueryPublicLobbiesAsync(int count = 25)
+        public static async Task<List<LobbyInfo>> QueryPublicLobbiesAsync(int count = 50)
         {
             try
             {
+                // Sem filtros restritivos: um server browser de verdade mostra TODAS as
+                // salas públicas (inclusive cheias — o jogador vê e decide). O host já cria
+                // lobby IsPrivate=false, então aparece aqui.
                 var response = await Unity.Services.Lobbies.LobbyService.Instance
                     .QueryLobbiesAsync(new QueryLobbiesOptions
                     {
-                        Count = count,
-                        Filters = new List<QueryFilter>
-                        {
-                            // Só salas com pelo menos 1 vaga (players < max).
-                            new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
-                        }
+                        Count = count
                     });
 
                 var result = new List<LobbyInfo>(response.Results.Count);
