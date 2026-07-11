@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
@@ -30,6 +31,7 @@ namespace PangeaSkirmish
         private TextField _nameInput;
         private ScrollView _roomList;
         private Button _browseBtn;
+        private Toggle _loopbackToggle;
         private Label _lobbyStatus;
 
         // ---- Widgets da sala -------------------------------------------------
@@ -527,10 +529,15 @@ namespace PangeaSkirmish
                 // Clique na linha = entrar na sala (sem digitar código).
                 string lobbyId = info.LobbyId;
                 string relayCode = info.RelayCode;
-                row.RegisterCallback<ClickEvent>(_ => _ = JoinLobbyAsync(lobbyId, relayCode));
+                row.RegisterCallback<ClickEvent>(_ => OnRoomRowClicked(lobbyId, relayCode));
 
                 _roomList.Add(row);
             }
+        }
+
+        private void OnRoomRowClicked(string lobbyId, string relayCode)
+        {
+            _ = JoinLobbyAsync(lobbyId, relayCode);
         }
 
         private async Task JoinLobbyAsync(string lobbyId, string relayCode)

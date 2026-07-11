@@ -108,7 +108,7 @@ namespace PangeaSkirmish
                         Filters = new List<QueryFilter>
                         {
                             // Só salas com pelo menos 1 vaga (players < max).
-                            new QueryFilter(QueryFilter.FieldCode.AvailableSlots, "0", QueryFilter.OpCode.GT)
+                            new QueryFilter(QueryFilter.FieldOptions.AvailableSlots, "0", QueryFilter.OpOptions.GT)
                         }
                     });
 
