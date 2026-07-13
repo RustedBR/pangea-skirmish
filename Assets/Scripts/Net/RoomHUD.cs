@@ -90,9 +90,6 @@ namespace PangeaSkirmish
         }
         private void ApplyBdragonIcons(VisualElement r)
         {
-            // Aba Chat (listas)
-            SetBdragonIcon(r, "player-scroll-icon", "UI_buttons_simple_scroll_blue");
-            SetBdragonIcon(r, "chat-scroll-icon", "UI_buttons_simple_scroll_dark");
             // Aba Room (steppers de -/+)
             SetBdragonIcon(r, "room-max-icon-minus", "UI_buttons_left_arrow_round_blue");
             SetBdragonIcon(r, "room-max-icon-plus", "UI_buttons_right_arrow_round_blue");
@@ -101,7 +98,6 @@ namespace PangeaSkirmish
             SetBdragonIcon(r, "room-plan-icon-minus", "UI_buttons_left_arrow_round_blue");
             SetBdragonIcon(r, "room-plan-icon-plus", "UI_buttons_right_arrow_round_blue");
             // Aba Game (tuning list)
-            SetBdragonIcon(r, "tuning-scroll-icon", "UI_scroll_gem_gray");
         }
 
         protected override void Bind()
