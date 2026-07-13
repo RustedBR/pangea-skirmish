@@ -48,10 +48,12 @@
             <ui:VisualElement name="tab-chat" class="room__tabpanel">
                 <ui:VisualElement class="pg-panel room__col room__col--players">
                     <ui:Label text="Jogadores" class="room__col-title" />
+                    <ui:Image name="player-scroll-icon" class="room__icon room__icon--scroll" />
                     <ui:ScrollView name="player-list" class="pg-list room__scroll" />
                 </ui:VisualElement>
                 <ui:VisualElement class="pg-panel room__col room__col--chat">
                     <ui:Label text="Chat" class="room__col-title" />
+                    <ui:Image name="chat-scroll-icon" class="room__icon room__icon--scroll" />
                     <ui:ScrollView name="chat-log" class="pg-list room__scroll" />
                     <ui:VisualElement class="room__chat-input-row">
                         <ui:TextField name="chat-input" class="pg-input room__chat-input" />
@@ -71,25 +73,46 @@
                     <ui:Label text="Nome da sala" class="pg-label--dim room__ctrl-label" />
                     <ui:TextField name="roomname-input" value="Sala" class="pg-input" />
 
-                    <ui:Label text="Jogadores (máx)" class="pg-label--dim room__ctrl-label" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-max-minus" text="-" class="pg-button room__step-btn" />
-                        <ui:Label name="max-label" text="4" class="room__step-value" />
-                        <ui:Button name="btn-max-plus" text="+" class="pg-button room__step-btn" />
+                    <ui:VisualElement class="opt-row">
+                        <ui:VisualElement class="opt-text">
+                            <ui:Label text="Jogadores (máx)" class="opt-label" />
+                            <ui:Label text="Quantos jogadores cabem na sala" class="opt-desc" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stepper">
+                            <ui:Image name="room-max-icon-minus" class="room__icon room__icon--arrow" />
+                            <ui:Button name="btn-max-minus" text="-" class="pg-button step-btn" />
+                            <ui:Label name="max-label" text="4" class="step-value" />
+                            <ui:Button name="btn-max-plus" text="+" class="pg-button step-btn" />
+                            <ui:Image name="room-max-icon-plus" class="room__icon room__icon--arrow" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
 
-                    <ui:Label text="Budget de atributos" class="pg-label--dim room__ctrl-label" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-budget-minus" text="-" class="pg-button room__step-btn" />
-                        <ui:Label name="budget-label" text="30" class="room__step-value" />
-                        <ui:Button name="btn-budget-plus" text="+" class="pg-button room__step-btn" />
+                    <ui:VisualElement class="opt-row">
+                        <ui:VisualElement class="opt-text">
+                            <ui:Label text="Budget de atributos" class="opt-label" />
+                            <ui:Label text="Pontos para distribuir nos personagens" class="opt-desc" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stepper">
+                            <ui:Image name="room-budget-icon-minus" class="room__icon room__icon--arrow" />
+                            <ui:Button name="btn-budget-minus" text="-" class="pg-button step-btn" />
+                            <ui:Label name="budget-label" text="30" class="step-value" />
+                            <ui:Button name="btn-budget-plus" text="+" class="pg-button step-btn" />
+                            <ui:Image name="room-budget-icon-plus" class="room__icon room__icon--arrow" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
 
-                    <ui:Label text="Tempo de planejamento" class="pg-label--dim room__ctrl-label" />
-                    <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-plan-minus" text="-" class="pg-button room__step-btn" />
-                        <ui:Label name="plan-label" text="15s" class="room__step-value" />
-                        <ui:Button name="btn-plan-plus" text="+" class="pg-button room__step-btn" />
+                    <ui:VisualElement class="opt-row">
+                        <ui:VisualElement class="opt-text">
+                            <ui:Label text="Tempo de planejamento" class="opt-label" />
+                            <ui:Label text="Segundos por turno de planejamento" class="opt-desc" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="stepper">
+                            <ui:Image name="room-plan-icon-minus" class="room__icon room__icon--arrow" />
+                            <ui:Button name="btn-plan-minus" text="-" class="pg-button step-btn" />
+                            <ui:Label name="plan-label" text="15s" class="step-value" />
+                            <ui:Button name="btn-plan-plus" text="+" class="pg-button step-btn" />
+                            <ui:Image name="room-plan-icon-plus" class="room__icon room__icon--arrow" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
 
                     <ui:Button name="btn-advance" text="Iniciar (Criar Personagens)" class="pg-button pg-button--primary room__advance" />
@@ -99,6 +122,7 @@
             <ui:VisualElement name="tab-game" class="room__tabpanel" style="display: none;">
                 <ui:VisualElement class="pg-panel room__host-panel">
                     <ui:Label text="GameTuning (host edita)" class="room__col-title" />
+                    <ui:Image name="tuning-scroll-icon" class="room__icon room__icon--scroll" />
                     <ui:ScrollView name="tuning-list" class="pg-list room__scroll room__tuning-list" />
                     <ui:Button name="btn-reset-tuning" text="Resetar p/ Default" class="pg-button" />
                 </ui:VisualElement>

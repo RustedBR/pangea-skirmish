@@ -74,6 +74,36 @@ namespace PangeaSkirmish
         /// PanelSettings + tema, então canvas/font não são mais necessários.</summary>
         public void Init(Transform canvasTransform, Font font) { }
 
+        // ---- Ícones BDragon (Opção C): valida uso de sprites do atlas na UI ----
+        private static Sprite[] _bdragonSprites;
+        private static Sprite BdragonIcon(string spriteName)
+        {
+            _bdragonSprites ??= Resources.LoadAll<Sprite>("Sprites/BDragon1727/UI/UI_buttons_00");
+            return System.Array.Find(_bdragonSprites, s => s.name == spriteName);
+        }
+        private static void SetBdragonIcon(VisualElement root, string elementName, string spriteName)
+        {
+            var img = root.Q<Image>(elementName);
+            var sprite = BdragonIcon(spriteName);
+            if (img != null && sprite != null)
+                img.style.backgroundImage = new StyleBackground(sprite);
+        }
+        private void ApplyBdragonIcons(VisualElement r)
+        {
+            // Aba Chat (listas)
+            SetBdragonIcon(r, "player-scroll-icon", "UI_buttons_simple_scroll_blue");
+            SetBdragonIcon(r, "chat-scroll-icon", "UI_buttons_simple_scroll_dark");
+            // Aba Room (steppers de -/+)
+            SetBdragonIcon(r, "room-max-icon-minus", "UI_buttons_left_arrow_round_blue");
+            SetBdragonIcon(r, "room-max-icon-plus", "UI_buttons_right_arrow_round_blue");
+            SetBdragonIcon(r, "room-budget-icon-minus", "UI_buttons_left_arrow_round_blue");
+            SetBdragonIcon(r, "room-budget-icon-plus", "UI_buttons_right_arrow_round_blue");
+            SetBdragonIcon(r, "room-plan-icon-minus", "UI_buttons_left_arrow_round_blue");
+            SetBdragonIcon(r, "room-plan-icon-plus", "UI_buttons_right_arrow_round_blue");
+            // Aba Game (tuning list)
+            SetBdragonIcon(r, "tuning-scroll-icon", "UI_scroll_gem_gray");
+        }
+
         protected override void Bind()
         {
             var r = Root;
@@ -125,6 +155,9 @@ namespace PangeaSkirmish
             _tabGame     = r.Q<VisualElement>("tab-game");
             _tuningList  = r.Q<VisualElement>("tuning-list");
             _resetTuningBtn = r.Q<Button>("btn-reset-tuning");
+
+            // Ícones BDragon (Opção C)
+            ApplyBdragonIcons(r);
             _tabChatBtn.clicked  += () => { ShowTab("chat"); };
             _tabRoomBtn.clicked  += () => { ShowTab("room"); };
             _tabGameBtn.clicked  += () => { ShowTab("game"); if (!_tuningBuilt) BuildTuningTab(); };

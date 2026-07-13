@@ -368,13 +368,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: UI_buttons_scroll_blue
+      name: UI_buttons_simple_scroll_blue
       rect:
         serializedVersion: 2
-        x: 3
-        y: 134
-        width: 10
-        height: 20
+        x: 4
+        y: 135
+        width: 8
+        height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -393,10 +393,10 @@ TextureImporter:
       name: UI_buttons_left_arrow_round_blue
       rect:
         serializedVersion: 2
-        x: 18
-        y: 145
-        width: 11
-        height: 14
+        x: 19
+        y: 146
+        width: 9
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -415,10 +415,10 @@ TextureImporter:
       name: UI_buttons_right_arrow_round_blue
       rect:
         serializedVersion: 2
-        x: 36
-        y: 145
-        width: 11
-        height: 14
+        x: 37
+        y: 146
+        width: 9
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -438,9 +438,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 47
-        y: 144
-        width: 18
-        height: 16
+        y: 145
+        width: 17
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -456,13 +456,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_scroll_dark
+      name: UI_buttons_simple_scroll_dark
       rect:
         serializedVersion: 2
-        x: 67
-        y: 134
-        width: 10
-        height: 20
+        x: 68
+        y: 135
+        width: 8
+        height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -481,10 +481,10 @@ TextureImporter:
       name: UI_buttons_left_round_arrow_dark
       rect:
         serializedVersion: 2
-        x: 82
-        y: 145
-        width: 11
-        height: 14
+        x: 83
+        y: 146
+        width: 9
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -503,10 +503,10 @@ TextureImporter:
       name: UI_buttons_right_round_dark
       rect:
         serializedVersion: 2
-        x: 100
-        y: 145
-        width: 11
-        height: 14
+        x: 101
+        y: 146
+        width: 9
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -525,10 +525,10 @@ TextureImporter:
       name: UI_buttons_right_arrow_pointy_dark
       rect:
         serializedVersion: 2
-        x: 111
-        y: 144
-        width: 18
-        height: 16
+        x: 112
+        y: 145
+        width: 16
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -544,13 +544,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_scroll_Brown
+      name: UI_buttons_simple_scroll_brown
       rect:
         serializedVersion: 2
-        x: 131
-        y: 134
-        width: 10
-        height: 20
+        x: 132
+        y: 135
+        width: 8
+        height: 18
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -569,10 +569,10 @@ TextureImporter:
       name: UI_buttons_left_round_arrow_brown
       rect:
         serializedVersion: 2
-        x: 146
-        y: 145
-        width: 11
-        height: 14
+        x: 147
+        y: 146
+        width: 9
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -591,10 +591,10 @@ TextureImporter:
       name: UI_buttons_right_round_brown
       rect:
         serializedVersion: 2
-        x: 164
-        y: 145
-        width: 11
-        height: 14
+        x: 165
+        y: 146
+        width: 9
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -613,10 +613,10 @@ TextureImporter:
       name: UI_buttons_right_arrow_pointy_brown
       rect:
         serializedVersion: 2
-        x: 175
-        y: 144
-        width: 18
-        height: 16
+        x: 176
+        y: 145
+        width: 16
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -632,7 +632,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_12
+      name: UI_buttons_round_blue_1
       rect:
         serializedVersion: 2
         x: 196
@@ -654,13 +654,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_13
+      name: UI_buttons_round_blue_2
       rect:
         serializedVersion: 2
-        x: 217
-        y: 143
-        width: 20
-        height: 15
+        x: 218
+        y: 144
+        width: 18
+        height: 13
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -676,13 +676,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_14
+      name: UI_scroll_gem_gray
       rect:
         serializedVersion: 2
-        x: 240
-        y: 129
-        width: 16
-        height: 28
+        x: 241
+        y: 130
+        width: 14
+        height: 26
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -698,13 +698,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_15
+      name: UI_scroll_gem_orange
       rect:
         serializedVersion: 2
-        x: 256
-        y: 129
-        width: 16
-        height: 28
+        x: 257
+        y: 131
+        width: 14
+        height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -720,13 +720,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_16
+      name: UI_scroll_gem_green
       rect:
         serializedVersion: 2
-        x: 272
-        y: 129
-        width: 16
-        height: 28
+        x: 273
+        y: 131
+        width: 14
+        height: 25
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -742,13 +742,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_17
+      name: UI_scroll_gem_brown
       rect:
         serializedVersion: 2
-        x: 288
-        y: 129
-        width: 16
-        height: 28
+        x: 289
+        y: 130
+        width: 14
+        height: 26
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -764,13 +764,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_18
+      name: UI_buttons_gem_dark
       rect:
         serializedVersion: 2
-        x: 304
-        y: 129
-        width: 16
-        height: 28
+        x: 305
+        y: 130
+        width: 14
+        height: 26
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -786,7 +786,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_19
+      name: UI_button_fill_round_blue_dark_1
       rect:
         serializedVersion: 2
         x: 0
@@ -808,7 +808,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_round_button_blue
+      name: UI_buttons_round_button_blue_1
       rect:
         serializedVersion: 2
         x: 16
@@ -830,7 +830,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_round_button_dark
+      name: UI_buttons_round_button_dark_1
       rect:
         serializedVersion: 2
         x: 80
@@ -852,7 +852,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_round_button_brown
+      name: UI_buttons_round_button_brown_1
       rect:
         serializedVersion: 2
         x: 143
@@ -874,13 +874,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_23
+      name: UI_buttons_round_yellow_2
       rect:
         serializedVersion: 2
-        x: 217
-        y: 127
-        width: 20
-        height: 15
+        x: 218
+        y: 128
+        width: 18
+        height: 13
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -896,13 +896,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_24
+      name: UI_buttons_round_red_1
       rect:
         serializedVersion: 2
-        x: 217
-        y: 111
-        width: 20
-        height: 15
+        x: 218
+        y: 112
+        width: 18
+        height: 13
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -918,13 +918,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_25
+      name: UI_buttons_gem_arrow_up_gray
       rect:
         serializedVersion: 2
-        x: 240
-        y: 113
-        width: 16
-        height: 14
+        x: 241
+        y: 114
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -940,13 +940,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_26
+      name: UI_buttons_gem_arrow_up_orange
       rect:
         serializedVersion: 2
-        x: 256
-        y: 113
-        width: 16
-        height: 14
+        x: 257
+        y: 114
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -962,13 +962,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_27
+      name: UI_buttons_gem_arrow_up_green
       rect:
         serializedVersion: 2
-        x: 272
-        y: 113
-        width: 16
-        height: 14
+        x: 273
+        y: 114
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -984,13 +984,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_28
+      name: UI_buttons_gem_arrow_up_brown
       rect:
         serializedVersion: 2
-        x: 288
-        y: 113
-        width: 16
-        height: 14
+        x: 289
+        y: 114
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1006,13 +1006,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_29
+      name: UI_buttons_gem_arrow_up_blue
       rect:
         serializedVersion: 2
-        x: 304
-        y: 113
-        width: 16
-        height: 14
+        x: 305
+        y: 114
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1028,13 +1028,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_30
+      name: UI_buttons_round_button_blue_4
       rect:
         serializedVersion: 2
-        x: 3
-        y: 99
-        width: 40
-        height: 10
+        x: 4
+        y: 100
+        width: 38
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1050,13 +1050,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_31
+      name: UI_buttons_dot_blue_1
       rect:
         serializedVersion: 2
-        x: 50
-        y: 98
-        width: 12
-        height: 12
+        x: 51
+        y: 99
+        width: 10
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1072,13 +1072,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_32
+      name: UI_buttons_round_button_dark_4
       rect:
         serializedVersion: 2
-        x: 67
-        y: 99
-        width: 40
-        height: 10
+        x: 68
+        y: 100
+        width: 38
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1094,13 +1094,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_33
+      name: UI_buttons_dot_gray_1
       rect:
         serializedVersion: 2
-        x: 114
-        y: 98
-        width: 12
-        height: 12
+        x: 115
+        y: 99
+        width: 10
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1116,13 +1116,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_34
+      name: UI_buttons_round_button_brown_4
       rect:
         serializedVersion: 2
-        x: 131
-        y: 99
-        width: 40
-        height: 10
+        x: 132
+        y: 100
+        width: 38
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1138,13 +1138,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_35
+      name: UI_buttons_dot_brown_1
       rect:
         serializedVersion: 2
-        x: 178
-        y: 98
-        width: 12
-        height: 12
+        x: 179
+        y: 99
+        width: 10
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1160,13 +1160,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_36
+      name: UI_buttons_round_green_1
       rect:
         serializedVersion: 2
-        x: 217
-        y: 95
-        width: 20
-        height: 15
+        x: 218
+        y: 96
+        width: 18
+        height: 13
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1182,13 +1182,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_37
+      name: UI_buttons_gem_arrow_down_gray
       rect:
         serializedVersion: 2
-        x: 240
-        y: 97
-        width: 16
-        height: 14
+        x: 241
+        y: 98
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1204,13 +1204,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_38
+      name: UI_buttons_gem_arrow_down_orange
       rect:
         serializedVersion: 2
-        x: 256
-        y: 97
-        width: 16
-        height: 14
+        x: 257
+        y: 98
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1226,13 +1226,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_39
+      name: UI_buttons_gem_arrow_down_green
       rect:
         serializedVersion: 2
-        x: 272
-        y: 97
-        width: 16
-        height: 14
+        x: 273
+        y: 98
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1248,13 +1248,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_40
+      name: UI_buttons_gem_arrow_down_brown
       rect:
         serializedVersion: 2
-        x: 288
-        y: 97
-        width: 16
-        height: 14
+        x: 289
+        y: 98
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1270,13 +1270,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_41
+      name: UI_buttons_gem_arrow_down_blue
       rect:
         serializedVersion: 2
-        x: 304
-        y: 97
-        width: 16
-        height: 14
+        x: 305
+        y: 98
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1292,13 +1292,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_42
+      name: UI_buttons_round_button_blue_5
       rect:
         serializedVersion: 2
-        x: 3
-        y: 83
-        width: 40
-        height: 10
+        x: 4
+        y: 84
+        width: 38
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1314,13 +1314,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_43
+      name: UI_buttons_round_button_dark_5
       rect:
         serializedVersion: 2
-        x: 67
-        y: 83
-        width: 40
-        height: 10
+        x: 68
+        y: 84
+        width: 38
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1336,13 +1336,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_44
+      name: UI_buttons_round_button_brown_5
       rect:
         serializedVersion: 2
-        x: 131
-        y: 83
-        width: 40
-        height: 10
+        x: 132
+        y: 84
+        width: 38
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1358,7 +1358,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_45
+      name: UI_cross_colored_gray
       rect:
         serializedVersion: 2
         x: 192
@@ -1380,13 +1380,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_46
+      name: UI_button_fill_round_blue_dark_2
       rect:
         serializedVersion: 2
-        x: 0
-        y: 52
-        width: 49
-        height: 24
+        x: 1
+        y: 53
+        width: 47
+        height: 22
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1402,13 +1402,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_47
+      name: UI_button_fill_round_dark_blue_2
       rect:
         serializedVersion: 2
-        x: 63
-        y: 52
-        width: 50
-        height: 24
+        x: 64
+        y: 53
+        width: 48
+        height: 22
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1424,13 +1424,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_48
+      name: UI_button_fill_round_orange_dark_2
       rect:
         serializedVersion: 2
-        x: 127
-        y: 52
-        width: 50
-        height: 24
+        x: 128
+        y: 53
+        width: 48
+        height: 22
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1446,7 +1446,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_49
+      name: UI_cross_colored_lightgreen
       rect:
         serializedVersion: 2
         x: 192
@@ -1468,7 +1468,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_50
+      name: UI_buttons_straight_line_orange_1
       rect:
         serializedVersion: 2
         x: 256
@@ -1490,7 +1490,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_51
+      name: UI_buttons_straight_line_green_1
       rect:
         serializedVersion: 2
         x: 272
@@ -1512,7 +1512,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_52
+      name: UI_buttons_straight_line_blu_1
       rect:
         serializedVersion: 2
         x: 288
@@ -1534,13 +1534,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_53
+      name: UI_buttons_bar_striped_yellow
       rect:
         serializedVersion: 2
-        x: 303
-        y: 63
-        width: 17
-        height: 10
+        x: 304
+        y: 64
+        width: 16
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1556,13 +1556,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_54
+      name: UI_buttons_star_empty_gray
       rect:
         serializedVersion: 2
-        x: 0
-        y: 33
-        width: 16
-        height: 14
+        x: 1
+        y: 34
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1578,13 +1578,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_55
+      name: UI_buttons_star_low_gray
       rect:
         serializedVersion: 2
-        x: 16
-        y: 33
-        width: 16
-        height: 14
+        x: 17
+        y: 34
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1600,13 +1600,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_56
+      name: UI_buttons_star_half_yellow
       rect:
         serializedVersion: 2
-        x: 32
-        y: 33
-        width: 16
-        height: 14
+        x: 33
+        y: 34
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1622,13 +1622,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_57
+      name: UI_buttons_star_full_yellow_1
       rect:
         serializedVersion: 2
-        x: 48
-        y: 33
-        width: 16
-        height: 14
+        x: 49
+        y: 34
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1644,13 +1644,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_58
+      name: UI_buttons_star_full_yellow_2
       rect:
         serializedVersion: 2
-        x: 64
-        y: 33
-        width: 16
-        height: 14
+        x: 65
+        y: 34
+        width: 14
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1666,13 +1666,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_59
+      name: UI_buttons_heart_empty_gray
       rect:
         serializedVersion: 2
-        x: 81
-        y: 33
-        width: 14
-        height: 14
+        x: 82
+        y: 34
+        width: 12
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1688,13 +1688,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_60
+      name: UI_buttons_heart_half_red
       rect:
         serializedVersion: 2
-        x: 97
-        y: 33
-        width: 14
-        height: 14
+        x: 98
+        y: 34
+        width: 12
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1710,13 +1710,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_61
+      name: UI_buttons_heart_fill_red
       rect:
         serializedVersion: 2
-        x: 113
-        y: 33
-        width: 14
-        height: 14
+        x: 114
+        y: 34
+        width: 12
+        height: 12
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1732,7 +1732,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_62
+      name: UI_buttons_scroll_lightblue_1
       rect:
         serializedVersion: 2
         x: 176
@@ -1754,13 +1754,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_63
+      name: UI_buttons_scroll_lightblue_3
       rect:
         serializedVersion: 2
-        x: 208
-        y: 37
-        width: 16
-        height: 22
+        x: 209
+        y: 38
+        width: 14
+        height: 20
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1776,13 +1776,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_64
+      name: UI_buttons_scroll_lightblue_4
       rect:
         serializedVersion: 2
-        x: 224
-        y: 37
-        width: 16
-        height: 22
+        x: 225
+        y: 38
+        width: 14
+        height: 20
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1798,13 +1798,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_65
+      name: UI_buttons_line_yellow_2
       rect:
         serializedVersion: 2
-        x: 239
-        y: 47
-        width: 9
-        height: 12
+        x: 240
+        y: 48
+        width: 7
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1820,13 +1820,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_66
+      name: UI_buttons_line_green_2
       rect:
         serializedVersion: 2
-        x: 255
-        y: 47
-        width: 9
-        height: 12
+        x: 256
+        y: 48
+        width: 7
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1842,13 +1842,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_67
+      name: UI_buttons_line_blue_2
       rect:
         serializedVersion: 2
-        x: 271
-        y: 47
-        width: 9
-        height: 12
+        x: 272
+        y: 48
+        width: 7
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1864,13 +1864,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_68
+      name: UI_buttons_line_yellow_3
       rect:
         serializedVersion: 2
-        x: 287
-        y: 47
-        width: 9
-        height: 12
+        x: 288
+        y: 48
+        width: 8
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1886,13 +1886,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_69
+      name: UI_buttons_bar_striped_orange
       rect:
         serializedVersion: 2
-        x: 303
-        y: 47
-        width: 17
-        height: 12
+        x: 304
+        y: 48
+        width: 16
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1908,13 +1908,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_70
+      name: UI_buttons_straight_line_gray_2
       rect:
         serializedVersion: 2
-        x: 239
-        y: 31
-        width: 6
-        height: 12
+        x: 240
+        y: 32
+        width: 4
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1930,13 +1930,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_71
+      name: UI_buttons_straight_line_brown_1
       rect:
         serializedVersion: 2
-        x: 255
-        y: 31
-        width: 6
-        height: 12
+        x: 256
+        y: 32
+        width: 4
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1952,13 +1952,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_72
+      name: UI_buttons_straight_line_gray_3
       rect:
         serializedVersion: 2
-        x: 271
-        y: 31
-        width: 6
-        height: 12
+        x: 272
+        y: 32
+        width: 4
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1974,13 +1974,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_73
+      name: UI_buttons_straight_line_brown_2
       rect:
         serializedVersion: 2
-        x: 287
-        y: 31
-        width: 6
-        height: 12
+        x: 288
+        y: 32
+        width: 4
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -1996,13 +1996,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_74
+      name: UI_buttons_bar_striped_gray
       rect:
         serializedVersion: 2
-        x: 303
-        y: 31
-        width: 17
-        height: 12
+        x: 304
+        y: 32
+        width: 16
+        height: 10
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2018,13 +2018,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_75
+      name: UI_buttons_star_empty_gray_big
       rect:
         serializedVersion: 2
-        x: 6
-        y: 7
-        width: 20
-        height: 19
+        x: 7
+        y: 8
+        width: 18
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2040,13 +2040,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_76
+      name: UI_buttons_star_low_gray_big
       rect:
         serializedVersion: 2
         x: 38
-        y: 7
-        width: 20
-        height: 19
+        y: 8
+        width: 19
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2062,13 +2062,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_77
+      name: UI_buttons_star_half_yellow_big
       rect:
         serializedVersion: 2
-        x: 70
-        y: 7
-        width: 20
-        height: 19
+        x: 71
+        y: 8
+        width: 18
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2084,13 +2084,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_78
+      name: UI_buttons_star_full_yellow_big_1
       rect:
         serializedVersion: 2
-        x: 102
-        y: 7
-        width: 20
-        height: 19
+        x: 103
+        y: 8
+        width: 18
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2106,13 +2106,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_79
+      name: UI_buttons_star_full_yellow_big_2
       rect:
         serializedVersion: 2
-        x: 134
-        y: 7
-        width: 20
-        height: 19
+        x: 135
+        y: 8
+        width: 18
+        height: 17
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2128,7 +2128,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_80
+      name: UI_buttons_scroll_brown_1
       rect:
         serializedVersion: 2
         x: 176
@@ -2150,13 +2150,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_81
+      name: UI_buttons_scroll_brown_3
       rect:
         serializedVersion: 2
-        x: 208
-        y: 5
-        width: 16
-        height: 22
+        x: 209
+        y: 6
+        width: 14
+        height: 20
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2172,13 +2172,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_82
+      name: UI_buttons_scroll_brown_4
       rect:
         serializedVersion: 2
-        x: 224
-        y: 5
-        width: 16
-        height: 22
+        x: 225
+        y: 6
+        width: 14
+        height: 20
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2194,7 +2194,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_83
+      name: UI_buttons_scroll_gray_1
       rect:
         serializedVersion: 2
         x: 240
@@ -2216,13 +2216,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_84
+      name: UI_buttons_scroll_gray_3
       rect:
         serializedVersion: 2
-        x: 272
+        x: 273
         y: 5
-        width: 16
-        height: 22
+        width: 14
+        height: 21
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2238,13 +2238,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_85
+      name: UI_buttons_scroll_gray_4
       rect:
         serializedVersion: 2
-        x: 288
-        y: 5
-        width: 16
-        height: 22
+        x: 289
+        y: 6
+        width: 14
+        height: 20
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2260,7 +2260,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_86
+      name: UI_buttons_round_yellow_1
       rect:
         serializedVersion: 2
         x: 196
@@ -2282,7 +2282,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_87
+      name: UI_buttons_round_red_2
       rect:
         serializedVersion: 2
         x: 196
@@ -2304,7 +2304,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 00_88
+      name: UI_buttons_round_green_2
       rect:
         serializedVersion: 2
         x: 196
@@ -2326,7 +2326,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_round_button_dark_small
+      name: UI_buttons_round_button_dark_2
       rect:
         serializedVersion: 2
         x: 112
@@ -2348,7 +2348,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_round_button_blue_small
+      name: UI_buttons_round_button_blue_2
       rect:
         serializedVersion: 2
         x: 48
@@ -2370,7 +2370,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_round_button_brown_small
+      name: UI_buttons_round_button_brown_2
       rect:
         serializedVersion: 2
         x: 176
@@ -2392,13 +2392,13 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_0
+      name: UI_buttons_round_button_blue_3
       rect:
         serializedVersion: 2
         x: 48
-        y: 113
+        y: 116
         width: 16
-        height: 15
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -2414,7 +2414,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_1
+      name: UI_button_fill_round_dark_blue_1
       rect:
         serializedVersion: 2
         x: 64
@@ -2436,7 +2436,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_2
+      name: UI_buttons_round_button_dark_3
       rect:
         serializedVersion: 2
         x: 112
@@ -2458,7 +2458,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_3
+      name: UI_button_fill_round_orange_dark_1
       rect:
         serializedVersion: 2
         x: 128
@@ -2480,7 +2480,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_4
+      name: UI_buttons_round_button_brown_3
       rect:
         serializedVersion: 2
         x: 176
@@ -2502,7 +2502,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_5
+      name: UI_cross_colored_blue
       rect:
         serializedVersion: 2
         x: 208
@@ -2510,7 +2510,7 @@ TextureImporter:
         width: 16
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2524,7 +2524,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_6
+      name: UI_cross_colored_green
       rect:
         serializedVersion: 2
         x: 224
@@ -2532,7 +2532,7 @@ TextureImporter:
         width: 16
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2546,7 +2546,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_7
+      name: UI_buttons_arms_gray
       rect:
         serializedVersion: 2
         x: 240
@@ -2554,7 +2554,7 @@ TextureImporter:
         width: 16
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2568,7 +2568,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_8
+      name: UI_buttons_arms_orange
       rect:
         serializedVersion: 2
         x: 256
@@ -2576,7 +2576,7 @@ TextureImporter:
         width: 16
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2590,7 +2590,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_9
+      name: UI_buttons_arms_green
       rect:
         serializedVersion: 2
         x: 272
@@ -2598,7 +2598,7 @@ TextureImporter:
         width: 16
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2612,7 +2612,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_10
+      name: UI_buttons_arms_brown
       rect:
         serializedVersion: 2
         x: 288
@@ -2620,7 +2620,7 @@ TextureImporter:
         width: 16
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2634,7 +2634,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_11
+      name: UI_buttons_arms_blue
       rect:
         serializedVersion: 2
         x: 304
@@ -2642,7 +2642,7 @@ TextureImporter:
         width: 16
         height: 10
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2656,7 +2656,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_12
+      name: UI_buttons_straight_line_blue_1
       rect:
         serializedVersion: 2
         x: 240
@@ -2664,7 +2664,7 @@ TextureImporter:
         width: 4
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2678,7 +2678,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_13
+      name: UI_cross_colored_purple
       rect:
         serializedVersion: 2
         x: 209
@@ -2686,7 +2686,7 @@ TextureImporter:
         width: 15
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2700,7 +2700,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_14
+      name: UI_cross_colored_orange
       rect:
         serializedVersion: 2
         x: 224
@@ -2708,7 +2708,7 @@ TextureImporter:
         width: 16
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2722,7 +2722,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_15
+      name: UI_buttons_scroll_lightblue_2
       rect:
         serializedVersion: 2
         x: 192
@@ -2730,7 +2730,7 @@ TextureImporter:
         width: 16
         height: 24
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2744,7 +2744,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_16
+      name: UI_buttons_scroll_brown_2
       rect:
         serializedVersion: 2
         x: 192
@@ -2752,7 +2752,7 @@ TextureImporter:
         width: 16
         height: 24
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2766,7 +2766,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: UI_buttons_00_17
+      name: UI_buttons_scroll_gray_2
       rect:
         serializedVersion: 2
         x: 256
@@ -2774,7 +2774,7 @@ TextureImporter:
         width: 16
         height: 24
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -2875,6 +2875,12 @@ TextureImporter:
       00_86: -137257348
       00_87: 285664475
       00_88: -100754054
+      UI_button_fill_round_blue_dark_1: 8018888657061479335
+      UI_button_fill_round_blue_dark_2: -2908310451761985611
+      UI_button_fill_round_dark_blue_1: 566437857
+      UI_button_fill_round_dark_blue_2: -5884626886421023569
+      UI_button_fill_round_orange_dark_1: -1578861085
+      UI_button_fill_round_orange_dark_2: 7783553615103779052
       UI_buttons_00_0: 196078962
       UI_buttons_00_1: 566437857
       UI_buttons_00_10: -405938479
@@ -2885,6 +2891,7 @@ TextureImporter:
       UI_buttons_00_15: 24067318
       UI_buttons_00_16: -410446989
       UI_buttons_00_17: -3564698
+      UI_buttons_00_18: 1999029437
       UI_buttons_00_2: 1313610058
       UI_buttons_00_3: -1578861085
       UI_buttons_00_4: -1811863710
@@ -2893,24 +2900,133 @@ TextureImporter:
       UI_buttons_00_7: 1822449996
       UI_buttons_00_8: 248743539
       UI_buttons_00_9: -1867644585
+      UI_buttons_arms_blue: 385635495
+      UI_buttons_arms_brown: -405938479
+      UI_buttons_arms_gray: 1822449996
+      UI_buttons_arms_green: -1867644585
+      UI_buttons_arms_orange: 248743539
+      UI_buttons_bar_striped_gray: 445129003474293476
+      UI_buttons_bar_striped_orange: -4906168767149581727
+      UI_buttons_bar_striped_yellow: 614414490781449259
+      UI_buttons_dot_blue_1: 3860695469915200262
+      UI_buttons_dot_brown: -5060295176672605558
+      UI_buttons_dot_brown_1: -5060295176672605558
+      UI_buttons_dot_gray: 3860695469915200262
+      UI_buttons_dot_gray_1: 2003906253203196670
+      UI_buttons_gem_arrow_down_blue: -6488581928283971615
+      UI_buttons_gem_arrow_down_brown: 853776868270130143
+      UI_buttons_gem_arrow_down_gray: -1881897603448674910
+      UI_buttons_gem_arrow_down_green: 8008528628820391391
+      UI_buttons_gem_arrow_down_orange: 3058314689539530911
+      UI_buttons_gem_arrow_up_blue: 4600334878205345844
+      UI_buttons_gem_arrow_up_brown: -9066958148344128650
+      UI_buttons_gem_arrow_up_gray: -8325389906974461513
+      UI_buttons_gem_arrow_up_green: 8707456579027042020
+      UI_buttons_gem_arrow_up_orange: 3435581668939855945
+      UI_buttons_gem_dark: 8955490483851906880
+      UI_buttons_gray_1: -1074677923715908865
+      UI_buttons_heart_empty_gray: -9094301929961256274
+      UI_buttons_heart_fill_red: 801451789778697559
+      UI_buttons_heart_half_red: -6309913810273450094
+      UI_buttons_heart_outline_gray: -9094301929961256274
       UI_buttons_left_arrow_round_blue: 4565449861219673537
       UI_buttons_left_round_arrow_brown: 8262823140704642418
       UI_buttons_left_round_arrow_dark: 2020055091839791569
+      UI_buttons_line_blue: -2449223057548880709
+      UI_buttons_line_blue_2: -6750032056248569916
+      UI_buttons_line_brown: 1679603789981849882
+      UI_buttons_line_gray: 4153685978311414359
+      UI_buttons_line_green: 3611965772569956203
+      UI_buttons_line_green_2: 1841930184305661864
+      UI_buttons_line_yellow: -1963904282354570820
+      UI_buttons_line_yellow_2: 8393191153094585699
+      UI_buttons_line_yellow_3: -4354303742480711803
+      UI_buttons_lock_brown: -2916497113080891031
       UI_buttons_right_arrow_pointy: -2519624897654106960
       UI_buttons_right_arrow_pointy_brown: 7692330150590040627
       UI_buttons_right_arrow_pointy_dark: -8140047083062880060
       UI_buttons_right_arrow_round_blue: 5866580483785869697
       UI_buttons_right_round_brown: 2199843206251901110
       UI_buttons_right_round_dark: -1614297248123252564
-      UI_buttons_round_button_blue: 3843552520649545604
-      UI_buttons_round_button_blue_small: 667013669
-      UI_buttons_round_button_brown: 5221977895521801001
-      UI_buttons_round_button_brown_small: -2140795530
-      UI_buttons_round_button_dark: 2492798865565539717
-      UI_buttons_round_button_dark_small: -975818195
-      UI_buttons_scroll_Brown: 4403919537802097465
-      UI_buttons_scroll_blue: -6184050716912831369
-      UI_buttons_scroll_dark: 2881655999765225791
+      UI_buttons_round_blue: 2135972842816579127
+      UI_buttons_round_blue_1: 2135972842816579127
+      UI_buttons_round_blue_2: -7554844106116034129
+      UI_buttons_round_button_blue_1: 3843552520649545604
+      UI_buttons_round_button_blue_2: 667013669
+      UI_buttons_round_button_blue_3: 196078962
+      UI_buttons_round_button_blue_4: -4478426679663942825
+      UI_buttons_round_button_blue_5: 2037232826241623615
+      UI_buttons_round_button_brown_1: 5221977895521801001
+      UI_buttons_round_button_brown_2: -2140795530
+      UI_buttons_round_button_brown_3: -1811863710
+      UI_buttons_round_button_brown_4: -5456200687822887319
+      UI_buttons_round_button_brown_5: -4302724658579757514
+      UI_buttons_round_button_dark_1: 2492798865565539717
+      UI_buttons_round_button_dark_2: -975818195
+      UI_buttons_round_button_dark_3: 1313610058
+      UI_buttons_round_button_dark_4: 3331521556681428597
+      UI_buttons_round_button_dark_5: -8722288136447555485
+      UI_buttons_round_green: -3399265380772972460
+      UI_buttons_round_green_1: -3399265380772972460
+      UI_buttons_round_green_2: -100754054
+      UI_buttons_round_red: -4384315255773831016
+      UI_buttons_round_red_1: -4384315255773831016
+      UI_buttons_round_red_2: 285664475
+      UI_buttons_round_yellow: -137257348
+      UI_buttons_round_yellow_1: -137257348
+      UI_buttons_round_yellow_2: 562560309931859961
+      UI_buttons_scroll_brown_1: -2916497113080891031
+      UI_buttons_scroll_brown_2: -410446989
+      UI_buttons_scroll_brown_3: 8708685517042168849
+      UI_buttons_scroll_brown_4: -2950766693426488955
+      UI_buttons_scroll_gray_1: 2495418166501425409
+      UI_buttons_scroll_gray_2: -3564698
+      UI_buttons_scroll_gray_3: -7915370100289044035
+      UI_buttons_scroll_gray_4: 317054252301130247
+      UI_buttons_scroll_lightblue_1: -1074677923715908865
+      UI_buttons_scroll_lightblue_2: 24067318
+      UI_buttons_scroll_lightblue_3: -3066883819257038235
+      UI_buttons_scroll_lightblue_4: -7579843369952650182
+      UI_buttons_simple_scroll_blue: -6184050716912831369
+      UI_buttons_simple_scroll_brown: 4403919537802097465
+      UI_buttons_simple_scroll_dark: 2881655999765225791
+      UI_buttons_slider_rail_gray: 2039572150083100847
+      UI_buttons_speaker_gray: -1074677923715908865
+      UI_buttons_star_empty_gray: -4465792008747384025
+      UI_buttons_star_empty_gray_big: -8033450865686764103
+      UI_buttons_star_fill_yellow: 7963724030793742399
+      UI_buttons_star_full_yellow_1: 7963724030793742399
+      UI_buttons_star_full_yellow_2: 4847556084848445657
+      UI_buttons_star_full_yellow_big_1: -7110885982919862885
+      UI_buttons_star_full_yellow_big_2: -2348181593154691044
+      UI_buttons_star_half_yellow: 5587414353216628834
+      UI_buttons_star_half_yellow_big: -4900124248367083003
+      UI_buttons_star_low_gray: 707371472885299500
+      UI_buttons_star_low_gray_big: -1054380832648445778
+      UI_buttons_star_outline_gray: -4465792008747384025
+      UI_buttons_star_outline_yellow: 5587414353216628834
+      UI_buttons_straight_line_blu_1: -2449223057548880709
+      UI_buttons_straight_line_blue_1: 667300120
+      UI_buttons_straight_line_brown_1: 1679603789981849882
+      UI_buttons_straight_line_brown_2: 6949904024899193012
+      UI_buttons_straight_line_gray_2: 4153685978311414359
+      UI_buttons_straight_line_gray_3: 2999125586700188139
+      UI_buttons_straight_line_green_1: 3611965772569956203
+      UI_buttons_straight_line_orange_1: -1963904282354570820
+      UI_buttons_triangle_up_brown: -9066958148344128650
+      UI_buttons_triangle_up_dark: 4600334878205345844
+      UI_buttons_triangle_up_green: 8707456579027042020
+      UI_buttons_triangle_up_orange: 3435581668939855945
+      UI_cross_colored_blue: -138954326
+      UI_cross_colored_gray: 2039572150083100847
+      UI_cross_colored_green: -779262494
+      UI_cross_colored_lightgreen: 4128925134836514752
+      UI_cross_colored_orange: -1218025679
+      UI_cross_colored_purple: -216567725
+      UI_scroll_gem_brown: -7701940639057813029
+      UI_scroll_gem_gray: -6928104899101301452
+      UI_scroll_gem_green: -919092037653689
+      UI_scroll_gem_orange: -2327964642448851249
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
