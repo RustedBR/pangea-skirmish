@@ -88,6 +88,24 @@ namespace PangeaSkirmish
             if (img != null && sprite != null)
                 img.style.backgroundImage = new StyleBackground(sprite);
         }
+        // ---- Scroller BDragon (Opção 1): sprite simple_scroll_blue no handle ----
+        private static void StyleBdragonScroller(Scroller scroller)
+        {
+            if (scroller == null) return;
+            var handle = scroller.Q("unity-dragger");
+            var sprite = BdragonIcon("UI_buttons_simple_scroll_blue");
+            if (handle != null && sprite != null)
+                handle.style.backgroundImage = new StyleBackground(sprite);
+        }
+        private void ApplyBdragonScrollbars(VisualElement r)
+        {
+            // Aba Chat (listas)
+            StyleBdragonScroller(r.Q<ScrollView>("player-list")?.verticalScroller);
+            StyleBdragonScroller(r.Q<ScrollView>("chat-log")?.verticalScroller);
+            // Aba Game (tuning list)
+            StyleBdragonScroller(r.Q<ScrollView>("tuning-list")?.verticalScroller);
+        }
+
         private void ApplyBdragonIcons(VisualElement r)
         {
             // Aba Room (steppers de -/+)
@@ -154,6 +172,9 @@ namespace PangeaSkirmish
 
             // Ícones BDragon (Opção C)
             ApplyBdragonIcons(r);
+
+            // Scroller BDragon (Opção 1): handle com sprite
+            ApplyBdragonScrollbars(r);
             _tabChatBtn.clicked  += () => { ShowTab("chat"); };
             _tabRoomBtn.clicked  += () => { ShowTab("room"); };
             _tabGameBtn.clicked  += () => { ShowTab("game"); if (!_tuningBuilt) BuildTuningTab(); };
