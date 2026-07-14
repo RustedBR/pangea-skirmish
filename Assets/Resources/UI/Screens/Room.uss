@@ -225,20 +225,13 @@
     border-bottom: 1px solid var(--pg-accent, rgb(106, 169, 255));
 }
 
-/* ---- Ícones BDragon (Opção C) ---- */
+/* ---- Ícones BDragon (Opção C — steppers da aba Room, aprovados na imagem 2) ---- */
 .room__icon { flex-shrink: 0; }
 .room__icon--arrow {
     width: 12px;
     height: 12px;
     margin-left: 2px;
     margin-right: 2px;
-}
-/* ícone de scroll ao lado do título da lista (indica "esta lista rola") */
-.room__col-head { flex-direction: row; align-items: center; }
-.room__icon--scrollhead {
-    width: 8px;
-    height: 18px;
-    margin-left: 6px;
 }
 
 /* ---- Scroller nativo estilizado (Opção A): cores BDragon no scrollbar ----

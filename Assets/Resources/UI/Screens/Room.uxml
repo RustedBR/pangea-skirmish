@@ -47,17 +47,11 @@
             <!-- Conteúdo das abas (flex-grow pra ocupar a tela) -->
             <ui:VisualElement name="tab-chat" class="room__tabpanel">
                 <ui:VisualElement class="pg-panel room__col room__col--players">
-                    <ui:VisualElement class="room__col-head">
-                        <ui:Label text="Jogadores" class="room__col-title" />
-                        <ui:Image name="player-scroll-icon" class="room__icon room__icon--scrollhead" />
-                    </ui:VisualElement>
+                    <ui:Label text="Jogadores" class="room__col-title" />
                     <ui:ScrollView name="player-list" class="pg-list room__scroll" />
                 </ui:VisualElement>
                 <ui:VisualElement class="pg-panel room__col room__col--chat">
-                    <ui:VisualElement class="room__col-head">
-                        <ui:Label text="Chat" class="room__col-title" />
-                        <ui:Image name="chat-scroll-icon" class="room__icon room__icon--scrollhead" />
-                    </ui:VisualElement>
+                    <ui:Label text="Chat" class="room__col-title" />
                     <ui:ScrollView name="chat-log" class="pg-list room__scroll" />
                     <ui:VisualElement class="room__chat-input-row">
                         <ui:TextField name="chat-input" class="pg-input room__chat-input" />
@@ -125,10 +119,7 @@
 
             <ui:VisualElement name="tab-game" class="room__tabpanel" style="display: none;">
                 <ui:VisualElement class="pg-panel room__host-panel">
-                    <ui:VisualElement class="room__col-head">
-                        <ui:Label text="GameTuning (host edita)" class="room__col-title" />
-                        <ui:Image name="tuning-scroll-icon" class="room__icon room__icon--scrollhead" />
-                    </ui:VisualElement>
+                    <ui:Label text="GameTuning (host edita)" class="room__col-title" />
                     <ui:ScrollView name="tuning-list" class="pg-list room__scroll room__tuning-list" />
                     <ui:Button name="btn-reset-tuning" text="Resetar p/ Default" class="pg-button" />
                 </ui:VisualElement>
