@@ -89,21 +89,29 @@ namespace PangeaSkirmish
                 img.style.backgroundImage = new StyleBackground(sprite);
         }
         // ---- Scroller BDragon (Opção 1): sprite simple_scroll_blue no handle ----
-        private static void StyleBdragonScroller(Scroller scroller)
+        // O sprite é uma barra VERTICAL fina (8x18). Em scroll vertical encaixa direto;
+        // em scroll horizontal precisamos girar 90° pra ficar na orientação certa.
+        private static void StyleBdragonScroller(Scroller scroller, float rotateDeg = 0f)
         {
             if (scroller == null) return;
             var handle = scroller.Q("unity-dragger");
             var sprite = BdragonIcon("UI_buttons_simple_scroll_blue");
             if (handle != null && sprite != null)
+            {
                 handle.style.backgroundImage = new StyleBackground(sprite);
+                if (rotateDeg != 0f)
+                    handle.style.rotate = new StyleRotate(new Rotate(rotateDeg));
+            }
         }
         private void ApplyBdragonScrollbars(VisualElement r)
         {
-            // Aba Chat (listas)
+            // Aba Chat (listas — verticais)
             StyleBdragonScroller(r.Q<ScrollView>("player-list")?.verticalScroller);
             StyleBdragonScroller(r.Q<ScrollView>("chat-log")?.verticalScroller);
-            // Aba Game (tuning list)
+            // Aba Game (tuning list — vertical)
             StyleBdragonScroller(r.Q<ScrollView>("tuning-list")?.verticalScroller);
+            // Aba Lobby (room-list — HORIZONTAL: gira o sprite 90°)
+            StyleBdragonScroller(r.Q<ScrollView>("room-list")?.horizontalScroller, 90f);
         }
 
         private void ApplyBdragonIcons(VisualElement r)
