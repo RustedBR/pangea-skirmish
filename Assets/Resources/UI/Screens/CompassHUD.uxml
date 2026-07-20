@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="compass-root" class="pg-panel compass">
+    <ui:VisualElement name="compass-rose" class="compass__rose">
+      <ui:Label name="compass-n" text="N" class="compass__dir compass__n" />
+      <ui:Label name="compass-e" text="L" class="compass__dir compass__e" />
+      <ui:Label name="compass-s" text="S" class="compass__dir compass__s" />
+      <ui:Label name="compass-w" text="O" class="compass__dir compass__w" />
+      <ui:VisualElement name="compass-needle" class="compass__needle" />
+    </ui:VisualElement>
+    <ui:Label name="compass-angle" text="0°" class="compass__angle" />
+  </ui:VisualElement>
+</ui:UXML>

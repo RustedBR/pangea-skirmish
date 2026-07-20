@@ -39,9 +39,10 @@ namespace PangeaSkirmish
             int gridH = 20;
             float halfW = isoConfig.TileUnitsW * 0.5f;
             float halfH = isoConfig.TileUnitsH * 0.5f;
-            // centro do grid em coordenadas de tela isométrica (XY, z=0)
+            // Migração XY→XZ (2026-07-20): centro do grid em coordenadas XZ (chão).
+            // X = largura do losango, Z = profundidade (era o Y do mundo XY).
             float centerX = ((gridW - 1) - (gridH - 1)) * 0.5f * halfW;
-            float centerY = -((gridW - 1) + (gridH - 1)) * 0.5f * halfH;
+            float centerZ = -((gridW - 1) + (gridH - 1)) * 0.5f * halfH;
 
             var cam = Camera.main;
             if (cam == null)
@@ -57,7 +58,8 @@ namespace PangeaSkirmish
 
             var camCtrl = cam.gameObject.GetComponent<CameraController>();
             if (camCtrl == null) camCtrl = cam.gameObject.AddComponent<CameraController>();
-            camCtrl.Configure(cam, new Vector3(centerX, centerY, 0f), cam.orthographicSize);
+            // Passa o centro do mapa em XZ (y=0); a altura da câmera é definida no Configure.
+            camCtrl.Configure(cam, new Vector3(centerX, 0f, centerZ), cam.orthographicSize);
             camCtrl.followSpeed  = tuning.followSpeed;
             camCtrl.edgeMargin   = tuning.edgeMargin;
             camCtrl.edgePanSpeed = tuning.edgePanSpeed;
@@ -82,9 +84,10 @@ namespace PangeaSkirmish
             grid.Build();
 
             float panRangeX = (grid.width + grid.height) * halfW;
-            float panRangeY = (grid.width + grid.height) * halfH;
-            camCtrl.SetPanBounds(new Vector2(centerX - panRangeX, centerY - panRangeY),
-                                 new Vector2(centerX + panRangeX, centerY + panRangeY));
+            float panRangeZ = (grid.width + grid.height) * halfH;
+            // Migração XY→XZ: bounds em (X, Z) do mundo.
+            camCtrl.SetPanBounds(new Vector2(centerX - panRangeX, centerZ - panRangeZ),
+                                 new Vector2(centerX + panRangeX, centerZ + panRangeZ));
 
             BuildEventSystem();
             var hud = PangeaScreen.Spawn<BattleHUD>("BattleHUD");

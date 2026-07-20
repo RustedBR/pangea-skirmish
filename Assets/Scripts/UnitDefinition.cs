@@ -25,17 +25,6 @@ namespace PangeaSkirmish
         public string spriteResourcePath;
         public Color teamTint = Color.white;
 
-        [Header("Comportamento de IA")]
-        [Range(0f, 1f)]
-        public float aiAggression = 0.7f;
-        [Range(0f, 1f)]
-        public float aiAttackPreference = 0.5f;
-        [Range(0f, 1f)]
-        public float aiIntelligence = 0.8f;
-        [Range(0f, 1f)]
-        public float aiSurvivalInstinct = 0.6f;
-        public bool aiUseSpells = false;
-
         /// <summary>
         /// Cria uma instância de Unit a partir desta definição.
         /// </summary>
@@ -51,16 +40,6 @@ namespace PangeaSkirmish
             unit.isPlayerCharacter = (team == Team.Player);
             unit.weaponId = defaultWeaponId;
             unit.stats = baseStats.ToAttributeStats();
-
-            // Configurar IA para inimigos
-            if (team == Team.Enemy)
-            {
-                unit.aiAggression = aiAggression;
-                unit.aiAttackPreference = aiAttackPreference;
-                unit.aiIntelligence = aiIntelligence;
-                unit.aiSurvivalInstinct = aiSurvivalInstinct;
-                unit.aiUseSpells = aiUseSpells;
-            }
 
             // Init visual (sprite, cor do time, weapon overlay)
             Color teamColor = team == Team.Player

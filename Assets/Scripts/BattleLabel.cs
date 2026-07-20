@@ -183,7 +183,10 @@ namespace PangeaSkirmish
         }
 
         // ── Background sprite cache ──────────────────────────
-
+        // Chip estilizado: cantos arredondados (raio 8px) + borda 2px + fundo
+        // semi-transparente da cor original. Mantém a cor semântica de cada label
+        // (vermelho dano, dourado crítico, verde move, etc) mas aplica o MESMO
+        // design language dos botões pg-button (borda 2px + raio + fundo translúcido).
         private static Sprite GetBgSprite(Color32 bg, Color32 border)
         {
             var key = (bg, border);
@@ -193,11 +196,42 @@ namespace PangeaSkirmish
             const int W = 64, H = 32;
             var tex = new Texture2D(W, H, TextureFormat.RGBA32, false)
             { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+
+            // Fundo semi-transparente (alpha da cor original, mas garantido >= .82 p/ legibilidade)
+            Color bgCol = (Color)bg;
+            bgCol.a = Mathf.Max(bgCol.a, 0.82f);
+            Color borderCol = (Color)border;
+
+            int radius = 8;               // raio dos cantos (igual pg-button ~6-8px)
+            int borderW = 2;              // espessura da borda (igual pg-button)
+
             for (int y = 0; y < H; y++)
             for (int x = 0; x < W; x++)
             {
-                bool edge = x == 0 || x == W - 1 || y == 0 || y == H - 1;
-                tex.SetPixel(x, y, edge ? (Color)border : (Color)bg);
+                // Distância ao centro do canto mais próximo (p/ arredondar)
+                int cx = (x < radius) ? radius : (x >= W - radius ? W - 1 - radius : -1);
+                int cy = (y < radius) ? radius : (y >= H - radius ? H - 1 - radius : -1);
+                bool outside = false;
+                if (cx >= 0 && cy >= 0)
+                {
+                    int dx = x - cx, dy = y - cy;
+                    if (dx * dx + dy * dy > radius * radius) outside = true;
+                }
+                if (outside) { tex.SetPixel(x, y, Color.clear); continue; }
+
+                // Borda: pixels a <= borderW do limite externo (considerando cantos)
+                bool isBorder = false;
+                if (x < borderW || x >= W - borderW || y < borderW || y >= H - borderW)
+                    isBorder = true;
+                // Ajuste de borda nos cantos arredondados
+                if (cx >= 0 && cy >= 0)
+                {
+                    int dx = x - cx, dy = y - cy;
+                    int dist = Mathf.RoundToInt(Mathf.Sqrt(dx * dx + dy * dy));
+                    if (dist > radius - borderW && dist <= radius) isBorder = true;
+                }
+
+                tex.SetPixel(x, y, isBorder ? borderCol : bgCol);
             }
             tex.Apply();
             var s = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 32);
@@ -255,7 +289,13 @@ namespace PangeaSkirmish
 
         private void FaceCamera()
         {
-            if (_cam != null) transform.rotation = _cam.transform.rotation;
+            if (_cam == null) return;
+            // Migração XY→XZ (2026-07-20): billboard Y-only — texto em pé, legível,
+            // encara o yaw da câmera mas não inclina com o pitch (não fica torto).
+            Quaternion parentRot = transform.parent != null ? transform.parent.rotation : Quaternion.identity;
+            Vector3 camEuler = _cam.transform.rotation.eulerAngles;
+            Quaternion camYaw = Quaternion.Euler(0f, camEuler.y, 0f);
+            transform.rotation = Quaternion.Inverse(parentRot) * camYaw;
         }
     }
 }

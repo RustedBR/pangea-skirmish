@@ -55,13 +55,6 @@ namespace PangeaSkirmish
         }
         public void ResetReactionsForRound() => remainingReactions = 1;
 
-        [Header("AI Parameters (per-unit override)")]
-        [Range(0f, 1f)] public float aiAggression = 0.7f;
-        [Range(0f, 1f)] public float aiAttackPreference = 0.5f;
-        [Range(0f, 1f)] public float aiIntelligence = 0.8f;
-        [Range(0f, 1f)] public float aiSurvivalInstinct = 0.6f;
-        public bool aiUseSpells = false;
-
         public bool hasPlannedMove   => plannedMoveCount   > 0;
         public bool hasPlannedAttack => plannedAttackCount > 0;
         public bool hasPlannedSpell  => plannedSpells.Count > 0;
@@ -107,6 +100,8 @@ namespace PangeaSkirmish
         private Color _baseTint = Color.white;
         private string _baseDir = "SE";  // NE ou SE
         private bool _flip;               // espelha p/ NW/SW
+        private string _currentState = "idle";
+        private int    _currentFrame = 0;
         private Coroutine _idleCoroutine;
 
         public bool IsDead => currentHP <= 0;
@@ -141,14 +136,16 @@ namespace PangeaSkirmish
         /// Os colliders ficam em filhos (Sprite/Footprint), então o SpriteRenderer também — por isso
         /// GetComponentInChildren (GetComponent no raiz retornaria null).
         /// </summary>
-        public static Unit PickAtWorld(Vector2 world)
+        public static Unit PickAtWorld(Camera cam, Vector2 screen)
         {
-            var hits = Physics2D.OverlapPointAll(world);
+            if (cam == null) return null;
+            Ray ray = cam.ScreenPointToRay(new Vector3(screen.x, screen.y, 0f));
+            RaycastHit[] hits = Physics.RaycastAll(ray);
             Unit best = null;
             int bestOrder = int.MinValue;
             foreach (var h in hits)
             {
-                var u = h.GetComponentInParent<Unit>();
+                var u = h.collider.GetComponentInParent<Unit>();
                 if (u == null || u.IsDead) continue;
                 var sr = u.GetComponentInChildren<SpriteRenderer>();
                 int order = sr != null ? sr.sortingOrder : 0;
@@ -169,6 +166,12 @@ namespace PangeaSkirmish
             currentMana  = stats.MaxMana;
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;
+
+            // Caminho 3 (2026-07-14): a unidade vira filha do _gridRig p/
+            // acompanhar a POSIÇÃO do tile quando o grid gira (peça de xadrez),
+            // mas seu sprite CANCELA a rotação do pai (BillboardFace) → fica em pé.
+            if (grid != null && grid.GridRig != null)
+                transform.SetParent(grid.GridRig, true);
 
             // Inimigos: tom escurecido para diferenciar (reuso de classe heroica).
             _baseTint = team == Team.Enemy ? Tuning.Get().enemyTint : Color.white;
@@ -216,15 +219,15 @@ namespace PangeaSkirmish
             _sr = spriteGo.AddComponent<SpriteRenderer>();
             _sr.color = _baseTint;
 
-            // Collider 2D no corpo (sprite) para seleção
-            var bodyCollider = spriteGo.AddComponent<BoxCollider2D>();
-            bodyCollider.size = T.bodyColliderSize;
-            bodyCollider.offset = T.bodyColliderOffset;
+            // Collider 3D no corpo (sprite) para seleção (migração XY→XZ: mundo é 3D)
+            var bodyCollider = spriteGo.AddComponent<BoxCollider>();
+            bodyCollider.size = new Vector3(T.bodyColliderSize.x, T.bodyColliderSize.y, 0.5f);
+            bodyCollider.center = new Vector3(T.bodyColliderOffset.x, T.bodyColliderOffset.y, 0f);
 
-            // Collider 2D achatado na base (footprint) para seleção
-            var footprintCollider = footprintGo.AddComponent<BoxCollider2D>();
-            footprintCollider.size = T.footprintColliderSize;
-            footprintCollider.offset = T.footprintColliderOffset;
+            // Collider 3D achatado na base (footprint) para seleção
+            var footprintCollider = footprintGo.AddComponent<BoxCollider>();
+            footprintCollider.size = new Vector3(T.footprintColliderSize.x, T.footprintColliderSize.y, 0.5f);
+            footprintCollider.center = new Vector3(T.footprintColliderOffset.x, T.footprintColliderOffset.y, 0f);
 
             // Equipar arma e aplicar dano/alcance
             EquipWeapon(spriteGo.transform);
@@ -449,6 +452,8 @@ namespace PangeaSkirmish
 
         private void ShowFrame(string state, int frame)
         {
+            _currentState = state;
+            _currentFrame = frame;
             if (_sr == null) return;
             string key = $"{state}{_baseDir}_{frame}";
             if (_frames.TryGetValue(key, out var sp)) _sr.sprite = sp;
@@ -511,6 +516,30 @@ namespace PangeaSkirmish
             // NE = cima-direita, SE = baixo-direita, NW = cima-esq, SW = baixo-esq
             if (up)  { _baseDir = "NE"; _flip = !right; }
             else     { _baseDir = "SE"; _flip = !right; }
+            if (_weapon != null) _weapon.RefreshDirection(_baseDir, _flip);
+        }
+
+        /// <summary>
+        /// CAMINHO 1 (2026-07-14): re-deriva o facing da unidade para encarar o "norte"
+        /// da tela conforme a orientação da vista (degrees = 0/90/180/270, snap).
+        /// Usa só os 2 sprites base (NE/SE) + flipX — sem arte nova. O eixo de rotação
+        /// da câmera é Z, então cada +90° gira o mundo no sentido horário na tela.
+        ///  0°   → NE (olha pros 45° superiores)
+        ///  90°  → SE (virou de lado, olha pros 45° inferiores)
+        ///  180° → SE + flip (costas relativa)
+        ///  270° → NE + flip (lado oposto)
+        /// </summary>
+        public void SetViewOrientation(int degrees)
+        {
+            int quad = ((degrees % 360) + 360) % 360;
+            switch (quad)
+            {
+                case 90:  _baseDir = "SE"; _flip = false; break;
+                case 180: _baseDir = "SE"; _flip = true;  break;
+                case 270: _baseDir = "NE"; _flip = true;  break;
+                default:  _baseDir = "NE"; _flip = false; break; // 0°
+            }
+            ShowFrame(_currentState, _currentFrame);
             if (_weapon != null) _weapon.RefreshDirection(_baseDir, _flip);
         }
 

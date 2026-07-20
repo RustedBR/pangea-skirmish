@@ -32,11 +32,7 @@ namespace PangeaSkirmish.Editor
                     Footprint = 3,
                     AttackRange = 1
                 },
-                defaultWeaponId: "Hatchet",
-                aiAggression: 0.8f,
-                aiAttackPreference: 0.6f,
-                aiIntelligence: 0.5f,
-                aiSurvivalInstinct: 0.4f
+                defaultWeaponId: "Hatchet"
             );
 
             // Create Archer
@@ -56,11 +52,7 @@ namespace PangeaSkirmish.Editor
                     Footprint = 2,
                     AttackRange = 4
                 },
-                defaultWeaponId: "ShortBow",
-                aiAggression: 0.6f,
-                aiAttackPreference: 0.7f,
-                aiIntelligence: 0.7f,
-                aiSurvivalInstinct: 0.7f
+                defaultWeaponId: "ShortBow"
             );
 
             // Create Mage
@@ -80,12 +72,7 @@ namespace PangeaSkirmish.Editor
                     Footprint = 2,
                     AttackRange = 3
                 },
-                defaultWeaponId: "WoodenStaff",
-                aiAggression: 0.4f,
-                aiAttackPreference: 0.3f,
-                aiIntelligence: 0.9f,
-                aiSurvivalInstinct: 0.8f,
-                aiUseSpells: true
+                defaultWeaponId: "WoodenStaff"
             );
 
             // Create Tank
@@ -105,11 +92,7 @@ namespace PangeaSkirmish.Editor
                     Footprint = 4,
                     AttackRange = 1
                 },
-                defaultWeaponId: "WoodenShield",
-                aiAggression: 0.3f,
-                aiAttackPreference: 0.4f,
-                aiIntelligence: 0.4f,
-                aiSurvivalInstinct: 0.2f
+                defaultWeaponId: "WoodenShield"
             );
 
             AssetDatabase.SaveAssets();
@@ -124,12 +107,7 @@ namespace PangeaSkirmish.Editor
             string displayName,
             string description,
             UnitStatBlock stats,
-            string defaultWeaponId,
-            float aiAggression,
-            float aiAttackPreference,
-            float aiIntelligence,
-            float aiSurvivalInstinct,
-            bool aiUseSpells = false)
+            string defaultWeaponId)
         {
             string assetPath = $"{folder}/{unitId}.asset";
 
@@ -139,11 +117,6 @@ namespace PangeaSkirmish.Editor
             def.description = description;
             def.baseStats = stats;
             def.defaultWeaponId = defaultWeaponId;
-            def.aiAggression = aiAggression;
-            def.aiAttackPreference = aiAttackPreference;
-            def.aiIntelligence = aiIntelligence;
-            def.aiSurvivalInstinct = aiSurvivalInstinct;
-            def.aiUseSpells = aiUseSpells;
 
             AssetDatabase.CreateAsset(def, assetPath);
         }

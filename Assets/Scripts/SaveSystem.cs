@@ -66,7 +66,7 @@ namespace PangeaSkirmish
         public class TileState
         {
             public Vector2Int position;
-            public int tileId;
+            public string tileId;   // nome do sprite de terreno (atlas)
             public int height;
         }
 
@@ -276,7 +276,7 @@ namespace PangeaSkirmish
                         state.grid.tiles.Add(new TileState
                         {
                             position = new Vector2Int(x, y),
-                            tileId   = grid.GetTileIndex(x, y),
+                            tileId   = grid.GetTerrainName(x, y),
                             height   = grid.GetHeight(x, y)
                         });
                     }
@@ -319,7 +319,7 @@ namespace PangeaSkirmish
                 grid.height = state.grid.height;
                 foreach (var tile in state.grid.tiles)
                 {
-                    grid.SetCell(tile.position.x, tile.position.y, tile.tileId, tile.height);
+                    grid.SetCell(tile.position.x, tile.position.y, tile.tileId, tile.height, "", false);
                 }
             }
 

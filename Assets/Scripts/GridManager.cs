@@ -24,9 +24,8 @@ namespace PangeaSkirmish
 
         [Header("Tile Rendering")]
         public bool useAtlasSprites = true; // false = bloco gerado; true = atlas TinyTactics
-        // 0 = grama plana (cubo verde limpo); 3 = grama alta (morrinho)
-        private static readonly int[] GrassVariants         = { 0 };
-        private static readonly int[] ElevatedGrassVariants = { 3 };
+        // Nome do sprite de grama plana (fallback quando não há terreno definido)
+        private const string DEFAULT_TERRAIN = "grass_tile_full";
 
         [Header("Tile Alignment (debug)")]
         public Vector2 spritePivot = new Vector2(0.5f, 0.75f);  // Pivot do sprite no losango
@@ -40,22 +39,53 @@ namespace PangeaSkirmish
 
         private bool _lastDebugState = false;
 
+        // ── RIG DE ROTAÇÃO DO MAPA (Caminho 3, 2026-07-14) ──
+        // Pivot no centro do mapa. _tilesRoot + _objectsRoot viram filhos dele.
+        // A rotação de vista é aplicada AQUI, em torno do eixo Z do MUNDO
+        // (perpendicular ao chão XY deste projeto = "up do mundo" aqui).
+        // A câmera fica PARADA (sem tilt), logo a percepção isométrica não
+        // se perde e o plano de jogo NÃO sobe (era o bug de girar a câmera).
+        private Transform _gridRig;
+        private float _gridRot;        // rotação Z atual (lerp)
+        private float _gridRotTarget;  // alvo (múltiplo de 90, acumula p/ sentido)
+        private const float GRID_ROT_SPEED = 8f;
+
         public MapData sourceMap;        // se != null, Build() usa este mapa em vez do platô hardcoded
-        private int[,] _tileIndices;     // índice do atlas por célula (para edição/exportação)
+        private string[,] _terrainNames;  // nome do sprite de terreno por célula (atlas)
+        private string[,] _objectNames;    // nome do objeto por célula (1 por célula) ou "" vazio
         private bool[,] _voidCells;      // cells vazias (não renderiza, sem colisão)
+        private Transform _tilesRoot;      // raiz dos tiles de terreno
+        private Transform _objectsRoot;    // raiz dos objetos overlay
 
         private SpriteRenderer[,] _tiles;
+        private SpriteRenderer[,] _objectSprites;
         private Color[,] _baseColors;
         private int[,] _heights;
         private Sprite _blockSprite;
         private static Sprite _gridLineSprite;
-        private Transform _tilesRoot;
 
         private float _halfW = 1.0f;   // meia-largura do losango (unidades)
         private float _halfH = 0.5f;   // meia-altura do losango (unidades)
+
+        // Rotação do MAPA: aplicada no _gridRig (eixo Z do mundo), NÃO na câmera.
+        // Assim o losango 2:1 não deforma, o plano não sobe e os tiles giram
+        // de fato no world space (Caminho 3, 2026-07-14).
+        private static GridManager _instance;
+        public static GridManager Instance => _instance;
+        /// <summary>
+        /// Pivot de rotação do mapa (Caminho 3, 2026-07-14). As unidades e labels
+        /// devem ser filhos DESTE transform p/ acompanhar a posição do tile ao girar
+        /// o grid, mas seus sprites cancelam a rotação do pai (ficam em pé).
+        /// </summary>
+        public Transform GridRig => _gridRig;
         private float _heightStep = 0.5f;
 
+        // Camada unificada de Colisão & Ocupação (Parte A). Data-only, alimentada aqui.
+        private CollisionGrid _collision;
+        public CollisionGrid Collision => _collision;
+
         private readonly List<Vector2Int> _highlighted = new List<Vector2Int>();
+        private readonly Dictionary<Vector2Int, SpriteRenderer> _highlightBorders = new();
 
         public float HalfW => _halfW;
         public float HalfH => _halfH;
@@ -63,6 +93,8 @@ namespace PangeaSkirmish
 
         private void Awake()
         {
+            _instance = this;
+            _collision = new CollisionGrid();
             // Cores vindas do GameTuning (o componente é criado em runtime — os defaults
             // dos campos serializados nunca são editados via Inspector).
             var T = Tuning.Get();
@@ -77,9 +109,15 @@ namespace PangeaSkirmish
             _halfW = tileSize * iso.TileUnitsW * 0.5f;
             _halfH = tileSize * iso.TileUnitsH * 0.5f;
             _heightStep = iso.heightStep;
+            Debug.Log($"[Grid:Awake] tileSize={tileSize} TileUnitsW={iso.TileUnitsW} TileUnitsH={iso.TileUnitsH} -> _halfW={_halfW} _halfH={_halfH} _heightStep={_heightStep} useAtlasSprites={useAtlasSprites} useDebugGridSprite={useDebugGridSprite}");
 
             // Gerar sprite fallback enquanto TileDatabase está em debug
             BuildBlockSprite();
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this) _instance = null;
         }
 
         // ---- Grid Lines: contorno losango isométrico ----
@@ -190,11 +228,19 @@ namespace PangeaSkirmish
             return _heights[x, y];
         }
 
-        public int GetTileIndex(int x, int y)
+        public string GetTerrainName(int x, int y)
         {
-            if (_tileIndices == null) return 0;
+            if (_terrainNames == null) return DEFAULT_TERRAIN;
             x = Mathf.Clamp(x, 0, width - 1); y = Mathf.Clamp(y, 0, height - 1);
-            return _tileIndices[x, y];
+            var n = _terrainNames[x, y];
+            return string.IsNullOrEmpty(n) ? DEFAULT_TERRAIN : n;
+        }
+
+        public string GetObjectName(int x, int y)
+        {
+            if (_objectNames == null) return "";
+            x = Mathf.Clamp(x, 0, width - 1); y = Mathf.Clamp(y, 0, height - 1);
+            return _objectNames[x, y] ?? "";
         }
 
         public int GetHeight(int x, int y)
@@ -205,40 +251,107 @@ namespace PangeaSkirmish
         }
 
         // Edita uma célula em runtime (usado pelo editor de terreno do Sandbox).
-        // Atenção: o parâmetro de altura é "cellHeight" (NÃO "height") para não sombrear
-        // o campo da classe "height" (largura/altura do grid) usado na checagem de bounds.
-        public void SetCell(int x, int y, int tileIndex, int cellHeight, bool isVoid = false)
+        // Terreno (nome) + objeto (nome) são camadas independentes.
+        // objectName == "" ou null → remove o objeto da célula.
+        public void SetCell(int x, int y, string terrainName, int cellHeight, string objectName, bool isVoid = false)
         {
+            Debug.Log($"[Grid] SetCell ENTER ({x},{y}) width={width} height={height} terrain={terrainName} h={cellHeight} isVoid={isVoid}");
             if (x < 0 || y < 0 || x >= width || y >= height) return;
             int oldHeight = _heights[x, y];
-            _heights[x, y] = cellHeight;
-            _tileIndices[x, y] = tileIndex;
-            _voidCells[x, y] = isVoid;
-            var sr = _tiles != null ? _tiles[x, y] : null;
+
             if (isVoid)
             {
-                // Destruir tile se existe
-                if (sr != null) { Destroy(sr.gameObject); _tiles[x, y] = null; }
+                _voidCells[x, y] = true;
+                _terrainNames[x, y] = "";
+                _objectNames[x, y] = "";
+                DestroyObjectAt(x, y);
+                var tileSr = _tiles != null ? _tiles[x, y] : null;
+                if (tileSr != null) { Destroy(tileSr.gameObject); _tiles[x, y] = null; }
+                if (_collision != null) _collision.SetWalkable(x, y, false);
                 return;
             }
+
+            _voidCells[x, y] = false;
+            _heights[x, y] = cellHeight;
+            _terrainNames[x, y] = string.IsNullOrEmpty(terrainName) ? DEFAULT_TERRAIN : terrainName;
+            _objectNames[x, y] = objectName ?? "";
+            if (cellHeight != oldHeight)
+                Debug.Log($"[Grid] SetCell ({x},{y}) terrain={_terrainNames[x,y]} oldH={oldHeight} newH={cellHeight} worldY_apos={CellToWorld(new Vector2Int(x, y)).y:F2} (heightStep={_heightStep})");
+            else
+                Debug.Log($"[Grid] SetCell ({x},{y}) SEM MUDANÇA oldH={oldHeight} newH={cellHeight}");
+
+            // Parte A: manter a camada de colisão sincronizada
+            if (_collision != null)
+            {
+                bool walkable = string.IsNullOrEmpty(_objectNames[x, y]) || !IsObjectWall(_objectNames[x, y]);
+                _collision.SetWalkable(x, y, walkable);
+                _collision.SetZLevel(x, y, cellHeight);
+            }
+
+            // Recriar/atualizar tile de terreno
+            var sr = _tiles != null ? _tiles[x, y] : null;
             if (sr == null)
             {
-                // Recriar tile (era void, agora não é mais)
                 BuildSingleTile(x, y);
-                return;
             }
-            sr.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
-            var sprite = tileDatabase != null ? tileDatabase.GetTile(tileIndex) : null;
-            sr.sprite = sprite ?? _blockSprite;
+            else
+            {
+                sr.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
+                var sprite = tileDatabase != null ? tileDatabase.GetTile(_terrainNames[x, y]) : null;
+                sr.sprite = sprite ?? _blockSprite;
+                if (cellHeight != oldHeight)
+                    UpdateSideFaces(x, y, cellHeight);
+            }
 
-            // Atualizar faces laterais se altura mudou
-            if (cellHeight != oldHeight)
-                UpdateSideFaces(x, y, cellHeight);
+            // (Re)construir objeto overlay
+            RefreshObjectAt(x, y);
+        }
+
+        // Retorna se o objeto nomeado é parede (bloqueia a célula).
+        private bool IsObjectWall(string objectName)
+        {
+            var def = tileDatabase != null ? tileDatabase.GetDef(objectName) : null;
+            return def != null && def.isWall;
+        }
+
+        // Cria/atualiza o sprite de objeto acima do terreno (z = HeightAt).
+        private void RefreshObjectAt(int x, int y)
+        {
+            var name = GetObjectName(x, y);
+            DestroyObjectAt(x, y);
+            if (string.IsNullOrEmpty(name) || tileDatabase == null) return;
+
+            if (_objectsRoot == null)
+            {
+                _objectsRoot = new GameObject("Objects").transform;
+                _objectsRoot.SetParent(_gridRig != null ? _gridRig : transform, false);
+            }
+
+            var go = new GameObject($"Obj_{x}_{y}");
+            go.transform.SetParent(_objectsRoot, false);
+            // CellToWorld já inclui a altura (HeightAt * _heightStep) → está no topo do tile.
+            // Não somar _heights de novo (senão a árvore sobe o dobro).
+            var top = CellToWorld(new Vector2Int(x, y)) + positionOffset;
+            go.transform.position = top;
+            go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = tileDatabase.GetTile(name) ?? _blockSprite;
+            sr.sortingOrder = (x + y) * 4 + 2; // acima do terreno
+            sr.color = Color.white;
+            _objectSprites[x, y] = sr;
+        }
+
+        private void DestroyObjectAt(int x, int y)
+        {
+            var sr = _objectSprites != null ? _objectSprites[x, y] : null;
+            if (sr != null) { Destroy(sr.gameObject); _objectSprites[x, y] = null; }
         }
 
         /// <summary>
         /// Atualiza as faces laterais de um tile empilhado.
-        /// Duas faixas retangulares (esquerda escuro + direita médio) abaixo do tile.
+        /// Usa a "face lateral" recortada do sprite do tile (metade inferior do
+        /// losango) empilhada N vezes conforme a altura — efeito de cubo com
+        /// textura real, sem buraco entre o chão e o topo.
         /// </summary>
         private void UpdateSideFaces(int x, int y, int height)
         {
@@ -254,42 +367,44 @@ namespace PangeaSkirmish
 
             if (height <= 0) return;
 
-            float sideH = height * _heightStep;
-            float halfW = _halfW;
+            float sideH = height * _heightStep;               // altura total (world)
+            int levels = Mathf.Max(1, Mathf.RoundToInt(sideH / 0.5f)); // cópias de 0.5
+            float levelH = sideH / levels;
+
+            Sprite sideSprite = (tileDatabase != null) ? tileDatabase.GetSideFace(_terrainNames[x, y]) : null;
+            if (sideSprite == null) sideSprite = _blockSprite;
+
+            // Altura world natural do sprite de face (PPU 16)
+            float sideSpriteWorldH = sideSprite.rect.height / TileDatabase.BLOCK_PPU;
             int order = _tiles[x, y].sortingOrder - 10;
-            Sprite px = GetPixelSprite();
 
-            // Face esquerda (metade esquerda do tile, cor mais escura)
-            var goL = new GameObject("SideFaceL");
-            goL.transform.SetParent(tileGo.transform, false);
-            goL.transform.localPosition = new Vector3(-halfW * 0.5f, -sideH * 0.5f, 0f);
-            goL.transform.localScale = new Vector3(halfW, sideH, 1f);
-            var srL = goL.AddComponent<SpriteRenderer>();
-            srL.sprite = px;
-            srL.color = Tuning.Get().sideFaceLeftColor;
-            srL.sortingOrder = order;
+            // Duas faces (esquerda escura + direita média), estilo iso, empilhadas.
+            for (int k = 0; k < levels; k++)
+            {
+                float yc = -levelH * (k + 0.5f);          // centro vertical do nível k
+                float sy = levelH / sideSpriteWorldH;      // escala Y p/ caber em levelH
 
-            // Face direita (metade direita do tile, cor média)
-            var goR = new GameObject("SideFaceR");
-            goR.transform.SetParent(tileGo.transform, false);
-            goR.transform.localPosition = new Vector3(halfW * 0.5f, -sideH * 0.5f, 0f);
-            goR.transform.localScale = new Vector3(halfW, sideH, 1f);
-            var srR = goR.AddComponent<SpriteRenderer>();
-            srR.sprite = px;
-            srR.color = Tuning.Get().sideFaceRightColor;
-            srR.sortingOrder = order;
-        }
+                // Face esquerda (mais escura)
+                var goL = new GameObject($"SideFace_L{k}");
+                goL.transform.SetParent(tileGo.transform, false);
+                // Migração XY→XZ (2026-07-20): altura sai no Y (em pé saindo do chão).
+                goL.transform.localPosition = new Vector3(-_halfW * 0.5f, yc, 0f);
+                goL.transform.localScale = new Vector3(_halfW * 2f, sy, 1f); // largura = 1 tile iso
+                var srL = goL.AddComponent<SpriteRenderer>();
+                srL.sprite = sideSprite;
+                srL.color = new Color(0.55f, 0.45f, 0.35f);  // terra escura
+                srL.sortingOrder = order + k;
 
-        private static Sprite _pixelSprite;
-        private static Sprite GetPixelSprite()
-        {
-            if (_pixelSprite != null) return _pixelSprite;
-            var tex = new Texture2D(1, 1, TextureFormat.RGBA32, false);
-            tex.SetPixel(0, 0, Color.white);
-            tex.Apply();
-            _pixelSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1),
-                new Vector2(0.5f, 0.5f), 1f);
-            return _pixelSprite;
+                // Face direita (média)
+                var goR = new GameObject($"SideFace_R{k}");
+                goR.transform.SetParent(tileGo.transform, false);
+                goR.transform.localPosition = new Vector3(_halfW * 0.5f, yc, 0f);
+                goR.transform.localScale = new Vector3(_halfW * 2f, sy, 1f);
+                var srR = goR.AddComponent<SpriteRenderer>();
+                srR.sprite = sideSprite;
+                srR.color = new Color(0.75f, 0.6f, 0.45f);   // terra média
+                srR.sortingOrder = order + k;
+            }
         }
 
         private void BuildSingleTile(int x, int y)
@@ -297,20 +412,36 @@ namespace PangeaSkirmish
             if (_tilesRoot == null)
             {
                 _tilesRoot = new GameObject("Tiles").transform;
-                _tilesRoot.SetParent(transform, false);
+                if (_gridRig == null)
+            {
+                var center = CellToWorld(new Vector2Int(width / 2, height / 2));
+                var rigGo = new GameObject("GridRig");
+                rigGo.transform.position = center;
+                _gridRig = rigGo.transform;
+            }
+            _tilesRoot.SetParent(_gridRig, false);
             }
 
             var go = new GameObject($"Tile_{x}_{y}");
             go.transform.SetParent(_tilesRoot, false);
             go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
-            go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
 
-            var sr = go.AddComponent<SpriteRenderer>();
+            // Migração XY→XZ (2026-07-20): o sprite do tile é o TOPO do chão, então
+            // precisa ficar DEITADO no plano XZ (rotação -90° em X). O `go` vira um
+            // container neutro no chão; o SpriteRenderer vive num filho "Top" deitado.
+            // As SideFaces (filhas do `go`, em pé no Y) formam as laterais 3D.
+            var topGo = new GameObject("Top");
+            topGo.transform.SetParent(go.transform, false);
+            topGo.transform.localPosition = Vector3.zero;
+            topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (topo p/ câmera)
+            topGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+
+            var sr = topGo.AddComponent<SpriteRenderer>();
             Sprite tileSprite = null;
             if (useDebugGridSprite)
                 tileSprite = DebugGridSprite.CreateGridDebugSprite();
             else if (useAtlasSprites && tileDatabase != null)
-                tileSprite = tileDatabase.GetTile(_tileIndices[x, y]);
+                tileSprite = tileDatabase.GetTile(_terrainNames[x, y]);
             if (tileSprite == null) tileSprite = _blockSprite;
 
             sr.sprite = tileSprite;
@@ -321,8 +452,9 @@ namespace PangeaSkirmish
 
             if (showGridLines)
             {
+                // Contorno do losango do topo: vive no topGo (já deitado no XZ).
                 var lineGo = new GameObject("GridLine");
-                lineGo.transform.SetParent(go.transform, false);
+                lineGo.transform.SetParent(topGo.transform, false);
                 var lineSr = lineGo.AddComponent<SpriteRenderer>();
                 lineSr.sprite = GetGridLineSprite();
                 lineSr.sortingOrder = sr.sortingOrder + 2;
@@ -333,20 +465,23 @@ namespace PangeaSkirmish
             int h = _heights[x, y];
             if (h > 0)
                 UpdateSideFaces(x, y, h);
+
+            // Objeto overlay (se houver)
+            RefreshObjectAt(x, y);
         }
 
         // Copia o terreno atual para um MapData (flatten). units NÃO é tocado aqui.
         public void ExportTerrain(MapData map)
         {
             map.width = width; map.height = height;
-            map.tileIndices = new int[width * height];
+            map.terrainNames = new string[width * height];
             map.heights     = new int[width * height];
             map.voidCells   = new bool[width * height];
             for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
             {
                 int f = x * height + y;             // MESMA fórmula de MapData.Flat
-                map.tileIndices[f] = _tileIndices[x, y];
+                map.terrainNames[f] = _terrainNames[x, y];
                 map.heights[f]     = _heights[x, y];
                 map.voidCells[f]   = _voidCells[x, y];
             }
@@ -384,7 +519,7 @@ namespace PangeaSkirmish
             var newMap = new MapData();
             newMap.width = newW;
             newMap.height = newH;
-            newMap.tileIndices = new int[newW * newH];
+            newMap.terrainNames = new string[newW * newH];
             newMap.heights = new int[newW * newH];
             newMap.voidCells = new bool[newW * newH];
 
@@ -393,7 +528,7 @@ namespace PangeaSkirmish
             {
                 newMap.voidCells[i] = true;
                 newMap.heights[i] = 0;
-                newMap.tileIndices[i] = 0;
+                newMap.terrainNames[i] = "";
             }
 
             // Copiar dados existentes com offset
@@ -404,7 +539,7 @@ namespace PangeaSkirmish
                 int ny = y + offY;
                 int nf = nx * newH + ny;
                 int of = x * height + y;
-                newMap.tileIndices[nf] = _tileIndices[x, y];
+                newMap.terrainNames[nf] = _terrainNames[x, y];
                 newMap.heights[nf] = _heights[x, y];
                 newMap.voidCells[nf] = _voidCells[x, y];
             }
@@ -434,9 +569,11 @@ namespace PangeaSkirmish
 
             // Recriar arrays
             _tiles = new SpriteRenderer[width, height];
+            _objectSprites = new SpriteRenderer[width, height];
             _baseColors = new Color[width, height];
             _heights = new int[width, height];
-            _tileIndices = new int[width, height];
+            _terrainNames = new string[width, height];
+            _objectNames = new string[width, height];
             _voidCells = new bool[width, height];
 
             // Copiar dados do MapData
@@ -444,13 +581,24 @@ namespace PangeaSkirmish
             for (int y = 0; y < height; y++)
             {
                 _heights[x, y] = map.HeightAt(x, y);
-                _tileIndices[x, y] = map.TileAt(x, y);
-                _voidCells[x, y] = map.IsVoid(x, y);
+                _terrainNames[x, y] = map.TerrainAt(x, y);
+                _objectNames[x, y] = map.ObjectAt(x, y);
+                _voidCells[x, y] = sourceMap.IsVoid(x, y);
             }
+
+            // Parte A: sincronizar camada de colisão/ocupação com o terreno
+            if (_collision != null) _collision.SyncFrom(this);
 
             // Reconstruir sprites
             _tilesRoot = new GameObject("Tiles").transform;
-            _tilesRoot.SetParent(transform, false);
+            if (_gridRig == null)
+            {
+                var center = CellToWorld(new Vector2Int(width / 2, height / 2));
+                var rigGo = new GameObject("GridRig");
+                rigGo.transform.position = center;
+                _gridRig = rigGo.transform;
+            }
+            _tilesRoot.SetParent(_gridRig, false);
             var gridLineSprite = showGridLines ? GetGridLineSprite() : null;
 
             for (int x = 0; x < width; x++)
@@ -461,14 +609,20 @@ namespace PangeaSkirmish
                 var go = new GameObject($"Tile_{x}_{y}");
                 go.transform.SetParent(_tilesRoot, false);
                 go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
-                go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
 
-                var sr = go.AddComponent<SpriteRenderer>();
+                // Migração XY→XZ (2026-07-20): topo deitado no XZ (ver BuildSingleTile).
+                var topGo = new GameObject("Top");
+                topGo.transform.SetParent(go.transform, false);
+                topGo.transform.localPosition = Vector3.zero;
+                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (topo p/ câmera)
+                topGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+
+                var sr = topGo.AddComponent<SpriteRenderer>();
                 Sprite tileSprite = null;
                 if (useDebugGridSprite)
                     tileSprite = DebugGridSprite.CreateGridDebugSprite();
                 else if (useAtlasSprites && tileDatabase != null)
-                    tileSprite = tileDatabase.GetTile(_tileIndices[x, y]);
+                    tileSprite = tileDatabase.GetTile(_terrainNames[x, y]);
                 if (tileSprite == null) tileSprite = _blockSprite;
 
                 sr.sprite = tileSprite;
@@ -501,9 +655,11 @@ namespace PangeaSkirmish
             if (sourceMap != null) { width = sourceMap.width; height = sourceMap.height; }
 
             _tiles       = new SpriteRenderer[width, height];
+            _objectSprites = new SpriteRenderer[width, height];
             _baseColors  = new Color[width, height];
             _heights     = new int[width, height];
-            _tileIndices = new int[width, height];
+            _terrainNames = new string[width, height];
+            _objectNames  = new string[width, height];
             _voidCells   = new bool[width, height];
 
             for (int x = 0; x < width; x++)
@@ -512,19 +668,27 @@ namespace PangeaSkirmish
                 if (sourceMap != null)
                 {
                     _heights[x, y]     = sourceMap.HeightAt(x, y);
-                    _tileIndices[x, y] = sourceMap.TileAt(x, y);
+                    _terrainNames[x, y] = sourceMap.TerrainAt(x, y);
+                    _objectNames[x, y]  = sourceMap.ObjectAt(x, y);
                     _voidCells[x, y]   = sourceMap.IsVoid(x, y);
                 }
                 else
                 {
                     _heights[x, y]     = (x >= 7 && x <= 11 && y >= 7 && y <= 11) ? 1 : 0;
-                    _tileIndices[x, y] = PickTileVariant(x, y, _heights[x, y]);
+                    _terrainNames[x, y] = PickTileVariant(x, y, _heights[x, y]);
                     _voidCells[x, y]   = false;
                 }
             }
 
             _tilesRoot = new GameObject("Tiles").transform;
-            _tilesRoot.SetParent(transform, false);
+            if (_gridRig == null)
+            {
+                var center = CellToWorld(new Vector2Int(width / 2, height / 2));
+                var rigGo = new GameObject("GridRig");
+                rigGo.transform.position = center;
+                _gridRig = rigGo.transform;
+            }
+            _tilesRoot.SetParent(_gridRig, false);
             var gridLineSprite = showGridLines ? GetGridLineSprite() : null;
 
             for (int x = 0; x < width; x++)
@@ -535,14 +699,20 @@ namespace PangeaSkirmish
                 var go = new GameObject($"Tile_{x}_{y}");
                 go.transform.SetParent(_tilesRoot, false);
                 go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
-                go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
 
-                var sr = go.AddComponent<SpriteRenderer>();
+                // Migração XY→XZ (2026-07-20): topo deitado no XZ (ver BuildSingleTile).
+                var topGo = new GameObject("Top");
+                topGo.transform.SetParent(go.transform, false);
+                topGo.transform.localPosition = Vector3.zero;
+                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (topo p/ câmera)
+                topGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+
+                var sr = topGo.AddComponent<SpriteRenderer>();
                 Sprite tileSprite = null;
                 if (useDebugGridSprite)
                     tileSprite = DebugGridSprite.CreateGridDebugSprite();
                 else if (useAtlasSprites && tileDatabase != null)
-                    tileSprite = tileDatabase.GetTile(_tileIndices[x, y]);
+                    tileSprite = tileDatabase.GetTile(_terrainNames[x, y]);
                 if (tileSprite == null) tileSprite = _blockSprite;
 
                 sr.sprite = tileSprite;
@@ -567,14 +737,23 @@ namespace PangeaSkirmish
                 if (h > 0)
                     UpdateSideFaces(x, y, h);
             }
+
+            // Parte A: sincronizar camada de colisão/ocupação com o terreno recém-construído
+            if (_collision != null) _collision.SyncFrom(this);
+
+            int raised = 0;
+            for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                if (_heights[x, y] > 0) raised++;
+            Debug.Log($"[Grid:Build] width={width} height={height} célulasComAltura={raised}");
         }
 
         // ---- Cliff: faces de penhasco nas bordas do platô elevado ----
         private void PlaceCliffFaces(Transform parent)
         {
             if (tileDatabase == null) return;
-            var cliffSW = tileDatabase.GetCliffFace(0); // BL — borda sul
-            var cliffSE = tileDatabase.GetCliffFace(1); // BR — borda leste
+            var cliffSW = tileDatabase.GetTile("grass_cliff_SO"); // BL — borda sul
+            var cliffSE = tileDatabase.GetTile("grass_cliff_SE"); // BR — borda leste
 
             for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
@@ -597,6 +776,8 @@ namespace PangeaSkirmish
             var go = new GameObject($"Cliff_{x}_{y}_{sprite.name}");
             go.transform.SetParent(parent, false);
             go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
+            // Migração XY→XZ (2026-07-20): cliff é topo de tile → deita no XZ.
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
@@ -611,6 +792,26 @@ namespace PangeaSkirmish
                 _lastDebugState = useDebugGridSprite;
                 ApplyDebugSprites();
             }
+
+            // Caminho 3 (2026-07-14) + Migração XY→XZ (2026-07-20): lerp da rotação
+            // do GRID em torno do eixo Y do MUNDO (perpendicular ao chão XZ), snap de
+            // 90° suave. A câmera fica parada inclinada → "chão rodando" em 2.5D.
+            if (_gridRig != null)
+            {
+                float k = 1f - Mathf.Exp(-GRID_ROT_SPEED * Time.deltaTime);
+                _gridRot = Mathf.Lerp(_gridRot, _gridRotTarget, k);
+                _gridRig.rotation = Quaternion.Euler(0f, _gridRot, 0f);
+            }
+        }
+
+        /// <summary>
+        /// Vira o MAPA em um passo de 90° (clockwise=true → +90, false → -90).
+        /// Caminho 3: a rotação é aplicada no _gridRig (eixo Z do mundo), NÃO na
+        /// câmera. As unidades devem re-derivar o facing via UnitRegistry.
+        /// </summary>
+        public void SetGridRotation(bool clockwise)
+        {
+            _gridRotTarget += clockwise ? 90f : -90f;
         }
 
         private void ApplyDebugSprites()
@@ -628,16 +829,17 @@ namespace PangeaSkirmish
 
                 Sprite newSprite = useDebugGridSprite ? debugSprite : null;
                 if (newSprite == null && useAtlasSprites && tileDatabase != null)
-                    newSprite = tileDatabase.GetTile(_tileIndices[x, y]);
+                    newSprite = tileDatabase.GetTile(_terrainNames[x, y]);
                 _tiles[x, y].sprite = newSprite != null ? newSprite : _blockSprite;
                 _tiles[x, y].color = Color.white;
             }
         }
 
-        // Seleciona variante de tile baseado em posição (determinístico, distribuição uniforme)
-        private int PickTileVariant(int x, int y, int tileHeight)
+        // Seleciona variante de grama baseado em posição (determinístico, distribuição uniforme).
+        // Retorna o NOME do sprite (full=plano, half=empilhado).
+        private string PickTileVariant(int x, int y, int tileHeight)
         {
-            int[] variants = tileHeight > 0 ? ElevatedGrassVariants : GrassVariants;
+            string[] variants = tileHeight > 0 ? new[]{ "grass_tile_half" } : new[]{ "grass_tile_full" };
             int hash = x * 1543 ^ y * 9547 ^ (x * y) * 71;
             hash ^= hash >> 16;
             int idx = ((hash % variants.Length) + variants.Length) % variants.Length;
@@ -645,21 +847,46 @@ namespace PangeaSkirmish
         }
 
         // ---- Conversões isométricas ----
+        // Helper: rotação do mapa NÃO é aplicada no grid (Plano A: a câmera gira).
+        // Mantido apenas como identidade para não quebrar CellToWorld/WorldToCell.
+        private Vector2 RotateWorld(float x, float y)
+        {
+            return new Vector2(x, y);
+        }
+
         public Vector3 CellToWorld(Vector2Int cell)
         {
-            float wx = (cell.x - cell.y) * _halfW;
-            float wy = -(cell.x + cell.y) * _halfH + HeightAt(cell.x, cell.y) * _heightStep;
-            return new Vector3(wx, wy, 0f);
+            // Migração XY→XZ (2026-07-20): chão no plano XZ, altura no Y.
+            // bx = eixo X (largura do losango), bz = eixo Z (profundidade).
+            float bx = (cell.x - cell.y) * _halfW;
+            float bz = -(cell.x + cell.y) * _halfH;
+            return new Vector3(bx, HeightAt(cell.x, cell.y) * _heightStep, bz);
         }
 
         public Vector3 AnchorToWorldCenter(Vector2Int anchor, int footprint = AttributeStats.DefaultFootprint)
         {
             float cx = anchor.x + (footprint - 1) * 0.5f;
             float cy = anchor.y + (footprint - 1) * 0.5f;
-            int h = HeightAt(Mathf.RoundToInt(cx), Mathf.RoundToInt(cy));
-            float wx = (cx - cy) * _halfW;
-            float wy = -(cx + cy) * _halfH + h * _heightStep;
-            return new Vector3(wx, wy, 0f);
+            // Unidade grande (3x3) fica empilhada sobre a altura MÉDIA do footprint (Regra c).
+            int h = AvgHeight(anchor, footprint);
+            float bx = (cx - cy) * _halfW;
+            float bz = -(cx + cy) * _halfH;
+            return new Vector3(bx, h * _heightStep, bz);
+        }
+
+        /// <summary>Altura média das células do footprint (usada p/ unidades 3x3 ficarem empilhadas).</summary>
+        public int AvgHeight(Vector2Int anchor, int footprint = AttributeStats.DefaultFootprint)
+        {
+            int sum = 0, n = 0;
+            for (int x = 0; x < footprint; x++)
+            for (int y = 0; y < footprint; y++)
+            {
+                int cx = anchor.x + x, cy = anchor.y + y;
+                if (cx < 0 || cy < 0 || cx >= width || cy >= height) continue;
+                sum += HeightAt(cx, cy);
+                n++;
+            }
+            return n > 0 ? Mathf.RoundToInt((float)sum / n) : 0;
         }
 
         /// <summary>Ordem de desenho para uma posição de grid (maior = mais à frente).</summary>
@@ -670,15 +897,61 @@ namespace PangeaSkirmish
             return Mathf.RoundToInt((cx + cy) * 4f);
         }
 
-        public Vector2Int WorldToCell(Vector3 world)
+        // Converte world -> cell base (0°), depois aplica rotação inversa do mapa.
+        // Migração XY→XZ (2026-07-20): o chão é XZ, então lemos world.x / world.z.
+        // CORREÇÃO (2026-07-20): InverseTransformPoint devolve o ponto relativo ao
+        // pivô do _gridRig (centro do grid), mas CellToWorld é definido relativo à
+        // ORIGEM e os tiles são posicionados em world = CellToWorld(cell)+positionOffset.
+        // Então, após tirar a rotação do rig, devolvemos o ponto à origem somando a
+        // posição do pivô e subtraindo o offset. Sem isso, o cell calculado saía
+        // deslocado em ~centro/halfH (selection aparecia no tile errado / clampada).
+        private Vector2Int WorldToCellBase(Vector3 world, bool clamp)
         {
-            float a = world.x / _halfW;        // col - row
-            float b = -world.y / _halfH;       // col + row  (ignora elevação)
+            Vector3 local;
+            if (_gridRig != null)
+            {
+                local = _gridRig.InverseTransformPoint(world);
+                local += _gridRig.position - positionOffset;
+            }
+            else
+            {
+                local = world - positionOffset;
+            }
+
+            float ux = local.x;
+            float uz = local.z;
+            float a = ux / _halfW;          // col - row (base 0°)
+            float b = -uz / _halfH;         // col + row (base 0°)
             float col = (a + b) * 0.5f;
             float row = (b - a) * 0.5f;
-            return new Vector2Int(
-                Mathf.Clamp(Mathf.RoundToInt(col), 0, width - 1),
-                Mathf.Clamp(Mathf.RoundToInt(row), 0, height - 1));
+            if (clamp)
+                return new Vector2Int(
+                    Mathf.Clamp(Mathf.RoundToInt(col), 0, width - 1),
+                    Mathf.Clamp(Mathf.RoundToInt(row), 0, height - 1));
+            return new Vector2Int(Mathf.RoundToInt(col), Mathf.RoundToInt(row));
+        }
+
+        public Vector2Int WorldToCell(Vector3 world)
+        {
+            return WorldToCellBase(world, true);
+        }
+
+        // Migração XY→XZ (2026-07-20): com a câmera inclinada (iso), ScreenToWorldPoint
+        // numa distância fixa NÃO acerta o chão. Fazemos raycast do mouse contra o
+        // plano do chão (y = 0 do mundo) e devolvemos o ponto nesse plano. O ponto já
+        // vem rotacionado pelo _gridRig (tiles são filhos dele); WorldToCellBase desfaz.
+        private static readonly Plane GroundPlane = new Plane(Vector3.up, 0f);
+        public bool ScreenToGround(Camera cam, Vector2 screen, out Vector3 worldPoint)
+        {
+            worldPoint = Vector3.zero;
+            if (cam == null) return false;
+            Ray ray = cam.ScreenPointToRay(screen);
+            if (GroundPlane.Raycast(ray, out float dist))
+            {
+                worldPoint = ray.GetPoint(dist);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -687,11 +960,7 @@ namespace PangeaSkirmish
         /// </summary>
         public Vector2Int WorldToCellRaw(Vector3 world)
         {
-            float a = world.x / _halfW;
-            float b = -world.y / _halfH;
-            float col = (a + b) * 0.5f;
-            float row = (b - a) * 0.5f;
-            return new Vector2Int(Mathf.RoundToInt(col), Mathf.RoundToInt(row));
+            return WorldToCellBase(world, false);
         }
 
         public Vector2Int GridCenterWorld => new Vector2Int(width, height);
@@ -752,7 +1021,7 @@ namespace PangeaSkirmish
                 if (sx < 0 || sy < 0 || sx >= width || sy >= height) continue;
                 int dx = x, dy = y;
 
-                data.tileIndices[data.Flat(dx, dy)] = _tileIndices[sx, sy];
+                data.terrainNames[data.Flat(dx, dy)] = _terrainNames[sx, sy];
                 data.heights[data.Flat(dx, dy)] = _heights[sx, sy];
                 data.voidCells[data.Flat(dx, dy)] = _voidCells[sx, sy];
             }
@@ -762,7 +1031,7 @@ namespace PangeaSkirmish
                 int src = Mathf.Clamp(copyFrom, 0, height - 1);
                 for (int y = 0; y < newH; y++)
                 {
-                    data.tileIndices[data.Flat(index, y)] = _tileIndices[Mathf.Clamp(index, 0, width - 1), y >= height ? height - 1 : y];
+                    data.terrainNames[data.Flat(index, y)] = _terrainNames[Mathf.Clamp(index, 0, width - 1), y >= height ? height - 1 : y];
                     data.heights[data.Flat(index, y)] = _heights[Mathf.Clamp(index, 0, width - 1), y >= height ? height - 1 : y];
                     data.voidCells[data.Flat(index, y)] = _voidCells[Mathf.Clamp(index, 0, width - 1), y >= height ? height - 1 : y];
                 }
@@ -771,7 +1040,7 @@ namespace PangeaSkirmish
             {
                 for (int x = 0; x < newW; x++)
                 {
-                    data.tileIndices[data.Flat(x, index)] = _tileIndices[x >= width ? width - 1 : x, Mathf.Clamp(index, 0, height - 1)];
+                    data.terrainNames[data.Flat(x, index)] = _terrainNames[x >= width ? width - 1 : x, Mathf.Clamp(index, 0, height - 1)];
                     data.heights[data.Flat(x, index)] = _heights[x >= width ? width - 1 : x, Mathf.Clamp(index, 0, height - 1)];
                     data.voidCells[data.Flat(x, index)] = _voidCells[x >= width ? width - 1 : x, Mathf.Clamp(index, 0, height - 1)];
                 }
@@ -788,6 +1057,13 @@ namespace PangeaSkirmish
             {
                 var anchor = new Vector2Int(from.x + dx, from.y + dy);
                 if (!IsAnchorInBounds(anchor, selfFootprint)) continue;
+                // Regra (b): parede de altura — só vizinhos adjacentes checam passo.
+                // (célula distante passa pela checagem de cada passo no pathfinding real,
+                //  mas p/ highlight de alcance usamos o passo direto adjacente.)
+                if (Mathf.Abs(dx) <= 1 && Mathf.Abs(dy) <= 1 && (dx != 0 || dy != 0))
+                {
+                    if (!CanStepBetween(from, anchor)) continue;
+                }
                 bool blocked = false;
                 foreach (var u in blockerUnits)
                 {
@@ -799,6 +1075,58 @@ namespace PangeaSkirmish
             }
             return result;
         }
+
+        // Regra (b): pode-se mover de 'from' para 'to' (vizinho adjacente)?
+        // Bloqueia se a diferença de altura > maxStepClimb, A MENOS QUE haja
+        // rampa direcional ligando os 2 níveis (ponte de altura, Sugestão 2).
+        public bool CanStepBetween(Vector2Int from, Vector2Int to)
+        {
+            // Objeto parede na célula de destino → bloqueia sempre.
+            var objTo = GetObjectName(to.x, to.y);
+            if (!string.IsNullOrEmpty(objTo) && IsObjectWall(objTo)) return false;
+            var objFrom = GetObjectName(from.x, from.y);
+            if (!string.IsNullOrEmpty(objFrom) && IsObjectWall(objFrom)) return false;
+
+            int dh = GetHeight(to.x, to.y) - GetHeight(from.x, from.y);
+            if (Mathf.Abs(dh) <= MaxStepClimb) return true;
+
+            // Rampa na direção certa faz ponte (ignora limite de step).
+            string dir = DirBetween(from, to);
+            if (HasRampToward(from, dir) || HasRampToward(to, DirOpposite(dir)))
+                return true;
+
+            return false;
+        }
+
+        private bool HasRampToward(Vector2Int cell, string dir)
+        {
+            var t = GetTerrainName(cell.x, cell.y);
+            var def = tileDatabase != null ? tileDatabase.GetDef(t) : null;
+            return def != null && def.kind == TileKind.Ramp && def.dir == dir;
+        }
+
+        private static string DirBetween(Vector2Int from, Vector2Int to)
+        {
+            int dx = to.x - from.x;
+            int dy = to.y - from.y;
+            // Iso: adjacency diagonal → 4 direções
+            if (dx < 0 && dy < 0) return "NO";
+            if (dx > 0 && dy < 0) return "NE";
+            if (dx < 0 && dy > 0) return "SO";
+            if (dx > 0 && dy > 0) return "SE";
+            return "";
+        }
+
+        private static string DirOpposite(string dir)
+        {
+            if (dir == "NO") return "SE";
+            if (dir == "NE") return "SO";
+            if (dir == "SO") return "NE";
+            if (dir == "SE") return "NO";
+            return "";
+        }
+
+        private int MaxStepClimb => RuntimeTuning.Active != null ? RuntimeTuning.Active.maxStepClimb : 1;
 
         public List<Vector2Int> GetReachableAnchors(Vector2Int from, int budget, IEnumerable<Vector2Int> blockers)
         {
@@ -819,7 +1147,7 @@ namespace PangeaSkirmish
             return result;
         }
 
-        // ---- Highlight (tint do tile central do anchor) ----
+        // ---- Highlight (tint do tile central do anchor + contorno estilizado) ----
         public void HighlightAnchors(IEnumerable<Vector2Int> anchors)
             => HighlightAnchors(anchors, highlightColor);
 
@@ -832,12 +1160,47 @@ namespace PangeaSkirmish
                 if (center.x < 0 || center.y < 0 || center.x >= width || center.y >= height) continue;
                 SetTileColor(center, color);
                 if (!_highlighted.Contains(center)) _highlighted.Add(center);
+                AddHighlightBorder(center, color);
             }
+        }
+
+        // Overlay de contorno (losango) sobre o tile destacado — mesmo "look" de borda
+        // dos botões pg-button (2px, cor da borda tema). Mantém a cor de SEMÂNTICA do
+        // tile (verde move / ouro bônus) no tint; o contorno é a borda estilizada.
+        private void AddHighlightBorder(Vector2Int cell, Color highlight)
+        {
+            if (_tiles == null || _tiles[cell.x, cell.y] == null) return;
+            if (_highlightBorders.TryGetValue(cell, out var existing)) { existing.color = BorderTint(highlight); return; }
+
+            var lineGo = new GameObject($"HLBorder_{cell.x}_{cell.y}");
+            lineGo.transform.SetParent(_tiles[cell.x, cell.y].transform, false);
+            var lineSr = lineGo.AddComponent<SpriteRenderer>();
+            lineSr.sprite = GetGridLineSprite();
+            lineSr.sortingOrder = _tiles[cell.x, cell.y].sortingOrder + 3;
+            lineSr.color = BorderTint(highlight);
+            _highlightBorders[cell] = lineSr;
+        }
+
+        // Cor da borda do contorno: usa a borda tema (rgb 42,58,106) clareada levemente
+        // para destacar sobre o tint do tile. Mantém identidade visual dos menus.
+        private static Color BorderTint(Color highlight)
+        {
+            // Borda tema base (PangeaTheme --pg-panel-border / --pg-panel-highlight)
+            Color border = new Color(0.42f, 0.58f, 1.0f); // azul claro da borda UI
+            // Se o highlight for muito claro, escurece a borda p/ contraste
+            float lum = 0.299f * highlight.r + 0.587f * highlight.g + 0.114f * highlight.b;
+            if (lum > 0.7f) border = new Color(0.16f, 0.23f, 0.42f);
+            return border;
         }
 
         public void ClearHighlight()
         {
             foreach (var c in _highlighted) SetTileColor(c, _baseColors[c.x, c.y]);
+            foreach (var kv in _highlightBorders)
+            {
+                if (kv.Value != null) Destroy(kv.Value.gameObject);
+            }
+            _highlightBorders.Clear();
             _highlighted.Clear();
         }
 

@@ -55,33 +55,6 @@ MonoBehaviour:
     magicResistPerWIS: 1
     manaRegenBase: 2
     manaRegenPerWIS: 0.5
-  guerreiro:
-    STR: 8
-    VIT: 10
-    DEX: 2
-    AGI: 3
-    INT: 1
-    WIS: 1
-    Footprint: 3
-    AttackRange: 1
-  ladino:
-    STR: 2
-    VIT: 5
-    DEX: 8
-    AGI: 8
-    INT: 1
-    WIS: 1
-    Footprint: 3
-    AttackRange: 1
-  goblin:
-    STR: 3
-    VIT: 4
-    DEX: 3
-    AGI: 5
-    INT: 1
-    WIS: 1
-    Footprint: 2
-    AttackRange: 1
   arqueiro:
     STR: 5
     VIT: 5
@@ -173,17 +146,6 @@ MonoBehaviour:
     elementAffinity: 6
   attributeMin: 1
   attributeMax: 20
-  aiAggression: 0.3
-  aiAttackPreference: 0.3
-  aiIntelligence: 1
-  aiSurvivalInstinct: 0.5
-  aiSurvivalHpThreshold: 0.2
-  aiFlankRange: 2
-  aiAggressiveMaxGap: 2
-  aiCautiousGapOffset: 1
-  aiFlankScoreBonus: 1
-  aiKillabilityWeight: 0.4
-  aiReactionDelay: 0.3
   spriteScalePerFootprint: 1.4
   footprintScalePerFootprint: 0.95
   spriteFootOffsetRatio: -0.1
@@ -382,7 +344,7 @@ MonoBehaviour:
   physicalBuffStrFactor: 0.5
   physicalBuffVitFactor: 0.5
   shieldCapacityFactor: 1
-  fireTileDamageFactor: 0.4
+  fireTileDamageFactor: 1
   fireTileDurationRounds: 3
   windTileDurationRounds: 3
   windPushTiles: 1
@@ -429,7 +391,6 @@ MonoBehaviour:
   spellVfxDebugLogs: 1
   spellProjectileFrame: 0
   aiUseSpells: 1
-  aiSpellMinPair: 8
   aiSpellManaFraction: 0.34
   aiConcentrationThreshold: 0
   worldBarsEnabled: 1

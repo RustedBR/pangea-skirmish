@@ -1605,10 +1605,8 @@ namespace PangeaSkirmish
         {
             if (Mouse.current == null || _cam == null) return null;
             Vector2 screen = Mouse.current.position.ReadValue();
-            Vector3 world = _cam.ScreenToWorldPoint(
-                new Vector3(screen.x, screen.y, -_cam.transform.position.z));
-
-            var u = Unit.PickAtWorld(new Vector2(world.x, world.y));
+            // Migração XY→XZ: raycast 3D do mouse contra as unidades (colliders 3D).
+            var u = Unit.PickAtWorld(_cam, screen);
             // No picking de ataque só inimigos vivos do time oposto são alvos.
             if (u != null && !u.IsDead && _controlled != null && u.team != _controlled.team)
                 return u;
@@ -1617,9 +1615,12 @@ namespace PangeaSkirmish
 
         private Vector2Int? HitCell()
         {
+            if (_cam == null) return null;
             Vector2 screen = Mouse.current.position.ReadValue();
-            Vector3 world = _cam.ScreenToWorldPoint(
-                new Vector3(screen.x, screen.y, -_cam.transform.position.z));
+            // Migração XY→XZ (2026-07-20): raycast no plano y=0 (ScreenToGround),
+            // NÃO ScreenToWorldPoint (2D, plano Z=0 que não existe mais).
+            Vector3 world;
+            if (!_grid.ScreenToGround(_cam, screen, out world)) return null;
             return _grid.WorldToCell(world);
         }
 

@@ -166,19 +166,19 @@ namespace PangeaSkirmish
                 }
                 case SpellElement.Earth:
                 {
-                    int existingTile = grid.GetTileIndex(cell.x, cell.y);
-                    int stoneIdx = Tuning.Get().earthStoneTileIndex;
-                    if (existingTile == stoneIdx)
+                    string existingTile = grid.GetTerrainName(cell.x, cell.y);
+                    string stoneName = Tuning.Get().earthStoneTileName;
+                    if (existingTile == stoneName)
                     {
                         int newH = grid.HeightAt(cell.x, cell.y) + Tuning.Get().earthRaiseAmount;
-                        grid.SetCell(cell.x, cell.y, stoneIdx, newH);
+                        grid.SetCell(cell.x, cell.y, stoneName, newH, "", false);
                         foreach (var u in FindUnitsAtCell(caster, cell, grid))
                         {
                             u.SnapToAnchor();
                         }
                         return ($"{caster.unitName} elevou terreno em {cell}", null);
                     }
-                    return ($"{caster.unitName} so eleva pedra ({stoneIdx})", null);
+                    return ($"{caster.unitName} so eleva pedra ({stoneName})", null);
                 }
             }
 

@@ -78,7 +78,13 @@ namespace PangeaSkirmish
 
         private void FaceCamera()
         {
-            if (_cam != null) transform.rotation = _cam.transform.rotation;
+            if (_cam == null) return;
+            // Migração XY→XZ (2026-07-20): billboard Y-only — texto em pé, legível,
+            // encara o yaw da câmera mas não inclina com o pitch (não fica torto).
+            Quaternion parentRot = transform.parent != null ? transform.parent.rotation : Quaternion.identity;
+            Vector3 camEuler = _cam.transform.rotation.eulerAngles;
+            Quaternion camYaw = Quaternion.Euler(0f, camEuler.y, 0f);
+            transform.rotation = Quaternion.Inverse(parentRot) * camYaw;
         }
 
         /// <summary>Fase 2: colapsa só o resultado final acima da unidade e some após `duration`.</summary>

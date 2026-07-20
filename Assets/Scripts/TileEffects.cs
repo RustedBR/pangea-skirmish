@@ -15,7 +15,7 @@ namespace PangeaSkirmish
         public int Potency;
         public Vector2Int Direction;
         public int RoundsLeft;
-        public int PreviousTileIndex;
+        public string PreviousTerrainName;
 
         [NonSerialized] public SpriteRenderer Overlay;
 
@@ -76,13 +76,13 @@ namespace PangeaSkirmish
                 RoundsLeft = kind == TileEffectKind.Fire ? Tuning.Get().fireTileDurationRounds
                           : kind == TileEffectKind.Wind ? Tuning.Get().windTileDurationRounds
                           : kind == TileEffectKind.ManaOrb ? -1 : 1,
-                PreviousTileIndex = _grid != null && cell.x >= 0 && cell.x < _grid.width && cell.y >= 0 && cell.y < _grid.height
-                    ? _grid.GetTileIndex(cell.x, cell.y) : 0,
+                PreviousTerrainName = _grid != null && cell.x >= 0 && cell.x < _grid.width && cell.y >= 0 && cell.y < _grid.height
+                    ? _grid.GetTerrainName(cell.x, cell.y) : "",
             };
 
             if (kind == TileEffectKind.Water)
             {
-                _grid.SetCell(cell.x, cell.y, Tuning.Get().waterTileIndex, 0);
+                _grid.SetCell(cell.x, cell.y, Tuning.Get().waterTileName, 0, "", false);
             }
 
             _effects[cell] = fx;
@@ -103,6 +103,8 @@ namespace PangeaSkirmish
             var go = new GameObject($"Overlay_{fx.Cell.x}_{fx.Cell.y}");
             go.transform.SetParent(_overlayRoot);
             go.transform.position = _grid.AnchorToWorldCenter(fx.Cell, 1);
+            // Migração XY→XZ (2026-07-20): overlay de tile é topo → deita no XZ.
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = BuildFallbackTileSprite(fx.Kind);
             sr.sortingOrder = (fx.Cell.x + fx.Cell.y) * 4 + 3;
@@ -223,9 +225,9 @@ namespace PangeaSkirmish
                 if (fx.RoundsLeft > 0) fx.RoundsLeft--;
                 if (fx.RoundsLeft == 0 && fx.Kind != TileEffectKind.ManaOrb)
                 {
-                    if (fx.PreviousTileIndex >= 0 && fx.Kind == TileEffectKind.Water)
+                    if (!string.IsNullOrEmpty(fx.PreviousTerrainName) && fx.Kind == TileEffectKind.Water)
                     {
-                        _grid.SetCell(fx.Cell.x, fx.Cell.y, fx.PreviousTileIndex, 0);
+                        _grid.SetCell(fx.Cell.x, fx.Cell.y, fx.PreviousTerrainName, 0, "", false);
                     }
                     RemoveAt(fx.Cell);
                 }

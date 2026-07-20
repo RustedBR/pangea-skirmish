@@ -98,18 +98,28 @@
         <ui:Label text="MAGIA — MANA" class="bh-title" />
         <ui:Label name="mana-value" text="0 MP" class="bh-mana-value" />
         <!-- Pool ALCANCE / DURAÇÃO (só mana) -->
-        <ui:VisualElement class="bh-stepper-row bh-stepper-compact">
-          <ui:Label name="mana-range-label" text="Alcance/Duração" class="bh-stepper-label" />
-          <ui:Button name="mana-range-minus" text="−" class="bh-step-btn" />
-          <ui:Label name="mana-range-value" text="0" class="bh-stepper-value" />
-          <ui:Button name="mana-range-plus"  text="+" class="bh-step-btn" />
+        <ui:VisualElement class="opt-row bh-mana-opt">
+          <ui:VisualElement class="opt-text">
+            <ui:Label name="mana-range-label" text="Alcance / Duração" class="opt-label" />
+            <ui:Label text="Tiles de distância do alvo. Define duração de self-buff." class="opt-desc" />
+          </ui:VisualElement>
+          <ui:VisualElement class="stepper">
+            <ui:Button name="mana-range-minus" text="−" class="bh-step-btn" />
+            <ui:Label name="mana-range-value" text="0" class="step-value" />
+            <ui:Button name="mana-range-plus"  text="+" class="bh-step-btn" />
+          </ui:VisualElement>
         </ui:VisualElement>
         <!-- Pool POTÊNCIA / ATRIBUTO (mana + 1 PA por ponto) -->
-        <ui:VisualElement class="bh-stepper-row bh-stepper-compact">
-          <ui:Label name="mana-power-label" text="Potência/Atributo" class="bh-stepper-label" />
-          <ui:Button name="mana-power-minus" text="−" class="bh-step-btn" />
-          <ui:Label name="mana-power-value" text="1" class="bh-stepper-value" />
-          <ui:Button name="mana-power-plus"  text="+" class="bh-step-btn" />
+        <ui:VisualElement class="opt-row bh-mana-opt">
+          <ui:VisualElement class="opt-text">
+            <ui:Label name="mana-power-label" text="Potência / Atributo" class="opt-label" />
+            <ui:Label text="Quanto maior, mais dano/buff. Custa 1 PA por ponto." class="opt-desc" />
+          </ui:VisualElement>
+          <ui:VisualElement class="stepper">
+            <ui:Button name="mana-power-minus" text="−" class="bh-step-btn" />
+            <ui:Label name="mana-power-value" text="1" class="step-value" />
+            <ui:Button name="mana-power-plus"  text="+" class="bh-step-btn" />
+          </ui:VisualElement>
         </ui:VisualElement>
         <ui:Label name="mana-potency" text="Alcance: 0  •  Potência: 0" class="bh-mana-potency" />
         <ui:VisualElement class="bh-mana-actions">

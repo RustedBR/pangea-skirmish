@@ -7,7 +7,7 @@
 .bh-window {
   background-color: rgb(22, 34, 66);
   border-radius: 8px;
-  border: 1px solid rgb(120, 160, 220);
+  border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid;
   padding: 6px;
 }
 .bh-title {
@@ -23,8 +23,8 @@
 
 /* TOPO */
 .bh-topbar {
-  position: absolute; top: 10px; left: 50%; width: 357px; height: 51px;
-  transform: translateX(-50%);
+  position: absolute; top: 10px; left: 0; right: 0; width: 357px; height: 51px;
+  margin-left: auto; margin-right: auto;
   flex-direction: row; align-items: center; justify-content: space-between;
   padding: 0 14px;
 }
@@ -61,7 +61,7 @@
 .bh-status-content { flex-grow: 1; margin-top: 28px; padding: 4px; }
 .bh-portrait {
   width: 70px; height: 86px; background-color: rgb(10, 18, 41);
-  border: 1px solid rgb(120, 160, 220); border-radius: 4px; margin-right: 8px;
+  border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid; border-radius: 4px; margin-right: 8px;
 }
 .bh-portrait-img { width: 100%; height: 100%; }
 .bh-unit-name { font-size: 17px; color: white; -unity-font-style: bold; }
@@ -74,7 +74,7 @@
 
 /* SEQ */
 .bh-seq {
-  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 12px; left: 0; right: 0; margin-left: auto; margin-right: auto;
   width: 470px; height: 60px; flex-direction: column;
 }
 .bh-seq-label { font-size: 12px; color: rgb(189, 217, 255); }
@@ -93,11 +93,11 @@
 .bh-subpanel { flex-direction: column; gap: 4px; }
 .bh-menu-btn {
   height: 38px; background-color: rgb(54, 78, 130); color: white;
-  border-radius: 6px; border: 1px solid rgb(120, 160, 220); font-size: 15px;
+  border-radius: 6px; border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid; font-size: 15px;
 }
 .bh-confirm-btn {
   height: 42px; background-color: rgb(36, 107, 56); color: white;
-  border-radius: 6px; border: 1px solid rgb(140, 217, 158); font-size: 15px;
+  border-radius: 6px; border-width: 1px; border-color: rgb(140, 217, 158); border-style: solid; font-size: 15px;
 }
 .bh-inline-btn {
   height: 34px; background-color: rgb(128, 92, 31); color: white;
@@ -167,8 +167,54 @@
 
 /* MP WAITING */
 .bh-mp-waiting {
-  position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 60px; left: 0; right: 0; margin-left: auto; margin-right: auto;
   width: 500px; height: 50px; align-items: center; justify-content: center;
   background-color: rgba(10,13,20,0.88); border-radius: 6px; display: none;
 }
 .bh-mp-waiting-text { font-size: 20px; color: rgb(235, 204, 89); text-align: center; }
+
+/* ---- MANA-MENU: layout horizontal canônico (stepper + label) — APROVADO 2026-07-12 ----
+   ESCOPADO ao #mana-menu (não vaza pro main-menu/COMANDOS).
+   Reestrutura cada pool (Alcance, Potência) em LINHA HORIZONTAL:
+   label+desc à esquerda, stepper [−] valor [+] à direita. */
+#mana-menu .opt-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(20, 40, 61, 0.6);
+    border-width: 1px; border-color: rgb(46, 109, 164); border-style: solid;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+}
+#mana-menu .opt-text { flex-grow: 1; margin-right: 10px; }
+#mana-menu .opt-label {
+    color: rgb(207, 230, 255);
+    font-size: 15px;
+    -unity-font-style: bold;
+}
+#mana-menu .opt-desc {
+    color: rgb(127, 155, 181);
+    font-size: 12px;
+    margin-top: 2px;
+    white-space: normal;
+}
+#mana-menu .stepper { flex-direction: row; align-items: center; }
+#mana-menu .step-value {
+    min-width: 46px;
+    height: 34px;
+    -unity-text-align: middle-center;
+    color: rgb(126, 200, 255);
+    font-size: 16px;
+    -unity-font-style: bold;
+    background-color: rgb(13, 27, 42);
+    border-top-width: 1px;
+    border-top-color: rgb(46, 109, 164);
+    border-top-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(46, 109, 164);
+    border-bottom-style: solid;
+}
+/* herdado de .bh-step-btn (width/height dos botões −/+) já vem do global;
+   se quiser sobrescrever o tamanho SÓ aqui: */
+#mana-menu .bh-step-btn { width: 34px; height: 34px; font-size: 18px; }

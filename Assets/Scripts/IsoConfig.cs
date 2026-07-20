@@ -12,7 +12,9 @@ namespace PangeaSkirmish
         public int pixelsPerUnit = 32;
 
         [Header("Altura por nivel de elevacao")]
-        public float heightStep = 1.0f;
+        // Cada nivel de tile = 0.5 unidade de world.
+        // Brush "full" tem height=2 -> sobe 1.0 (1 sprite); "half" height=1 -> sobe 0.5 (meio sprite).
+        public float heightStep = 0.5f;
 
         public float TileUnitsW => (float)tilePixelW / pixelsPerUnit;
         public float TileUnitsH => (float)tilePixelH / pixelsPerUnit;

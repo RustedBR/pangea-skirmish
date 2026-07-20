@@ -24,23 +24,32 @@ namespace PangeaSkirmish
         public string mapName = "Novo Mapa";
         public int width  = 20;
         public int height = 20;
-        public int[] tileIndices;  // idx = x * height + y → índice do atlas
-        public int[] heights;      // idx = x * height + y → elevação
+        public string[] terrainNames; // idx = x * height + y → nome do sprite de terreno (atlas)
+        public int[] heights;      // idx = x * height + y → elevação do terreno
         public bool[] voidCells;   // idx = x * height + y → cell vazia (não renderiza)
+        public string[] objectNames; // idx = x * height + y → nome do objeto (1 por célula) ou "" se vazio
         public List<UnitPlacement> units = new List<UnitPlacement>();
 
         public int Flat(int x, int y) => x * height + y;
-        public int TileAt(int x, int y)   => tileIndices[Flat(x, y)];
+        public string TileAt(int x, int y)  => terrainNames[Flat(x, y)] ?? "";
+        public string TerrainAt(int x, int y) => terrainNames[Flat(x, y)] ?? "";
         public int HeightAt(int x, int y) => heights[Flat(x, y)];
         public bool IsVoid(int x, int y)  => voidCells != null && voidCells[Flat(x, y)];
+        public string ObjectAt(int x, int y) => (objectNames != null && Flat(x, y) < objectNames.Length) ? objectNames[Flat(x, y)] : "";
+        public void SetObject(int x, int y, string name)
+        {
+            if (objectNames == null) objectNames = new string[width * height];
+            objectNames[Flat(x, y)] = name ?? "";
+        }
 
-        // Mapa novo e vazio: tudo grama plana (tile 0, altura 0).
+        // Mapa novo e vazio: tudo grama plana (tile 0, altura 0, sem objetos).
         public static MapData CreateEmpty(int w, int h)
         {
             var m = new MapData { width = w, height = h,
-                tileIndices = new int[w * h], heights = new int[w * h],
-                voidCells = new bool[w * h] };
-            for (int i = 0; i < w * h; i++) { m.tileIndices[i] = 0; m.heights[i] = 0; m.voidCells[i] = false; }
+                terrainNames = new string[w * h],
+                heights = new int[w * h],
+                voidCells = new bool[w * h], objectNames = new string[w * h] };
+            for (int i = 0; i < w * h; i++) { m.terrainNames[i] = "grass_tile_full"; m.heights[i] = 0; m.voidCells[i] = false; m.objectNames[i] = ""; }
             return m;
         }
 
@@ -138,26 +147,49 @@ namespace PangeaSkirmish
     }
 
     // "Pincéis" do editor de terreno: cada um aplica (tileIndex, height) a uma célula.
+    // "Pincéis" do editor de terreno — referenciados pelo NOME do sprite no atlas.
     [Serializable]
-    public class TileBrush { public string name; public int tileIndex; public int height; }
-
+    public class TileBrush
+    {
+        public string name;        // rótulo na UI
+        public string spriteName;  // nome exato do sprite no .meta (ex.: "grass_tile_full")
+        public TileKind kind;      // Terrain / Ramp / Object
+        public int height;         // full=+2, half=+1, água=-2/-1; objeto=0
+        public bool isWall;        // objeto sólido bloqueia a célula
+        public string dir;         // direção da rampa (NO/NE/SO/SE)
+    }
     public static class TilePalette
     {
-        // Paleta curada do atlas TinyTactics.
-        // Tiles validados visualmente no jogo.
-        // Altura agora é genérica — clicar em tile existente empilha (+1).
+        // Paleta curada — 22 sprites nomeados no atlas (Mareus revisou no Sprite Editor).
+        // Ignora tileset_8 / tileset_20 (não revisados).
         public static readonly TileBrush[] Brushes =
         {
-            new TileBrush{ name="Grama",      tileIndex=0,  height=0 },
-            new TileBrush{ name="Terra",      tileIndex=4,  height=0 },
-            new TileBrush{ name="Pedra",      tileIndex=8,  height=0 },
-            new TileBrush{ name="Areia",      tileIndex=12, height=0 },
-            new TileBrush{ name="Água",       tileIndex=16, height=0 },
-            new TileBrush{ name="Grama escura",tileIndex=20, height=0 },
-            new TileBrush{ name="Caminho",    tileIndex=24, height=0 },
-            new TileBrush{ name="Apagar",     tileIndex=-1, height=0 },
+            // ── Terreno ──
+            new TileBrush{ name="Grama full",  spriteName="grass_tile_full",  kind=TileKind.Terrain, height=2,  isWall=false },
+            new TileBrush{ name="Grama half",  spriteName="grass_tile_half",  kind=TileKind.Terrain, height=1,  isWall=false },
+            new TileBrush{ name="Água full",   spriteName="water_full",       kind=TileKind.Terrain, height=-2, isWall=false },
+            new TileBrush{ name="Água half",   spriteName="water_half",       kind=TileKind.Terrain, height=-1, isWall=false },
+            // Rampas direcionais (ponte de altura)
+            new TileBrush{ name="Rampa NO",    spriteName="grass_tile_ramp_NO", kind=TileKind.Ramp, height=0, isWall=false, dir="NO" },
+            new TileBrush{ name="Rampa NE",    spriteName="grass_tile_ramp_NE", kind=TileKind.Ramp, height=0, isWall=false, dir="NE" },
+            new TileBrush{ name="Rampa SO",    spriteName="grass_tile_ramp_SO", kind=TileKind.Ramp, height=0, isWall=false, dir="SO" },
+            new TileBrush{ name="Rampa SE",    spriteName="grass_tile_ramp_SE", kind=TileKind.Ramp, height=0, isWall=false, dir="SE" },
+            // Penhascos / taludes (terreno decorativo de borda)
+            new TileBrush{ name="Penhasco SO", spriteName="grass_cliff_SO",   kind=TileKind.Terrain, height=0, isWall=false },
+            new TileBrush{ name="Penhasco SE", spriteName="grass_cliff_SE",   kind=TileKind.Terrain, height=0, isWall=false },
+            new TileBrush{ name="Talude NO",   spriteName="grass_slide_NO",   kind=TileKind.Terrain, height=0, isWall=false },
+            new TileBrush{ name="Talude NE",   spriteName="grass_slide_NE",   kind=TileKind.Terrain, height=0, isWall=false },
+            new TileBrush{ name="Talude SO",   spriteName="grass_slide_SO",   kind=TileKind.Terrain, height=0, isWall=false },
+            new TileBrush{ name="Talude SE",   spriteName="grass_slide_SE",   kind=TileKind.Terrain, height=0, isWall=false },
+            new TileBrush{ name="Escada NE",   spriteName="stairs_NE",        kind=TileKind.Ramp, height=0, isWall=false, dir="NE" },
+            new TileBrush{ name="Escada NO",   spriteName="stairs_NO",        kind=TileKind.Ramp, height=0, isWall=false, dir="NO" },
+            // ── Objetos (1 por célula) ──
+            new TileBrush{ name="Árvore",      spriteName="tree",    kind=TileKind.Object, height=0, isWall=true  },
+            new TileBrush{ name="Pedra 1",     spriteName="stone_1", kind=TileKind.Object, height=0, isWall=true  },
+            new TileBrush{ name="Pedra 2",     spriteName="stone_2", kind=TileKind.Object, height=0, isWall=true  },
+            new TileBrush{ name="Arbusto",     spriteName="bush",    kind=TileKind.Object, height=0, isWall=false },
+            // Utilitário
+            new TileBrush{ name="Apagar (void)", spriteName="",      kind=TileKind.Terrain, height=0, isWall=false },
         };
-
-        public const int VOID_INDEX = -1;
     }
 }

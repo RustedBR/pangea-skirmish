@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PangeaSkirmish
 {
-    /// <summary>Rótulo de texto no mundo (TextMesh) que sempre encara a câmera. Usado para
+    /// <summary>Rótulo de texto no mundo (TextMesh) que sempre encara a tela. Usado para
     /// mostrar a rolagem de iniciativa acima de cada unidade.</summary>
     public class FloatingLabel : MonoBehaviour
     {
@@ -40,8 +40,12 @@ namespace PangeaSkirmish
         private void FaceCamera()
         {
             if (_cam == null) return;
-            // mantém o texto legível e de frente para a câmera inclinada
-            transform.rotation = _cam.transform.rotation;
+            // Migração XY→XZ (2026-07-20): billboard Y-only — texto em pé, legível,
+            // encara o yaw da câmera mas não inclina com o pitch (não fica torto).
+            Quaternion parentRot = transform.parent != null ? transform.parent.rotation : Quaternion.identity;
+            Vector3 camEuler = _cam.transform.rotation.eulerAngles;
+            Quaternion camYaw = Quaternion.Euler(0f, camEuler.y, 0f);
+            transform.rotation = Quaternion.Inverse(parentRot) * camYaw;
         }
 
         public void Dismiss() => Destroy(gameObject);

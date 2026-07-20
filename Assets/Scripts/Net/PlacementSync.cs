@@ -350,8 +350,10 @@ namespace PangeaSkirmish
             if (Mouse.current == null) return;
 
             Vector2 screen = Mouse.current.position.ReadValue();
-            float depth = Mathf.Abs(_cam.transform.position.z);
-            Vector3 world = _cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
+            // Migração XY→XZ (2026-07-20): raycast no plano y=0 (ScreenToGround),
+            // NÃO ScreenToWorldPoint (2D, plano Z=0 que não existe mais).
+            Vector3 world;
+            if (!_grid.ScreenToGround(_cam, screen, out world)) world = Vector3.zero;
             var cell = _grid.WorldToCell(world);
 
             // Preview do footprint (3x3) sob o cursor — item (A). Só redesenha quando

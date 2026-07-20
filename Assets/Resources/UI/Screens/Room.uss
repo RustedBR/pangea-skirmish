@@ -127,7 +127,6 @@
     justify-content: flex-start;
 }
 .room__tab-btn { flex-grow: 1; margin-right: 4px; }
-.room__tab-btn:last-child { margin-right: 0; }
 .room__tabpanel {
     flex-grow: 1;
     flex-direction: row;
@@ -140,7 +139,8 @@
 .room__tooltip {
     position: absolute;
     background-color: rgba(8, 12, 28, 0.96);
-    border: 1px solid rgb(106, 169, 255);
+    border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
+    border-left-color: rgb(106, 169, 255); border-right-color: rgb(106, 169, 255); border-top-color: rgb(106, 169, 255); border-bottom-color: rgb(106, 169, 255);
     border-radius: 6px;
     padding: 6px 8px;
     max-width: 280px;
@@ -187,7 +187,11 @@
     align-items: center;
     justify-content: space-between;
     background-color: var(--pg-panel-bg-2, rgb(18, 26, 56));
-    border: 1px solid var(--pg-accent, rgb(106, 169, 255));
+    border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
+    border-left-color: var(--pg-accent, rgb(106, 169, 255));
+    border-right-color: var(--pg-accent, rgb(106, 169, 255));
+    border-top-color: var(--pg-accent, rgb(106, 169, 255));
+    border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
     border-radius: 10px;
     padding: 12px 16px;
     margin-bottom: 12px;
@@ -221,8 +225,8 @@
     font-size: 18px;
     -unity-font-style: bold;
     background-color: var(--pg-panel, rgb(10, 16, 38));
-    border-top: 1px solid var(--pg-accent, rgb(106, 169, 255));
-    border-bottom: 1px solid var(--pg-accent, rgb(106, 169, 255));
+    border-top-width: 1px; border-top-color: var(--pg-accent, rgb(106, 169, 255));
+    border-bottom-width: 1px; border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
 }
 
 /* ---- Ícones BDragon (Opção C — steppers da aba Room, aprovados na imagem 2) ---- */

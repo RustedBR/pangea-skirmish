@@ -43,13 +43,6 @@ namespace PangeaSkirmish
 
         // ═════════════════════════ PERSONAGENS PADRÃO & ARMAS ═════════════════════════
 
-        [Header("═══ PERSONAGENS PADRÃO & ARMAS ═══")]
-        [Tooltip("Atributos iniciais do Guerreiro (STR/VIT/DEX/AGI/INT/WIS, footprint e alcance).")]
-        public UnitStatBlock guerreiro = new UnitStatBlock { STR = 8, VIT = 10, DEX = 2, AGI = 3, INT = 1, WIS = 1, Footprint = 3 };
-        [Tooltip("Atributos iniciais do Ladino.")]
-        public UnitStatBlock ladino    = new UnitStatBlock { STR = 3, VIT = 5,  DEX = 8, AGI = 10, INT = 1, WIS = 1, Footprint = 3 };
-        [Tooltip("Atributos iniciais do Goblin (inimigo básico).")]
-        public UnitStatBlock goblin    = new UnitStatBlock { STR = 3, VIT = 3,  DEX = 3, AGI = 3,  INT = 1, WIS = 1, Footprint = 2 };
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
         public WeaponDef[] weapons = {
@@ -70,26 +63,6 @@ namespace PangeaSkirmish
         [Tooltip("Valor máximo por atributo no editor de personagem do menu.")]
         public int attributeMax = 20;
 
-        // ═════════════════════════ IA DO INIMIGO ═════════════════════════
-
-        [Header("═══ IA DO INIMIGO ═══")]
-        [Range(0f, 1f)] public float aiAggression = 0.7f;
-        [Range(0f, 1f)] public float aiAttackPreference = 0.6f;
-        [Range(0f, 1f)] public float aiIntelligence = 0.5f;
-        [Range(0f, 1f)] public float aiSurvivalInstinct = 0.3f;
-        [Range(0f, 1f)] public float aiSurvivalHpThreshold = 0.6f;
-        [Tooltip("Distância (tiles) que a IA usa para flanquear. Maior = manobras mais amplas.")]
-        public int aiFlankRange = 4;
-        [Tooltip("Gap máximo desejado quando agressiva — gruda a até N tiles do alvo. Menor = corpo a corpo.")]
-        public int aiAggressiveMaxGap = 2;
-        [Tooltip("Folga extra (tiles) além do alcance quando cautelosa. Maior = IA mais covarde.")]
-        public int aiCautiousGapOffset = 1;
-        [Tooltip("Bônus de pontuação para posições de flanco diagonal. Maior = IA flanqueia mais.")]
-        public int aiFlankScoreBonus = 1;
-        [Tooltip("Peso do bônus por alvo 'matável' neste round. Maior = IA foca quem pode morrer agora.")]
-        public float aiKillabilityWeight = 0.4f;
-        [Tooltip("Pausa (s) antes da IA 'decidir' — puramente cosmético, dá sensação de pensamento.")]
-        public float aiReactionDelay = 0.3f;
 
         // ═════════════════════════ UNIDADES ═════════════════════════
 
@@ -105,7 +78,7 @@ namespace PangeaSkirmish
         [Range(0f, 1f)] public float footprintAlpha = 0.50f;
         [Tooltip("Cor do footprint das unidades do jogador.")]
         public Color playerFootprintColor = new Color(0.30f, 0.60f, 1.00f, 0.80f);
-        [Tooltip("Cor do footprint das unidades inimigas.")]
+        [Tooltip("Cor do footprint das unidades inimigas (jogadores adversários no MP e inimigos no SP).")]
         public Color enemyFootprintColor = new Color(1.00f, 0.38f, 0.20f, 0.80f);
         [Tooltip("Tint escurecido dos sprites inimigos (diferencia do jogador quando a classe é a mesma). Mais escuro = inimigos mais sombrios.")]
         public Color enemyTint = new Color(0.55f, 0.55f, 0.65f);
@@ -344,8 +317,8 @@ namespace PangeaSkirmish
         public Color reachHighlightColor = new Color(0.35f, 0.85f, 0.45f);
         [Tooltip("Cor dos tiles alcançáveis pela ação bônus (dourado).")]
         public Color bonusHighlightColor = new Color(0.90f, 0.75f, 0.30f);
-        [Tooltip("Cor/alpha das linhas de contorno do grid sobre os tiles. Alpha 0 = sem linhas.")]
-        public Color gridLineColor = new Color(1f, 1f, 1f, 0.25f);
+        [Tooltip("Cor/alpha das linhas de contorno do grid sobre os tiles. Alpha 0 = sem linhas. Azul claro combina com a borda dos menus (pg-panel-border).")]
+        public Color gridLineColor = new Color(0.40f, 0.66f, 1.0f, 0.25f);
         [Tooltip("Cor da face lateral ESQUERDA dos tiles elevados (terra escura, lado na sombra).")]
         public Color sideFaceLeftColor = new Color(0.38f, 0.25f, 0.12f);
         [Tooltip("Cor da face lateral DIREITA dos tiles elevados (terra média, lado na luz).")]
@@ -450,8 +423,10 @@ namespace PangeaSkirmish
         public Color paintPreviewColor = new Color(0.3f, 1f, 0.3f, 0.5f);
         [Tooltip("Cor/alpha do losango de hover no grid do Sandbox.")]
         public Color hoverCursorColor = new Color(1f, 0.95f, 0.4f, 0.40f);
-        [Tooltip("Altura máxima ao empilhar tiles no Sandbox.")]
-        public int maxTileHeight = 3;
+        [Tooltip("Altura máxima ao empilhar tiles no Sandbox (empilhar 4 full tiles = 8 de altura).")]
+        public int maxTileHeight = 8;
+        [Tooltip("Diferença máxima de altura que uma unidade pode subir/descer sem rampa (parede de altura, Regra b).")]
+        public int maxStepClimb = 1;
         [Tooltip("Tamanho máximo do mapa (lado maior) permitido no Sandbox.")]
         public int maxMapSize = 50;
 
@@ -480,18 +455,18 @@ namespace PangeaSkirmish
         [Header("═══ MAGIA: SELF (BUFFS) ═══")]
 
         [Header("═══ MAGIA: TILE (TERRENO) ═══")]
-        [Tooltip("Fator de dano de fogo em tile: potência do fogo × fator = dano por tique. Maior = chamas mais letais.")]
-        public float fireTileDamageFactor = 0.4f;
+        [Tooltip("Fator de dano de fogo em tile: potência do fogo × fator = dano por tique. 1.0 = dano igual à magia direta (Decisão Marcus 2026-07-11, após potência base pela metade).")]
+        public float fireTileDamageFactor = 1.0f;
         [Tooltip("Duração (rounds) do fogo em tile antes de apagar.")]
         public int fireTileDurationRounds = 3;
         [Tooltip("Duração (rounds) do vento em tile.")]
         public int windTileDurationRounds = 3;
         [Tooltip("Nº de tiles que o vento empurra uma unidade ao pisar.")]
         public int windPushTiles = 1;
-        [Tooltip("Índice do tile de Água no atlas (TilePalette).")]
-        public int waterTileIndex = 16;
-        [Tooltip("Índice do tile de Pedra no atlas (elevável por Terra).")]
-        public int earthStoneTileIndex = 8;
+        [Tooltip("Nome do sprite de Água no atlas (TilePalette).")]
+        public string waterTileName = "water_full";
+        [Tooltip("Nome do sprite de Pedra no atlas (elevável por Terra).")]
+        public string earthStoneTileName = "stone_2";
         [Tooltip("Quantidade de altura adicionada ao tile de Pedra por Terra-Tile.")]
         public int earthRaiseAmount = 1;
 
@@ -573,8 +548,6 @@ namespace PangeaSkirmish
         [Header("═══ MAGIA: IA ═══")]
         [Tooltip("Ligado = IA usa magia quando tem mana e alvo.")]
         public bool aiUseSpells = true;
-        [Tooltip("Par mínimo de atributos (soma) para IA considerar conjurar. Menor = IA conjura com atributos baixos.")]
-        public int aiSpellMinPair = 8;
         [Tooltip("Threshold de mana para IA considerar Concentração. 0 = sempre tenta concentrar quando sem mana.")]
         public int aiConcentrationThreshold = 0;
 

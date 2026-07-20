@@ -1,0 +1,156 @@
+[
+  {
+    "name": "grass_tile_full",
+    "x": 0,
+    "y": 384,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_tile_ramp_NO",
+    "x": 64,
+    "y": 384,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_cliff_SO",
+    "x": 128,
+    "y": 384,
+    "w": 31,
+    "h": 27
+  },
+  {
+    "name": "grass_slide_NO",
+    "x": 192,
+    "y": 384,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "water_full",
+    "x": 0,
+    "y": 320,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "water_half",
+    "x": 32,
+    "y": 320,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_cliff_SE_2",
+    "x": 159,
+    "y": 357,
+    "w": 33,
+    "h": 27
+  },
+  {
+    "name": "grass_tile_half",
+    "x": 32,
+    "y": 384,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_tile_ramp_NE",
+    "x": 96,
+    "y": 384,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_cliff_SE",
+    "x": 159,
+    "y": 384,
+    "w": 33,
+    "h": 27
+  },
+  {
+    "name": "stairs_NE",
+    "x": 0,
+    "y": 352,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "stairs_NO",
+    "x": 32,
+    "y": 352,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_tile_ramp_SO",
+    "x": 64,
+    "y": 352,
+    "w": 31,
+    "h": 32
+  },
+  {
+    "name": "grass_tile_ramp_SE",
+    "x": 95,
+    "y": 352,
+    "w": 33,
+    "h": 32
+  },
+  {
+    "name": "grass_cliff_SO_2",
+    "x": 128,
+    "y": 357,
+    "w": 31,
+    "h": 27
+  },
+  {
+    "name": "grass_slide_NE",
+    "x": 224,
+    "y": 384,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_slide_SO",
+    "x": 192,
+    "y": 352,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "grass_slide_SE",
+    "x": 224,
+    "y": 352,
+    "w": 32,
+    "h": 32
+  },
+  {
+    "name": "bush",
+    "x": 1,
+    "y": 290,
+    "w": 31,
+    "h": 26
+  },
+  {
+    "name": "tree",
+    "x": 32,
+    "y": 267,
+    "w": 32,
+    "h": 47
+  },
+  {
+    "name": "stone_1",
+    "x": 5,
+    "y": 258,
+    "w": 27,
+    "h": 27
+  },
+  {
+    "name": "stone_2",
+    "x": 3,
+    "y": 226,
+    "w": 27,
+    "h": 26
+  }
+]

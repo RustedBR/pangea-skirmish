@@ -149,8 +149,8 @@ public class GridManagerTests
         // Assert
         Assert.AreEqual(11, map.width,  "Width deve aumentar em 1");
         Assert.AreEqual(8,  map.height, "Height não deve mudar");
-        Assert.IsNotNull(map.tileIndices);
-        Assert.AreEqual(11 * 8, map.tileIndices.Length);
+        Assert.IsNotNull(map.terrainNames);
+        Assert.AreEqual(11 * 8, map.terrainNames.Length);
 
         // Cleanup
         Object.DestroyImmediate(go);
@@ -173,8 +173,8 @@ public class GridManagerTests
         // Assert
         Assert.AreEqual(10, map.width,  "Width não deve mudar");
         Assert.AreEqual(9,  map.height, "Height deve aumentar em 1");
-        Assert.IsNotNull(map.tileIndices);
-        Assert.AreEqual(10 * 9, map.tileIndices.Length);
+        Assert.IsNotNull(map.terrainNames);
+        Assert.AreEqual(10 * 9, map.terrainNames.Length);
 
         // Cleanup
         Object.DestroyImmediate(go);
@@ -197,7 +197,7 @@ public class GridManagerTests
         // Assert — dados originais foram deslocados para a direita
         // célula (1, y) do novo map deve ter o mesmo índice que (0, y) do grid original
         for (int y = 0; y < 5; y++)
-            Assert.AreEqual(grid.GetTileIndex(0, y), map.TileAt(1, y),
+            Assert.AreEqual(grid.GetTerrainName(0, y), map.TileAt(1, y),
                 $"Dado da posição (0,{y}) deve ter sido deslocado para (1,{y})");
 
         // Cleanup
@@ -222,7 +222,7 @@ public class GridManagerTests
         Assert.AreEqual(6, map.width);
         // Coluna 0-4 devem estar intactas
         for (int y = 0; y < 5; y++)
-            Assert.AreEqual(grid.GetTileIndex(0, y), map.TileAt(0, y),
+            Assert.AreEqual(grid.GetTerrainName(0, y), map.TileAt(0, y),
                 $"Coluna 0 deve estar intacta após inserção no final");
 
         // Cleanup
@@ -245,9 +245,9 @@ public class GridManagerTests
 
         // Assert — linhas 0 e 1 intactas, linha 2 é nova, linha 3 veio da antiga 2
         Assert.AreEqual(5, map.height);
-        Assert.AreEqual(grid.GetTileIndex(0, 0), map.TileAt(0, 0), "Canto (0,0) intacto");
-        Assert.AreEqual(grid.GetTileIndex(0, 1), map.TileAt(0, 1), "Linha 1 intacta");
-        Assert.AreEqual(grid.GetTileIndex(0, 2), map.TileAt(0, 3), "Antiga linha 2 deslocada para 3");
+        Assert.AreEqual(grid.GetTerrainName(0, 0), map.TileAt(0, 0), "Canto (0,0) intacto");
+        Assert.AreEqual(grid.GetTerrainName(0, 1), map.TileAt(0, 1), "Linha 1 intacta");
+        Assert.AreEqual(grid.GetTerrainName(0, 2), map.TileAt(0, 3), "Antiga linha 2 deslocada para 3");
 
         // Cleanup
         Object.DestroyImmediate(go);

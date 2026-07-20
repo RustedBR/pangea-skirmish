@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using PangeaSkirmish.UI;
 
 namespace PangeaSkirmish
 {
@@ -196,15 +197,20 @@ namespace PangeaSkirmish
                             }
                             else
                             {
-                                // Fora do grid — calcular posição final após expansão
-                                // Se clicar em (-1, 5) com grid 20x20 e expandir esquerda,
-                                // a célula final será (0, 5) no novo grid 21x20
+                                // Fora do grid — calcular posição final após expansão.
+                                // Norte (x<0 E y<0) e Noroeste (x>W E y<0) são cantos:
+                                // tratamos OS DOIS eixos juntos (não só um).
                                 int fx = raw.x;
                                 int fy = raw.y;
-                                if (raw.x < 0) fx = 0;           // expandir esquerda: x=0 no novo grid
-                                else if (raw.x >= _grid.width) fx = _grid.width;  // expandir direita: x=width no novo grid
-                                if (raw.y < 0) fy = 0;           // expandir baixo: y=0 no novo grid
-                                else if (raw.y >= _grid.height) fy = _grid.height; // expandir cima: y=height no novo grid
+                                // Eixo X: esquerda (x<0) ou direita (x>=W)
+                                int offX = 0;
+                                if (raw.x < 0) { fx = 0; offX = -1; }
+                                else if (raw.x >= _grid.width) { fx = _grid.width; offX = 1; }
+                                // Eixo Y: baixo (y<0) ou cima (y>=H)
+                                int offY = 0;
+                                if (raw.y < 0) { fy = 0; offY = -1; }
+                                else if (raw.y >= _grid.height) { fy = _grid.height; offY = 1; }
+                                // Canto norte/noroeste: ambos eixos fora → expande nos 2
                                 _selectionStart = new Vector2Int(fx, fy);
                                 _currentSelection.Add(_selectionStart);
                             }
@@ -249,8 +255,8 @@ namespace PangeaSkirmish
             if (rightDown)
             {
                 Vector2 screen = Mouse.current.position.ReadValue();
-                float depth = Mathf.Abs(_cam.transform.position.z);
-                Vector3 world = _cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
+                Vector3 world;
+                if (!_grid.ScreenToGround(_cam, screen, out world)) world = Vector3.zero;
                 Vector2Int rawCell = _grid.WorldToCellRaw(world);
                 Vector2Int clampedCell = _grid.WorldToCell(world);
                 Debug.Log($"[Sandbox-DEBUG] screen=({screen.x:F0},{screen.y:F0}) world=({world.x:F2},{world.y:F2}) rawCell=({rawCell.x},{rawCell.y}) clampedCell=({clampedCell.x},{clampedCell.y}) gridW={_grid.width} gridH={_grid.height} camPos=({_cam.transform.position.x:F2},{_cam.transform.position.y:F2}) orthoSize={_cam.orthographicSize}");
@@ -273,8 +279,8 @@ namespace PangeaSkirmish
         private Vector2Int CellUnderMouse()
         {
             Vector2 screen = Mouse.current.position.ReadValue();
-            float depth = Mathf.Abs(_cam.transform.position.z);
-            Vector3 world = _cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, depth));
+            Vector3 world;
+            if (!_grid.ScreenToGround(_cam, screen, out world)) world = Vector3.zero;
             return _grid.WorldToCellRaw(world);
         }
 
@@ -368,20 +374,25 @@ namespace PangeaSkirmish
         {
             ClearPreview();
 
-            bool isVoidBrush = _brush.tileIndex == TilePalette.VOID_INDEX;
+            bool isVoidBrush = string.IsNullOrEmpty(_brush.spriteName);
 
             foreach (var cell in _currentSelection)
             {
                 var go = new GameObject($"Preview_{cell.x}_{cell.y}");
                 go.transform.SetParent(transform, false);
                 go.transform.position = _grid.CellToWorld(cell) + _grid.positionOffset;
-                go.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
 
-                var sr = go.AddComponent<SpriteRenderer>();
+                // Migração XY→XZ (2026-07-20): preview de tile é topo → deita no XZ.
+                var topGo = new GameObject("Top");
+                topGo.transform.SetParent(go.transform, false);
+                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                topGo.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
+
+                var sr = topGo.AddComponent<SpriteRenderer>();
 
                 // Usar sprite real do brush (não genérico)
                 if (!isVoidBrush && _grid.tileDatabase != null)
-                    sr.sprite = _grid.tileDatabase.GetTile(_brush.tileIndex);
+                    sr.sprite = _grid.tileDatabase.GetTile(_brush.spriteName);
                 if (sr.sprite == null)
                     sr.sprite = _grid.BlockSprite;
 
@@ -418,7 +429,8 @@ namespace PangeaSkirmish
         /// </summary>
         private void ApplyPaint()
         {
-            bool isVoidBrush = _brush.tileIndex == TilePalette.VOID_INDEX;
+            bool isVoidBrush = string.IsNullOrEmpty(_brush.spriteName);
+            Debug.Log($"[Sandbox:ApplyPaint] _brush.name={_brush?.name} spriteName='{_brush?.spriteName}' kind={_brush?.kind} height={_brush?.height} isVoidBrush={isVoidBrush} selection={_currentSelection.Count}");
 
             // Expandir grid até que TODAS as cells da seleção cabam
             bool expanded = true;
@@ -443,19 +455,15 @@ namespace PangeaSkirmish
 
                         if (RuntimeMultiplayerSession.IsMultiplayer && CollabMapSync.Instance != null)
                         {
-                            // Em MP: rotear expansão via RPC
+                            // Em MP: rotear expansão via RPC (sincroniza com outros),
+                            // MAS expande localmente também (modo Sandbox local depende do grid na tela).
                             CollabMapSync.Instance.ExpandGridServerRpc(
                                 _grid.width  + (dirX != 0 ? 1 : 0),
                                 _grid.height + (dirY != 0 ? 1 : 0));
-                            expanded = false; // cliente aguarda eco; não expande localmente agora
-                            break;
                         }
-                        else
-                        {
-                            var newMap = _grid.Expand(dirX, dirY);
-                            if (newMap != null) { _map = newMap; expanded = true; }
-                            break;
-                        }
+                        var newMap = _grid.Expand(dirX, dirY);
+                        if (newMap != null) { _map = newMap; expanded = true; }
+                        break;
                     }
                 }
 
@@ -481,57 +489,77 @@ namespace PangeaSkirmish
                     continue;
                 }
 
+                // SEMPRE aplica localmente no grid (para o Sandbox refletir na tela).
+                ApplySingleCellLocal(cell, isVoidBrush);
+
+                // Se MP: também sincroniza com os outros jogadores via RPC.
                 if (RuntimeMultiplayerSession.IsMultiplayer && CollabMapSync.Instance != null)
                 {
-                    // Em MP: construir PaintOp e enviar via RPC (não aplica localmente)
                     var op = BuildPaintOp(cell, isVoidBrush);
                     CollabMapSync.Instance.PaintOpServerRpc(op);
-                }
-                else
-                {
-                    // SP: aplica diretamente (comportamento original)
-                    ApplySingleCellLocal(cell, isVoidBrush);
                 }
             }
         }
 
         private PaintOp BuildPaintOp(Vector2Int cell, bool isVoidBrush)
         {
-            bool isVoidCell = _grid.IsVoid(cell.x, cell.y);
             if (isVoidBrush)
             {
-                int curH = _grid.GetHeight(cell.x, cell.y);
                 return new PaintOp
                 {
                     X = cell.x, Y = cell.y,
-                    TileIndex = _grid.GetTileIndex(cell.x, cell.y),
-                    Height = curH > 0 ? curH - 1 : 0,
-                    IsVoid = curH <= 0,
-                    Kind = PaintOpKind.Erase
+                    TerrainName = "", ObjectName = "", Height = 0,
+                    IsVoid = true, Kind = PaintOpKind.Erase
                 };
+            }
+
+            // Pincel de objeto
+            if (_brush.kind == TileKind.Object)
+            {
+                int curH = _grid.GetHeight(cell.x, cell.y);
+                string curT = _grid.GetTerrainName(cell.x, cell.y);
+                return new PaintOp
+                {
+                    X = cell.x, Y = cell.y,
+                    TerrainName = curT, ObjectName = _brush.spriteName,
+                    Height = curH, IsVoid = false, Kind = PaintOpKind.Paint
+                };
+            }
+
+            // Pincel de terreno (inclui rampa)
+            string curT2 = _grid.GetTerrainName(cell.x, cell.y);
+            int curH2  = _grid.GetHeight(cell.x, cell.y);
+            string curObj = _grid.GetObjectName(cell.x, cell.y);
+            int newH = curH2;
+            if (curT2 == _brush.spriteName)
+            {
+                int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 8;
+                newH = Mathf.Min(curH2 + _brush.height, maxH);
             }
             else
             {
-                int curIdx = isVoidCell ? _brush.tileIndex : _grid.GetTileIndex(cell.x, cell.y);
-                int curH   = isVoidCell ? _brush.height    : _grid.GetHeight(cell.x, cell.y);
-                int newH   = curH;
-                int newIdx = _brush.tileIndex;
-
-                if (!isVoidCell && curIdx == _brush.tileIndex)
-                {
-                    int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 3;
-                    newH = Mathf.Min(curH + 1, maxH);
-                }
-
-                return new PaintOp
-                {
-                    X = cell.x, Y = cell.y,
-                    TileIndex = newIdx,
-                    Height = newH,
-                    IsVoid = false,
-                    Kind = PaintOpKind.Paint
-                };
+                newH = _brush.height;
             }
+            return new PaintOp
+            {
+                X = cell.x, Y = cell.y,
+                TerrainName = _brush.spriteName, ObjectName = curObj,
+                Height = newH, IsVoid = false, Kind = PaintOpKind.Paint
+            };
+        }
+
+        // Retorna a "família" do terreno (remove sufixos _full/_half/_ramp_*/etc).
+        // Ex.: grass_tile_full e grass_tile_half → "grass_tile" (mesma família → empilha).
+        private static string TerrainFamily(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "";
+            var n = name.ToLowerInvariant();
+            foreach (var suf in new[] { "_full", "_half",
+                "_ramp_no", "_ramp_ne", "_ramp_so", "_ramp_se",
+                "_slide_no", "_slide_ne", "_slide_so", "_slide_se",
+                "_cliff_so", "_cliff_se" })
+                if (n.EndsWith(suf)) return n.Substring(0, n.Length - suf.Length);
+            return n;
         }
 
         private void ApplySingleCellLocal(Vector2Int cell, bool isVoidBrush)
@@ -540,33 +568,46 @@ namespace PangeaSkirmish
             if (isVoidBrush)
             {
                 if (!isVoidCell)
-                {
-                    int curH = _grid.GetHeight(cell.x, cell.y);
-                    if (curH > 0)
-                        _grid.SetCell(cell.x, cell.y, _grid.GetTileIndex(cell.x, cell.y), curH - 1, false);
-                    else
-                        _grid.SetCell(cell.x, cell.y, 0, 0, true);
-                }
+                    _grid.SetCell(cell.x, cell.y, "", 0, "", true); // apaga terreno + objeto
+                return;
+            }
+
+            // Pincel de OBJETO: não toca terreno/altura, ocupa 1 slot por célula.
+            if (_brush.kind == TileKind.Object)
+            {
+                if (isVoidCell) return; // não pinta objeto em célula vazia
+                int curH = _grid.GetHeight(cell.x, cell.y);
+                string curT = _grid.GetTerrainName(cell.x, cell.y);
+                _grid.SetCell(cell.x, cell.y, curT, curH, _brush.spriteName, false);
+                return;
+            }
+
+            // Pincel de TERRENO (inclui rampa): empilha ou substitui a base.
+            if (isVoidCell)
+            {
+                _grid.SetCell(cell.x, cell.y, _brush.spriteName, _brush.height, _grid.GetObjectName(cell.x, cell.y), false);
             }
             else
             {
-                if (isVoidCell)
+                string curT = _grid.GetTerrainName(cell.x, cell.y);
+                int curH   = _grid.GetHeight(cell.x, cell.y);
+                // Empilha se MESMA FAMÍLIA de terreno sólido (grama full/half = mesma grama).
+                // Água (height < 0) "escava": substitui em vez de empilhar.
+                bool sameFamily = TerrainFamily(curT) == TerrainFamily(_brush.spriteName);
+                bool bothSolid  = _brush.height >= 0 && curH >= 0;
+                if (sameFamily && bothSolid)
                 {
-                    _grid.SetCell(cell.x, cell.y, _brush.tileIndex, _brush.height, false);
+                    // Mesma família → empilha (soma altura), até maxTileHeight
+                    int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 8;
+                    int newH = Mathf.Min(curH + _brush.height, maxH);
+                    Debug.Log($"[Sandbox] EMPILHA ({cell.x},{cell.y}): curT={curT} curH={curH} brush={_brush.spriteName}(h{_brush.height}) -> newH={newH}");
+                    _grid.SetCell(cell.x, cell.y, curT, newH, _grid.GetObjectName(cell.x, cell.y), false);
                 }
                 else
                 {
-                    int curIdx = _grid.GetTileIndex(cell.x, cell.y);
-                    int curH   = _grid.GetHeight(cell.x, cell.y);
-                    if (curIdx == _brush.tileIndex)
-                    {
-                        int maxH = RuntimeTuning.Active != null ? RuntimeTuning.Active.maxTileHeight : 3;
-                        if (curH < maxH) _grid.SetCell(cell.x, cell.y, curIdx, curH + 1, false);
-                    }
-                    else
-                    {
-                        _grid.SetCell(cell.x, cell.y, _brush.tileIndex, curH, false);
-                    }
+                    Debug.Log($"[Sandbox] SUBSTITUI ({cell.x},{cell.y}): curT={curT} curH={curH} brush={_brush.spriteName}(h{_brush.height}) -> newH={_brush.height}");
+                    // Terreno diferente → substitui a base (mantém objeto e altura atual)
+                    _grid.SetCell(cell.x, cell.y, _brush.spriteName, _brush.height, _grid.GetObjectName(cell.x, cell.y), false);
                 }
             }
         }
@@ -584,23 +625,16 @@ namespace PangeaSkirmish
             switch (op.Kind)
             {
                 case PaintOpKind.Erase:
-                    bool isVoidCell2 = _grid.IsVoid(op.X, op.Y);
-                    if (!isVoidCell2)
-                    {
-                        int curH2 = _grid.GetHeight(op.X, op.Y);
-                        if (curH2 > 0)
-                            _grid.SetCell(op.X, op.Y, _grid.GetTileIndex(op.X, op.Y), curH2 - 1, false);
-                        else
-                            _grid.SetCell(op.X, op.Y, 0, 0, true);
-                    }
+                    _grid.SetCell(op.X, op.Y, "", 0, "", true);
                     break;
 
                 case PaintOpKind.Paint:
-                    _grid.SetCell(op.X, op.Y, op.TileIndex, op.Height, false);
+                    _grid.SetCell(op.X, op.Y, op.TerrainName, op.Height, op.ObjectName, false);
                     break;
 
                 case PaintOpKind.Height:
-                    _grid.SetCell(op.X, op.Y, _grid.GetTileIndex(op.X, op.Y), op.Height,
+                    _grid.SetCell(op.X, op.Y, _grid.GetTerrainName(op.X, op.Y),
+                                  op.Height, _grid.GetObjectName(op.X, op.Y),
                                   _grid.IsVoid(op.X, op.Y));
                     break;
             }
@@ -651,6 +685,9 @@ namespace PangeaSkirmish
         private void CreateHoverCursor()
         {
             var go = new GameObject("HoverCursor");
+            // Migração XY→XZ (2026-07-20): cursor de tile é topo → deita no XZ.
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            go.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
             _hoverCursor = go.AddComponent<SpriteRenderer>();
             _hoverCursor.sprite = BuildCursorSprite();
             _hoverCursor.sortingOrder = 9000;
@@ -834,7 +871,7 @@ namespace PangeaSkirmish
             _hud.ShowUnitEditor(null);
         }
 
-        public void SetBrush(TileBrush b) => _brush = b;
+        public void SetBrush(TileBrush b) { _brush = b; Debug.Log($"[Sandbox:SetBrush] name={b.name} spriteName='{b.spriteName}' kind={b.kind} height={b.height}"); }
 
         public void SetSprite(string spritePath)
         {

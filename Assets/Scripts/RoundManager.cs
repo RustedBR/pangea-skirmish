@@ -261,18 +261,6 @@ namespace PangeaSkirmish
                 return;
             }
 
-            // ---- SP: comportamento original ----
-
-            // IA para todos os inimigos
-            foreach (var u in _units)
-                if (!u.IsDead && u.team == Team.Enemy)
-                    SimpleEnemyAI.Plan(u, _units, _grid);
-
-            // IA para aliados não controlados pelo jogador (ex: Ladino)
-            foreach (var u in _units)
-                if (!u.IsDead && u.team == Team.Player && u != _playerUnit)
-                    SimpleEnemyAI.Plan(u, _units, _grid);
-
             _hud.SetPhase($"Round {_round} — Planejamento");
 
             // Se o jogador estiver morto, pula direto para a fase de ação
@@ -351,8 +339,8 @@ namespace PangeaSkirmish
             if (_cam == null || Mouse.current == null) return null;
             Vector2 screen = Mouse.current.position.ReadValue();
             var world = RaycastGround(screen);
-            // Seleção por collider (footprint + corpo) — mais fácil de acertar que por célula.
-            return Unit.PickAtWorld(new Vector2(world.x, world.y));
+            // Seleção por collider 3D (migração XY→XZ): raycast do mouse contra as unidades.
+            return Unit.PickAtWorld(_cam, screen);
         }
 
         public void ConfirmPlan()
@@ -700,14 +688,6 @@ namespace PangeaSkirmish
             }
 
             // 1) Movimentos normais, simultâneos
-            // Delay de reação para inimigos
-            if (toMove.Exists(e => e.u.team == Team.Enemy))
-            {
-                var t = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
-                if (t != null && t.aiReactionDelay > 0f)
-                    yield return new WaitForSeconds(t.aiReactionDelay);
-            }
-
             int moving = 0;
             foreach (var (u, dest, _) in toMove)
             {
@@ -899,14 +879,6 @@ namespace PangeaSkirmish
             foreach (var (u, atk, incr, aimed) in sorted)
             {
                 if (u.IsDead) continue;
-
-                // Delay de reação para inimigos
-                if (u.team == Team.Enemy)
-                {
-                    var t = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
-                    if (t != null && t.aiReactionDelay > 0f)
-                        yield return new WaitForSeconds(t.aiReactionDelay);
-                }
 
                 bool willHit = WillAttackHit(u, atk);
 
@@ -1113,9 +1085,11 @@ namespace PangeaSkirmish
 
         private Vector3 RaycastGround(Vector2 screenPos)
         {
-            // Câmera 2D: converte tela → mundo no plano z=0.
-            return _cam.ScreenToWorldPoint(
-                new Vector3(screenPos.x, screenPos.y, -_cam.transform.position.z));
+            // Migração XY→XZ (2026-07-20): raycast no plano y=0 (ScreenToGround),
+            // NÃO ScreenToWorldPoint (2D, plano Z=0 que não existe mais).
+            Vector3 world;
+            if (!_grid.ScreenToGround(_cam, screenPos, out world)) world = Vector3.zero;
+            return world;
         }
 
         private IEnumerator MoveOneStep(Unit u, Vector2Int dest, System.Action onDone)

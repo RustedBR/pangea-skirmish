@@ -13,16 +13,26 @@ namespace PangeaSkirmish
     /// Câmera ortográfica 2D pura. Modo Auto segue ações de batalha automaticamente.
     /// Quando o jogador interage (arrastar/zoom/edge-pan), entra em Manual por 2s,
     /// depois volta para Auto. FocusOn só funciona em modo Auto.
+    ///
+    /// CAMINHO 1 (2026-07-14): Q/E viram a VISÃO do mapa em passos de 90° (4 estados
+    /// fixos: 0/90/180/270). Ao virar, o facing de TODAS as unidades é re-derivado
+    /// (Unit.SetViewOrientation) para "encarar" o novo norte da tela — sem arte nova,
+    /// usando as 4 direções que o motor já suporta (NE/SE + flipX).
     /// </summary>
     public class CameraController : MonoBehaviour
     {
         private Camera _cam;
-
         private Vector2 _targetXY;
         private float   _targetSize;
         private Vector2 _curXY;
         private float   _curSize;
         private const float CamZ = -10f;
+        // Migração XY→XZ (2026-07-20): altura da câmera. Pedido do Marcus (2026-07-20):
+        // "coloque o cam height em 0" → câmera no NÍVEL do chão (y=0). Em câmera
+        // ORTogrÁFICA a posição ao longo do eixo de visão não muda a projeção — só
+        // importa rotação + ortho size. Pra não cortar o chão (near plane), os clip
+        // planes são abertos em Configure (near negativo). Veja comentário lá.
+        private const float CAM_HEIGHT = 0f;
 
         private Vector2 _panMinXY = new Vector2(-50f, -50f);
         private Vector2 _panMaxXY = new Vector2(50f, 50f);
@@ -42,6 +52,12 @@ namespace PangeaSkirmish
         public float zoomMin        = 3f;
         public float zoomMax        = 20f;
 
+        [Header("Snap de vista (Q/E)")]
+        public bool  enableViewRotate = true;
+
+        // Estado lógico da vista (0/90/180/270). Usado p/ re-derivar o facing
+        // das unidades (Unit.SetViewOrientation). A rotação VISUAL está no grid.
+        private int _orientation;
         [Header("Screen Shake")]
         public bool  shakeEnabled = true;
 
@@ -56,6 +72,9 @@ namespace PangeaSkirmish
         /// <summary>Evento disparado quando o modo muda (Auto↔Manual).</summary>
         public event Action<CameraMode> OnModeChanged;
 
+        /// <summary>Orientação atual da vista em graus (0/90/180/270).</summary>
+        public int Orientation => _orientation;
+
         // Shake state
         private float   _shakeDuration;
         private float   _shakeMagnitude;
@@ -64,15 +83,44 @@ namespace PangeaSkirmish
 
         public Camera Cam => _cam;
 
+        // ── Acesso global ──
+        private static CameraController _instance;
+        public static CameraController Instance => _instance;
+
         // ── Setup ──
+
+        private void Awake() => _instance = this;
+
+        private void OnDestroy()
+        {
+            if (_instance == this) _instance = null;
+        }
 
         public void Configure(Camera cam, Vector3 initialCenter, float initialSize)
         {
             _cam = cam;
             _cam.orthographic = true;
-            _cam.transform.rotation = Quaternion.identity;
-            _targetXY = _curXY = new Vector2(initialCenter.x, initialCenter.y);
+            // Migração XY→XZ (2026-07-20): câmera no nível do chão (CAM_HEIGHT=0).
+            // Em ortográfica a posição não afeta a projeção, mas o near/far clip precisam
+            // ser abertos (near NEGATIVO) senão o chão em y=0 é cortado pela câmera que
+            // está no mesmo plano. Setup padrão de câmera isométrica.
+            _cam.nearClipPlane = -100f;
+            _cam.farClipPlane  =  100f;
+
+            // Migração XY→XZ (2026-07-20) COMPLETA: câmera isométrica PARADA e
+            // INCLINADA (50° tilt X, Y=0) olhando o chão XZ. O _gridRig gira
+            // em Y do mundo (eixo do chão). Sprites usam BillboardFace Y-only p/ ficar
+            // em pé (não tortos). ScreenToGround (raycast plano y=0) funciona sob tilt.
+            // _curXY agora mapeia (X mundo, Z mundo); a câmera fica numa altura fixa.
+            // NOTA (2026-07-20, teste Marcus): Y=0 (sem yaw). O grid já é losango no
+            // XZ; um yaw de 45° no Y transformava o losango em quadrado/shearado na
+            // tela. X=50° (testado pelo Marcus) dá o ângulo de visão 2.5D desejado.
+            _cam.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
+            _cam.transform.position = new Vector3(initialCenter.x, CAM_HEIGHT, initialCenter.z);
+
+            _targetXY = _curXY = new Vector2(initialCenter.x, initialCenter.z);
             _targetSize = _curSize = initialSize;
+            _orientation = 0;
 
             var tuning = RuntimeTuning.Active;
             if (tuning != null)
@@ -102,7 +150,7 @@ namespace PangeaSkirmish
         public void FocusOn(Vector3 center, float size = -1f)
         {
             if (_mode == CameraMode.Manual) return;
-            _targetXY = ClampCenter(new Vector2(center.x, center.y));
+            _targetXY = ClampCenter(new Vector2(center.x, center.z));
             if (size > 0f) _targetSize = size;
         }
 
@@ -110,7 +158,7 @@ namespace PangeaSkirmish
         public void FocusOnArea(Vector3 center, float requiredSize)
         {
             if (_mode == CameraMode.Manual) return;
-            _targetXY = ClampCenter(new Vector2(center.x, center.y));
+            _targetXY = ClampCenter(new Vector2(center.x, center.z));
             _targetSize = Mathf.Clamp(requiredSize, zoomMin, zoomMax);
         }
 
@@ -134,9 +182,41 @@ namespace PangeaSkirmish
 
         public void SnapTo(Vector3 center, float size)
         {
-            _targetXY = _curXY = ClampCenter(new Vector2(center.x, center.y));
+            _targetXY = _curXY = ClampCenter(new Vector2(center.x, center.z));
             _targetSize = _curSize = size;
             ApplyToCamera();
+        }
+
+        /// <summary>Vira a vista em um passo de 90° (clockwise=true → +90, false → -90).
+        /// Caminho 3 (2026-07-14): a rotação é aplicada no GRID (GridManager._gridRig,
+        /// eixo Z do mundo), NÃO na câmera. A câmera fica parada → plano não sobe.
+        /// Re-deriva o facing de todas as unidades para encarar o novo norte.</summary>
+        public void CycleView(bool clockwise)
+        {
+            if (!enableViewRotate) return;
+            // Gira o GRID (snap 90°, lerp interno no GridManager).
+            if (GridManager.Instance != null)
+                GridManager.Instance.SetGridRotation(clockwise);
+            // Estado lógico p/ o facing das unidades (4 estados: 0/90/180/270).
+            _orientation = ((_orientation + (clockwise ? 90 : -90)) % 360 + 360) % 360;
+            UnitRegistry.ApplyViewOrientation(_orientation);
+            // Virar a vista conta como input manual (pausa auto-focus).
+            if (_mode == CameraMode.Auto)
+            {
+                _mode = CameraMode.Manual;
+                _manualTimer = _manualTimeout;
+                OnModeChanged?.Invoke(_mode);
+            }
+        }
+
+        /// <summary>Define a orientação absoluta da vista (múltiplo de 90).</summary>
+        public void SetViewOrientation(int degrees)
+        {
+            if (!enableViewRotate) return;
+            _orientation = ((degrees % 360) + 360) % 360;
+            if (GridManager.Instance != null)
+                GridManager.Instance.SetGridRotation(_orientation > 0 ? true : false); // aproximação p/ snap absoluto
+            UnitRegistry.ApplyViewOrientation(_orientation);
         }
 
         /// <summary>Screen shake da câmera por duration segundos. Sem argumentos usa os
@@ -173,7 +253,7 @@ namespace PangeaSkirmish
         {
             if (_cam == null) return;
 
-            bool hadManualInput = HandleManualPan() || HandleZoom();
+            bool hadManualInput = HandleManualPan() || HandleZoom() || HandleViewRotate();
 
             // Se houve input manual, ativa modo Manual e reinicia timer
             if (hadManualInput && _mode == CameraMode.Auto)
@@ -196,6 +276,9 @@ namespace PangeaSkirmish
             _curXY   = Vector2.Lerp(_curXY, _targetXY, k);
             _curSize = Mathf.Lerp(_curSize, _targetSize, k);
 
+            // Rotação da vista: NÃO é mais da câmera (Caminho 3). O grid
+            // gira no GridManager (_gridRig, eixo Z do mundo). Câmera só pan/zoom/shake.
+
             // Screen shake
             _shakeOffset = Vector2.zero;
             if (_shakeTimer < _shakeDuration)
@@ -211,6 +294,16 @@ namespace PangeaSkirmish
         }
 
         // ── Input handlers (retornam true se houve input manual) ──
+
+        private bool HandleViewRotate()
+        {
+            if (!enableViewRotate || Keyboard.current == null) return false;
+            bool q = Keyboard.current.qKey.wasPressedThisFrame;
+            bool e = Keyboard.current.eKey.wasPressedThisFrame;
+            if (!q && !e) return false;
+            CycleView(e);   // E = +90 (horário), Q = -90 (anti-horário)
+            return true;
+        }
 
         private bool HandleZoom()
         {
@@ -235,10 +328,11 @@ namespace PangeaSkirmish
 
             float worldPerPixel = (_curSize * 2f) / Mathf.Max(1, Screen.height);
 
-            // Arraste com botão direito
+            // Arraste com botão direito (migração XY→XZ: _curXY = (X mundo, Z mundo))
             if (enableDragPan && Mouse.current.rightButton.isPressed)
             {
                 Vector2 d = Mouse.current.delta.ReadValue();
+                // d.x → X mundo, d.y → Z mundo (mundo XZ sob câmera 45°).
                 _targetXY = ClampCenter(_targetXY + new Vector2(-d.x, -d.y) * worldPerPixel * dragSpeed);
                 return true;
             }
@@ -259,7 +353,8 @@ namespace PangeaSkirmish
                     if (dir != Vector2.zero)
                     {
                         float speed = edgePanSpeed * (_curSize / Mathf.Max(1f, Tuning.Get().edgePanReferenceZoom));
-                        _targetXY = ClampCenter(_targetXY + dir.normalized * speed * Time.deltaTime);
+                        // dir.y (tela) → Z mundo
+                        _targetXY = ClampCenter(_targetXY + new Vector2(dir.x, dir.y).normalized * speed * Time.deltaTime);
                         return true;
                     }
                 }
@@ -277,9 +372,10 @@ namespace PangeaSkirmish
 
         private void ApplyToCamera()
         {
-            _cam.transform.position = new Vector3(_curXY.x + _shakeOffset.x, _curXY.y + _shakeOffset.y, CamZ);
-            _cam.transform.rotation = Quaternion.identity;
+            // Migração XY→XZ (2026-07-20): _curXY = (X mundo, Z mundo). A câmera fica
+            // em altura fixa (CAM_HEIGHT) e olha o chão XZ inclinada. Só ortho size muda.
             _cam.orthographicSize = _curSize;
+            _cam.transform.position = new Vector3(_curXY.x, CAM_HEIGHT, _curXY.y);
         }
     }
 }

@@ -37,5 +37,17 @@ namespace PangeaSkirmish
         }
 
         public static IEnumerable<Unit> AllUnits => _byId.Values;
+
+        /// <summary>
+        /// Caminho 1 (2026-07-14): a vista da câmera virou 90° (degrees = 0/90/180/270).
+        /// Re-deriva o facing de TODAS as unidades para encarar o novo "norte" da tela,
+        /// usando as 4 direções que o motor já suporta (NE/SE + flipX). Chamado pelo
+        /// CameraController.CycleView/SetViewOrientation.
+        /// </summary>
+        public static void ApplyViewOrientation(int degrees)
+        {
+            foreach (var u in _byId.Values)
+                u.SetViewOrientation(degrees);
+        }
     }
 }

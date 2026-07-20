@@ -19,19 +19,19 @@ namespace PangeaSkirmish
     // -------------------------------------------------------------------------
     public enum PaintOpKind : byte
     {
-        Paint  = 0,  // pinta tile (tileIndex, height, isVoid=false)
+        Paint  = 0,  // pinta terreno (TerrainName, Height) ou objeto (ObjectName)
         Erase  = 1,  // apaga → void
         Height = 2,  // ajusta altura apenas
     }
 
-    // -------------------------------------------------------------------------
-    // Struct serializado pela rede: uma operação de pintura em (x,y)
-    // -------------------------------------------------------------------------
+    // Struct serializado pela rede: uma operação de pintura em (x,y).
+    // Terreno e objeto são camadas separadas (nomes de sprite do atlas).
     public struct PaintOp : INetworkSerializable
     {
         public int X;
         public int Y;
-        public int TileIndex;
+        public string TerrainName;  // nome do sprite de terreno (ex.: "grass_tile_full")
+        public string ObjectName;    // nome do objeto (ex.: "tree") ou "" vazio
         public int Height;
         public bool IsVoid;
         public PaintOpKind Kind;
@@ -40,7 +40,8 @@ namespace PangeaSkirmish
         {
             serializer.SerializeValue(ref X);
             serializer.SerializeValue(ref Y);
-            serializer.SerializeValue(ref TileIndex);
+            serializer.SerializeValue(ref TerrainName);
+            serializer.SerializeValue(ref ObjectName);
             serializer.SerializeValue(ref Height);
             serializer.SerializeValue(ref IsVoid);
 
@@ -94,7 +95,7 @@ namespace PangeaSkirmish
         [ServerRpc(RequireOwnership = false)]
         public void PaintOpServerRpc(PaintOp op)
         {
-            Debug.Log($"[MP] Tile pintado (host): ({op.X},{op.Y}) tile={op.TileIndex} altura={op.Height} void={op.IsVoid}");
+            Debug.Log($"[MP] Tile pintado (host): ({op.X},{op.Y}) terra={op.TerrainName} obj={op.ObjectName} altura={op.Height} void={op.IsVoid}");
             // Host aplica no canônico
             ApplyOpToMap(_canonical, op);
 
@@ -128,7 +129,7 @@ namespace PangeaSkirmish
             {
                 int ni = expanded.Flat(x, y);
                 int oi = _canonical.Flat(x, y);
-                expanded.tileIndices[ni] = _canonical.tileIndices[oi];
+                expanded.terrainNames[ni] = _canonical.terrainNames[oi];
                 expanded.heights[ni]     = _canonical.heights[oi];
                 expanded.voidCells[ni]   = _canonical.voidCells[oi];
             }
@@ -348,7 +349,8 @@ namespace PangeaSkirmish
                     map.voidCells[flat] = true;
                     break;
                 case PaintOpKind.Paint:
-                    map.tileIndices[flat] = op.TileIndex;
+                    map.terrainNames[flat] = op.TerrainName;
+                    map.objectNames[flat]  = op.ObjectName ?? "";
                     map.heights[flat]     = op.Height;
                     map.voidCells[flat]   = false;
                     break;

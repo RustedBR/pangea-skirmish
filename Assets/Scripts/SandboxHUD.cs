@@ -126,7 +126,7 @@ namespace PangeaSkirmish
                 var entry = MakeEntry(brush.name);
                 if (_ctrl != null && _ctrl.Tiles != null)
                 {
-                    var sp = _ctrl.Tiles.GetTile(brush.tileIndex);
+                    var sp = _ctrl.Tiles.GetTile(brush.spriteName);
                     if (sp != null)
                     {
                         var icon = new Image { image = sp.texture, scaleMode = ScaleMode.ScaleToFit };
