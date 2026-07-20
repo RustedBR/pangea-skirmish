@@ -27,12 +27,11 @@ namespace PangeaSkirmish
         private Vector2 _curXY;
         private float   _curSize;
         private const float CamZ = -10f;
-        // Migração XY→XZ (2026-07-20): altura da câmera. Pedido do Marcus (2026-07-20):
-        // "coloque o cam height em 0" → câmera no NÍVEL do chão (y=0). Em câmera
-        // ORTogrÁFICA a posição ao longo do eixo de visão não muda a projeção — só
-        // importa rotação + ortho size. Pra não cortar o chão (near plane), os clip
-        // planes são abertos em Configure (near negativo). Veja comentário lá.
-        private const float CAM_HEIGHT = 0f;
+        // Fix (2026-07-20): câmera acima do chão, olhando reto para baixo
+        // (ver Configure — reto de cima, não mais inclinada). Em ortográfica a
+        // altura exata não importa para a projeção, só precisa ficar acima do
+        // chão com clip planes normais (não mais negativo).
+        private const float CAM_HEIGHT = 20f;
 
         private Vector2 _panMinXY = new Vector2(-50f, -50f);
         private Vector2 _panMaxXY = new Vector2(50f, 50f);
@@ -100,22 +99,18 @@ namespace PangeaSkirmish
         {
             _cam = cam;
             _cam.orthographic = true;
-            // Migração XY→XZ (2026-07-20): câmera no nível do chão (CAM_HEIGHT=0).
-            // Em ortográfica a posição não afeta a projeção, mas o near/far clip precisam
-            // ser abertos (near NEGATIVO) senão o chão em y=0 é cortado pela câmera que
-            // está no mesmo plano. Setup padrão de câmera isométrica.
-            _cam.nearClipPlane = -100f;
-            _cam.farClipPlane  =  100f;
-
-            // Migração XY→XZ (2026-07-20) COMPLETA: câmera isométrica PARADA e
-            // INCLINADA (50° tilt X, Y=0) olhando o chão XZ. O _gridRig gira
-            // em Y do mundo (eixo do chão). Sprites usam BillboardFace Y-only p/ ficar
-            // em pé (não tortos). ScreenToGround (raycast plano y=0) funciona sob tilt.
-            // _curXY agora mapeia (X mundo, Z mundo); a câmera fica numa altura fixa.
-            // NOTA (2026-07-20, teste Marcus): Y=0 (sem yaw). O grid já é losango no
-            // XZ; um yaw de 45° no Y transformava o losango em quadrado/shearado na
-            // tela. X=50° (testado pelo Marcus) dá o ângulo de visão 2.5D desejado.
-            _cam.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
+            // Fix (2026-07-20): câmera RETO DE CIMA (perpendicular ao chão XZ),
+            // não mais inclinada. A arte do TinyTactics (sprites com SpriteMeshType
+            // .Tight — o mesh já é o contorno do losango) foi desenhada para ser
+            // vista assim, com a perspectiva isométrica 2:1 embutida na MALHA
+            // (halfW/halfH), igual SimCity/Civilization e o padrão oficial de
+            // Isometric Tilemap da Unity (cell size 1:0.5). Um tilt real de
+            // câmera duplica a distorção isométrica (já bakeada no mesh) — foi
+            // a causa do bug de rotação Q/E esticando/"escadeando" o mapa.
+            // Câmera normal acima do chão: near/far clip padrão (nada de negativo).
+            _cam.nearClipPlane = 0.3f;
+            _cam.farClipPlane  = 1000f;
+            _cam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             _cam.transform.position = new Vector3(initialCenter.x, CAM_HEIGHT, initialCenter.z);
 
             _targetXY = _curXY = new Vector2(initialCenter.x, initialCenter.z);
@@ -187,18 +182,16 @@ namespace PangeaSkirmish
             ApplyToCamera();
         }
 
-        /// <summary>Vira a vista em um passo de 90° (clockwise=true → +90, false → -90).
-        /// Caminho 3 (2026-07-14): a rotação é aplicada no GRID (GridManager._gridRig,
-        /// eixo Z do mundo), NÃO na câmera. A câmera fica parada → plano não sobe.
-        /// Re-deriva o facing de todas as unidades para encarar o novo norte.</summary>
+        /// <summary>Vira a vista em um passo de 90° (clockwise=true → +90/Leste,
+        /// false → -90/Oeste). Reindexação lógica instantânea no GridManager —
+        /// não gira mais nenhum transform físico (nem grid, nem câmera). Re-deriva
+        /// o facing de todas as unidades para encarar o novo norte.</summary>
         public void CycleView(bool clockwise)
         {
             if (!enableViewRotate) return;
-            // Gira o GRID (snap 90°, lerp interno no GridManager).
-            if (GridManager.Instance != null)
-                GridManager.Instance.SetGridRotation(clockwise);
-            // Estado lógico p/ o facing das unidades (4 estados: 0/90/180/270).
             _orientation = ((_orientation + (clockwise ? 90 : -90)) % 360 + 360) % 360;
+            if (GridManager.Instance != null)
+                GridManager.Instance.SetViewOrientation(_orientation);
             UnitRegistry.ApplyViewOrientation(_orientation);
             // Virar a vista conta como input manual (pausa auto-focus).
             if (_mode == CameraMode.Auto)
@@ -215,7 +208,7 @@ namespace PangeaSkirmish
             if (!enableViewRotate) return;
             _orientation = ((degrees % 360) + 360) % 360;
             if (GridManager.Instance != null)
-                GridManager.Instance.SetGridRotation(_orientation > 0 ? true : false); // aproximação p/ snap absoluto
+                GridManager.Instance.SetViewOrientation(_orientation);
             UnitRegistry.ApplyViewOrientation(_orientation);
         }
 
@@ -372,8 +365,7 @@ namespace PangeaSkirmish
 
         private void ApplyToCamera()
         {
-            // Migração XY→XZ (2026-07-20): _curXY = (X mundo, Z mundo). A câmera fica
-            // em altura fixa (CAM_HEIGHT) e olha o chão XZ inclinada. Só ortho size muda.
+            // _curXY = (X mundo, Z mundo). Câmera reto de cima, altura fixa.
             _cam.orthographicSize = _curSize;
             _cam.transform.position = new Vector3(_curXY.x, CAM_HEIGHT, _curXY.y);
         }

@@ -39,16 +39,20 @@ namespace PangeaSkirmish
 
         private bool _lastDebugState = false;
 
-        // ── RIG DE ROTAÇÃO DO MAPA (Caminho 3, 2026-07-14) ──
-        // Pivot no centro do mapa. _tilesRoot + _objectsRoot viram filhos dele.
-        // A rotação de vista é aplicada AQUI, em torno do eixo Z do MUNDO
-        // (perpendicular ao chão XY deste projeto = "up do mundo" aqui).
-        // A câmera fica PARADA (sem tilt), logo a percepção isométrica não
-        // se perde e o plano de jogo NÃO sobe (era o bug de girar a câmera).
+        // ── ROTAÇÃO DE VISTA (2026-07-20, reescrito) ──
+        // A rotação de vista NÃO gira mais nenhum transform físico (nem câmera,
+        // nem grid): é uma REINDEXAÇÃO LÓGICA. O losango na tela nunca muda de
+        // tamanho/orientação física — Q/E troca qual célula de dados (terreno,
+        // altura, unidade) aparece em cada posição física fixa, exatamente como
+        // jogos isométricos clássicos (SimCity, tactics RPGs) fazem: a rotação é
+        // aplicada nas COORDENADAS antes de projetar, não no mundo 3D.
+        // _viewOrientation ∈ {0,90,180,270}. CellToWorld/AnchorToWorldCenter
+        // aplicam essa transformação às coordenadas ANTES da fórmula isométrica;
+        // WorldToCellBase aplica a transformação INVERSA no resultado. Ver
+        // ApplyOrientation. _gridRig continua existindo só como pivot/pai
+        // organizacional (rotation sempre identity agora).
         private Transform _gridRig;
-        private float _gridRot;        // rotação Z atual (lerp)
-        private float _gridRotTarget;  // alvo (múltiplo de 90, acumula p/ sentido)
-        private const float GRID_ROT_SPEED = 8f;
+        private int _viewOrientation; // 0/90/180/270
 
         public MapData sourceMap;        // se != null, Build() usa este mapa em vez do platô hardcoded
         private string[,] _terrainNames;  // nome do sprite de terreno por célula (atlas)
@@ -433,8 +437,12 @@ namespace PangeaSkirmish
             var topGo = new GameObject("Top");
             topGo.transform.SetParent(go.transform, false);
             topGo.transform.localPosition = Vector3.zero;
-            topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (topo p/ câmera)
             topGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+            // Revertido (2026-07-20): billboard (só cancela yaw, mantém pitch zero)
+            // deixava o sprite "em pé" tipo parede em vez de deitado no chão —
+            // criava efeito de escada cumulativa. Tile de chão continua deitado
+            // no XZ; só a malha (halfW=halfH) resolve a distorção ao girar.
+            topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
             var sr = topGo.AddComponent<SpriteRenderer>();
             Sprite tileSprite = null;
@@ -610,12 +618,12 @@ namespace PangeaSkirmish
                 go.transform.SetParent(_tilesRoot, false);
                 go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
 
-                // Migração XY→XZ (2026-07-20): topo deitado no XZ (ver BuildSingleTile).
+                // Revertido (2026-07-20): tile de chão deitado no XZ (ver BuildSingleTile).
                 var topGo = new GameObject("Top");
                 topGo.transform.SetParent(go.transform, false);
                 topGo.transform.localPosition = Vector3.zero;
-                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (topo p/ câmera)
                 topGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
                 var sr = topGo.AddComponent<SpriteRenderer>();
                 Sprite tileSprite = null;
@@ -700,12 +708,12 @@ namespace PangeaSkirmish
                 go.transform.SetParent(_tilesRoot, false);
                 go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
 
-                // Migração XY→XZ (2026-07-20): topo deitado no XZ (ver BuildSingleTile).
+                // Revertido (2026-07-20): tile de chão deitado no XZ (ver BuildSingleTile).
                 var topGo = new GameObject("Top");
                 topGo.transform.SetParent(go.transform, false);
                 topGo.transform.localPosition = Vector3.zero;
-                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (topo p/ câmera)
                 topGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+                topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
                 var sr = topGo.AddComponent<SpriteRenderer>();
                 Sprite tileSprite = null;
@@ -776,9 +784,8 @@ namespace PangeaSkirmish
             var go = new GameObject($"Cliff_{x}_{y}_{sprite.name}");
             go.transform.SetParent(parent, false);
             go.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
-            // Migração XY→XZ (2026-07-20): cliff é topo de tile → deita no XZ.
-            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // deita no XZ (revertido)
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
             sr.sortingOrder = sortOrder;
@@ -792,26 +799,84 @@ namespace PangeaSkirmish
                 _lastDebugState = useDebugGridSprite;
                 ApplyDebugSprites();
             }
-
-            // Caminho 3 (2026-07-14) + Migração XY→XZ (2026-07-20): lerp da rotação
-            // do GRID em torno do eixo Y do MUNDO (perpendicular ao chão XZ), snap de
-            // 90° suave. A câmera fica parada inclinada → "chão rodando" em 2.5D.
-            if (_gridRig != null)
-            {
-                float k = 1f - Mathf.Exp(-GRID_ROT_SPEED * Time.deltaTime);
-                _gridRot = Mathf.Lerp(_gridRot, _gridRotTarget, k);
-                _gridRig.rotation = Quaternion.Euler(0f, _gridRot, 0f);
-            }
         }
 
+        /// <summary>Orientação de vista atual (0/90/180/270).</summary>
+        public int ViewOrientation => _viewOrientation;
+
         /// <summary>
-        /// Vira o MAPA em um passo de 90° (clockwise=true → +90, false → -90).
-        /// Caminho 3: a rotação é aplicada no _gridRig (eixo Z do mundo), NÃO na
-        /// câmera. As unidades devem re-derivar o facing via UnitRegistry.
+        /// Vira a VISTA em um passo de 90° (clockwise=true → +90/Leste, false →
+        /// -90/Oeste). Reindexação lógica instantânea (ver comentário em
+        /// _viewOrientation) — não gira nenhum transform físico.
         /// </summary>
         public void SetGridRotation(bool clockwise)
         {
-            _gridRotTarget += clockwise ? 90f : -90f;
+            int next = _viewOrientation + (clockwise ? 90 : -90);
+            SetViewOrientation(next);
+        }
+
+        /// <summary>
+        /// Define a orientação de vista absoluta (múltiplo de 90) e reconstrói a
+        /// posição/sorting de todos os tiles e unidades para refleti-la. Troca
+        /// instantânea — o losango na tela não muda de forma/tamanho, só troca
+        /// qual célula de dados aparece em cada posição física.
+        /// </summary>
+        public void SetViewOrientation(int degrees)
+        {
+            _viewOrientation = ((degrees % 360) + 360) % 360;
+
+            if (_tiles != null)
+            {
+                for (int x = 0; x < width; x++)
+                for (int y = 0; y < height; y++)
+                {
+                    var sr = _tiles[x, y];
+                    if (sr == null) continue;
+                    var cell = new Vector2Int(x, y);
+                    var tileGo = sr.transform.parent; // container "go", pai do "Top"
+                    if (tileGo != null)
+                        tileGo.position = CellToWorld(cell) + positionOffset;
+
+                    int baseSort = SortingFor(cell, 1);
+                    sr.sortingOrder = baseSort;
+                    var lineTr = sr.transform.Find("GridLine");
+                    if (lineTr != null)
+                    {
+                        var lineSr = lineTr.GetComponent<SpriteRenderer>();
+                        if (lineSr != null) lineSr.sortingOrder = baseSort + 2;
+                    }
+                    if (_highlightBorders.TryGetValue(cell, out var borderSr) && borderSr != null)
+                        borderSr.sortingOrder = baseSort + 3;
+
+                    var objSr = _objectSprites != null ? _objectSprites[x, y] : null;
+                    if (objSr != null)
+                    {
+                        objSr.transform.position = CellToWorld(cell) + positionOffset;
+                        objSr.sortingOrder = baseSort + 2;
+                    }
+
+                    // Side faces: preserva o índice k de empilhamento do nome.
+                    if (tileGo != null)
+                    {
+                        int sideBase = baseSort - 10;
+                        for (int ci = 0; ci < tileGo.childCount; ci++)
+                        {
+                            var child = tileGo.GetChild(ci);
+                            if (!child.name.StartsWith("SideFace")) continue;
+                            var childSr = child.GetComponent<SpriteRenderer>();
+                            if (childSr == null) continue;
+                            int digitsStart = child.name.Length;
+                            while (digitsStart > 0 && char.IsDigit(child.name[digitsStart - 1])) digitsStart--;
+                            if (int.TryParse(child.name.Substring(digitsStart), out int k))
+                                childSr.sortingOrder = sideBase + k;
+                        }
+                    }
+                }
+            }
+
+            // Reposiciona todas as unidades para a nova orientação.
+            foreach (var u in UnitRegistry.AllUnits)
+                if (u != null && !u.IsDead) u.SnapToAnchor();
         }
 
         private void ApplyDebugSprites()
@@ -847,19 +912,36 @@ namespace PangeaSkirmish
         }
 
         // ---- Conversões isométricas ----
-        // Helper: rotação do mapa NÃO é aplicada no grid (Plano A: a câmera gira).
-        // Mantido apenas como identidade para não quebrar CellToWorld/WorldToCell.
-        private Vector2 RotateWorld(float x, float y)
+
+        /// <summary>
+        /// Rotaciona coordenadas LÓGICAS (x,y) para a posição FÍSICA (onde
+        /// aparece na tela) na orientação de vista dada, em passos de 90°
+        /// (assume grid quadrado — width usado como dimensão de referência).
+        /// A rotação de -orientationDeg é a INVERSA exata (rotacionar de volta),
+        /// usada por WorldToCellBase para ir de física -> lógica.
+        /// </summary>
+        private Vector2 ApplyOrientation(float x, float y, int orientationDeg)
         {
-            return new Vector2(x, y);
+            float n = width - 1;
+            switch (((orientationDeg % 360) + 360) % 360)
+            {
+                case 90:  return new Vector2(n - y, x);
+                case 180: return new Vector2(n - x, n - y);
+                case 270: return new Vector2(y, n - x);
+                default:  return new Vector2(x, y);
+            }
         }
 
         public Vector3 CellToWorld(Vector2Int cell)
         {
-            // Migração XY→XZ (2026-07-20): chão no plano XZ, altura no Y.
-            // bx = eixo X (largura do losango), bz = eixo Z (profundidade).
-            float bx = (cell.x - cell.y) * _halfW;
-            float bz = -(cell.x + cell.y) * _halfH;
+            // Chão no plano XZ, altura no Y. bx = eixo X (largura do losango),
+            // bz = eixo Z (profundidade). A célula é reindexada pela orientação
+            // de vista ANTES de aplicar a fórmula isométrica (rotação lógica,
+            // não física — ver comentário em _viewOrientation); a ALTURA usa
+            // sempre a célula lógica original (é dado do terreno, não da tela).
+            Vector2 p = ApplyOrientation(cell.x, cell.y, _viewOrientation);
+            float bx = (p.x - p.y) * _halfW;
+            float bz = -(p.x + p.y) * _halfH;
             return new Vector3(bx, HeightAt(cell.x, cell.y) * _heightStep, bz);
         }
 
@@ -869,8 +951,9 @@ namespace PangeaSkirmish
             float cy = anchor.y + (footprint - 1) * 0.5f;
             // Unidade grande (3x3) fica empilhada sobre a altura MÉDIA do footprint (Regra c).
             int h = AvgHeight(anchor, footprint);
-            float bx = (cx - cy) * _halfW;
-            float bz = -(cx + cy) * _halfH;
+            Vector2 p = ApplyOrientation(cx, cy, _viewOrientation);
+            float bx = (p.x - p.y) * _halfW;
+            float bz = -(p.x + p.y) * _halfH;
             return new Vector3(bx, h * _heightStep, bz);
         }
 
@@ -889,41 +972,34 @@ namespace PangeaSkirmish
             return n > 0 ? Mathf.RoundToInt((float)sum / n) : 0;
         }
 
-        /// <summary>Ordem de desenho para uma posição de grid (maior = mais à frente).</summary>
+        /// <summary>Ordem de desenho para uma posição de grid (maior = mais à frente).
+        /// Usa a posição FÍSICA (pós-orientação de vista) — é ela que reflete
+        /// "quem fica na frente de quem" na tela.</summary>
         public int SortingFor(Vector2Int anchor, int footprint = 1)
         {
             float cx = anchor.x + (footprint - 1) * 0.5f;
             float cy = anchor.y + (footprint - 1) * 0.5f;
-            return Mathf.RoundToInt((cx + cy) * 4f);
+            Vector2 p = ApplyOrientation(cx, cy, _viewOrientation);
+            return Mathf.RoundToInt((p.x + p.y) * 4f);
         }
 
-        // Converte world -> cell base (0°), depois aplica rotação inversa do mapa.
-        // Migração XY→XZ (2026-07-20): o chão é XZ, então lemos world.x / world.z.
-        // CORREÇÃO (2026-07-20): InverseTransformPoint devolve o ponto relativo ao
-        // pivô do _gridRig (centro do grid), mas CellToWorld é definido relativo à
-        // ORIGEM e os tiles são posicionados em world = CellToWorld(cell)+positionOffset.
-        // Então, após tirar a rotação do rig, devolvemos o ponto à origem somando a
-        // posição do pivô e subtraindo o offset. Sem isso, o cell calculado saía
-        // deslocado em ~centro/halfH (selection aparecia no tile errado / clampada).
+        // Converte world -> célula FÍSICA (fórmula isométrica direta, sem
+        // rotação de transform nenhuma — o grid não gira mais fisicamente),
+        // depois aplica a rotação INVERSA da orientação de vista pra achar a
+        // célula LÓGICA correspondente (ver ApplyOrientation/_viewOrientation).
         private Vector2Int WorldToCellBase(Vector3 world, bool clamp)
         {
-            Vector3 local;
-            if (_gridRig != null)
-            {
-                local = _gridRig.InverseTransformPoint(world);
-                local += _gridRig.position - positionOffset;
-            }
-            else
-            {
-                local = world - positionOffset;
-            }
+            Vector3 local = world - positionOffset;
 
             float ux = local.x;
             float uz = local.z;
-            float a = ux / _halfW;          // col - row (base 0°)
-            float b = -uz / _halfH;         // col + row (base 0°)
-            float col = (a + b) * 0.5f;
-            float row = (b - a) * 0.5f;
+            float a = ux / _halfW;          // physX - physY
+            float b = -uz / _halfH;         // physX + physY
+            float physX = (a + b) * 0.5f;
+            float physY = (b - a) * 0.5f;
+
+            Vector2 logical = ApplyOrientation(physX, physY, -_viewOrientation);
+            float col = logical.x, row = logical.y;
             if (clamp)
                 return new Vector2Int(
                     Mathf.Clamp(Mathf.RoundToInt(col), 0, width - 1),
