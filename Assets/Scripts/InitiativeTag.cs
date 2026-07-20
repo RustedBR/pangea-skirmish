@@ -79,12 +79,11 @@ namespace PangeaSkirmish
         private void FaceCamera()
         {
             if (_cam == null) return;
-            // Migração XY→XZ (2026-07-20): billboard Y-only — texto em pé, legível,
-            // encara o yaw da câmera mas não inclina com o pitch (não fica torto).
+            // Fix (2026-07-20): billboard completo (não só yaw) — com a câmera
+            // reto de cima, cancelar só o yaw deixava o texto de canto/ilegível
+            // (mesmo bug do BillboardFace.cs, ver lá o porquê).
             Quaternion parentRot = transform.parent != null ? transform.parent.rotation : Quaternion.identity;
-            Vector3 camEuler = _cam.transform.rotation.eulerAngles;
-            Quaternion camYaw = Quaternion.Euler(0f, camEuler.y, 0f);
-            transform.rotation = Quaternion.Inverse(parentRot) * camYaw;
+            transform.rotation = Quaternion.Inverse(parentRot) * _cam.transform.rotation;
         }
 
         /// <summary>Fase 2: colapsa só o resultado final acima da unidade e some após `duration`.</summary>

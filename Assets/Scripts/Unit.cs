@@ -167,11 +167,18 @@ namespace PangeaSkirmish
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;
 
-            // Caminho 3 (2026-07-14): a unidade vira filha do _gridRig p/
-            // acompanhar a POSIÇÃO do tile quando o grid gira (peça de xadrez),
-            // mas seu sprite CANCELA a rotação do pai (BillboardFace) → fica em pé.
+            // A unidade vira filha do _gridRig (organização/pivot; ele não gira
+            // mais fisicamente — ver GridManager _viewOrientation).
             if (grid != null && grid.GridRig != null)
                 transform.SetParent(grid.GridRig, true);
+
+            // Fix (2026-07-20): BillboardFace nunca era de fato adicionado a
+            // nenhum GameObject de unidade (só existia como classe, citada em
+            // comentário) — por isso footprint/sprite/mira nunca apareciam com
+            // a câmera reto de cima. Aplicado no objeto principal da Unit: como
+            // footprint/sprite/barras são filhos com rotação local identity,
+            // todos herdam o alinhamento com a câmera automaticamente.
+            gameObject.AddComponent<BillboardFace>();
 
             // Inimigos: tom escurecido para diferenciar (reuso de classe heroica).
             _baseTint = team == Team.Enemy ? Tuning.Get().enemyTint : Color.white;

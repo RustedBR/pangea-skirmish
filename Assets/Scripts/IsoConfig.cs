@@ -17,6 +17,12 @@ namespace PangeaSkirmish
         public float heightStep = 0.5f;
 
         public float TileUnitsW => (float)tilePixelW / pixelsPerUnit;
+        // Revertido (2026-07-20): a malha 2:1 (halfW≠halfH) é a projeção
+        // isométrica correta para sprites com SpriteMeshType.Tight (mesh já em
+        // forma de losango, ex. TinyTactics) vistos por câmera reto de cima —
+        // ver CameraController.Configure. Tentar tornar isso quadrado (pra
+        // "consertar" a rotação com câmera tilted) causava incompatibilidade
+        // geométrica entre a malha e o mesh do sprite (efeito de escada/moiré).
         public float TileUnitsH => (float)tilePixelH / pixelsPerUnit;
     }
 }

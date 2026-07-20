@@ -1346,6 +1346,8 @@ namespace PangeaSkirmish
             sr.sortingOrder = 9000;
             float gs = fp * Tuning.Get().stepGhostScale; // mesma escala do footprint da unidade (alinha com o tile)
             ghost.transform.localScale = new Vector3(gs, gs, 1f);
+            // Fix (2026-07-20): marcador de chão, deitado no XZ (câmera reto de cima).
+            ghost.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             ghost.SetActive(false);
             return ghost;
         }
