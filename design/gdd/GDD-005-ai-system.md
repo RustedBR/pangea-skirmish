@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Implemented |
-| **Systems** | SimpleEnemyAI, GameTuning |
+| **Status** | Design-only — implementação removida em `943796d` ("Remove Single-Player da batalha") |
+| **Systems** | GameTuning (restam apenas `aiSurvivalHpThreshold` e `aiFlankRange`) |
 | **Priority** | High |
 
 ## Overview
@@ -85,7 +85,7 @@ When `currentHP / maxHP < aiSurvivalHpThreshold × survivalInstinct`:
 
 ## Dependencies
 
-- `SimpleEnemyAI.cs` — AI decision logic
+- `SimpleEnemyAI.cs` — AI decision logic (**não existe**: removido em `943796d`; seria recriado numa eventual reintrodução da IA)
 - `GameTuning.cs` — AI parameters
 - `Unit.cs` — Unit stats and state
 - `PlanningController.cs` — Planning integration

@@ -121,6 +121,10 @@ __pycache__/
 *.blob
 mono_crash.*
 
+# Backups gerados pelo gen_sounds.py (renomeia o .wav antigo para .wav.bak)
+*.bak
+*.bak.meta
+
 # Game Studios framework session logs (transientes)
 production/
 production.meta
@@ -134,3 +138,14 @@ production.meta
 
 # Netlify CLI local state (gerado pelo CLI, tem path absoluto)
 .netlify/
+
+# .meta de pastas VAZIAS. O git nao versiona diretorio vazio, entao esses .meta
+# chegavam em clone novo sem a pasta correspondente; o Unity os apagava na
+# primeira importacao e gerava diff espurio. Se a pasta voltar a ter conteudo,
+# remover a linha correspondente daqui.
+/Assets/UI.meta
+/Assets/Settings/PlayMode.meta
+/Assets/Resources/WeaponAnimData.meta
+/Assets/Sprites/Downloads.meta
+/Assets/Sprites/_extracted_preview.meta
+/Assets/Resources/Sprites/BDragon1727/UI/Extracted.meta
