@@ -38,12 +38,25 @@ public static class BuildWebGL
         // None+Disabled=71MB, None+Medium=58MB. Para debug com exceções visíveis
         // use _TestBuilds.BuildBaseline etc. (builds locais WebGL_*_full).
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
+        // COMPRESSÃO BROTLI + DECOMPRESSION FALLBACK.
+        // As 9 variantes de 2026-07-10 (_TestBuilds) todas mediram com compressionFormat
+        // Disabled — variaram exceptionSupport e stripping, que são justamente as duas
+        // alavancas que arriscam quebrar o multiplayer, e nunca tocaram na compressão,
+        // que não tem risco funcional nenhum.
+        // O motivo de estar Disabled era o GitHub Pages: ele não deixa configurar
+        // Content-Encoding, então um .br servido cru chega ao browser como bytes que
+        // ele não sabe descomprimir. decompressionFallback resolve exatamente isso —
+        // embute o descompressor no loader JS, e o cliente descomprime sem depender de
+        // header nenhum do servidor. É o caminho suportado pelo Unity para hospedagem
+        // estática sem controle de headers.
+        // Custo: loader um pouco maior e CPU de descompressão no carregamento.
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+        PlayerSettings.WebGL.decompressionFallback = true;
         // TEMPLATE OBRIGATÓRIO: forçar o custom PangeaSkirmish (free-aspect + 3-chaves).
         // Se o build usar o template DEFAULT, o index.html fica com dataUrl vazio
         // ("DefaultCompany"/"My project") e o jogo NAO CARREGA (404 no wasm).
         // O BuildPlayer programático IGNORA o template em memória a menos que seja
         // salvo em disco ANTES do build — por isso SaveAssets() é obrigatório aqui.
-        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
         PlayerSettings.WebGL.template = "PROJECT:PangeaSkirmish";
         AssetDatabase.SaveAssets();
 
@@ -73,18 +86,58 @@ public static class BuildWebGL
             return;
         }
 
+        // Os nomes reais dependem da compressão: com Brotli o Unity emite WebGL.wasm.br,
+        // WebGL.data.br e WebGL.framework.js.br (o loader NUNCA é comprimido, senão não
+        // haveria como carregá-lo). Hardcodar ".wasm" quebraria silenciosamente o build
+        // comprimido — daí a detecção pelo que existe em disco.
+        var buildDir = System.IO.Path.Combine(locationPathName, "Build");
+        if (!System.IO.Directory.Exists(buildDir))
+        {
+            Debug.LogWarning($"[BuildWebGL] pasta {buildDir} não encontrada para post-fix.");
+            return;
+        }
+
+        var loader = FindBuildFile(buildDir, ".loader.js");
+        var data = FindBuildFile(buildDir, ".data", ".data.br", ".data.gz");
+        var framework = FindBuildFile(buildDir, ".framework.js", ".framework.js.br", ".framework.js.gz");
+        var code = FindBuildFile(buildDir, ".wasm", ".wasm.br", ".wasm.gz");
+
+        if (loader == null || data == null || framework == null || code == null)
+        {
+            Debug.LogError($"[BuildWebGL] post-fix abortado — faltou arquivo em {buildDir}. " +
+                           $"loader={loader} data={data} framework={framework} code={code}");
+            return;
+        }
+
         var html = System.IO.File.ReadAllText(indexPath);
         var original = html;
-        html = html.Replace("var loaderUrl = buildUrl + \"/\";", "var loaderUrl = buildUrl + \"/WebGL.loader.js\";")
-                   .Replace("dataUrl: buildUrl + \"/\",", "dataUrl: buildUrl + \"/WebGL.data\",")
-                   .Replace("frameworkUrl: buildUrl + \"/\",", "frameworkUrl: buildUrl + \"/WebGL.framework.js\",")
-                   .Replace("codeUrl: buildUrl + \"/\",", "codeUrl: buildUrl + \"/WebGL.wasm\",");
+        html = html.Replace("var loaderUrl = buildUrl + \"/\";", $"var loaderUrl = buildUrl + \"/{loader}\";")
+                   .Replace("dataUrl: buildUrl + \"/\",", $"dataUrl: buildUrl + \"/{data}\",")
+                   .Replace("frameworkUrl: buildUrl + \"/\",", $"frameworkUrl: buildUrl + \"/{framework}\",")
+                   .Replace("codeUrl: buildUrl + \"/\",", $"codeUrl: buildUrl + \"/{code}\",");
 
         if (html != original)
         {
             System.IO.File.WriteAllText(indexPath, html);
-            Debug.Log("[BuildWebGL] Index URLs dos assets corrigidas para WebGL.*.");
+            Debug.Log($"[BuildWebGL] Index URLs corrigidas: loader={loader} data={data} framework={framework} code={code}");
         }
+        else
+        {
+            Debug.Log("[BuildWebGL] index.html já estava com URLs resolvidas — nada a corrigir.");
+        }
+    }
+
+    /// Procura na pasta Build o primeiro arquivo que termina com um dos sufixos, na ordem dada.
+    /// Retorna só o nome (sem diretório), ou null se nenhum existir.
+    private static string FindBuildFile(string buildDir, params string[] suffixes)
+    {
+        var files = System.IO.Directory.GetFiles(buildDir).Select(System.IO.Path.GetFileName).ToArray();
+        foreach (var suffix in suffixes)
+        {
+            var hit = files.FirstOrDefault(f => f.EndsWith(suffix, System.StringComparison.OrdinalIgnoreCase));
+            if (hit != null) return hit;
+        }
+        return null;
     }
 
     private struct SceneAssetEntry
