@@ -86,10 +86,13 @@ public static class BuildWebGL
             return;
         }
 
-        // Os nomes reais dependem da compressão: com Brotli o Unity emite WebGL.wasm.br,
-        // WebGL.data.br e WebGL.framework.js.br (o loader NUNCA é comprimido, senão não
-        // haveria como carregá-lo). Hardcodar ".wasm" quebraria silenciosamente o build
-        // comprimido — daí a detecção pelo que existe em disco.
+        // Os nomes reais dependem da compressão:
+        //   - sem compressão            -> WebGL.wasm
+        //   - Brotli/Gzip puros         -> WebGL.wasm.br / .gz  (exigem Content-Encoding do servidor)
+        //   - com decompressionFallback -> WebGL.wasm.unityweb  (o loader descomprime sozinho)
+        // O loader NUNCA é comprimido, senão não haveria como carregá-lo.
+        // Hardcodar ".wasm" quebraria silenciosamente o build comprimido — daí a
+        // detecção pelo que existe em disco.
         var buildDir = System.IO.Path.Combine(locationPathName, "Build");
         if (!System.IO.Directory.Exists(buildDir))
         {
@@ -98,9 +101,9 @@ public static class BuildWebGL
         }
 
         var loader = FindBuildFile(buildDir, ".loader.js");
-        var data = FindBuildFile(buildDir, ".data", ".data.br", ".data.gz");
-        var framework = FindBuildFile(buildDir, ".framework.js", ".framework.js.br", ".framework.js.gz");
-        var code = FindBuildFile(buildDir, ".wasm", ".wasm.br", ".wasm.gz");
+        var data = FindBuildFile(buildDir, ".data.unityweb", ".data.br", ".data.gz", ".data");
+        var framework = FindBuildFile(buildDir, ".framework.js.unityweb", ".framework.js.br", ".framework.js.gz", ".framework.js");
+        var code = FindBuildFile(buildDir, ".wasm.unityweb", ".wasm.br", ".wasm.gz", ".wasm");
 
         if (loader == null || data == null || framework == null || code == null)
         {
