@@ -17,39 +17,56 @@ public static class BuildWebGL
             .Select(s => new SceneAssetEntry(s.path))
             .ToArray();
 
-        // Configurações para build WebGL o MAIS LEVE possível:
-        // - IL2CPP (C++ em vez de Mono): menor + mais rápido no browser
-        // - Managed stripping HIGH: remove código C# não-usado
-        // - Compression Brotli: .data menor
-        // - Exceptions None: corta o runtime de exceções (web só)
+        // =====================================================================
+        // CONFIG CANÔNICA — TRAVADA EM 2026-07-10. NÃO ALTERAR SEM MEDIR.
+        //
+        //   ManagedStrippingLevel.Medium
+        //   WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly
+        //   template PROJECT:PangeaSkirmish
+        //
+        // Medições em builds REAIS que produziram essa escolha:
+        //   Medium + Explicit  = 56MB wasm  -> OK, NÃO CRASHA          <-- canônico
+        //   None   + Medium    = 56MB wasm  -> ABORT SILENCIOSO EM SALA
+        //   Disabled + Explicit= 68MB
+        //   High   + Explicit  = 55MB, mas risco de o strip cortar código por reflexão
+        //   Full   + Disabled  = ~146MB, estoura o limite do Pages
+        //
+        // ATENÇÃO AO HISTÓRICO (2026-07-31): este arquivo esteve com None+Disabled,
+        // que era estado de DEBUG dos commits b48064f/b89d16e ("stripping Disabled
+        // (abort silencioso WebGL)"), NÃO a config final. A decisão canônica veio
+        // DEPOIS, no mesmo dia, e foi gravada no ProjectSettings. Quem tomar este
+        // arquivo como fonte da verdade reintroduz o abort em sala — foi o que
+        // aconteceu ao publicar o build de 31/07.
+        // =====================================================================
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
-        // Managed stripping: DESLIGADO.
-        // Com HIGH, o UnityLinker remove o código de Multiplayer (NetBootstrap/RoomHUD/Relay)
-        // porque a referência é via AddComponent<RoomHUD>() reflexivo em runtime — o linker
-        // não enxerga e stripa como dead code. Resultado: clique em MP -> código ausente ->
-        // abort() silencioso no browser (exceptionSupport=None esconde a exceção).
-        // link.xml (preserve=all) NÃO basta: o IL2CPP ainda faz DCE em nível de método.
-        // Desligar o stripping garante que TODO o PangeaSkirmish.dll entra no wasm.
-        // wasm fica ~70-90MB mas exceptionSupport=None mantém < 100MB (limite Pages).
+        // Medium, não Disabled e não High. HIGH é que é perigoso: o UnityLinker remove
+        // o código de Multiplayer (NetBootstrap/RoomHUD/Relay) porque a referência é
+        // AddComponent<RoomHUD>() reflexivo em runtime, e link.xml (preserve=all) não
+        // basta — o IL2CPP ainda faz DCE em nível de método. Medium foi medido e não
+        // corta esse caminho.
         PlayerSettings.SetManagedStrippingLevel(
-            UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Disabled);
-        // exceptionSupport None: OBRIGATÓRIO para deploy — medição 2026-07-10:
-        // Full+Disabled=153MB, Full+Medium=123MB (Pages rejeita >100MB, GH001);
-        // None+Disabled=71MB, None+Medium=58MB. Para debug com exceções visíveis
-        // use _TestBuilds.BuildBaseline etc. (builds locais WebGL_*_full).
-        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
-        // COMPRESSÃO BROTLI + DECOMPRESSION FALLBACK.
-        // As 9 variantes de 2026-07-10 (_TestBuilds) todas mediram com compressionFormat
-        // Disabled — variaram exceptionSupport e stripping, que são justamente as duas
-        // alavancas que arriscam quebrar o multiplayer, e nunca tocaram na compressão,
-        // que não tem risco funcional nenhum.
-        // O motivo de estar Disabled era o GitHub Pages: ele não deixa configurar
-        // Content-Encoding, então um .br servido cru chega ao browser como bytes que
-        // ele não sabe descomprimir. decompressionFallback resolve exatamente isso —
-        // embute o descompressor no loader JS, e o cliente descomprime sem depender de
-        // header nenhum do servidor. É o caminho suportado pelo Unity para hospedagem
-        // estática sem controle de headers.
-        // Custo: loader um pouco maior e CPU de descompressão no carregamento.
+            UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Medium);
+        // ExplicitlyThrownExceptionsOnly, NUNCA None. Com None o runtime de exceções
+        // some e qualquer falha vira abort("") mudo — foi medido causando abort ao
+        // entrar em sala. O None de 2026-07-09 (b48064f) existiu só para caber no
+        // limite de 100MB do Pages; a compressão abaixo resolve o tamanho sem pagar
+        // esse preço. Para debug com stacktrace completo use _TestBuilds.BuildBaseline.
+        PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
+        // COMPRESSÃO BROTLI + DECOMPRESSION FALLBACK (2026-07-31).
+        // Ortogonal às duas travas acima: mexe em tamanho, não em comportamento de
+        // runtime. É o que torna Explicit viável — o motivo original de forçar None
+        // era o limite de 100MB, e com Brotli o wasm cai para a casa de 12MB.
+        //
+        // O GitHub Pages não deixa configurar Content-Encoding, então um .br servido
+        // cru chega ao browser como bytes indecifráveis. decompressionFallback embute
+        // o descompressor no loader JS e o cliente descomprime sem depender de header.
+        // Com o fallback o Unity emite ".unityweb", não ".br".
+        //
+        // ⚠ NETLIFY: o fallback DEVE ser 0 lá. O Netlify serve .br com
+        // Content-Encoding: br (o browser já descomprime nativo) e o fallback ligado
+        // descomprimiria DE NOVO -> "Invalid binary data file size!" (bug de
+        // 2026-07-07, corrigido em e35aa5d). Como o Pages é o canal oficial e o
+        // Netlify está congelado, fica 1. Se reativar o Netlify, voltar para 0.
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
         PlayerSettings.WebGL.decompressionFallback = true;
         // TEMPLATE OBRIGATÓRIO: forçar o custom PangeaSkirmish (free-aspect + 3-chaves).
