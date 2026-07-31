@@ -1,0 +1,33 @@
+# Normalizacao de fim de linha
+* text=auto
+
+# ---------------------------------------------------------------------------
+# Git LFS — arte de terceiros nao referenciada pelo jogo
+#
+# Assets/Sprites/_UNUSED_BDragon1727 tem 1058 arquivos (~157 MiB) e nenhuma
+# referencia: verificado por GUID contra Scenes/Prefabs/Resources e por grep
+# textual em todo Assets/. O codigo consome de um caminho DIFERENTE
+# (Assets/Resources/Sprites/BDragon1727, curado), onde so 7 nomes coincidem.
+#
+# Essas regras valem para commits NOVOS. Os blobs ja existentes no historico
+# so saem do pack com `git lfs migrate import` + force-push (ver README/MemPalace).
+# ---------------------------------------------------------------------------
+Assets/Sprites/_UNUSED_BDragon1727/**/*.png  filter=lfs diff=lfs merge=lfs -text
+Assets/Sprites/_UNUSED_BDragon1727/**/*.gif  filter=lfs diff=lfs merge=lfs -text
+
+# Arquivos-fonte de arte pesados, caso venham a existir
+*.psd  filter=lfs diff=lfs merge=lfs -text
+*.aseprite filter=lfs diff=lfs merge=lfs -text
+
+# ---------------------------------------------------------------------------
+# Unity — arquivos YAML que devem ser tratados como texto para merge
+# ---------------------------------------------------------------------------
+*.unity     text merge=unityyamlmerge eol=lf
+*.prefab    text merge=unityyamlmerge eol=lf
+*.asset     text merge=unityyamlmerge eol=lf
+*.meta      text eol=lf
+*.mat       text eol=lf
+*.cs        text diff=csharp eol=lf
+*.shader    text eol=lf
+*.uxml      text eol=lf
+*.uss       text eol=lf

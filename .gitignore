@@ -125,6 +125,11 @@ mono_crash.*
 *.bak
 *.bak.meta
 
+# Notas visuais de trabalho (poses, offsets de arma, comparacoes de animação).
+# Nao sao assets do jogo: nenhum doc ou cena as referencia.
+/Assets/Screenshots/
+/Assets/Screenshots.meta
+
 # Game Studios framework session logs (transientes)
 production/
 production.meta
