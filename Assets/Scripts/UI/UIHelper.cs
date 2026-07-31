@@ -23,6 +23,30 @@ namespace PangeaSkirmish.UI
             return IsPositionOverClickableUI(pos);
         }
 
+        /// <summary>
+        /// True se algum campo de texto da UI está com o foco do teclado.
+        ///
+        /// Usado para não deixar teclas de gameplay dispararem enquanto o jogador
+        /// digita: sem isso, nomear um mapa no Sandbox com uma palavra contendo
+        /// "q" ou "e" girava a vista do mapa a cada letra.
+        /// </summary>
+        public static bool IsTextInputFocused()
+        {
+            var docs = UnityEngine.Object.FindObjectsOfType<UIDocument>();
+            foreach (var doc in docs)
+            {
+                if (doc == null || !doc.enabled || doc.rootVisualElement == null) continue;
+                var panel = doc.rootVisualElement.panel;
+                var focused = panel?.focusController?.focusedElement as VisualElement;
+                if (focused == null) continue;
+                // O TextField delega o foco a um TextElement interno, então não basta
+                // testar o próprio elemento focado — subimos até achar um TextField.
+                if (focused is TextField) return true;
+                if (focused.GetFirstAncestorOfType<TextField>() != null) return true;
+            }
+            return false;
+        }
+
         public static bool IsPositionOverClickableUI(Vector2 screenPos)
         {
             var docs = UnityEngine.Object.FindObjectsOfType<UIDocument>();

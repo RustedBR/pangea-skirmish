@@ -16,12 +16,8 @@ MonoBehaviour:
   planningGraceSeconds: 15
   bonusConfirmSeconds: 6
   bonusStepSeconds: 10
-  moveCostPerTile: 1
-  turnCost: 0.5
-  heightCostMultiplier: 1.5
   minActionPoints: 1
   minDamageFloor: 1
-  tileAttackStrMultiplier: 1
   unarmedDamage: 1
   unarmedRange: 0
   baseAttackRange: 1
@@ -55,24 +51,6 @@ MonoBehaviour:
     magicResistPerWIS: 1
     manaRegenBase: 2
     manaRegenPerWIS: 0.5
-  arqueiro:
-    STR: 5
-    VIT: 5
-    DEX: 10
-    AGI: 7
-    INT: 1
-    WIS: 2
-    Footprint: 3
-    AttackRange: 1
-  mago:
-    STR: 1
-    VIT: 4
-    DEX: 2
-    AGI: 4
-    INT: 10
-    WIS: 8
-    Footprint: 3
-    AttackRange: 1
   weapons:
   - id: Hatchet
     displayName: Machado
@@ -180,14 +158,21 @@ MonoBehaviour:
   zoomSize: 10
   zoomSpeed: 3
   zoomScrollFactor: 0.1
+  viewRotateFxDuration: 0.32
+  viewRotateCooldown: 0.45
+  viewRotateRollDegrees: 5
+  viewRotateWorldSpin: 90
+  viewRotateZoomPunch: 0.08
+  viewRotateSweepBrightness: 0.35
+  viewRotateDarkenUniform: 0.55
+  viewRotateSweepScale: 0.06
+  viewRotateStagger: 0.14
   zoomMin: 5
   zoomMax: 20
   edgeMargin: 15
   edgePanSpeed: 12
   edgePanReferenceZoom: 13
   dragSpeed: 1
-  panMargin: 2
-  camTransitionDuration: 0.3
   camManualTimeout: 2
   camSettleThreshold: 0.05
   camSettleTimeout: 1.2
@@ -204,7 +189,6 @@ MonoBehaviour:
   postActionPause: 1
   initiativeHold: 1.75
   slotPause: 0.15
-  revealDelay: 1
   roundBannerHold: 0.4
   roundEndPause: 0.5
   initiativeCollapseExtraPause: 3
@@ -224,14 +208,9 @@ MonoBehaviour:
   flashDurationWhite: 0.15
   flashIntensityWhite: 0.5
   flashHoldRatio: 0.5
-  battleLabelDuration: 6
-  battleLabelFadeTime: 10
   attackLabelDuration: 6
-  damageRiseHeight: 1
   damageRiseDuration: 5
-  critRiseHeight: 1
   critRiseDuration: 5
-  missRiseHeight: 1
   missRiseDuration: 5
   battleLabelStackSpacing: 0.9
   battleLabelStackRadius: 2
@@ -253,7 +232,6 @@ MonoBehaviour:
   seqLabelScale: 0.7
   floatingLabelFontSize: 80
   floatingLabelCharacterSize: 0.06
-  highlightDuration: 2
   moveGhostColor: {r: 1, g: 1, b: 1, a: 0.3}
   unitTargetColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
   tileTargetColor: {r: 0.35, g: 0.85, b: 0.95, a: 1}
@@ -291,15 +269,11 @@ MonoBehaviour:
   logEnemyColor: {r: 1, g: 0.52, b: 0.52, a: 1}
   logSystemColor: {r: 0.82, g: 0.85, b: 0.92, a: 1}
   logHoverColor: {r: 0.25, g: 0.38, b: 0.65, a: 0.35}
-  logScrollSensitivity: 40
   seqChipMoveColor: {r: 0.18, g: 0.36, b: 0.66, a: 1}
   seqChipAttackColor: {r: 0.66, g: 0.32, b: 0.12, a: 1}
   seqChipMoveBonusColor: {r: 0.6, g: 0.2, b: 0.92, a: 1}
   seqChipAttackBonusColor: {r: 0.95, g: 0.5, b: 0.08, a: 1}
   seqChipSelectedLighten: 0.4
-  windowGradientTopColor: {r: 0.11, g: 0.15, b: 0.32, a: 0.97}
-  windowGradientBottomColor: {r: 0.02, g: 0.04, b: 0.11, a: 0.97}
-  windowBorderColor: {r: 0.5, g: 0.64, b: 0.92, a: 1}
   timerNormalColor: {r: 1, g: 0.9, b: 0.55, a: 1}
   timerWarningColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   cameraAutoColor: {r: 0.55, g: 0.95, b: 0.55, a: 1}
@@ -311,55 +285,38 @@ MonoBehaviour:
   hpBarMidColor: {r: 0.85, g: 0.72, b: 0.1, a: 1}
   hpBarLowColor: {r: 0.82, g: 0.2, b: 0.2, a: 1}
   endScreenDimAlpha: 0.78
-  menuWalkAnimFrameDelay: 0.35
   menuBackgroundColor: {r: 0.06, g: 0.07, b: 0.09, a: 1}
   uiButtonNormalColor: {r: 0.25, g: 0.25, b: 0.3, a: 1}
   uiButtonActiveColor: {r: 0.28, g: 0.5, b: 0.82, a: 1}
   uiTitleColor: {r: 0.92, g: 0.8, b: 0.35, a: 1}
-  uiPanelBgColor: {r: 0.08, g: 0.09, b: 0.12, a: 0.92}
-  toastTextColor: {r: 1, g: 0.92, b: 0.6, a: 1}
   sandboxCameraSize: 12
   sandboxBackgroundColor: {r: 0.08, g: 0.09, b: 0.11, a: 1}
   sandboxDefaultMapSize: 20
   paintPreviewColor: {r: 0.3, g: 1, b: 0.3, a: 0.5}
   hoverCursorColor: {r: 1, g: 0.95, b: 0.4, a: 0.4}
   maxTileHeight: 3
+  maxStepClimb: 1
   maxMapSize: 50
   sfxVolume: 1
   musicVolume: 0.799
-  spellApCost: 1
   spellSelfManaCost: 2
-  spellUnitManaCost: 3
-  spellTileManaCost: 4
-  concentrateManaGain: 3
   spellRangePerMana: 1
-  spellRangeBase: 4
   conduitAffinityBonus: 0.25
   spellMinDamage: 1
   spellPotencyBaseDamage: 0.075
   spellPotencyBaseBuff: 0.375
-  spellResistFactor: 0.5
-  spellBuffDurationRounds: 3
-  physicalBuffDurationRounds: 3
-  physicalBuffStrFactor: 0.5
-  physicalBuffVitFactor: 0.5
-  shieldCapacityFactor: 1
   fireTileDamageFactor: 1
   fireTileDurationRounds: 3
   windTileDurationRounds: 3
   windPushTiles: 1
-  waterTileIndex: 16
-  earthStoneTileIndex: 8
+  waterTileName: water_full
+  earthStoneTileName: stone_2
   earthRaiseAmount: 1
-  orbManaFactor: 1
-  spellFoldMaxGridSize: 40
   airProjectilePushTiles: 1
   spellProjectileSpeed: 14
   wallImpactDamage: 2
   spellProjectileArc: 0.6
   spellCastAnimDuration: 1
-  spellImpactPause: 0.5
-  tileEffectAnimFps: 6
   tileEffectOverlayAlpha: 0.65
   elemPhysicalColor: {r: 0.8, g: 0.6, b: 0.3, a: 1}
   elemMagicColor: {r: 0.5, g: 0.2, b: 1, a: 1}
@@ -391,7 +348,6 @@ MonoBehaviour:
   spellVfxDebugLogs: 1
   spellProjectileFrame: 0
   aiUseSpells: 1
-  aiSpellManaFraction: 0.34
   aiConcentrationThreshold: 0
   worldBarsEnabled: 1
   worldBarSize: {x: 1.4, y: 0.14}
@@ -420,11 +376,6 @@ MonoBehaviour:
   uiButtonFrameFlipShading: 0
   worldBarPillRect: {x: 68, y: 68, z: 38, w: 8}
   worldBarPillBorder: {x: 8, y: 3, z: 8, w: 3}
-  windowFrameEnabled: 1
-  windowFrameCorner: 6
-  windowFrameBorderPx: 2
-  windowFrameBorderColor: {r: 0.04, g: 0.05, b: 0.09, a: 1}
-  windowFrameHighlightColor: {r: 0.55, g: 0.68, b: 0.92, a: 1}
   reactionChoiceTime: 50
   dodgeReactionPerAGI: 0.03
   blockReductionPerVIT: 0.03

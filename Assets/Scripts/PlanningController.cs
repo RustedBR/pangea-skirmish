@@ -58,6 +58,20 @@ namespace PangeaSkirmish
 
         public void SetHUD(BattleHUD hud) { _hud = hud; }
 
+        private void OnEnable()  => GridManager.OnViewOrientationChanged += OnViewOrientationChanged;
+        private void OnDisable() => GridManager.OnViewOrientationChanged -= OnViewOrientationChanged;
+
+        /// <summary>
+        /// Girar a vista reindexa o grid: os ghosts já se reposicionam sozinhos
+        /// (GridAnchored), mas os rótulos numerados da sequência derivam da
+        /// posição dos ghosts, então precisam ser recalculados depois deles.
+        /// </summary>
+        private void OnViewOrientationChanged(int _)
+        {
+            if (!_active) return;
+            RefreshSequenceVisuals();
+        }
+
         public void Begin(Unit controlled)
         {
             _controlled = controlled;
@@ -758,7 +772,9 @@ namespace PangeaSkirmish
 
             target.SetAttackMarked(true);
             var marker = new GameObject("SpellMarker");
-            marker.transform.position = target.HeadWorld;
+            // Fix (2026-07-29): preso à célula do alvo em vez da posição de mundo
+            // dele, para acompanhar a rotação de vista (e o próprio alvo, se andar).
+            GridAnchored.Attach(marker, target.anchor, target.stats.Footprint);
             _pathGhosts.Add(marker);
 
             _hud.HidePrompt();
@@ -885,10 +901,13 @@ namespace PangeaSkirmish
             sr.color = color;
             sr.sortingOrder = 4000; // acima dos tiles, abaixo dos ghosts de waypoint (5000)
             g.transform.localScale = Vector3.one; // 1 tile
-            g.transform.position = _grid.AnchorToWorldCenter(cell, 1);
             // Fix (2026-07-20): marcador de chão, deitado no XZ como os tiles
             // (câmera reto de cima) — sem isso ficava de canto/invisível.
             g.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            // Fix (2026-07-29): preso à célula LÓGICA — Attach já posiciona. Sem
+            // isso o anel de alcance ficava desenhado no slot da orientação antiga
+            // ao girar a vista com Q/E durante o planejamento.
+            GridAnchored.Attach(g, cell, 1);
             return g;
         }
 
@@ -1516,7 +1535,9 @@ namespace PangeaSkirmish
         private void PlaceGhost(GameObject g, Vector2Int anchor)
         {
             int fp = _controlled != null ? _controlled.stats.Footprint : AttributeStats.DefaultFootprint;
-            g.transform.position = _grid.AnchorToWorldCenter(anchor, fp);
+            // Fix (2026-07-29): Attach guarda a âncora lógica e já posiciona, para
+            // o waypoint acompanhar a reindexação da rotação de vista.
+            GridAnchored.Attach(g, anchor, fp);
             g.SetActive(true);
         }
 
