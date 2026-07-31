@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -224,6 +225,29 @@ namespace PangeaSkirmish
             return true;
         }
 
+        /// <summary>
+        /// Destrói respeitando o modo do editor. Fora do Play mode o Unity recusa
+        /// Object.Destroy e loga erro — o que aparecia ao reconstruir o grid a partir
+        /// de ferramentas de editor e de testes EditMode.
+        /// </summary>
+        private static void DestroyGO(GameObject go)
+        {
+            if (go == null) return;
+            if (Application.isPlaying) Destroy(go);
+            else DestroyImmediate(go);
+        }
+
+        /// <summary>
+        /// SpriteRenderer do topo do tile (null em célula vazia/void ou fora da
+        /// faixa). Exposto para efeitos visuais — ver TileSweep.
+        /// </summary>
+        public SpriteRenderer TileRendererAt(int x, int y)
+        {
+            if (_tiles == null) return null;
+            if (x < 0 || y < 0 || x >= width || y >= height) return null;
+            return _tiles[x, y];
+        }
+
         public int HeightAt(int x, int y)
         {
             if (_heights == null) return 0;
@@ -270,7 +294,7 @@ namespace PangeaSkirmish
                 _objectNames[x, y] = "";
                 DestroyObjectAt(x, y);
                 var tileSr = _tiles != null ? _tiles[x, y] : null;
-                if (tileSr != null) { Destroy(tileSr.gameObject); _tiles[x, y] = null; }
+                if (tileSr != null) { DestroyGO(tileSr.gameObject); _tiles[x, y] = null; }
                 if (_collision != null) _collision.SetWalkable(x, y, false);
                 return;
             }
@@ -300,7 +324,14 @@ namespace PangeaSkirmish
             }
             else
             {
-                sr.transform.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
+                // Fix (2026-07-29): mover o CONTAINER (pai do "Top"), não o "Top".
+                // Escrevendo no "Top" ele se descolava do container em world space;
+                // como CellToWorld já embute a altura NOVA, o próximo
+                // SetViewOrientation — que move o container — somava o Δh de novo e
+                // o tile ficava com o topo no dobro da altura (visível após magia
+                // de terra/água ou pintura de altura no Sandbox).
+                var container = sr.transform.parent != null ? sr.transform.parent : sr.transform;
+                container.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
                 var sprite = tileDatabase != null ? tileDatabase.GetTile(_terrainNames[x, y]) : null;
                 sr.sprite = sprite ?? _blockSprite;
                 if (cellHeight != oldHeight)
@@ -348,7 +379,7 @@ namespace PangeaSkirmish
         private void DestroyObjectAt(int x, int y)
         {
             var sr = _objectSprites != null ? _objectSprites[x, y] : null;
-            if (sr != null) { Destroy(sr.gameObject); _objectSprites[x, y] = null; }
+            if (sr != null) { DestroyGO(sr.gameObject); _objectSprites[x, y] = null; }
         }
 
         /// <summary>
@@ -366,7 +397,7 @@ namespace PangeaSkirmish
             {
                 var child = tileGo.transform.GetChild(i).gameObject;
                 if (child.name.StartsWith("SideFace"))
-                    Destroy(child);
+                    DestroyGO(child);
             }
 
             if (height <= 0) return;
@@ -391,7 +422,15 @@ namespace PangeaSkirmish
                 // Face esquerda (mais escura)
                 var goL = new GameObject($"SideFace_L{k}");
                 goL.transform.SetParent(tileGo.transform, false);
-                // Migração XY→XZ (2026-07-20): altura sai no Y (em pé saindo do chão).
+                // ATENÇÃO (nota corrigida em 2026-07-29): estas faces são filhas do
+                // "Top" (UpdateSideFaces usa _tiles[x,y].gameObject), que está
+                // rotacionado Euler(90,0,0). Logo este localPosition.y NÃO é altura
+                // do mundo — a rotação o mapeia para world −Z, que sob a câmera
+                // reto de cima aparece como "para baixo na tela". É exatamente o
+                // que queremos, mas por um caminho diferente do que dizia o
+                // comentário antigo. Não troque para world Y: com câmera
+                // ortográfica top-down, deslocamento em Y é a direção de visão e as
+                // faces sumiriam da tela.
                 goL.transform.localPosition = new Vector3(-_halfW * 0.5f, yc, 0f);
                 goL.transform.localScale = new Vector3(_halfW * 2f, sy, 1f); // largura = 1 tile iso
                 var srL = goL.AddComponent<SpriteRenderer>();
@@ -567,9 +606,17 @@ namespace PangeaSkirmish
         {
             Debug.Log($"[GridManager] RebuildFromMap: {map.width}x{map.height}");
 
-            // Destruir tiles existentes
-            var tilesRoot = transform.Find("Tiles");
-            if (tilesRoot != null) Destroy(tilesRoot.gameObject);
+            // Destruir tiles existentes.
+            // Fix (2026-07-30): usava transform.Find("Tiles"), mas o root dos tiles é
+            // filho do _gridRig (que fica na raiz do mundo), não deste GameObject —
+            // o Find retornava null SEMPRE e o grid antigo vazava, ficando desenhado
+            // por baixo do novo a cada expansão de mapa.
+            if (_tilesRoot != null) DestroyGO(_tilesRoot.gameObject);
+            _tilesRoot = null;
+            if (_objectsRoot != null) DestroyGO(_objectsRoot.gameObject);
+            _objectsRoot = null;
+            _highlightBorders.Clear();
+            _highlighted.Clear();
 
             // Atualizar dimensões
             width = map.width;
@@ -591,7 +638,15 @@ namespace PangeaSkirmish
                 _heights[x, y] = map.HeightAt(x, y);
                 _terrainNames[x, y] = map.TerrainAt(x, y);
                 _objectNames[x, y] = map.ObjectAt(x, y);
-                _voidCells[x, y] = sourceMap.IsVoid(x, y);
+                // Fix (2026-07-30): lia de `sourceMap` — o CAMPO — em vez do `map`
+                // recebido por parâmetro (regressão do commit a1a1633). No Sandbox
+                // sourceMap é null, então expandir o grid lançava NullReferenceException
+                // AQUI, depois de width/height já terem mudado e os arrays já terem
+                // sido realocados: o grid ficava meio-construído (arrays novos vazios,
+                // sprites antigos ainda na cena) e o editor de mapas parava de
+                // responder. Com um sourceMap de dimensões antigas seria
+                // IndexOutOfRange em vez de NRE.
+                _voidCells[x, y] = map.IsVoid(x, y);
             }
 
             // Parte A: sincronizar camada de colisão/ocupação com o terreno
@@ -642,7 +697,14 @@ namespace PangeaSkirmish
                 if (gridLineSprite != null)
                 {
                     var lineGo = new GameObject("GridLine");
-                    lineGo.transform.SetParent(go.transform, false);
+                    // Fix (2026-07-29): filha do "Top" (deitado no XZ), não do
+                    // container. Sob o container a linha ficava no plano XY, de
+                    // canto para a câmera reto de cima — área projetada zero, ou
+                    // seja, INVISÍVEL no combate. Só aparecia nos tiles repintados
+                    // via BuildSingleTile, que já usava o pai certo. Isso também
+                    // reativa o Find("GridLine") de SetViewOrientation, que procura
+                    // exatamente sob o "Top".
+                    lineGo.transform.SetParent(topGo.transform, false);
                     var lineSr = lineGo.AddComponent<SpriteRenderer>();
                     lineSr.sprite = gridLineSprite;
                     lineSr.sortingOrder = sr.sortingOrder + 2;
@@ -654,6 +716,11 @@ namespace PangeaSkirmish
                 if (h > 0)
                     UpdateSideFaces(x, y, h);
 
+                // Fix (2026-07-29): faltava — só SetCell/BuildSingleTile criavam os
+                // sprites de objeto, então árvore/pedra/arbusto de um mapa carregado
+                // nunca apareciam, e o ramo de objetos de SetViewOrientation era
+                // no-op (_objectSprites ficava todo null).
+                RefreshObjectAt(x, y);
             }
 
         }
@@ -733,7 +800,14 @@ namespace PangeaSkirmish
                 if (gridLineSprite != null)
                 {
                     var lineGo = new GameObject("GridLine");
-                    lineGo.transform.SetParent(go.transform, false);
+                    // Fix (2026-07-29): filha do "Top" (deitado no XZ), não do
+                    // container. Sob o container a linha ficava no plano XY, de
+                    // canto para a câmera reto de cima — área projetada zero, ou
+                    // seja, INVISÍVEL no combate. Só aparecia nos tiles repintados
+                    // via BuildSingleTile, que já usava o pai certo. Isso também
+                    // reativa o Find("GridLine") de SetViewOrientation, que procura
+                    // exatamente sob o "Top".
+                    lineGo.transform.SetParent(topGo.transform, false);
                     var lineSr = lineGo.AddComponent<SpriteRenderer>();
                     lineSr.sprite = gridLineSprite;
                     lineSr.sortingOrder = sr.sortingOrder + 2;
@@ -744,6 +818,10 @@ namespace PangeaSkirmish
                 int h = _heights[x, y];
                 if (h > 0)
                     UpdateSideFaces(x, y, h);
+
+                // Fix (2026-07-29): ver nota em RebuildFromMap — sem isto os objetos
+                // do mapa nunca renderizam no combate.
+                RefreshObjectAt(x, y);
             }
 
             // Parte A: sincronizar camada de colisão/ocupação com o terreno recém-construído
@@ -805,6 +883,14 @@ namespace PangeaSkirmish
         public int ViewOrientation => _viewOrientation;
 
         /// <summary>
+        /// Disparado ao fim de SetViewOrientation, com a nova orientação. Quem
+        /// guarda posição de mundo derivada do grid (labels de sequência,
+        /// centro de câmera cacheado) deve reassinar aqui e recalcular. Objetos
+        /// presos a uma célula já são tratados por GridAnchored.RefreshAll.
+        /// </summary>
+        public static event Action<int> OnViewOrientationChanged;
+
+        /// <summary>
         /// Vira a VISTA em um passo de 90° (clockwise=true → +90/Leste, false →
         /// -90/Oeste). Reindexação lógica instantânea (ver comentário em
         /// _viewOrientation) — não gira nenhum transform físico.
@@ -856,12 +942,18 @@ namespace PangeaSkirmish
                     }
 
                     // Side faces: preserva o índice k de empilhamento do nome.
-                    if (tileGo != null)
+                    // Fix (2026-07-29): iterar o "Top" (sr.transform), não o
+                    // container. UpdateSideFaces cria as faces sob _tiles[x,y]
+                    // .gameObject, que É o "Top" — procurá-las no container nunca
+                    // encontrava nada e o bloco inteiro era código morto, deixando
+                    // as laterais dos tiles elevados com o sorting da orientação
+                    // anterior.
+                    var facesParent = sr.transform;
                     {
                         int sideBase = baseSort - 10;
-                        for (int ci = 0; ci < tileGo.childCount; ci++)
+                        for (int ci = 0; ci < facesParent.childCount; ci++)
                         {
-                            var child = tileGo.GetChild(ci);
+                            var child = facesParent.GetChild(ci);
                             if (!child.name.StartsWith("SideFace")) continue;
                             var childSr = child.GetComponent<SpriteRenderer>();
                             if (childSr == null) continue;
@@ -875,8 +967,19 @@ namespace PangeaSkirmish
             }
 
             // Reposiciona todas as unidades para a nova orientação.
-            foreach (var u in UnitRegistry.AllUnits)
+            // Tracked (não AllUnits): inclui as unidades sem id de rede — no
+            // Sandbox o Q/E movia os tiles e deixava as unidades para trás.
+            foreach (var u in UnitRegistry.Tracked)
                 if (u != null && !u.IsDead) u.SnapToAnchor();
+
+            // Ghosts de alcance/waypoint/cursor, marcadores de magia, passo bônus e
+            // overlays de efeito de tile: nascem soltos na raiz da cena, então não
+            // seguem nada. Cada um guarda sua célula lógica via GridAnchored.
+            GridAnchored.RefreshAll();
+
+            // Quem deriva posição de mundo de OUTRA coisa (labels de sequência, que
+            // seguem os ghosts; centro de overview cacheado) recalcula aqui.
+            OnViewOrientationChanged?.Invoke(_viewOrientation);
         }
 
         private void ApplyDebugSprites()
@@ -914,21 +1017,47 @@ namespace PangeaSkirmish
         // ---- Conversões isométricas ----
 
         /// <summary>
-        /// Rotaciona coordenadas LÓGICAS (x,y) para a posição FÍSICA (onde
-        /// aparece na tela) na orientação de vista dada, em passos de 90°
-        /// (assume grid quadrado — width usado como dimensão de referência).
-        /// A rotação de -orientationDeg é a INVERSA exata (rotacionar de volta),
-        /// usada por WorldToCellBase para ir de física -> lógica.
+        /// Rotaciona coordenadas LÓGICAS (x,y) para a posição FÍSICA (onde aparece
+        /// na tela) na orientação de vista dada, em passos de 90°.
+        ///
+        /// Fix (2026-07-29): a versão anterior usava `width - 1` para OS DOIS eixos
+        /// e só era correta em grid quadrado. Como GridManager.InsertLine e
+        /// GridRemap.InsertLineAndRemap permitem inserir coluna ou linha de forma
+        /// independente, mapas com width != height são possíveis — e neles girar
+        /// 90°/270° produzia coordenada fora de faixa: o mapa dobrava sobre si
+        /// mesmo e o picking passava a errar de forma sistemática.
+        ///
+        /// Note que uma rotação de 90° leva um grid W×H em um H×W: os limites dos
+        /// eixos TROCAM. Por isso a inversa não é "aplicar -graus" com os mesmos
+        /// limites — precisa de fórmula própria (ver PhysicalToLogical).
         /// </summary>
-        private Vector2 ApplyOrientation(float x, float y, int orientationDeg)
+        private Vector2 LogicalToPhysical(float x, float y, int orientationDeg)
         {
-            float n = width - 1;
+            float nx = width - 1;
+            float ny = height - 1;
             switch (((orientationDeg % 360) + 360) % 360)
             {
-                case 90:  return new Vector2(n - y, x);
-                case 180: return new Vector2(n - x, n - y);
-                case 270: return new Vector2(y, n - x);
+                case 90:  return new Vector2(ny - y, x);
+                case 180: return new Vector2(nx - x, ny - y);
+                case 270: return new Vector2(y, nx - x);
                 default:  return new Vector2(x, y);
+            }
+        }
+
+        /// <summary>
+        /// Inversa exata de LogicalToPhysical: parte da posição FÍSICA e devolve a
+        /// célula LÓGICA. Usada por WorldToCellBase (picking do mouse).
+        /// </summary>
+        private Vector2 PhysicalToLogical(float px, float py, int orientationDeg)
+        {
+            float nx = width - 1;
+            float ny = height - 1;
+            switch (((orientationDeg % 360) + 360) % 360)
+            {
+                case 90:  return new Vector2(py, ny - px);
+                case 180: return new Vector2(nx - px, ny - py);
+                case 270: return new Vector2(nx - py, px);
+                default:  return new Vector2(px, py);
             }
         }
 
@@ -939,10 +1068,27 @@ namespace PangeaSkirmish
             // de vista ANTES de aplicar a fórmula isométrica (rotação lógica,
             // não física — ver comentário em _viewOrientation); a ALTURA usa
             // sempre a célula lógica original (é dado do terreno, não da tela).
-            Vector2 p = ApplyOrientation(cell.x, cell.y, _viewOrientation);
+            Vector2 p = LogicalToPhysical(cell.x, cell.y, _viewOrientation);
             float bx = (p.x - p.y) * _halfW;
             float bz = -(p.x + p.y) * _halfH;
             return new Vector3(bx, HeightAt(cell.x, cell.y) * _heightStep, bz);
+        }
+
+        /// <summary>
+        /// Centro FÍSICO do tabuleiro na orientação de vista atual (chão, y=0).
+        /// Usado como alvo de overview da câmera. Calculado sobre o centro
+        /// geométrico real ((n-1)/2), não sobre width/2 truncado — é o ponto fixo
+        /// da permutação de ApplyOrientation em grid quadrado.
+        /// </summary>
+        public Vector3 WorldCenter
+        {
+            get
+            {
+                float cx = (width - 1) * 0.5f;
+                float cy = (height - 1) * 0.5f;
+                Vector2 p = LogicalToPhysical(cx, cy, _viewOrientation);
+                return new Vector3((p.x - p.y) * _halfW, 0f, -(p.x + p.y) * _halfH) + positionOffset;
+            }
         }
 
         public Vector3 AnchorToWorldCenter(Vector2Int anchor, int footprint = AttributeStats.DefaultFootprint)
@@ -951,7 +1097,7 @@ namespace PangeaSkirmish
             float cy = anchor.y + (footprint - 1) * 0.5f;
             // Unidade grande (3x3) fica empilhada sobre a altura MÉDIA do footprint (Regra c).
             int h = AvgHeight(anchor, footprint);
-            Vector2 p = ApplyOrientation(cx, cy, _viewOrientation);
+            Vector2 p = LogicalToPhysical(cx, cy, _viewOrientation);
             float bx = (p.x - p.y) * _halfW;
             float bz = -(p.x + p.y) * _halfH;
             return new Vector3(bx, h * _heightStep, bz);
@@ -979,7 +1125,7 @@ namespace PangeaSkirmish
         {
             float cx = anchor.x + (footprint - 1) * 0.5f;
             float cy = anchor.y + (footprint - 1) * 0.5f;
-            Vector2 p = ApplyOrientation(cx, cy, _viewOrientation);
+            Vector2 p = LogicalToPhysical(cx, cy, _viewOrientation);
             return Mathf.RoundToInt((p.x + p.y) * 4f);
         }
 
@@ -998,7 +1144,7 @@ namespace PangeaSkirmish
             float physX = (a + b) * 0.5f;
             float physY = (b - a) * 0.5f;
 
-            Vector2 logical = ApplyOrientation(physX, physY, -_viewOrientation);
+            Vector2 logical = PhysicalToLogical(physX, physY, _viewOrientation);
             float col = logical.x, row = logical.y;
             if (clamp)
                 return new Vector2Int(
@@ -1012,6 +1158,34 @@ namespace PangeaSkirmish
             return WorldToCellBase(world, true);
         }
 
+        /// <summary>
+        /// Ponto do chão -> coordenada de célula CONTÍNUA (fracionária, sem clamp).
+        /// Par de CellContinuousToWorld.
+        ///
+        /// Existe para a câmera manter o mesmo pedaço do tabuleiro sob a tela ao
+        /// girar a vista: arredondar para célula inteira daria um solavanco de até
+        /// meia célula a cada Q/E.
+        /// </summary>
+        public Vector2 WorldToCellContinuous(Vector3 world)
+        {
+            Vector3 local = world - positionOffset;
+            float a = local.x / _halfW;      // physX - physY
+            float b = -local.z / _halfH;     // physX + physY
+            float physX = (a + b) * 0.5f;
+            float physY = (b - a) * 0.5f;
+            return PhysicalToLogical(physX, physY, _viewOrientation);
+        }
+
+        /// <summary>
+        /// Coordenada de célula contínua -> ponto do chão (y = 0), na orientação de
+        /// vista atual. Inversa de WorldToCellContinuous.
+        /// </summary>
+        public Vector3 CellContinuousToWorld(Vector2 cell)
+        {
+            Vector2 p = LogicalToPhysical(cell.x, cell.y, _viewOrientation);
+            return new Vector3((p.x - p.y) * _halfW, 0f, -(p.x + p.y) * _halfH) + positionOffset;
+        }
+
         // Migração XY→XZ (2026-07-20): com a câmera inclinada (iso), ScreenToWorldPoint
         // numa distância fixa NÃO acerta o chão. Fazemos raycast do mouse contra o
         // plano do chão (y = 0 do mundo) e devolvemos o ponto nesse plano. O ponto já
@@ -1021,6 +1195,16 @@ namespace PangeaSkirmish
         {
             worldPoint = Vector3.zero;
             if (cam == null) return false;
+
+            // Fix (2026-07-31): enquanto o tabuleiro gira visualmente, o que está
+            // desenhado não bate com a posição lógica (o rig está rotacionado, mas
+            // esta conversão é analítica e já responde pela orientação final). Aceitar
+            // picking aqui faria o clique cair numa célula diferente da que está sob o
+            // cursor — em MP, um PlaceUnitServerRpc irreversível na célula errada.
+            // Ponto único: recusar cobre planejamento, combate, sandbox e placement.
+            var cc = CameraController.Instance;
+            if (cc != null && cc.IsViewSpinning) return false;
+
             Ray ray = cam.ScreenPointToRay(screen);
             if (GroundPlane.Raycast(ray, out float dist))
             {
@@ -1274,7 +1458,7 @@ namespace PangeaSkirmish
             foreach (var c in _highlighted) SetTileColor(c, _baseColors[c.x, c.y]);
             foreach (var kv in _highlightBorders)
             {
-                if (kv.Value != null) Destroy(kv.Value.gameObject);
+                if (kv.Value != null) DestroyGO(kv.Value.gameObject);
             }
             _highlightBorders.Clear();
             _highlighted.Clear();

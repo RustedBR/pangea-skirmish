@@ -47,7 +47,17 @@ namespace PangeaSkirmish
 
         // pose-base da câmera (alvo do overview entre rounds)
         private float _camBaseSize;
-        private Vector3 _camBaseCenter = new Vector3(0f, 0f, 10f);
+
+        /// <summary>
+        /// Centro do mapa para o overview de fim de round.
+        /// Fix (2026-07-29): era cacheado uma vez no Setup. Como a rotação de vista
+        /// é reindexação lógica, a posição física do centro muda a cada Q/E e o
+        /// valor cacheado ficava obsoleto — a câmera mirava um ponto deslocado.
+        /// Calculado no uso, e sobre o centro REAL (width-1)/2, que é o ponto fixo
+        /// da permutação, em vez de width/2 truncado.
+        /// </summary>
+        private Vector3 CamBaseCenter =>
+            _grid != null ? _grid.WorldCenter : new Vector3(0f, 0f, 10f);
 
 
         public RoundPhase Phase => _phase;
@@ -65,7 +75,6 @@ namespace PangeaSkirmish
             _playerUnit = playerUnit;
             _tileFx = tileFx;
             _camBaseSize = cam.orthographicSize;
-            _camBaseCenter = _grid.CellToWorld(new Vector2Int(_grid.width / 2, _grid.height / 2));
             _planner.SetHUD(hud);
             _hud.BindConfirm(ConfirmPlan);
             // Registro idempotente: evita handler duplicado se Setup rodar 2x
@@ -518,7 +527,7 @@ namespace PangeaSkirmish
                 u.hasPlannedBonus = false;
             }
 
-            yield return FocusCamera(_camBaseCenter, _camBaseSize, camMoveDuration);
+            yield return FocusCamera(CamBaseCenter, _camBaseSize, camMoveDuration);
 
             // ── FIM DE ROUND: concentração, status effects, tile effects ──
             foreach (var u in _units)

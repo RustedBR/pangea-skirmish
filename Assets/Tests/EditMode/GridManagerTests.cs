@@ -43,8 +43,11 @@ public class GridManagerTests
 
         // Assert - Moving right in col should increase x
         Assert.Greater(pos10.x, pos00.x);
-        // Moving down in row should decrease y
-        Assert.Less(pos01.y, pos00.y);
+        // Fix (2026-07-29): o teste ficou obsoleto na migração XY→XZ (a1a1633). O
+        // chão passou a ser o plano XZ e CellToWorld devolve (bx, ALTURA, bz), então
+        // .y é a elevação do terreno — 0 em terreno plano, e a asserção nunca podia
+        // passar. A profundidade (vertical da tela sob a câmera reto de cima) é .z.
+        Assert.Less(pos01.z, pos00.z);
 
         // Cleanup
         Object.DestroyImmediate(go);
@@ -131,6 +134,45 @@ public class GridManagerTests
     }
 
     // ── PHYSICAL FOLD (GRID EXPAND) ────────────────
+
+    /// <summary>
+    /// Regressão do editor de mapas: expandir o grid estourava.
+    ///
+    /// RebuildFromMap lia voidCells de `sourceMap` (o CAMPO, com as dimensões
+    /// ANTIGAS) em vez do `map` recebido por parâmetro. Como MapData.Flat usa
+    /// x * height + y e IsVoid não valida limites, ao crescer de 20×20 para 21×20
+    /// o índice de (20,19) virava 419 num array de 400 → IndexOutOfRangeException,
+    /// já depois de width/height terem mudado e os arrays terem sido realocados.
+    /// O grid ficava meio-construído e o Sandbox parava de aceitar qualquer tile.
+    ///
+    /// Alturas ficam em zero de propósito: sem elas UpdateSideFaces não roda, que
+    /// depende do TileDatabase criado no Awake (não executado em EditMode).
+    /// </summary>
+    [Test]
+    public void Expand_GrowingGrid_DoesNotReadStaleSourceMap()
+    {
+        // Arrange
+        var go = new GameObject("Grid");
+        var grid = go.AddComponent<GridManager>();
+        grid.iso = ScriptableObject.CreateInstance<IsoConfig>();
+        grid.sourceMap = MapData.CreateEmpty(20, 20);
+        grid.Build();
+
+        // Act
+        var expandido = grid.Expand(1, 0);
+
+        // Assert
+        Assert.AreEqual(21, expandido.width, "largura deveria crescer 1");
+        Assert.AreEqual(20, expandido.height, "altura não deveria mudar");
+        Assert.AreEqual(21, grid.width, "o grid deveria ter adotado a largura nova");
+        Assert.AreEqual(20, grid.height);
+        // O grid tem de continuar utilizável — era isto que quebrava no Sandbox.
+        Assert.DoesNotThrow(() => grid.GetTerrainName(20, 19),
+            "a coluna nova deveria ser consultável");
+
+        // Cleanup
+        Object.DestroyImmediate(go);
+    }
 
     [Test]
     public void InsertLine_ColumnInsert_IncreasesWidth()

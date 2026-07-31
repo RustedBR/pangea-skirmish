@@ -38,6 +38,46 @@
 }
 .bh-camera-label { font-size: 11px; color: rgb(150, 200, 255); -unity-font-style: bold; }
 
+/* COMPASSO — para onde aponta o norte do mapa na orientação de vista atual (Q/E).
+   Fica logo abaixo do indicador de câmera (que termina em y=34), sem colidir. */
+.bh-compass {
+  position: absolute; top: 44px; right: 10px; width: 76px; height: 76px;
+  align-items: center; justify-content: center; padding: 0;
+}
+/* A rosa inteira gira: `rotate` é escrito por BattleHUD.SetCompassOrientation e a
+   transition faz o giro ser suave, mesmo com a troca do mapa sendo instantânea.
+   Nota: USS não tem `transform` — as propriedades certas no Unity 6 são
+   rotate/translate/scale (foi esse o erro que deixou o CompassHUD antigo inerte). */
+.bh-compass-rose {
+  position: relative; width: 60px; height: 60px;
+  rotate: 0deg;
+  transition-property: rotate;
+  transition-duration: 0.29s;
+  transition-timing-function: ease-out;
+}
+/* Os rótulos são contra-rotacionados por C# para ficarem sempre em pé enquanto a
+   rosa gira (senão "N" apareceria deitado em 90°/270°). A transition tem de estar
+   aqui também, para o texto acompanhar o giro da rosa em vez de saltar. */
+.bh-compass-dir {
+  position: absolute; left: 50%; top: 50%; width: 18px; height: 16px;
+  margin-left: -9px; margin-top: -8px;
+  font-size: 12px; -unity-font-style: bold; -unity-text-align: middle-center;
+  color: rgb(207, 230, 255);
+  transition-property: rotate;
+  transition-duration: 0.29s;
+  transition-timing-function: ease-out;
+}
+.bh-compass-n { translate: 0 -24px; color: rgb(255, 120, 110); }
+.bh-compass-s { translate: 0 24px; }
+.bh-compass-e { translate: 24px 0; }
+.bh-compass-w { translate: -24px 0; }
+/* Curta o bastante para não encostar no "N". */
+.bh-compass-needle {
+  position: absolute; left: 50%; top: 50%;
+  width: 2px; height: 14px; margin-left: -1px; margin-top: -14px;
+  background-color: rgb(255, 120, 110);
+}
+
 /* LOG */
 .bh-log {
   position: absolute; left: 12px; top: 82px; bottom: 250px; width: 300px;

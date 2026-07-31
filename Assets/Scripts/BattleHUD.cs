@@ -34,6 +34,8 @@ namespace PangeaSkirmish
 
         // ── Referências UI Toolkit ──────────
         private Label  _phaseText, _timerText, _cameraModeText;
+        private VisualElement _compassRose;
+        private Label[] _compassLabels;
         private ScrollView _logScroll;
         private VisualElement _logContent, _tooltipGo;
         private Label  _tooltipTxt;
@@ -134,6 +136,9 @@ namespace PangeaSkirmish
             _phaseText        = r.Q<Label>("phase-text");
             _timerText        = r.Q<Label>("timer-text");
             _cameraModeText   = r.Q<Label>("camera-mode-text");
+            _compassRose      = r.Q<VisualElement>("compass-rose");
+            _compassLabels    = new[] { r.Q<Label>("compass-n"), r.Q<Label>("compass-e"),
+                                        r.Q<Label>("compass-s"), r.Q<Label>("compass-w") };
             _logScroll        = r.Q<ScrollView>("log-scroll");
             _logContent       = r.Q<VisualElement>("log-content");
             _tooltipGo        = r.Q<VisualElement>("log-tooltip");
@@ -268,6 +273,45 @@ namespace PangeaSkirmish
                                $"Arrastar/zoom ativa modo Manual ({Tuning.Get().camManualTimeout:0.#}s).";
         }
         private void HideCameraTooltip() { if (_tooltipGo != null) _tooltipGo.style.display = DisplayStyle.None; }
+
+        // ── COMPASSO ──
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            GridManager.OnViewOrientationChanged += SetCompassOrientation;
+            // A vista pode já estar girada quando a HUD nasce (ex.: HUD recriada).
+            if (GridManager.Instance != null)
+                SetCompassOrientation(GridManager.Instance.ViewOrientation);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            GridManager.OnViewOrientationChanged -= SetCompassOrientation;
+        }
+
+        /// <summary>
+        /// Aponta o compasso para o norte do mapa na orientação de vista dada.
+        ///
+        /// A rosa gira no sentido CONTRÁRIO ao da vista: se o jogador girou a
+        /// câmera 90° no sentido horário, o norte do mundo passa a aparecer 90° no
+        /// anti-horário na tela. O giro suave vem da transition em `.bh-compass-rose`
+        /// — o mapa em si troca instantaneamente.
+        /// </summary>
+        public void SetCompassOrientation(int degrees)
+        {
+            if (_compassRose == null) return;
+            _compassRose.style.rotate = new StyleRotate(new Rotate(-degrees));
+
+            // Os rótulos são filhos da rosa, então herdam o giro dela e apareceriam
+            // deitados em 90°/270°. Contra-rotacionando cada um sobre o próprio
+            // centro, eles vão para a posição girada mas continuam legíveis.
+            if (_compassLabels == null) return;
+            var upright = new StyleRotate(new Rotate(degrees));
+            foreach (var lbl in _compassLabels)
+                if (lbl != null) lbl.style.rotate = upright;
+        }
 
         // ── STATUS DA UNIDADE ──
         private void SetInfoVisible(bool visible)

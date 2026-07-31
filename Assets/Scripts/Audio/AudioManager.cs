@@ -32,6 +32,10 @@ namespace PangeaSkirmish
         public AudioClip sfxStepGrass;
         public AudioClip sfxDash;
 
+        // Câmera — whoosh do giro de vista (Q/E). Se o arquivo não existir em
+        // Resources, o CameraController cai no sfxDash como aproximação.
+        public AudioClip sfxViewRotate;
+
         // BGM
         public AudioClip bgmBattle;
         public AudioClip bgmMenu;
@@ -75,6 +79,7 @@ namespace PangeaSkirmish
             sfxUIConfirm     = Resources.Load<AudioClip>(path + "sfx_ui_confirm");
             sfxStepGrass     = Resources.Load<AudioClip>(path + "sfx_step_grass");
             sfxDash          = Resources.Load<AudioClip>(path + "sfx_dash");
+            sfxViewRotate    = Resources.Load<AudioClip>(path + "sfx_view_rotate");
             bgmBattle        = Resources.Load<AudioClip>(path + "bgm_battle");
             bgmMenu          = Resources.Load<AudioClip>(path + "bgm_menu");
         }

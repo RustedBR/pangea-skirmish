@@ -143,6 +143,25 @@ namespace PangeaSkirmish
         public float zoomSpeed = 2f;
         [Tooltip("Fator do scroll no zoom (multiplica zoomSpeed). Maior = cada 'dente' do scroll muda mais.")]
         public float zoomScrollFactor = 0.1f;
+        [Tooltip("Duração do efeito de giro de vista (Q/E), em segundos. Objetos esparsos deslizam em arco por esse tempo. 0 = sem efeito (troca seca).")]
+        public float viewRotateFxDuration = 0.32f;
+        [Tooltip("Tempo mínimo entre dois giros de vista, em segundos. Impede encavalar giros (o que embaralhava as posições do efeito). Convém ser >= duração + stagger.")]
+        public float viewRotateCooldown = 0.45f;
+        [Tooltip("Quantos graus a câmera 'balança' ao girar a vista. Dá o tranco físico do giro. 0 = desliga.")]
+        public float viewRotateRollDegrees = 5f;
+        [Tooltip("Giro VISUAL do tabuleiro na transição, em graus. 90 = o mapa percorre a volta inteira até a posição nova (ilusão de rotação real). 0 = desliga. Só afeta a aparência: a posição lógica já é a final desde o primeiro frame.")]
+        public float viewRotateWorldSpin = 90f;
+        [Tooltip("Quanto a câmera afasta no tranco do giro, como fração do zoom (0.08 = 8% mais longe no pico).")]
+        public float viewRotateZoomPunch = 0.08f;
+        [Tooltip("Quanto a tela escurece no auge do giro. 0 = desliga o escurecimento.")]
+        public float viewRotateSweepBrightness = 0.35f;
+        [Tooltip("Que fração do escurecimento é UNIFORME na tela (atinge o centro, onde o jogador olha) em vez de concentrada nas bordas. 0 = só vinheta (quase invisível), 1 = escurece tudo por igual.")]
+        [Range(0f, 1f)]
+        public float viewRotateDarkenUniform = 0.55f;
+        [Tooltip("Quanto os tiles incham na passagem da onda (0.06 = 6%). Só para CIMA: encolher abriria fresta entre os losangos.")]
+        public float viewRotateSweepScale = 0.06f;
+        [Tooltip("Atraso máximo entre o primeiro e o último objeto na onda de giro, em segundos. 0 = todos se movem juntos.")]
+        public float viewRotateStagger = 0.14f;
         [Tooltip("Zoom mínimo (mais perto) permitido ao jogador.")]
         public float zoomMin = 3f;
         [Tooltip("Zoom máximo (mais longe) permitido ao jogador.")]

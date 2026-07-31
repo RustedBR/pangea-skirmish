@@ -180,6 +180,11 @@ namespace PangeaSkirmish
             // todos herdam o alinhamento com a câmera automaticamente.
             gameObject.AddComponent<BillboardFace>();
 
+            // Fix (2026-07-29): rastreio independente do id de rede, para que a
+            // rotação de vista alcance também as unidades do Sandbox/editor de mapa
+            // (que nunca passam por PlacementSync e portanto não têm unitId).
+            UnitRegistry.Track(this);
+
             // Inimigos: tom escurecido para diferenciar (reuso de classe heroica).
             _baseTint = team == Team.Enemy ? Tuning.Get().enemyTint : Color.white;
 
@@ -354,6 +359,8 @@ namespace PangeaSkirmish
             BobMarker(_targetMarker);
         }
 
+        private void OnDestroy() => UnitRegistry.Untrack(this);
+
         // ------------------------------------------------------------------ MARCADORES NO MUNDO
 
         private GameObject _activeMarker, _targetMarker;
@@ -513,41 +520,88 @@ namespace PangeaSkirmish
         }
 
         // ------------------------------------------------------------------ DIRECAO
+        //
+        // Fix (2026-07-30): o facing agora tem DUAS camadas.
+        //
+        // _facing é a direção LÓGICA — para onde a unidade encara no MUNDO. Não muda
+        // quando o jogador gira a vista. _viewQuadrant guarda a orientação de vista
+        // corrente. O facing de TELA (_baseDir + _flip, o que de fato é desenhado) é
+        // derivado dos dois: telaDir = (_facing + _viewQuadrant) % 4.
+        //
+        // Antes só existia a camada de tela, e SetViewOrientation a escrevia com
+        // valores absolutos assumindo que toda unidade encarava NE. Duas consequências
+        // que o Marcus viu em jogo: (a) girar 360° NÃO devolvia o personagem à
+        // direção inicial — ele nascia em SE (campo _baseDir) e terminava em NE;
+        // (b) o facing conquistado por um movimento era descartado no Q/E seguinte.
 
-        // Define _baseDir (NE/SE) + _flip a partir do vetor de movimento em tela (XY iso).
-        private void SetDirectionFromDelta(Vector3 delta)
-        {
-            if (Mathf.Abs(delta.x) < 0.0001f && Mathf.Abs(delta.y) < 0.0001f) return;
-            bool right = delta.x >= 0f;
-            bool up    = delta.y >= 0f;
-            // NE = cima-direita, SE = baixo-direita, NW = cima-esq, SW = baixo-esq
-            if (up)  { _baseDir = "NE"; _flip = !right; }
-            else     { _baseDir = "SE"; _flip = !right; }
-            if (_weapon != null) _weapon.RefreshDirection(_baseDir, _flip);
-        }
+        // Quadrantes em sentido horário na tela, na vista 0.
+        private const int DirNE = 0, DirSE = 1, DirSW = 2, DirNW = 3;
+
+        private int _facing = DirSE;    // direção lógica no mundo (default = o antigo _baseDir "SE")
+        private int _viewQuadrant;      // orientação de vista atual, em passos de 90°
+
+        /// <summary>Direção LÓGICA no mundo (0=NE, 1=SE, 2=SW, 3=NW). Invariante à vista.</summary>
+        public int FacingQuadrant => _facing;
 
         /// <summary>
-        /// CAMINHO 1 (2026-07-14): re-deriva o facing da unidade para encarar o "norte"
-        /// da tela conforme a orientação da vista (degrees = 0/90/180/270, snap).
-        /// Usa só os 2 sprites base (NE/SE) + flipX — sem arte nova. O eixo de rotação
-        /// da câmera é Z, então cada +90° gira o mundo no sentido horário na tela.
-        ///  0°   → NE (olha pros 45° superiores)
-        ///  90°  → SE (virou de lado, olha pros 45° inferiores)
-        ///  180° → SE + flip (costas relativa)
-        ///  270° → NE + flip (lado oposto)
+        /// Quadrante efetivamente DESENHADO na tela — facing lógico combinado com a
+        /// orientação de vista. Exposto para diagnóstico e testes de orientação.
         /// </summary>
-        public void SetViewOrientation(int degrees)
+        public int ScreenFacingQuadrant => ((_facing + _viewQuadrant) % 4 + 4) % 4;
+
+        /// <summary>
+        /// Recalcula o facing de TELA a partir do facing lógico + orientação da vista.
+        /// Com apenas 2 sprites base (NE/SE), os outros dois quadrantes saem por flipX.
+        /// </summary>
+        private void RefreshFacing()
         {
-            int quad = ((degrees % 360) + 360) % 360;
-            switch (quad)
+            int telaDir = ((_facing + _viewQuadrant) % 4 + 4) % 4;
+            switch (telaDir)
             {
-                case 90:  _baseDir = "SE"; _flip = false; break;
-                case 180: _baseDir = "SE"; _flip = true;  break;
-                case 270: _baseDir = "NE"; _flip = true;  break;
-                default:  _baseDir = "NE"; _flip = false; break; // 0°
+                case DirNE: _baseDir = "NE"; _flip = false; break;
+                case DirSE: _baseDir = "SE"; _flip = false; break;
+                case DirSW: _baseDir = "SE"; _flip = true;  break;
+                default:    _baseDir = "NE"; _flip = true;  break; // DirNW
             }
             ShowFrame(_currentState, _currentFrame);
             if (_weapon != null) _weapon.RefreshDirection(_baseDir, _flip);
+        }
+
+        // Define o facing a partir do vetor de movimento.
+        //
+        // Fix (2026-07-29): antes da migração XY→XZ o chão era o plano XY e delta.y
+        // era o eixo vertical DA TELA. Depois da migração o chão é XZ e delta.y
+        // passou a ser a ALTURA do terreno — com a câmera reto de cima
+        // (CameraController.Configure, Euler(90,0,0)) o vertical da tela é +Z.
+        // O código continuou lendo delta.y, então em terreno plano (delta.y == 0)
+        // "up" dava sempre true e TODA unidade encarava NE, qualquer que fosse o
+        // rumo do passo; e descer um degrau virava a unidade para SE, fazendo o
+        // facing depender da topografia em vez da direção do movimento.
+        private void SetDirectionFromDelta(Vector3 delta)
+        {
+            if (Mathf.Abs(delta.x) < 0.0001f && Mathf.Abs(delta.z) < 0.0001f) return;
+            bool right = delta.x >= 0f;
+            bool up    = delta.z >= 0f;
+
+            // O delta vem de posições FÍSICAS, então isto é a direção na TELA.
+            int telaDir = up ? (right ? DirNE : DirNW)
+                             : (right ? DirSE : DirSW);
+
+            // Converte para direção LÓGICA descontando a vista, senão o facing
+            // ganho num movimento seria perdido no próximo Q/E.
+            _facing = ((telaDir - _viewQuadrant) % 4 + 4) % 4;
+            RefreshFacing();
+        }
+
+        /// <summary>
+        /// A vista girou (degrees = 0/90/180/270). Só atualiza o quadrante de vista —
+        /// a direção lógica da unidade é preservada, então uma volta completa devolve
+        /// o personagem exatamente à pose inicial.
+        /// </summary>
+        public void SetViewOrientation(int degrees)
+        {
+            _viewQuadrant = ((degrees / 90) % 4 + 4) % 4;
+            RefreshFacing();
         }
 
         // ------------------------------------------------------------------ POSIÇÃO / SORTING
@@ -677,9 +731,17 @@ namespace PangeaSkirmish
 
         private IEnumerator MoveSegment(Vector2Int dest, float duration)
         {
-            Vector3 start = transform.position;
+            // Fix (2026-07-29): guardamos as CÉLULAS de origem e destino em vez das
+            // posições de mundo. Girar a vista com Q/E no meio de um passo reindexa
+            // o grid e dispara SnapToAnchor; com start/end congelados o frame
+            // seguinte do lerp puxava a unidade de volta para a posição da
+            // orientação antiga, e ela terminava o passo fora da malha. Recalculando
+            // a partir das células, a rotação reposiciona o trajeto inteiro.
+            Vector2Int fromCell = anchor;
+            int fp = stats.Footprint;
             anchor = dest;
-            Vector3 end = _grid.AnchorToWorldCenter(anchor, stats.Footprint);
+            Vector3 start = _grid.AnchorToWorldCenter(fromCell, fp);
+            Vector3 end   = _grid.AnchorToWorldCenter(dest, fp);
             SetDirectionFromDelta(end - start);
             ApplySorting();
 
@@ -694,6 +756,10 @@ namespace PangeaSkirmish
             while (t < duration)
             {
                 t += Time.deltaTime;
+                // Reavaliados a cada frame: se a vista girar no meio do passo, as
+                // duas pontas do trajeto acompanham a reindexação.
+                start = _grid.AnchorToWorldCenter(fromCell, fp);
+                end   = _grid.AnchorToWorldCenter(dest, fp);
                 transform.position = Vector3.Lerp(start, end, Mathf.SmoothStep(0f, 1f, t / duration));
                 if (t >= nextFrameTime)
                 {
@@ -703,7 +769,7 @@ namespace PangeaSkirmish
                 }
                 yield return null;
             }
-            transform.position = end;
+            transform.position = _grid.AnchorToWorldCenter(dest, fp);
             ShowFrame("walking", 0);
         }
 
@@ -711,9 +777,13 @@ namespace PangeaSkirmish
         {
             if (duration <= 0f) duration = Tuning.Get().bonusMoveDuration;
             StopIdleAnim();
-            Vector3 start = transform.position;
-            anchor = plannedBonusAnchor;
-            Vector3 end = _grid.AnchorToWorldCenter(anchor, stats.Footprint);
+            // Fix (2026-07-29): mesmas células-em-vez-de-mundo de MoveSegment.
+            Vector2Int fromCell = anchor;
+            Vector2Int dest = plannedBonusAnchor;
+            int fp = stats.Footprint;
+            anchor = dest;
+            Vector3 start = _grid.AnchorToWorldCenter(fromCell, fp);
+            Vector3 end   = _grid.AnchorToWorldCenter(dest, fp);
             SetDirectionFromDelta(end - start);
             ApplySorting();
             ShowFrame("walking", 0);
@@ -721,10 +791,12 @@ namespace PangeaSkirmish
             while (t < duration)
             {
                 t += Time.deltaTime;
+                start = _grid.AnchorToWorldCenter(fromCell, fp);
+                end   = _grid.AnchorToWorldCenter(dest, fp);
                 transform.position = Vector3.Lerp(start, end, Mathf.SmoothStep(0f, 1f, t / duration));
                 yield return null;
             }
-            transform.position = end;
+            transform.position = _grid.AnchorToWorldCenter(dest, fp);
             StartIdleAnim();
         }
 

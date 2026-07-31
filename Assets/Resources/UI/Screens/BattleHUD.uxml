@@ -14,6 +14,20 @@
       <ui:Label name="camera-mode-text" text="Auto" class="bh-camera-label" />
     </ui:VisualElement>
 
+    <!-- COMPASSO: mostra para onde aponta o norte do mapa na orientação de vista
+         atual (Q/E). A rosa inteira gira via `rotate` no USS, com transition, então
+         N/L/S/O acompanham e o giro é suave mesmo com a troca do mapa instantânea.
+         picking-mode Ignore para não roubar zoom/pan do jogo. -->
+    <ui:VisualElement name="compass" class="bh-window bh-compass" picking-mode="Ignore">
+      <ui:VisualElement name="compass-rose" class="bh-compass-rose" picking-mode="Ignore">
+        <ui:VisualElement name="compass-needle" class="bh-compass-needle" picking-mode="Ignore" />
+        <ui:Label name="compass-n" text="N" class="bh-compass-dir bh-compass-n" picking-mode="Ignore" />
+        <ui:Label name="compass-e" text="L" class="bh-compass-dir bh-compass-e" picking-mode="Ignore" />
+        <ui:Label name="compass-s" text="S" class="bh-compass-dir bh-compass-s" picking-mode="Ignore" />
+        <ui:Label name="compass-w" text="O" class="bh-compass-dir bh-compass-w" picking-mode="Ignore" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+
     <!-- ESQUERDA: histórico de batalha -->
     <ui:VisualElement name="battle-log" class="bh-window bh-log">
       <ui:Label text="HISTÓRICO DE BATALHA" class="bh-title" />

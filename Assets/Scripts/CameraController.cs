@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
@@ -74,6 +75,35 @@ namespace PangeaSkirmish
         /// <summary>Orientação atual da vista em graus (0/90/180/270).</summary>
         public int Orientation => _orientation;
 
+        /// <summary>
+        /// True enquanto o tabuleiro está visualmente girando.
+        ///
+        /// Durante o giro o que aparece na tela NÃO corresponde à posição lógica: os
+        /// tiles estão rotacionados no rig, mas o picking é analítico e já responde
+        /// pela orientação final. Clicar nessa janela acertaria uma célula diferente
+        /// da que está sob o cursor — em multiplayer isso vira PlaceUnitServerRpc na
+        /// célula errada, que é irreversível. GridManager.ScreenToGround consulta
+        /// esta flag e recusa o picking enquanto durar.
+        /// </summary>
+        public bool IsViewSpinning => _spinRig != null;
+
+        // Tranco do giro de vista: roll (graus, em torno do eixo de visão) + afastamento
+        // momentâneo do zoom. Roll em torno do FORWARD não distorce a projeção — a
+        // câmera continua perpendicular ao chão, só a imagem inteira inclina por igual.
+        private float _rollDeg, _rollTarget;
+        private float _zoomPunch, _punchTarget;
+        private float _fxTimer, _fxDuration;
+        private float _viewRotateCooldown;   // trava entre giros consecutivos
+
+        // Giro VISUAL do tabuleiro. O grid inteiro nasce girado no ângulo de onde
+        // veio e "desgira" até a posição nova, percorrendo de fato os 90° — é o que
+        // cria a ilusão de rotação. Como é o rig inteiro que gira (rotação rígida),
+        // os losangos não se desencaixam entre si; e como termina exatamente em
+        // zero, nenhum estado final fica torto. Foi girar o grid e PARAR torto que
+        // quebrou o jogo em 20/07; aqui a rotação é transitória.
+        private Transform _spinRig;
+        private float _spinFrom;
+
         // Shake state
         private float   _shakeDuration;
         private float   _shakeMagnitude;
@@ -116,6 +146,10 @@ namespace PangeaSkirmish
             _targetXY = _curXY = new Vector2(initialCenter.x, initialCenter.z);
             _targetSize = _curSize = initialSize;
             _orientation = 0;
+
+            // Nenhum resíduo de giro visual entre batalhas/cenas.
+            if (_spinRig != null) { _spinRig.rotation = Quaternion.identity; _spinRig = null; }
+            _rollDeg = 0f; _zoomPunch = 0f; _fxTimer = 0f;
 
             var tuning = RuntimeTuning.Active;
             if (tuning != null)
@@ -189,10 +223,7 @@ namespace PangeaSkirmish
         public void CycleView(bool clockwise)
         {
             if (!enableViewRotate) return;
-            _orientation = ((_orientation + (clockwise ? 90 : -90)) % 360 + 360) % 360;
-            if (GridManager.Instance != null)
-                GridManager.Instance.SetViewOrientation(_orientation);
-            UnitRegistry.ApplyViewOrientation(_orientation);
+            ApplyOrientationAnchored(_orientation + (clockwise ? 90 : -90));
             // Virar a vista conta como input manual (pausa auto-focus).
             if (_mode == CameraMode.Auto)
             {
@@ -206,10 +237,159 @@ namespace PangeaSkirmish
         public void SetViewOrientation(int degrees)
         {
             if (!enableViewRotate) return;
+            ApplyOrientationAnchored(degrees);
+        }
+
+        /// <summary>
+        /// Aplica uma orientação de vista mantendo FIXO na tela o pedaço de
+        /// tabuleiro que está no centro.
+        ///
+        /// Fix (2026-07-30): sem isto a câmera continuava mirando o mesmo ponto do
+        /// MUNDO, mas a reindexação lógica troca qual célula ocupa aquele ponto —
+        /// então o que o jogador estava olhando saltava para longe. Medido num
+        /// grid 20×20: uma unidade fora do centro do mapa saltava até 24 unidades,
+        /// ou ~1,5 altura de tela, ou seja, sumia do enquadramento. Era a causa da
+        /// sensação de "perder o rastro" ao girar, mesmo com tudo tecnicamente
+        /// correto. Agora o tabuleiro gira EM VOLTA do ponto observado.
+        /// </summary>
+        private void ApplyOrientationAnchored(int degrees)
+        {
+            var grid = GridManager.Instance;
+
+            // Que ponto do tabuleiro está no centro da tela agora? Em coordenada de
+            // célula CONTÍNUA — arredondar daria um solavanco de até meia célula.
+            Vector2 ancora = Vector2.zero;
+            bool temAncora = grid != null;
+            if (temAncora)
+                ancora = grid.WorldToCellContinuous(new Vector3(_curXY.x, 0f, _curXY.y));
+
+            Vector3 camAntes = new Vector3(_curXY.x, 0f, _curXY.y);
+            int orientacaoAntes = _orientation;
+
+            // Zera qualquer deslize ainda em curso ANTES de medir. As posições dos
+            // objetos carregam o offset visual do arco anterior; medir sem limpar
+            // fazia cada giro partir de um ponto corrompido, e o erro se somava
+            // quando o jogador martelava Q/E.
+            ViewSlide.ClearAll();
+
+            // Onde estava cada objeto esparso ANTES da troca (para o efeito de giro).
+            float fxDur = Tuning.Get().viewRotateFxDuration;
+            var alvos = fxDur > 0f ? ColetarAlvosDoEfeito() : null;
+
             _orientation = ((degrees % 360) + 360) % 360;
-            if (GridManager.Instance != null)
-                GridManager.Instance.SetViewOrientation(_orientation);
+            if (grid != null) grid.SetViewOrientation(_orientation);
             UnitRegistry.ApplyViewOrientation(_orientation);
+
+            // Recoloca a câmera sobre o MESMO ponto do tabuleiro, no novo slot.
+            if (temAncora)
+            {
+                Vector3 destino = grid.CellContinuousToWorld(ancora);
+                _targetXY = _curXY = ClampCenter(new Vector2(destino.x, destino.z));
+                ApplyToCamera();
+            }
+
+            if (alvos != null && _orientation != orientacaoAntes)
+                DispararEfeitoDeGiro(alvos, camAntes, fxDur, HorarioEntre(orientacaoAntes, _orientation));
+        }
+
+        // ── EFEITO DE GIRO ──
+        //
+        // A rotação é reindexação: com a câmera ancorada e o chão uniforme, girar 90°
+        // devolve uma imagem quase idêntica e o jogador não percebe que o mundo virou.
+        // O efeito devolve essa leitura por dois canais somados: os objetos esparsos
+        // percorrem o arco entre o slot antigo e o novo (ViewSlide), e a câmera dá um
+        // tranco curto (roll + afastamento). O CHÃO troca seco — animá-lo é o que
+        // quebrou o jogo em 20/07, porque os sprites têm SpriteMeshType.Tight e não
+        // encaixam em ângulos intermediários.
+
+        private List<(Transform tr, Vector3 pos)> ColetarAlvosDoEfeito()
+        {
+            var lista = new List<(Transform, Vector3)>();
+            foreach (var u in UnitRegistry.Tracked)
+                if (u != null && !u.IsDead) lista.Add((u.transform, u.transform.position));
+            foreach (var a in GridAnchored.All)
+                if (a != null) lista.Add((a.transform, a.transform.position));
+            return lista;
+        }
+
+        private void DispararEfeitoDeGiro(List<(Transform tr, Vector3 pos)> alvos,
+                                          Vector3 camAntes, float dur, bool clockwise)
+        {
+            // A câmera saltou de camAntes para camDepois no mesmo frame. Sem compensar,
+            // o arco começaria no lugar errado da TELA e o objeto daria um salto antes
+            // de deslizar. Somando o deslocamento da câmera, o arco parte exatamente de
+            // onde o objeto estava sendo desenhado.
+            Vector3 camDepois = new Vector3(_curXY.x, 0f, _curXY.y);
+            Vector3 shift = camDepois - camAntes;
+            var T = Tuning.Get();
+
+            // Giro visual do tabuleiro: o rig começa girado no ângulo de origem e
+            // volta a zero ao longo do efeito.
+            var gridFx = GridManager.Instance;
+            var rig = gridFx != null ? gridFx.GridRig : null;
+            float spin = T.viewRotateWorldSpin;
+            bool girandoMundo = rig != null && spin > 0.01f;
+            // A rotação só é APLICADA no fim deste método: o TileSweep captura as
+            // posições dos tiles no mesmo frame, e com o rig já girado ele mediria a
+            // vinheta e a fase sobre posições que ainda vão voltar.
+
+            // Chão e objetos compartilham a MESMA onda: a fase angular que acende o
+            // tile é a que decide quando aquele objeto começa a se mover. Sem isso
+            // seriam dois efeitos concorrentes em vez de um só passando pelo mapa.
+            float stagger = Mathf.Max(0f, T.viewRotateStagger);
+            foreach (var (tr, posAntiga) in alvos)
+            {
+                if (tr == null) continue;
+                // Quem já é filho do rig percorre o arco junto com ele; aplicar o
+                // deslize por cima moveria o objeto duas vezes.
+                if (girandoMundo && tr.IsChildOf(rig)) continue;
+
+                Vector3 partida = posAntiga + shift;
+                float atraso = stagger * TileSweep.PhaseAt(partida, camDepois, clockwise);
+                ViewSlide.Play(tr.gameObject, partida, tr.position, camDepois, dur, atraso);
+            }
+
+            // Varredura do terreno (cor + inchaço leve; nunca posição — ver TileSweep).
+            if (gridFx != null && T.viewRotateSweepBrightness > 0f)
+            {
+                // Interrompe a varredura em curso; TileSweep.Run restaura o estado
+                // pendente antes de capturar o novo, então girar rápido não acumula
+                // brilho nem deixa tiles inchados.
+                if (_sweep != null) StopCoroutine(_sweep);
+                _sweep = StartCoroutine(TileSweep.Run(
+                    gridFx, _cam, camDepois, clockwise, dur + stagger,
+                    T.viewRotateSweepBrightness, T.viewRotateSweepScale,
+                    Mathf.Clamp01(T.viewRotateDarkenUniform)));
+            }
+
+            var audio = AudioManager.I;
+            if (audio != null)
+                audio.Play(audio.sfxViewRotate != null ? audio.sfxViewRotate : audio.sfxDash);
+
+            _rollTarget = (clockwise ? 1f : -1f) * T.viewRotateRollDegrees;
+            _punchTarget = T.viewRotateZoomPunch;
+            _fxTimer = dur;
+            _fxDuration = dur;
+
+            // Agora sim: joga o tabuleiro de volta ao ângulo de origem. A partir do
+            // próximo frame o LateUpdate o traz até zero, percorrendo os 90°.
+            if (girandoMundo)
+            {
+                _spinRig = rig;
+                // Sentido contrário ao da reindexação: o mapa parte de onde ESTAVA e
+                // alcança onde já está logicamente.
+                _spinFrom = clockwise ? -spin : spin;
+                rig.rotation = Quaternion.Euler(0f, _spinFrom, 0f);
+            }
+        }
+
+        private Coroutine _sweep;
+
+        /// <summary>Sentido do giro considerando a volta curta (270°→0° é horário).</summary>
+        private static bool HorarioEntre(int de, int para)
+        {
+            int delta = ((para - de) % 360 + 360) % 360;
+            return delta <= 180;
         }
 
         /// <summary>Screen shake da câmera por duration segundos. Sem argumentos usa os
@@ -246,6 +426,8 @@ namespace PangeaSkirmish
         {
             if (_cam == null) return;
 
+            if (_viewRotateCooldown > 0f) _viewRotateCooldown -= Time.deltaTime;
+
             bool hadManualInput = HandleManualPan() || HandleZoom() || HandleViewRotate();
 
             // Se houve input manual, ativa modo Manual e reinicia timer
@@ -272,6 +454,34 @@ namespace PangeaSkirmish
             // Rotação da vista: NÃO é mais da câmera (Caminho 3). O grid
             // gira no GridManager (_gridRig, eixo Z do mundo). Câmera só pan/zoom/shake.
 
+            // Tranco do giro de vista: o roll desaba de volta a zero (ease-out) e o
+            // zoom "respira" — afasta no meio do giro e volta, como se a câmera
+            // tivesse sido arrastada pelo mundo virando.
+            if (_fxTimer > 0f)
+            {
+                _fxTimer -= Time.deltaTime;
+                float fxK = Mathf.Clamp01(1f - _fxTimer / Mathf.Max(0.0001f, _fxDuration));
+                float restante = 1f - fxK;
+                _rollDeg   = _rollTarget * restante * restante;
+                _zoomPunch = _punchTarget * Mathf.Sin(fxK * Mathf.PI);
+
+                // Desgira o tabuleiro até zero. Ease-out: sai rápido e assenta
+                // devagar, que é como uma massa girando de fato desacelera.
+                if (_spinRig != null)
+                {
+                    float suave = 1f - restante * restante;
+                    float ang = Mathf.LerpAngle(_spinFrom, 0f, suave);
+                    _spinRig.rotation = Quaternion.Euler(0f, ang, 0f);
+                }
+
+                if (_fxTimer <= 0f)
+                {
+                    _rollDeg = 0f; _zoomPunch = 0f;
+                    // Termina exatamente em zero: nenhum resíduo de rotação no grid.
+                    if (_spinRig != null) { _spinRig.rotation = Quaternion.identity; _spinRig = null; }
+                }
+            }
+
             // Screen shake
             _shakeOffset = Vector2.zero;
             if (_shakeTimer < _shakeDuration)
@@ -291,10 +501,22 @@ namespace PangeaSkirmish
         private bool HandleViewRotate()
         {
             if (!enableViewRotate || Keyboard.current == null) return false;
+            // Fix (2026-07-29): não girar a vista enquanto o jogador digita num
+            // campo da UI (ex.: nome do mapa no Sandbox) — cada "q"/"e" digitado
+            // virava um giro de 90°.
+            if (UIHelper.IsTextInputFocused()) return false;
+            // Fix (2026-07-30): um giro só é aceito depois que o anterior assentou.
+            // Encavalar giros embaralhava as posições de partida do efeito e a
+            // âncora da câmera, e o jogo só voltava ao normal quando o jogador
+            // parava de apertar.
+            if (_viewRotateCooldown > 0f) return false;
+
             bool q = Keyboard.current.qKey.wasPressedThisFrame;
             bool e = Keyboard.current.eKey.wasPressedThisFrame;
             if (!q && !e) return false;
+
             CycleView(e);   // E = +90 (horário), Q = -90 (anti-horário)
+            _viewRotateCooldown = Mathf.Max(0f, Tuning.Get().viewRotateCooldown);
             return true;
         }
 
@@ -366,8 +588,16 @@ namespace PangeaSkirmish
         private void ApplyToCamera()
         {
             // _curXY = (X mundo, Z mundo). Câmera reto de cima, altura fixa.
-            _cam.orthographicSize = _curSize;
+            _cam.orthographicSize = _curSize * (1f + _zoomPunch);
             _cam.transform.position = new Vector3(_curXY.x, CAM_HEIGHT, _curXY.y);
+
+            // Roll em torno do próprio forward: gira a imagem na tela sem mudar o
+            // ângulo de visão com o chão, então NÃO reintroduz a dupla distorção
+            // isométrica (que vinha de inclinar a câmera, não de rolá-la).
+            var baseRot = Quaternion.Euler(90f, 0f, 0f);
+            _cam.transform.rotation = Mathf.Abs(_rollDeg) < 0.01f
+                ? baseRot
+                : Quaternion.AngleAxis(_rollDeg, baseRot * Vector3.forward) * baseRot;
         }
     }
 }

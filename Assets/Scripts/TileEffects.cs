@@ -102,9 +102,12 @@ namespace PangeaSkirmish
         {
             var go = new GameObject($"Overlay_{fx.Cell.x}_{fx.Cell.y}");
             go.transform.SetParent(_overlayRoot);
-            go.transform.position = _grid.AnchorToWorldCenter(fx.Cell, 1);
             // Migração XY→XZ (2026-07-20): overlay de tile é topo → deita no XZ.
             go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            // Fix (2026-07-29): _overlayRoot não é filho do grid, então o overlay
+            // não seguia a reindexação da rotação de vista — fogo/água/vento
+            // ficavam no slot físico errado após qualquer Q/E. Attach já posiciona.
+            GridAnchored.Attach(go, fx.Cell, 1);
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = BuildFallbackTileSprite(fx.Kind);
             sr.sortingOrder = (fx.Cell.x + fx.Cell.y) * 4 + 3;
