@@ -105,10 +105,30 @@ namespace PangeaSkirmish
         public int Initiative => Mathf.RoundToInt(AGI * F.iniPerAGI + DEX * F.iniPerDEX);
         public int MoveBudget => Footprint + Mathf.RoundToInt(AGI * F.movePerAGI);
         /// <summary>
-        /// Tiles que UMA ação de andar cobre (GDD-014): o MoveBudget limitado por
-        /// maxTilesPerMove. Sem o teto, uma andada de 1 tick atravessava meio mapa.
+        /// Tiles que UMA ação de andar cobre (GDD-016 §2): base + AGI, até maxTilesPerMove.
         /// </summary>
-        public int MoveStep => Mathf.Min(MoveBudget, Mathf.Max(1, Tuning.Get().maxTilesPerMove));
+        public int MoveStep
+        {
+            get
+            {
+                var T = Tuning.Get();
+                int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
+                return Mathf.Clamp(tiles, 1, Mathf.Max(1, T.maxTilesPerMove));
+            }
+        }
+
+        /// <summary>Ticks base do ataque, pelo peso da arma equipada (GDD-016 §2.1).</summary>
+        public int AttackTicks = 2;
+
+        /// <summary>Instinto máximo: reserva do Corpo (GDD-016 §3).</summary>
+        public int MaxInstinct
+        {
+            get
+            {
+                var T = Tuning.Get();
+                return Mathf.Max(1, Mathf.RoundToInt(T.instinctBase + (STR + VIT) * T.instinctPerBodyPoint));
+            }
+        }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
         public int BonusActionPoints => Mathf.RoundToInt(DEX * F.bapPerDEX);
         public int BonusMoveBudget => Mathf.Max(1, F.bonusMoveBudget);
@@ -163,6 +183,8 @@ namespace PangeaSkirmish
         public string displayName; // ex "Machado"
         public int    damage = 3;  // dano base da arma
         public int    range  = 1;  // alcance (tiles)
+        [Tooltip("Peso da arma em ticks base do ataque: 1 leve, 2 média, 3 pesada. A DEX encurta.")]
+        public int    attackTicks = 2;
 
         [Header("Magia (conduíte)")]
         public SpellElement elementAffinity = SpellElement.None;
@@ -213,19 +235,37 @@ namespace PangeaSkirmish
             switch (type)
             {
                 case ActionType.Move:        return T.ticksMove;
-                case ActionType.Attack:      return isBonus ? T.ticksPowerStrike : T.ticksAttack;
+                case ActionType.Attack:      return T.ticksUnarmed + (isBonus ? T.ticksPowerStrikeExtra : 0);
                 case ActionType.Concentrate: return T.ticksConcentrate;
                 default:                     return T.ticksWait;
             }
         }
 
-        /// <summary>ticks = max(1, round(base × k / (k + AGI))). Esperar não escala.</summary>
+        /// <summary>
+        /// ticks = max(1, round(base × k / (k + DEX))). A DEX é a rapidez das ações (GDD-016);
+        /// Andar e Esperar não escalam (o alcance da andada é da AGI). A base do ataque é o
+        /// peso da arma da unidade.
+        /// </summary>
         public static int Duration(Unit u, ActionType type, bool isBonus)
         {
             int b = BaseTicks(type, isBonus);
-            if (type == ActionType.Wait || u == null) return Mathf.Max(1, b);
-            float k = Mathf.Max(1f, Tuning.Get().tickAgiFactor);
-            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.AGI))));
+            if (u == null) return Mathf.Max(1, b);
+            if (type == ActionType.Attack)
+                b = Mathf.Max(1, u.stats.AttackTicks) + (isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0);
+            if (type == ActionType.Wait || type == ActionType.Move) return Mathf.Max(1, b);
+            float k = Mathf.Max(1f, Tuning.Get().tickDexFactor);
+            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX))));
+        }
+
+        // ---- Custos em Instinto (GDD-016 §3) ----
+        public static int InstinctCost(ScheduledAction a)
+        {
+            var T = Tuning.Get();
+            int c = 0;
+            if (a.Type == ActionType.Attack && a.IsBonus) c += T.instinctPowerStrike;
+            if (a.Type == ActionType.Attack && a.IsAimed) c += T.instinctAim;
+            if (a.Type == ActionType.Move   && a.IsBonus) c += T.instinctQuickStep;
+            return c;
         }
 
         public static int Duration(Unit u, ScheduledAction a) => Duration(u, a.Type, a.IsBonus);

@@ -199,14 +199,13 @@ namespace PangeaSkirmish
                     IsAimed = action.IsAimed,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP++;
             }
             else
             {
                 // Aplicar bônus: gasta PAB
-                if (_controlled.remainingBAP <= 0)
+                if (_controlled.remainingBAP < Tuning.Get().instinctPowerStrike)
                 {
-                    Debug.Log("PAB insuficiente para Golpe Poderoso");
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente para Golpe Poderoso", _controlled);
                     return;
                 }
                 int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
@@ -224,7 +223,6 @@ namespace PangeaSkirmish
                     IsAimed = action.IsAimed,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP--;
             }
 
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
@@ -261,7 +259,6 @@ namespace PangeaSkirmish
             {
                 action.IsBonus = false;
                 _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP++;
                 _controlled.hasPlannedBonus = false;
                 RefreshSequenceVisuals();
                 SyncButtonStates();
@@ -284,7 +281,6 @@ namespace PangeaSkirmish
 
             action.IsBonus = true;
             _controlled.actionSequence[idx] = action;
-            _controlled.remainingBAP--;
 
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
@@ -326,7 +322,6 @@ namespace PangeaSkirmish
             var action = _controlled.actionSequence[_quickStepActionIndex];
             action.IsBonus = true;
             _controlled.actionSequence[_quickStepActionIndex] = action;
-            _controlled.remainingBAP--;
             _quickStepActionIndex = -1;
 
             HideCursorGhost();
@@ -344,7 +339,7 @@ namespace PangeaSkirmish
 
             // Concentração agora é um CONTADOR: cada clique adiciona uma (gasta 1 PAB),
             // até acabar o PAB ou a mana projetada encher. Cancela via Desfazer/Limpar.
-            if (_controlled.remainingBAP <= 0) return;
+            // Concentrar é da Mente: custa tempo, não Instinto.
             if (!_controlled.CanFit(ActionType.Concentrate))
             {
                 _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
@@ -357,7 +352,6 @@ namespace PangeaSkirmish
                 return;
             }
             _controlled.plannedConcentrations++;
-            _controlled.remainingBAP--;
             _controlled.actionSequence.Add(new ScheduledAction
             {
                 Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero
@@ -387,19 +381,18 @@ namespace PangeaSkirmish
                 // Remover bônus: devolve PAB
                 action.IsBonus = false;
                 _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP++;
             }
             else
             {
                 // Aplicar bônus: gasta PAB
-                if (_controlled.remainingBAP <= 0)
+                var probe = action; probe.IsBonus = true;
+                if (_controlled.remainingBAP < TickRules.InstinctCost(probe))
                 {
-                    Debug.Log("PAB insuficiente para incremento");
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente", _controlled);
                     return;
                 }
                 action.IsBonus = true;
                 _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP--;
             }
 
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
@@ -437,7 +430,6 @@ namespace PangeaSkirmish
                     IsAimed = false,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP++;
             }
             else
             {
@@ -455,7 +447,6 @@ namespace PangeaSkirmish
                     IsAimed = true,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP--;
             }
 
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
@@ -619,7 +610,6 @@ namespace PangeaSkirmish
             // Devolve PAB dos movimentos bônus (Passo Rápido)
             foreach (var a in _controlled.actionSequence)
                 if (a.Type == ActionType.Move && a.IsBonus)
-                    _controlled.remainingBAP++;
             _controlled.actionSequence.RemoveAll(a => a.Type == ActionType.Move);
             _controlled.hasPlannedBonus = false;
 
@@ -751,7 +741,6 @@ namespace PangeaSkirmish
                     : _controlled.anchor;
                 if (last.IsBonus)
                 {
-                    _controlled.remainingBAP++;
                     // Desfez o movimento com Passo Rápido — limpa o destino escolhido em
                     // EnterQuickStepPicking/CommitQuickStep (senão hasPlannedBonus ficaria
                     // true residual, vazando para o próximo round mesmo sem plano novo).
@@ -761,8 +750,6 @@ namespace PangeaSkirmish
             else if (last.Type == ActionType.Attack)
             {
                 _controlled.plannedAttacks.RemoveAt(_controlled.plannedAttacks.Count - 1);
-                if (last.IsBonus) _controlled.remainingBAP++;
-                if (last.IsAimed) _controlled.remainingBAP++;
 
                 if (_pathGhosts.Count > 0)
                 {
@@ -774,7 +761,6 @@ namespace PangeaSkirmish
             else if (last.Type == ActionType.Concentrate)
             {
                 if (_controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
-                _controlled.remainingBAP++;
             }
 
             _controlled.actionSequence.RemoveAt(_controlled.actionSequence.Count - 1);
@@ -792,7 +778,6 @@ namespace PangeaSkirmish
             if (!_active || _controlled == null) return;
             if (_controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0 && _controlled.plannedConcentrations == 0) return;
 
-            _controlled.remainingBAP = _controlled.stats.BonusActionPoints;
             _controlled.plannedMoveCount = 0;
             _controlled.plannedAnchor = _controlled.anchor;
             _controlled.plannedPath.Clear();
@@ -1008,7 +993,7 @@ namespace PangeaSkirmish
                 count:     _controlled.plannedAttacks.Count,
                 isPicking: _mode == PlanMode.AttackTilePicking);
             _hud.SetConcentrateState(
-                canAdd:    _controlled.remainingBAP > 0 && _controlled.CanFit(ActionType.Concentrate)
+                canAdd:    _controlled.CanFit(ActionType.Concentrate)
                            && (_controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen) < _controlled.stats.MaxMana,
                 isPicking: false);
             _hud.SetIncrementState(

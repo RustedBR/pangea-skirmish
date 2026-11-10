@@ -56,6 +56,7 @@ MonoBehaviour:
     displayName: Machado
     damage: 10
     range: 1
+    attackTicks: 1
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 1
@@ -63,6 +64,7 @@ MonoBehaviour:
     displayName: Machado de Ferro
     damage: 8
     range: 2
+    attackTicks: 3
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6
@@ -70,6 +72,7 @@ MonoBehaviour:
     displayName: Espada de Madeira
     damage: 6
     range: 3
+    attackTicks: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
@@ -77,6 +80,7 @@ MonoBehaviour:
     displayName: Espada de Ferro
     damage: 4
     range: 4
+    attackTicks: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
@@ -84,6 +88,7 @@ MonoBehaviour:
     displayName: Cajado
     damage: 3
     range: 7
+    attackTicks: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 2
@@ -91,6 +96,7 @@ MonoBehaviour:
     displayName: Cetro
     damage: 3
     range: 6
+    attackTicks: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
@@ -98,6 +104,7 @@ MonoBehaviour:
     displayName: Arco Curto
     damage: 2
     range: 8
+    attackTicks: 1
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
@@ -105,6 +112,7 @@ MonoBehaviour:
     displayName: Arco Longo
     damage: 1
     range: 10
+    attackTicks: 3
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
@@ -112,6 +120,7 @@ MonoBehaviour:
     displayName: Varinha
     damage: 2
     range: 5
+    attackTicks: 1
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
@@ -119,6 +128,7 @@ MonoBehaviour:
     displayName: Cajado Arcano
     damage: 3
     range: 7
+    attackTicks: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6

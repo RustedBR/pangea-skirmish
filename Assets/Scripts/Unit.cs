@@ -40,7 +40,10 @@ namespace PangeaSkirmish
         public bool hasPlannedBonus;
         /// <summary>Ticks livres na fila deste ponto de decisão (GDD-014; antigo PA).</summary>
         public int remainingAP;
+        /// <summary>Instinto ainda livre NESTE plano (currentInstinct − custo planejado). Antigo PAB.</summary>
         public int remainingBAP;
+        /// <summary>Instinto atual: reserva do Corpo, paga ações bônus e reações (GDD-016 §3).</summary>
+        public int currentInstinct;
 
         // ── Semi-turno por ticks (GDD-014) ──
         /// <summary>Fila comprometida. Não vazia = unidade ocupada (não decide neste ponto).</summary>
@@ -62,8 +65,23 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Recalcula remainingAP = maxQueueTicks − ticks planejados.</summary>
-        public void RecomputeTickBudget() =>
-            remainingAP = Tuning.Get().maxQueueTicks - PlannedTicks();
+        public void RecomputeTickBudget()
+        {
+            remainingAP  = Tuning.Get().maxQueueTicks - PlannedTicks();
+            remainingBAP = currentInstinct - PlannedInstinctCost();
+        }
+
+        /// <summary>Instinto que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
+        public int PlannedInstinctCost()
+        {
+            int c = 0;
+            foreach (var a in actionSequence) c += TickRules.InstinctCost(a);
+            return c;
+        }
+
+        /// <summary>Recupera Instinto (regeneração por tick), até o máximo.</summary>
+        public void GainInstinct(int amount) =>
+            currentInstinct = Mathf.Clamp(currentInstinct + amount, 0, stats.MaxInstinct);
 
         /// <summary>Cabe uma ação de 'type' no orçamento restante?</summary>
         public bool CanFit(ActionType type, bool isBonus = false) =>
@@ -73,6 +91,9 @@ namespace PangeaSkirmish
         public void BuildQueueFromPlan()
         {
             queue.Clear();
+            // Compromete o Instinto do plano (ações bônus). Feito aqui, a partir do plano,
+            // para valer igual em todas as máquinas do lockstep.
+            currentInstinct = Mathf.Max(0, currentInstinct - PlannedInstinctCost());
             foreach (var a in actionSequence)
             {
                 var q = new QueuedAction { Type = a.Type, IsBonus = a.IsBonus, IsAimed = a.IsAimed,
@@ -108,10 +129,10 @@ namespace PangeaSkirmish
         /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
         public float blockReduction;
 
-        public bool CanReact() => remainingBAP >= 2 && remainingReactions > 0;
+        public bool CanReact() => currentInstinct >= Tuning.Get().instinctReaction && remainingReactions > 0;
         public void ConsumeReaction()
         {
-            remainingBAP      = Mathf.Max(0, remainingBAP - 2);
+            currentInstinct   = Mathf.Max(0, currentInstinct - Tuning.Get().instinctReaction);
             remainingReactions = Mathf.Max(0, remainingReactions - 1);
         }
         public void ResetReactionsForRound() => remainingReactions = 1;
@@ -225,7 +246,8 @@ namespace PangeaSkirmish
             currentHP    = stats.MaxHP;
             currentMana  = stats.MaxMana;
             remainingAP  = Tuning.Get().maxQueueTicks;
-            remainingBAP = stats.BonusActionPoints;
+            currentInstinct = stats.MaxInstinct;
+            remainingBAP = currentInstinct;
 
             // A unidade vira filha do _gridRig (organização/pivot; ele não gira
             // mais fisicamente — ver GridManager _viewOrientation).
@@ -479,6 +501,7 @@ namespace PangeaSkirmish
             if (w != null)
             {
                 stats.WeaponDamage = w.damage;
+                stats.AttackTicks = Mathf.Max(1, w.attackTicks);
                 stats.AttackRange = baseRange + w.range;
                 stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
             }
@@ -486,6 +509,7 @@ namespace PangeaSkirmish
             {
                 // Sem arma: usar valores desarmados do GameTuning
                 stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
+                stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
                 stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
                 stats.strScalesDamage = true; // unarmed sempre escala com STR
             }
@@ -954,7 +978,7 @@ namespace PangeaSkirmish
             plannedConcentrations = 0;
             reservedMana = 0;
             remainingAP  = Tuning.Get().maxQueueTicks;
-            remainingBAP = stats.BonusActionPoints;
+            remainingBAP = currentInstinct;
             dodgeReactBonus = 0f;
             blockReduction  = 0f;
         }

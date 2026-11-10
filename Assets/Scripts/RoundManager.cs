@@ -723,6 +723,10 @@ namespace PangeaSkirmish
         private IEnumerator AdvanceGlobalTick()
         {
             _globalTick++;
+            // Instinto volta aos poucos (GDD-016 §3).
+            int regenEvery = Mathf.Max(1, Tuning.Get().instinctRegenTicks);
+            if (_globalTick % regenEvery == 0)
+                foreach (var u in _units) if (!u.IsDead) u.GainInstinct(1);
             int per = Mathf.Max(1, Tuning.Get().ticksPerRound);
             if (_globalTick % per != 0) yield break;
             foreach (var u in _units)
@@ -1056,8 +1060,9 @@ namespace PangeaSkirmish
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
-                    if (incr) u.remainingBAP++;
-                    if (aimed) u.remainingBAP++;
+                    // Ataque perdido devolve o Instinto do golpe poderoso / mirar.
+                    if (incr) u.GainInstinct(Tuning.Get().instinctPowerStrike);
+                    if (aimed) u.GainInstinct(Tuning.Get().instinctAim);
                     _hud.RefreshUnitInfo();
                     continue;
                 }

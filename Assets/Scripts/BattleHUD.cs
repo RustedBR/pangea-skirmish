@@ -475,7 +475,7 @@ namespace PangeaSkirmish
         public void UpdateAPDisplay(Unit u)
         {
             _apText.text = $"<b>Tempo</b> {u.remainingAP}/{Tuning.Get().maxQueueTicks} ticks   " +
-                           $"<b>PAB</b> {u.remainingBAP}/{u.stats.BonusActionPoints}";
+                           $"<b>Instinto</b> {u.remainingBAP}/{u.stats.MaxInstinct}";
         }
 
         // ── TEXTOS PÚBLICOS ──
@@ -509,11 +509,11 @@ namespace PangeaSkirmish
                                 : ratio > Thp.hpBarRedThreshold    ? Thp.hpBarMidColor
                                                                    : Thp.hpBarLowColor;
             _unitHPText.text = $"HP  {u.currentHP} / {s.MaxHP}";
-            _apText.text = $"<b>Tempo</b> {u.remainingAP}/{Tuning.Get().maxQueueTicks} ticks   <b>PAB</b> {u.remainingBAP}/{s.BonusActionPoints}";
+            _apText.text = $"<b>Tempo</b> {u.remainingAP}/{Tuning.Get().maxQueueTicks} ticks   <b>Instinto</b> {u.remainingBAP}/{s.MaxInstinct}";
             var buffs = StatusEffectSystem.Summary(u.statusEffects);
             _unitStatsText.text =
                 $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
-                $"<b>MOV</b> {s.MoveBudget}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
+                $"<b>MOV</b> {s.MoveStep}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
                 $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}" +
                 (string.IsNullOrEmpty(buffs) ? "" : $"\n<color=#FFD700><b>BUFFS</b> {buffs}</color>");
             _unitNameText.text = $"{u.unitName}  <size=11>{team}</size>  <color=#{ColorUtility.ToHtmlStringRGB(Tuning.Get().manaTextColor)}>MP {u.currentMana}</color>";

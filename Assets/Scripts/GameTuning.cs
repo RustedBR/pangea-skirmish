@@ -22,20 +22,34 @@ namespace PangeaSkirmish
         public float decisionTime = 8f;
         [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]
         public int maxQueueTicks = 6;
-        [Tooltip("Máximo de tiles que uma ação de andar cobre, qualquer que seja o atributo de movimento.")]
-        public int maxTilesPerMove = 4;
+        [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
+        public float moveTilesBase = 2f;
+        public float moveTilesPerAGI = 0.5f;
+        [Tooltip("Teto de tiles que uma ação de andar cobre.")]
+        public int maxTilesPerMove = 6;
+
+        [Header("═══ INSTINTO (GDD-016) ═══")]
+        [Tooltip("Instinto máximo = instinctBase + (STR + VIT) × instinctPerBodyPoint.")]
+        public float instinctBase = 3f;
+        public float instinctPerBodyPoint = 0.5f;
+        [Tooltip("Recupera 1 de Instinto a cada N ticks.")]
+        public int instinctRegenTicks = 2;
+        public int instinctPowerStrike = 2;
+        public int instinctAim = 1;
+        public int instinctQuickStep = 1;
+        public int instinctReaction = 2;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
-        [Tooltip("Ticks base: ataque normal.")]
-        public int ticksAttack = 2;
-        [Tooltip("Ticks base: golpe poderoso (ataque com bônus).")]
-        public int ticksPowerStrike = 3;
+        [Tooltip("Ticks base do ataque desarmado (armas usam WeaponDef.attackTicks).")]
+        public int ticksUnarmed = 1;
+        [Tooltip("Ticks somados à base da arma num golpe poderoso.")]
+        public int ticksPowerStrikeExtra = 1;
         [Tooltip("Ticks base: concentrar.")]
         public int ticksConcentrate = 2;
         [Tooltip("Ticks de Esperar (timeout sem ação). Não escala com AGI.")]
         public int ticksWait = 1;
-        [Tooltip("k da fórmula de velocidade: ticks = base × k / (k + AGI). Maior = AGI pesa menos.")]
-        public float tickAgiFactor = 10f;
+        [Tooltip("k da fórmula de rapidez: ticks = base × k / (k + DEX). Maior = DEX pesa menos.")]
+        public float tickDexFactor = 10f;
         [Tooltip("A cada N ticks globais: status, efeitos de tile e reações renovam (equivale ao antigo round).")]
         public int ticksPerRound = 4;
         [Tooltip("Ticks adicionados à fila de quem reage.")]
@@ -72,16 +86,16 @@ namespace PangeaSkirmish
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2 },
-            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2 },
-            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3 },
-            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3 },
-            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3 },
-            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5 },
-            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5 },
+            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2, attackTicks=1 },
+            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2, attackTicks=3 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2, attackTicks=2 },
+            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2, attackTicks=2 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3, attackTicks=2 },
+            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3, attackTicks=2 },
+            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3, attackTicks=1 },
+            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5, attackTicks=3 },
+            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3, attackTicks=1 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5, attackTicks=2 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]

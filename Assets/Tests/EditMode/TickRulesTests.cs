@@ -17,7 +17,7 @@ public class TickRulesTests
         _t = Tuning.Get();
         _go = new GameObject("TickUnit");
         _u = _go.AddComponent<Unit>();
-        _u.stats = new AttributeStats { AGI = 0f };
+        _u.stats = new AttributeStats { AGI = 0f, DEX = 0f };
     }
 
     [TearDown]
@@ -28,27 +28,63 @@ public class TickRulesTests
     }
 
     [Test]
-    public void Duration_WithZeroAgi_EqualsBaseTicks()
+    public void Duration_WithZeroDex_EqualsWeaponWeight()
     {
-        Assert.AreEqual(_t.ticksMove,        TickRules.Duration(_u, ActionType.Move, false));
-        Assert.AreEqual(_t.ticksAttack,      TickRules.Duration(_u, ActionType.Attack, false));
-        Assert.AreEqual(_t.ticksPowerStrike, TickRules.Duration(_u, ActionType.Attack, true));
+        _u.stats.DEX = 0f;
+        _u.stats.AttackTicks = 3; // arma pesada
+        Assert.AreEqual(_t.ticksMove, TickRules.Duration(_u, ActionType.Move, false));
+        Assert.AreEqual(3, TickRules.Duration(_u, ActionType.Attack, false));
+        Assert.AreEqual(3 + _t.ticksPowerStrikeExtra, TickRules.Duration(_u, ActionType.Attack, true));
     }
 
     [Test]
-    public void Duration_HighAgi_IsFasterButNeverBelowOne()
+    public void Dex_SpeedsUpActions_ButNotWalking()
     {
-        _u.stats.AGI = _t.tickAgiFactor; // fator 0.5
-        Assert.Less(TickRules.Duration(_u, ActionType.Attack, true), _t.ticksPowerStrike);
-        _u.stats.AGI = 1000f;
+        _u.stats.AttackTicks = 3;
+        _u.stats.DEX = _t.tickDexFactor; // fator 0.5
+        Assert.Less(TickRules.Duration(_u, ActionType.Attack, false), 3);
+        _u.stats.DEX = 1000f;
         Assert.AreEqual(1, TickRules.Duration(_u, ActionType.Attack, true));
+        Assert.AreEqual(_t.ticksMove, TickRules.Duration(_u, ActionType.Move, false), "andar não depende da DEX");
     }
 
     [Test]
-    public void Wait_DoesNotScaleWithAgi()
+    public void Agi_DoesNotSpeedUpActions_ButExtendsWalk()
     {
+        _u.stats.DEX = 0f; _u.stats.AttackTicks = 2;
+        _u.stats.AGI = 0f;
+        int slow = TickRules.Duration(_u, ActionType.Attack, false);
+        int shortWalk = _u.stats.MoveStep;
+        _u.stats.AGI = 8f;
+        Assert.AreEqual(slow, TickRules.Duration(_u, ActionType.Attack, false));
+        Assert.Greater(_u.stats.MoveStep, shortWalk);
         _u.stats.AGI = 1000f;
+        Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep);
+    }
+
+    [Test]
+    public void Wait_DoesNotScale()
+    {
+        _u.stats.DEX = 1000f;
         Assert.AreEqual(Mathf.Max(1, _t.ticksWait), TickRules.Duration(_u, ActionType.Wait, false));
+    }
+
+    [Test]
+    public void Instinct_PlanCostIsCommittedWhenQueueIsBuilt()
+    {
+        _u.stats.STR = 4f; _u.stats.VIT = 4f;
+        _u.currentInstinct = _u.stats.MaxInstinct;
+        int max = _u.currentInstinct;
+        Assert.AreEqual(Mathf.RoundToInt(_t.instinctBase + 8 * _t.instinctPerBodyPoint), max);
+
+        _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, IsBonus = true });
+        _u.RecomputeTickBudget();
+        Assert.AreEqual(max - _t.instinctPowerStrike, _u.remainingBAP, "golpe poderoso reserva Instinto no plano");
+
+        _u.BuildQueueFromPlan();
+        Assert.AreEqual(max - _t.instinctPowerStrike, _u.currentInstinct, "o gasto vale ao comprometer a fila");
+        _u.GainInstinct(999);
+        Assert.AreEqual(max, _u.currentInstinct, "não passa do máximo");
     }
 
     [Test]
@@ -56,7 +92,7 @@ public class TickRulesTests
     {
         _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack });
         _u.RecomputeTickBudget();
-        Assert.AreEqual(_t.maxQueueTicks - _t.ticksAttack, _u.remainingAP);
+        Assert.AreEqual(_t.maxQueueTicks - TickRules.Duration(_u, ActionType.Attack, false), _u.remainingAP);
     }
 
     [Test]
