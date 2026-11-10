@@ -27,7 +27,7 @@ namespace PangeaSkirmish.Editor
             // Medium stripping OBRIGATORIO (56MB, <100MB Pages) + ExplicitlyThrownExceptionsOnly
             // (pega excecao do SDK Relay/Lobby em vez de abort() silencioso) + compression Disabled
             // (sem .br) + template PROJECT:PangeaSkirmish. NAO usar exceptionSupport=None (aborta MP).
-            PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetManagedStrippingLevel(
                 UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Medium);
             PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
