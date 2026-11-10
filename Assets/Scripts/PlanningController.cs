@@ -50,6 +50,14 @@ namespace PangeaSkirmish
 
         public void SetHUD(BattleHUD hud) { _hud = hud; }
 
+        // ── Modo Intenção (GDD-016 §6) ──
+        private enum ArmedIntent { None, Charge, HitAndRun, Retreat }
+        private ArmedIntent _armed = ArmedIntent.None;
+        private Unit _previewUnit;            // alvo da prévia atual (segundo clique nele confirma)
+        private Vector2Int? _previewCell;     // idem, para clique no chão
+        /// <summary>Pedido de confirmação do plano (Enter, Espaço ou segundo clique no mesmo alvo).</summary>
+        public System.Action OnConfirmRequested;
+
         private void OnEnable()  => GridManager.OnViewOrientationChanged += OnViewOrientationChanged;
         private void OnDisable() => GridManager.OnViewOrientationChanged -= OnViewOrientationChanged;
 
@@ -88,6 +96,8 @@ namespace PangeaSkirmish
             _hud.BindUndo(OnUndoClick);
             _hud.BindClear(OnClearClick);
             _hud.OnSeqChipToggled = OnSeqChipToggled;
+            _armed = ArmedIntent.None; _previewUnit = null; _previewCell = null;
+            ShowIntentHint();
             SyncButtonStates();
             RefreshSequenceVisuals();
             ShowSelfAttackRange(); // range visível assim que a unidade é selecionada
@@ -97,6 +107,7 @@ namespace PangeaSkirmish
         {
             _active = false;
             _mode   = PlanMode.Idle;
+            if (_hud != null) _hud.HidePrompt();
             if (_controlled != null) _controlled.SetSelected(false);
             if (_lastTargetedUnit != null) _lastTargetedUnit.SetTargeted(false);
             _lastTargetedUnit = null;
@@ -816,6 +827,125 @@ namespace PangeaSkirmish
             _hud.OnSeqChipToggled = OnSeqChipToggled;
         }
 
+        // ------------------------------------------------------------------ MODO INTENÇÃO
+
+        private static string IntentName(ArmedIntent i) =>
+            i == ArmedIntent.Charge ? "Investir" : i == ArmedIntent.HitAndRun ? "Golpear e recuar"
+            : i == ArmedIntent.Retreat ? "Recuar" : "Automática";
+
+        private void ShowIntentHint()
+        {
+            _hud.ShowPrompt($"Intenção: <b>{IntentName(_armed)}</b>  •  [1] Investir  [2] Golpear e recuar  [3] Recuar\n" +
+                            "Clique no inimigo ou no chão  •  Enter / 2º clique confirma");
+        }
+
+        private void Arm(ArmedIntent intent)
+        {
+            _armed = _armed == intent ? ArmedIntent.None : intent; // apertar de novo desarma
+            ShowIntentHint();
+        }
+
+        private bool PointerOverUI()
+        {
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            return es != null && es.IsPointerOverGameObject();
+        }
+
+        /// <summary>Teclas e cliques do Modo Intenção. Devolve true se consumiu o input do frame.</summary>
+        private bool HandleIntentInput()
+        {
+            var kb = Keyboard.current;
+            if (kb != null)
+            {
+                if (kb.digit1Key.wasPressedThisFrame) { Arm(ArmedIntent.Charge); return true; }
+                if (kb.digit2Key.wasPressedThisFrame) { Arm(ArmedIntent.HitAndRun); return true; }
+                if (kb.digit3Key.wasPressedThisFrame)
+                {
+                    _armed = ArmedIntent.Retreat; ShowIntentHint();
+                    ApplyIntent(() => IntentBuilder.Retreat(_controlled, _allUnits, _grid), null, null);
+                    return true;
+                }
+                bool confirmKey = kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame
+                               || kb.spaceKey.wasPressedThisFrame;
+                if (confirmKey && _controlled.actionSequence.Count > 0) { OnConfirmRequested?.Invoke(); return true; }
+            }
+
+            // Só o botão esquerdo: o direito já é o arrasto da câmera.
+            bool left = Mouse.current.leftButton.wasPressedThisFrame;
+            if (!left || PointerOverUI()) return false;
+
+            bool shift = kb != null && kb.shiftKey.isPressed;
+            bool ctrl  = kb != null && kb.ctrlKey.isPressed;
+
+            var unit = HitUnitWithCollider();
+            if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
+            {
+                // Segundo clique no mesmo alvo confirma a prévia.
+                if (_previewUnit == unit && !shift && !ctrl && _controlled.actionSequence.Count > 0)
+                { OnConfirmRequested?.Invoke(); return true; }
+
+                if (ctrl || (_armed == ArmedIntent.HitAndRun && !shift))
+                    ApplyIntent(() => IntentBuilder.HitAndRun(_controlled, unit, _allUnits, _grid), unit, null);
+                else if (shift)
+                    ApplyIntent(() => IntentBuilder.Charge(_controlled, unit, _allUnits, _grid, maxAttacks: 1), unit, null);
+                else
+                    ApplyIntent(() => IntentBuilder.Charge(_controlled, unit, _allUnits, _grid), unit, null);
+                return true;
+            }
+
+            var cell = HitAnchor();
+            if (cell.HasValue && _grid.IsAnchorInBounds(cell.Value, _controlled.stats.Footprint) && (unit == null || unit == _controlled))
+            {
+                var c = cell.Value;
+                if (_previewCell == c && _controlled.actionSequence.Count > 0)
+                { OnConfirmRequested?.Invoke(); return true; }
+
+                if (_armed == ArmedIntent.Retreat)
+                    ApplyIntent(() => IntentBuilder.Retreat(_controlled, _allUnits, _grid, c), null, c);
+                else
+                    ApplyIntent(() => IntentBuilder.MoveTo(_controlled, c, _allUnits, _grid), null, c);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>Roda o montador, guarda o alvo da prévia e redesenha fantasmas, marcas e barra de ticks.</summary>
+        private void ApplyIntent(System.Func<bool> build, Unit targetUnit, Vector2Int? targetCell)
+        {
+            bool ok = build();
+            _previewUnit = ok ? targetUnit : null;
+            _previewCell = ok ? targetCell : null;
+            if (!ok)
+                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: nada a fazer com essa intenção daqui", _controlled);
+            RebuildPlanVisuals();
+        }
+
+        /// <summary>Recria os fantasmas e marcas a partir do plano atual da unidade (1 por ação da fila).</summary>
+        private void RebuildPlanVisuals()
+        {
+            ClearPathGhosts();
+            foreach (var u in _allUnits) if (u != null) u.SetAttackMarked(false);
+            foreach (var a in _controlled.actionSequence)
+            {
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count)
+                    _pathGhosts.Add(CreateGhostAt(_controlled.plannedPath[a.Index], Tuning.Get().moveGhostColor));
+                else if (a.Type == ActionType.Attack && a.Index < _controlled.plannedAttacks.Count)
+                {
+                    var t = _controlled.plannedAttacks[a.Index].TargetUnit;
+                    if (t != null) t.SetAttackMarked(true);
+                    var marker = new GameObject("UnitAttackMarker");
+                    marker.transform.position = t != null ? t.HeadWorld : _controlled.HeadWorld;
+                    _pathGhosts.Add(marker);
+                }
+            }
+            HideCursorGhost();
+            _grid.ClearHighlight();
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
+            SyncButtonStates();
+            RefreshSequenceVisuals();
+            ShowSelfAttackRange();
+        }
+
         /// <summary>Toggle BAP clicando no ghost tile (movimento) ou unidade marcada (ataque).</summary>
         private void HandleBapClickOnTile()
         {
@@ -897,9 +1027,8 @@ namespace PangeaSkirmish
                 return;
             }
 
-            // Clique em idle: toggle BAP em ghost tile (movimento) ou unidade marcada (ataque)
-            if (_mode == PlanMode.Idle && Mouse.current.leftButton.wasPressedThisFrame)
-                HandleBapClickOnTile();
+            // Modo Intenção: um clique monta a fila inteira (GDD-016 §6).
+            if (_mode == PlanMode.Idle && HandleIntentInput()) return;
 
             // Em idle, hover em inimigo revela o range dele (vermelho); sair restaura o meu.
             if (_mode == PlanMode.Idle)

@@ -85,6 +85,7 @@ namespace PangeaSkirmish
             _tileFx = tileFx;
             _camBaseSize = cam.orthographicSize;
             _planner.SetHUD(hud);
+            _planner.OnConfirmRequested = ConfirmPlan;
             _hud.BindConfirm(ConfirmPlan);
             // Registro idempotente: evita handler duplicado se Setup rodar 2x
             // (causaria rótulo de dano em duplicata no MP).

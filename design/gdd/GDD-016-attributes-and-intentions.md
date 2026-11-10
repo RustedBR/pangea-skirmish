@@ -181,3 +181,16 @@ Cada clique **acrescenta** um passo à fila.
 
 - Os papéis de INT e WIS (aguardam a magia nova).
 - Rebalancear os números de dano e vida das armas.
+
+## 11. Notas de implementação (2026-11-10)
+
+Feito (passos 1 a 4 da seção 9):
+
+- **Atributos e Instinto:** como especificado. O custo de Instinto do plano é calculado a partir da fila e descontado quando a fila é comprometida, então vale igual em todas as máquinas.
+- **Montador (`IntentBuilder`):** Investir, Golpear e recuar, Andar até e Recuar. As feras usam o mesmo montador (Investir com 1 andada + 1 ataque).
+- **Golpear e recuar já no alcance:** se a unidade não precisou andar para bater, ela se afasta dos inimigos depois do golpe, em vez de "voltar" para onde já está.
+- **Modo Intenção:** clique no inimigo = Investir; clique no chão = andar; teclas `1` Investir, `2` Golpear e recuar, `3` Recuar (monta a fuga na hora; um clique no chão escolhe o destino). `Shift`+clique ataca uma vez, `Ctrl`+clique golpeia e recua. `Enter`, `Espaço` ou um segundo clique no mesmo alvo confirma.
+- **Botão direito:** não virou atalho de recuar, porque já é o arrasto da câmera.
+- Os menus antigos (Ações > Mover/Atacar) continuam funcionando como controle manual até o Modo Livre existir.
+
+Ainda não feito (passos 5 a 7): posturas automáticas com opção de confirmar, Afastar-se e Interpor, Proteger e Manter distância, Modo Livre, arrastar a partir do inimigo, e os botões de intenção na tela (hoje só teclado e uma linha de dica).

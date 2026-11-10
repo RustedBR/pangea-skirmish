@@ -21,56 +21,17 @@ namespace PangeaSkirmish
 
         public static bool Controls(Unit u) => u != null && u.ownerId == OwnerId;
 
-        /// <summary>Preenche o plano (actionSequence + listas) de uma fera livre.</summary>
+        /// <summary>
+        /// Preenche o plano de uma fera livre: Investir contra o hostil mais próximo, com fila
+        /// curta (1 andada + 1 ataque) para reagir ao jogador a cada ponto de decisão.
+        /// Usa o mesmo montador de intenções do jogador (IntentBuilder).
+        /// </summary>
         public static void Plan(Unit self, List<Unit> units, GridManager grid)
         {
             if (self == null || self.IsDead || grid == null) return;
-            self.ResetPlan();
-
             var target = NearestHostile(self, units, self.anchor);
-            if (target == null) return; // sem alvo: fila vira "Esperar"
-
-            int fp = self.stats.Footprint;
-            var blockers = new List<Unit>();
-            foreach (var o in units) if (o != self && !o.IsDead) blockers.Add(o);
-
-            Vector2Int pos = self.anchor;
-            int budget = Tuning.Get().maxQueueTicks;
-            int moveCost = TickRules.Duration(self, ActionType.Move, false);
-            int atkCost  = TickRules.Duration(self, ActionType.Attack, false);
-
-            // Aproxima: 1 deslocamento por decisão (fila curta = a fera reage ao que o jogador faz).
-            for (int step = 0; step < 1 && budget >= moveCost; step++)
-            {
-                if (Gap(pos, fp, target) <= self.stats.AttackRange) break;
-                var reach = grid.GetReachableAnchors(pos, self.stats.MoveStep, fp, blockers);
-                Vector2Int best = pos;
-                int bestGap = Gap(pos, fp, target);
-                foreach (var a in reach)
-                {
-                    int g = Gap(a, fp, target);
-                    // Desempate fixo (x, depois y): a ordem da lista não pode decidir.
-                    if (g < bestGap || (g == bestGap && best != pos && (a.x < best.x || (a.x == best.x && a.y < best.y))))
-                    { bestGap = g; best = a; }
-                }
-                if (best == pos) break; // encurralada
-                self.plannedPath.Add(best);
-                self.actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = self.plannedMoveCount });
-                self.plannedMoveCount++;
-                self.plannedAnchor = best;
-                pos = best;
-                budget -= moveCost;
-            }
-
-            // Ataca se o alvo estiver no alcance (1 golpe por decisão).
-            for (int n = 0; n < 1 && budget >= atkCost; n++)
-            {
-                if (Gap(pos, fp, target) > self.stats.AttackRange) break;
-                self.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = target, TargetTile = target.anchor });
-                self.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = self.plannedAttacks.Count - 1 });
-                budget -= atkCost;
-            }
-            self.RecomputeTickBudget();
+            if (target == null) { self.ResetPlan(); return; } // sem alvo: fila vira "Esperar"
+            IntentBuilder.Charge(self, target, units, grid, maxMoves: 1, maxAttacks: 1);
         }
 
         private static int Gap(Vector2Int from, int fp, Unit target) =>

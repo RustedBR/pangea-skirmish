@@ -106,4 +106,88 @@ public class BeastAITest
         Assert.AreEqual(Mathf.Max(1, Mathf.RoundToInt(dead.stats.MaxHP * 0.25f)), dead.currentHP);
         Assert.IsTrue(dead.gameObject.activeSelf);
     }
+
+    // ---------------------------------------------------------------- IntentBuilder (GDD-016 §5)
+
+    private static int CountOf(Unit u, ActionType t)
+    {
+        int n = 0;
+        foreach (var a in u.actionSequence) if (a.Type == t) n++;
+        return n;
+    }
+
+    [UnityTest]
+    public IEnumerator Charge_WalksThenFillsWithAttacks()
+    {
+        yield return Setup();
+        var hero = Spawn("Heroi", Team.Player, new Vector2Int(1, 6), false);
+        var foe = Spawn("Alvo", Team.Enemy, new Vector2Int(1 + 3 + hero.stats.AttackRange + 2, 6), false);
+
+        Assert.IsTrue(IntentBuilder.Charge(hero, foe, _units, _grid));
+
+        Assert.Greater(CountOf(hero, ActionType.Move), 0, "precisa andar para alcançar");
+        Assert.Greater(CountOf(hero, ActionType.Attack), 0, "deveria atacar com o tempo que sobra");
+        Assert.AreEqual(ActionType.Attack, hero.actionSequence[hero.actionSequence.Count - 1].Type);
+        Assert.LessOrEqual(hero.PlannedTicks(), Tuning.Get().maxQueueTicks);
+        Assert.Less(hero.remainingAP, TickRules.Duration(hero, ActionType.Attack, false), "gasta todo o tempo que couber");
+    }
+
+    [UnityTest]
+    public IEnumerator HitAndRun_AttacksOnceThenWalksBack()
+    {
+        yield return Setup();
+        var hero = Spawn("Heroi", Team.Player, new Vector2Int(2, 6), false);
+        var foe = Spawn("Alvo", Team.Enemy, new Vector2Int(2 + 3 + hero.stats.AttackRange + 2, 6), false);
+        var home = hero.anchor;
+
+        Assert.IsTrue(IntentBuilder.HitAndRun(hero, foe, _units, _grid));
+
+        Assert.AreEqual(1, CountOf(hero, ActionType.Attack), "exatamente um golpe");
+        Assert.AreEqual(ActionType.Move, hero.actionSequence[hero.actionSequence.Count - 1].Type, "termina recuando");
+        int atkIdx = hero.actionSequence.FindIndex(a => a.Type == ActionType.Attack);
+        Vector2Int strikeFrom = hero.plannedPath[hero.actionSequence[atkIdx - 1].Index];
+        int dStrike = Mathf.Abs(strikeFrom.x - home.x) + Mathf.Abs(strikeFrom.y - home.y);
+        int dEnd = Mathf.Abs(hero.plannedAnchor.x - home.x) + Mathf.Abs(hero.plannedAnchor.y - home.y);
+        Assert.Less(dEnd, dStrike, "termina mais perto de casa do que de onde golpeou");
+    }
+
+    [UnityTest]
+    public IEnumerator Retreat_IncreasesDistanceFromEnemies()
+    {
+        yield return Setup();
+        var hero = Spawn("Heroi", Team.Player, new Vector2Int(6, 6), false);
+        var foe = Spawn("Alvo", Team.Enemy, new Vector2Int(9, 6), false);
+        int before = GridManager.FootprintGap(hero.anchor, 3, foe.anchor, 3);
+
+        Assert.IsTrue(IntentBuilder.Retreat(hero, _units, _grid));
+
+        Assert.AreEqual(0, CountOf(hero, ActionType.Attack));
+        Assert.Greater(GridManager.FootprintGap(hero.plannedAnchor, 3, foe.anchor, 3), before);
+    }
+
+    [UnityTest]
+    public IEnumerator MoveTo_ReachesNearbyCell()
+    {
+        yield return Setup();
+        var hero = Spawn("Heroi", Team.Player, new Vector2Int(2, 2), false);
+        var dest = new Vector2Int(2 + hero.stats.MoveStep, 2);
+
+        Assert.IsTrue(IntentBuilder.MoveTo(hero, dest, _units, _grid));
+        Assert.AreEqual(dest, hero.plannedAnchor);
+    }
+
+    [UnityTest]
+    public IEnumerator HitAndRun_AlreadyInRange_BacksAwayAfterTheHit()
+    {
+        yield return Setup();
+        var hero = Spawn("Heroi", Team.Player, new Vector2Int(5, 6), false);
+        var foe = Spawn("Alvo", Team.Enemy, new Vector2Int(8, 6), false);
+        int before = GridManager.FootprintGap(hero.anchor, 3, foe.anchor, 3);
+
+        Assert.IsTrue(IntentBuilder.HitAndRun(hero, foe, _units, _grid));
+
+        Assert.AreEqual(ActionType.Attack, hero.actionSequence[0].Type, "não precisa andar para bater");
+        Assert.AreEqual(1, CountOf(hero, ActionType.Attack));
+        Assert.Greater(GridManager.FootprintGap(hero.plannedAnchor, 3, foe.anchor, 3), before, "afasta-se depois do golpe");
+    }
 }
