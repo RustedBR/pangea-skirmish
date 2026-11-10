@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Status** | Aprovado — passos 1 a 3 implementados (2026-11-10), aguardam partida de teste |
+| **Status** | Aprovado — passos 1 a 4 implementados (2026-11-10), aguardam partida de teste |
 | **Substitui** | Seleção de modo atual (`gameMode` 0 = TDM, 1 = FFA) |
 | **Depende de** | GDD-013 (lore), GDD-014 (semi-turno por ticks) |
 
@@ -120,4 +120,13 @@ Ainda não feito:
 
 - Botão próprio de "Coop solo" no menu e grupo de até 3 unidades para quem joga sozinho.
 - Limite de 4 jogadores na sala em Coop.
-- Passos 4 a 7: a descida em sequência, geração de mapa, recompensas e medidor de Yorgoth. Hoje o Coop é uma única camada.
+- Passos 5 a 7: geração de mapa por profundidade, mais tipos de fera, recompensas (conduítes) e medidor de Yorgoth.
+
+Passo 4 — a descida (feito):
+
+- Ao vencer uma camada, o **anfitrião** escolhe **Descer** ou **Recuar**; os outros veem o aviso de espera.
+- **Descer:** as feras mortas saem, os jogadores voltam ao ponto de partida, e entram `jogadores + camada` feras, mais fortes a cada camada (+10% de atributos por camada).
+- **Peso de descer:** entre camadas a unidade recupera só 30% da vida máxima e 50% da Mana. Quem caiu volta de pé com 25% da vida. Como o Instinto ainda não existe, o custo crescente de Instinto ficou para depois.
+- **Recuar:** a descida termina em vitória, com o número de camadas vencidas.
+- **Marca de profundidade:** a camada mais funda vencida fica salva no aparelho (`PlayerPrefs`, chave `pangea.coop.deepestLayer`). Ainda não aparece em nenhuma tela.
+- O mapa é o mesmo em todas as camadas até o passo 5.

@@ -48,6 +48,12 @@ namespace PangeaSkirmish
         /// <summary>Tick global da batalha (GDD-014). Status/tiles/reações renovam a cada ticksPerRound.</summary>
         private int _globalTick;
 
+        // ---- Coop: Descida ao Inferno (GDD-015 §3) ----
+        /// <summary>Camada atual da descida (1 = superfície).</summary>
+        public int Layer { get; private set; } = 1;
+        private bool _awaitingDescent;   // camada vencida, esperando "descer ou recuar"
+        public const string DeepestLayerKey = "pangea.coop.deepestLayer";
+
         // pose-base da câmera (alvo do overview entre rounds)
         private float _camBaseSize;
 
@@ -616,12 +622,13 @@ namespace PangeaSkirmish
                 if (GameModes.IsCoop)
                 {
                     int alive = CountAliveTeams(out int survivingTeam);
-                    if (alive == 0)     { GameOver("Derrota! Ninguém saiu vivo da camada."); yield break; }
+                    if (alive == 0)     { GameOver($"Derrota! Ninguém saiu vivo da camada {Layer}."); yield break; }
                     if (alive == 1)
                     {
-                        GameOver(survivingTeam == BeastAI.TeamId
-                            ? "Derrota! As feras venceram."
-                            : "Vitória! A camada foi vencida.");
+                        if (survivingTeam == BeastAI.TeamId)
+                            GameOver($"Derrota! As feras venceram na camada {Layer}.");
+                        else
+                            LayerCleared();
                         yield break;
                     }
                 }
@@ -663,6 +670,52 @@ namespace PangeaSkirmish
             yield return StartRound();
         }
 
+        // -------------------- COOP: DESCIDA --------------------
+
+        /// <summary>Camada vencida: registra a marca de profundidade e pede a decisão ao anfitrião.</summary>
+        private void LayerCleared()
+        {
+            _phase = RoundPhase.Resolving;
+            _awaitingDescent = true;
+            _hud.SetTimerVisible(false);
+            _hud.SetConfirmVisible(false);
+            AudioManager.I?.Play(AudioManager.I.sfxVictory);
+
+            if (Layer > PlayerPrefs.GetInt(DeepestLayerKey, 0))
+            {
+                PlayerPrefs.SetInt(DeepestLayerKey, Layer);
+                PlayerPrefs.Save();
+            }
+            _hud.SetPhase($"Camada {Layer} vencida");
+            _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
+
+            string text = $"Camada {Layer} vencida — descer para a camada {Layer + 1}?";
+            if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null)
+                _hud.ShowChoice(text,
+                    ("Descer", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                    ("Recuar", () => PlacementSync.Instance.HostRetreat(Layer)));
+            else
+                _hud.ShowChoice(text + "\nAguardando o anfitrião decidir...");
+        }
+
+        /// <summary>Todas as máquinas: a próxima camada começa (unidades já preparadas e feras criadas).</summary>
+        public void BeginNextLayer(int layer)
+        {
+            Layer = layer;
+            _awaitingDescent = false;
+            _hud.HideReactionMenu();
+            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto.");
+            StartCoroutine(StartRound());
+        }
+
+        /// <summary>Todas as máquinas: o grupo recuou; a descida termina em vitória.</summary>
+        public void EndDescent(int layersCleared)
+        {
+            _awaitingDescent = false;
+            _hud.HideReactionMenu();
+            GameOver($"Vitória! O grupo recuou depois de vencer {layersCleared} camada{(layersCleared > 1 ? "s" : "")}.");
+        }
+
         /// <summary>Avança o relógio global. A cada ticksPerRound: status, efeitos de tile e reações.</summary>
         private IEnumerator AdvanceGlobalTick()
         {
@@ -694,6 +747,8 @@ namespace PangeaSkirmish
         public void ProceedToNextRoundMp()
         {
             if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            // Batalha encerrada ou camada vencida: quem decide o próximo passo é a descida.
+            if (_phase == RoundPhase.GameOver || _awaitingDescent) return;
             StartCoroutine(NextRoundAfterPause());
         }
 

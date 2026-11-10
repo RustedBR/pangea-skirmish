@@ -768,6 +768,30 @@ namespace PangeaSkirmish
             else
                 _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         }
+        /// <summary>
+        /// Escolha genérica no painel de reação (ex.: descer ou recuar no Coop). Sem opções,
+        /// mostra só o texto (quem não decide fica vendo o aviso).
+        /// </summary>
+        public void ShowChoice(string text, params (string label, System.Action onPick)[] options)
+        {
+            _reactionPick = null;
+            if (_reactionText != null) _reactionText.text = text;
+            if (_reactionTimer != null) _reactionTimer.text = "";
+            if (_reactionButtons != null)
+            {
+                _reactionButtons.Clear();
+                _reactionButtons.style.display = options.Length > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                foreach (var (label, onPick) in options)
+                {
+                    var act = onPick;
+                    var btn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIConfirm); act?.Invoke(); }) { text = label };
+                    btn.AddToClassList("pg-button");
+                    _reactionButtons.Add(btn);
+                }
+            }
+            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.Flex;
+        }
+
         public void HideReactionMenu()
         {
             _reactionPick = null;

@@ -26,6 +26,8 @@ namespace PangeaSkirmish
         public AttributeStats stats = new AttributeStats();
 
         public Vector2Int anchor;
+        /// <summary>Onde a unidade foi posicionada no início (volta para cá a cada camada do Coop).</summary>
+        public Vector2Int spawnAnchor;
         public Vector2Int plannedAnchor;
         public Vector2Int plannedBonusAnchor;
         public int plannedMoveCount;
@@ -215,6 +217,7 @@ namespace PangeaSkirmish
         {
             _grid      = grid;
             anchor     = startAnchor;
+            spawnAnchor = startAnchor;
             plannedAnchor      = startAnchor;
             plannedBonusAnchor = startAnchor;
             currentHP    = stats.MaxHP;
@@ -739,6 +742,35 @@ namespace PangeaSkirmish
                 if (_targetMarker != null) _targetMarker.SetActive(false);
                 StartCoroutine(FadeOut());
             }
+        }
+
+        /// <summary>
+        /// Prepara a unidade para a próxima camada do Coop (GDD-015 §3.2): volta ao ponto de
+        /// partida, limpa fila e plano, e recupera só PARTE da vida e da Mana — descer tem peso.
+        /// Unidades caídas voltam de pé com <paramref name="reviveFraction"/> da vida.
+        /// </summary>
+        public void RestoreForNextLayer(float healFraction, float manaFraction, float reviveFraction)
+        {
+            bool wasDead = IsDead;
+            StopAllCoroutines();
+            gameObject.SetActive(true);
+
+            int maxHP = stats.MaxHP;
+            currentHP = wasDead
+                ? Mathf.Max(1, Mathf.RoundToInt(maxHP * reviveFraction))
+                : Mathf.Min(maxHP, currentHP + Mathf.RoundToInt(maxHP * healFraction));
+            currentMana = Mathf.Min(stats.MaxMana, currentMana + Mathf.RoundToInt(stats.MaxMana * manaFraction));
+
+            queue.Clear();
+            statusEffects.Clear();
+            ResetPlan();
+            ResetReactionsForRound();
+            _attackMarked = false;
+            if (_sr != null) _sr.color = _baseTint;
+            if (_footprint != null) _footprint.color = _footprintBaseColor;
+            if (_barsRoot != null) _barsRoot.gameObject.SetActive(true);
+            TeleportTo(spawnAnchor);
+            StartIdleAnim();
         }
 
         private IEnumerator FlashHit()

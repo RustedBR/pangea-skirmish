@@ -281,14 +281,77 @@ namespace PangeaSkirmish
             RoomManager.Instance.MarkPlaced(senderId);
         }
 
+        // =========================================================================
+        // Coop: descida entre camadas (GDD-015 §3)
+        // =========================================================================
+        private const float LayerHealFraction = 0.30f, LayerManaFraction = 0.50f, LayerReviveFraction = 0.25f;
+
+        /// <summary>Host: o grupo decidiu descer. Prepara as unidades, cria as feras e inicia a camada.</summary>
+        public void HostDescend(int layer)
+        {
+            if (!IsServer) return;
+            PrepareLayerClientRpc(layer);
+
+            // Ocupação calculada no servidor a partir dos pontos de partida (não depende da
+            // ordem de execução do RPC acima).
+            _occupiedCells.Clear();
+            int players = 0;
+            foreach (var u in _allUnits)
+            {
+                if (u == null || BeastAI.Controls(u)) continue;
+                players++;
+                foreach (var c in FootprintCells(u.spawnAnchor, u.stats.Footprint)) _occupiedCells.Add(c);
+            }
+            SpawnBeastsForCoop(players, layer);
+            StartLayerClientRpc(layer);
+        }
+
+        /// <summary>Host: o grupo decidiu recuar com o que conquistou.</summary>
+        public void HostRetreat(int layersCleared)
+        {
+            if (!IsServer) return;
+            EndDescentClientRpc(layersCleared);
+        }
+
+        [ClientRpc]
+        private void PrepareLayerClientRpc(int layer)
+        {
+            // Feras mortas saem de cena; jogadores voltam ao ponto de partida com cura parcial.
+            for (int i = _allUnits.Count - 1; i >= 0; i--)
+            {
+                var u = _allUnits[i];
+                if (u == null) { _allUnits.RemoveAt(i); continue; }
+                if (BeastAI.Controls(u))
+                {
+                    UnitRegistry.Unregister(u);
+                    _allUnits.RemoveAt(i);
+                    Destroy(u.gameObject);
+                }
+                else u.RestoreForNextLayer(LayerHealFraction, LayerManaFraction, LayerReviveFraction);
+            }
+            Debug.Log($"[PlacementSync] Coop: preparando camada {layer} ({_allUnits.Count} unidades de jogadores)");
+        }
+
+        [ClientRpc]
+        private void StartLayerClientRpc(int layer)
+        {
+            if (_round != null) _round.BeginNextLayer(layer);
+        }
+
+        [ClientRpc]
+        private void EndDescentClientRpc(int layersCleared)
+        {
+            if (_round != null) _round.EndDescent(layersCleared);
+        }
+
         /// <summary>
         /// Coop (host): posiciona as feras na metade direita do mapa, em células livres, e as
-        /// replica pelo mesmo RPC dos jogadores. Quantidade = jogadores + 1 (GDD-015 §3.3).
+        /// replica pelo mesmo RPC dos jogadores. Quantidade = jogadores + camada (GDD-015 §3.3).
         /// </summary>
         public void SpawnBeastsForCoop(int playerCount, int layer)
         {
             if (!IsServer || _grid == null) return;
-            int count = Mathf.Max(1, playerCount) + 1;
+            int count = Mathf.Max(1, playerCount) + layer; // camada 1: jogadores + 1
             int budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
             int fp = AttributeStats.DefaultFootprint;
             int w = _grid.width, h = _grid.height;

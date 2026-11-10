@@ -59,6 +59,15 @@ namespace PangeaSkirmish
             _reverse[unit] = id;
         }
 
+        /// <summary>Remove uma unidade do registro de ids (ex.: fera morta ao trocar de camada).</summary>
+        public static void Unregister(Unit unit)
+        {
+            uint id = GetId(unit);
+            if (id != 0) _byId.Remove(id);
+            _reverse.Remove(unit);
+            _tracked.Remove(unit);
+        }
+
         public static Unit Get(uint id)
         {
             _byId.TryGetValue(id, out var u);

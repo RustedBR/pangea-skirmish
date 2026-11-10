@@ -81,4 +81,29 @@ public class BeastAITest
 
         CollectionAssert.AreEqual(first, beast.plannedPath, "o mesmo estado deve gerar o mesmo plano");
     }
+
+    [UnityTest]
+    public IEnumerator NextLayer_RestoresPartiallyAndRevives()
+    {
+        yield return Setup();
+        var hurt = Spawn("Ferido", Team.Player, new Vector2Int(1, 2), false);
+        var dead = Spawn("Caido", Team.Player, new Vector2Int(1, 8), false);
+        int max = hurt.stats.MaxHP;
+        hurt.currentHP = 1;
+        hurt.TeleportTo(new Vector2Int(9, 9));
+        hurt.BuildQueueFromPlan();
+        dead.TakeDamage(9999);
+        Assert.IsTrue(dead.IsDead);
+
+        hurt.RestoreForNextLayer(0.30f, 0.50f, 0.25f);
+        dead.RestoreForNextLayer(0.30f, 0.50f, 0.25f);
+
+        Assert.AreEqual(1 + Mathf.RoundToInt(max * 0.30f), hurt.currentHP, "cura deve ser parcial");
+        Assert.Less(hurt.currentHP, max, "descer tem peso: não cura tudo");
+        Assert.AreEqual(new Vector2Int(1, 2), hurt.anchor, "volta ao ponto de partida");
+        Assert.IsFalse(hurt.IsBusy, "fila limpa");
+        Assert.IsFalse(dead.IsDead, "unidade caída volta de pé");
+        Assert.AreEqual(Mathf.Max(1, Mathf.RoundToInt(dead.stats.MaxHP * 0.25f)), dead.currentHP);
+        Assert.IsTrue(dead.gameObject.activeSelf);
+    }
 }
