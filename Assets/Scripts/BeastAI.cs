@@ -39,11 +39,11 @@ namespace PangeaSkirmish
             int moveCost = TickRules.Duration(self, ActionType.Move, false);
             int atkCost  = TickRules.Duration(self, ActionType.Attack, false);
 
-            // Aproxima: até 2 deslocamentos, parando assim que o alvo entra no alcance.
-            for (int step = 0; step < 2 && budget >= moveCost; step++)
+            // Aproxima: 1 deslocamento por decisão (fila curta = a fera reage ao que o jogador faz).
+            for (int step = 0; step < 1 && budget >= moveCost; step++)
             {
                 if (Gap(pos, fp, target) <= self.stats.AttackRange) break;
-                var reach = grid.GetReachableAnchors(pos, self.stats.MoveBudget, fp, blockers);
+                var reach = grid.GetReachableAnchors(pos, self.stats.MoveStep, fp, blockers);
                 Vector2Int best = pos;
                 int bestGap = Gap(pos, fp, target);
                 foreach (var a in reach)
@@ -62,8 +62,8 @@ namespace PangeaSkirmish
                 budget -= moveCost;
             }
 
-            // Ataca enquanto couber (no máximo 2 golpes por decisão).
-            for (int n = 0; n < 2 && budget >= atkCost; n++)
+            // Ataca se o alvo estiver no alcance (1 golpe por decisão).
+            for (int n = 0; n < 1 && budget >= atkCost; n++)
             {
                 if (Gap(pos, fp, target) > self.stats.AttackRange) break;
                 self.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = target, TargetTile = target.anchor });
@@ -96,7 +96,7 @@ namespace PangeaSkirmish
         public static CharacterPreset BuildPreset(int index, int layer, int attributeBudget)
         {
             // Orçamento um pouco abaixo do dos jogadores na camada 1, crescendo por camada.
-            float pts = Mathf.Max(6f, attributeBudget * (0.65f + 0.10f * (layer - 1)));
+            float pts = Mathf.Max(6f, attributeBudget * (0.55f + 0.10f * (layer - 1)));
             return new CharacterPreset
             {
                 presetName = "Fera " + (index + 1),

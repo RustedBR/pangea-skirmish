@@ -104,6 +104,11 @@ namespace PangeaSkirmish
         public int MagicDamage => Mathf.RoundToInt(INT * F.dmgPerINT);
         public int Initiative => Mathf.RoundToInt(AGI * F.iniPerAGI + DEX * F.iniPerDEX);
         public int MoveBudget => Footprint + Mathf.RoundToInt(AGI * F.movePerAGI);
+        /// <summary>
+        /// Tiles que UMA ação de andar cobre (GDD-014): o MoveBudget limitado por
+        /// maxTilesPerMove. Sem o teto, uma andada de 1 tick atravessava meio mapa.
+        /// </summary>
+        public int MoveStep => Mathf.Min(MoveBudget, Mathf.Max(1, Tuning.Get().maxTilesPerMove));
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
         public int BonusActionPoints => Mathf.RoundToInt(DEX * F.bapPerDEX);
         public int BonusMoveBudget => Mathf.Max(1, F.bonusMoveBudget);

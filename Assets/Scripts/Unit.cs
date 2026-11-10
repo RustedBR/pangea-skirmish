@@ -46,6 +46,8 @@ namespace PangeaSkirmish
         /// <summary>Fila comprometida. Não vazia = unidade ocupada (não decide neste ponto).</summary>
         public readonly List<QueuedAction> queue = new List<QueuedAction>();
         public bool IsBusy => queue.Count > 0;
+        /// <summary>Inimigos em cujo alcance esta unidade ENTROU andando e ainda não atacou (gatilho de AoO ao sair).</summary>
+        public readonly HashSet<Unit> enteredReach = new HashSet<Unit>();
         public int QueueTicksRemaining
         {
             get { int t = 0; foreach (var q in queue) t += q.Remaining; return t; }
@@ -762,6 +764,7 @@ namespace PangeaSkirmish
             currentMana = Mathf.Min(stats.MaxMana, currentMana + Mathf.RoundToInt(stats.MaxMana * manaFraction));
 
             queue.Clear();
+            enteredReach.Clear();
             statusEffects.Clear();
             ResetPlan();
             ResetReactionsForRound();

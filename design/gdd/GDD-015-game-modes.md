@@ -130,3 +130,14 @@ Passo 4 — a descida (feito):
 - **Recuar:** a descida termina em vitória, com o número de camadas vencidas.
 - **Marca de profundidade:** a camada mais funda vencida fica salva no aparelho (`PlayerPrefs`, chave `pangea.coop.deepestLayer`). Ainda não aparece em nenhuma tela.
 - O mapa é o mesmo em todas as camadas até o passo 5.
+
+## 10. Ajustes após a primeira partida (2026-11-10)
+
+A primeira partida Coop jogada (sozinho, 1 contra 2) terminou com o jogador morto no tick 6 sem causar dano. Correções:
+
+- **Ataque de oportunidade:** só dispara quando a unidade **entrou andando** no alcance de um inimigo e depois **sai** sem tê-lo atacado. Aproximar-se para atacar no ponto de decisão seguinte não é mais punido. A regra antiga ("o inimigo veio até mim e eu saí" não dá gatilho) continua valendo.
+- **Andar:** cada ação de andar cobre no máximo `maxTilesPerMove` (4) tiles. Antes cobria todo o atributo de movimento (8 a 11 tiles por tick).
+- **Feras:** planejam 1 andada + 1 ataque por decisão (antes 2 + 2), então reagem ao jogador a cada ponto de decisão.
+- **Quantidade de feras:** `jogadores + camada − 1` (1 fera na camada 1 jogando sozinho).
+- **Força das feras:** 55% dos pontos de atributo do jogador na camada 1 (antes 65%), +10% por camada.
+- **Reenvio de plano:** a fase sai de Planejamento assim que a resolução começa; o timer não reenvia mais o plano.

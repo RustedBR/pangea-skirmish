@@ -22,6 +22,8 @@ namespace PangeaSkirmish
         public float decisionTime = 8f;
         [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]
         public int maxQueueTicks = 6;
+        [Tooltip("Máximo de tiles que uma ação de andar cobre, qualquer que seja o atributo de movimento.")]
+        public int maxTilesPerMove = 4;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
         [Tooltip("Ticks base: ataque normal.")]

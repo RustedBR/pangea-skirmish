@@ -583,7 +583,7 @@ namespace PangeaSkirmish
             ClearRangeGhosts(); // esconde o overlay de range durante o picking de movimento
             var from     = _controlled.plannedAnchor;
             var blockers = BlockerUnits(_controlled);
-            _reachable   = _grid.GetReachableAnchors(from, _controlled.stats.MoveBudget,
+            _reachable   = _grid.GetReachableAnchors(from, _controlled.stats.MoveStep,
                                _controlled.stats.Footprint, blockers);
             _reachable.Add(from);
 

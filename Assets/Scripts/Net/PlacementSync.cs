@@ -346,12 +346,12 @@ namespace PangeaSkirmish
 
         /// <summary>
         /// Coop (host): posiciona as feras na metade direita do mapa, em células livres, e as
-        /// replica pelo mesmo RPC dos jogadores. Quantidade = jogadores + camada (GDD-015 §3.3).
+        /// replica pelo mesmo RPC dos jogadores. Quantidade = jogadores + camada − 1 (GDD-015 §3.3).
         /// </summary>
         public void SpawnBeastsForCoop(int playerCount, int layer)
         {
             if (!IsServer || _grid == null) return;
-            int count = Mathf.Max(1, playerCount) + layer; // camada 1: jogadores + 1
+            int count = Mathf.Max(1, Mathf.Max(1, playerCount) + layer - 1); // camada 1: uma fera por jogador
             int budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
             int fp = AttributeStats.DefaultFootprint;
             int w = _grid.width, h = _grid.height;

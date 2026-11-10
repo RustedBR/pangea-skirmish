@@ -499,6 +499,9 @@ namespace PangeaSkirmish
         private IEnumerator ActionRoutine()
         {
             var T = Tuning.Get();
+            // Sai de Planning já aqui: enquanto a fase ficava em Planning até o primeiro
+            // movimento/ataque, o timer de decisão podia zerar e reenviar o plano.
+            _phase = RoundPhase.Resolving;
 
             // 1) Unidades livres comprometem o plano na fila (plano vazio = Esperar).
             //    Ordem por unitId: mesma em todas as máquinas (lockstep).
@@ -882,20 +885,24 @@ namespace PangeaSkirmish
                 if (startAnchors.TryGetValue(u, out var fromA)) traversed.Add(fromA);
                 traversed.Add(u.anchor);
 
+                // Regra do Marcus, adaptada aos ticks: o gatilho é ENTRAR andando no alcance
+                // de um inimigo e depois SAIR sem tê-lo atacado. Como agora andar e atacar
+                // caem em pontos de decisão diferentes, a entrada fica lembrada em
+                // u.enteredReach e só a saída dispara — aproximar-se para atacar no
+                // ponto seguinte não é punido. "Já estava dentro (o inimigo veio até mim)
+                // e saí" continua sem gatilho, como antes.
+                bool hasFrom = traversed.Count == 2;
                 foreach (var e in _units)
                 {
                     if (e == u || e.IsDead || !e.IsHostileTo(u)) continue;
-                    if (!e.CanReact()) continue;
 
-                    // 'u' vai atacar 'e' neste round? Se sim, não há AoO (já é o alvo).
-                    bool willAttackE = u.plannedAttacks.Exists(a => a.TargetUnit == e);
-                    if (willAttackE) continue;
+                    bool wasIn = hasFrom && GridManager.FootprintGap(traversed[0], ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
+                    bool isIn  = GridManager.FootprintGap(u.anchor, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
 
-                    // Passou por dentro do alcance melee de 'e' em algum tile do trajeto?
-                    bool enteredReach = traversed.Exists(t =>
-                        GridManager.FootprintGap(t, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange);
+                    if (!wasIn && isIn) { u.enteredReach.Add(e); continue; }
+                    if (isIn || !u.enteredReach.Remove(e)) continue; // segue dentro, ou nunca entrou andando
 
-                    if (enteredReach)
+                    if (e.CanReact())
                     {
                         _hud.LogAction($"<color=#6aa9ff>↯</color> {e.unitName}: oportunidade contra {u.unitName}!", e);
                         yield return WaitReaction(e, new List<ReactionKind> { ReactionKind.CounterAttack }, u);
@@ -943,7 +950,7 @@ namespace PangeaSkirmish
                     from.y + Mathf.RoundToInt(dy * t));
 
                 if (!_grid.IsAnchorInBounds(candidate, fp)) break;
-                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveBudget) break;
+                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveStep) break;
 
                 bool free = true;
                 foreach (var (oAnchor, ofp) in occupied)
@@ -1071,6 +1078,7 @@ namespace PangeaSkirmish
 
                 string log = AttackResolver.ResolveAttack(u, atk, _units);
                 if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockReduction = 0f; }
+                if (atk.TargetUnit != null) u.enteredReach.Remove(atk.TargetUnit); // engajou: sair depois não dá AoO
                 if (log != null)
                 {
                     _hud.LogAction(log, u);
