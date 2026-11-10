@@ -207,7 +207,7 @@ namespace PangeaSkirmish
             var alive = new HashSet<ulong>();
             if (_units != null)
                 foreach (var u in _units)
-                    if (!u.IsDead) alive.Add(u.ownerId);
+                    if (!u.IsDead && !BeastAI.Controls(u)) alive.Add(u.ownerId); // feras não enviam plano
             return alive;
         }
 

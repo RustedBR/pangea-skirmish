@@ -246,8 +246,9 @@ namespace PangeaSkirmish
         {
             // TDM: distribui alternando 0/1; FFA: índice do slot
             int idx = _slots.Count;
-            if (_config.Value.GameMode == 1) return idx; // FFA
-            return idx % 2; // TDM
+            if (_config.Value.GameMode == GameModes.PvpFreeForAll) return idx;
+            if (_config.Value.GameMode == GameModes.Coop) return 0; // todos juntos
+            return idx % 2; // PvP Times
         }
 
         private int FindSlot(ulong clientId)
@@ -308,7 +309,7 @@ namespace PangeaSkirmish
         public void SetConfigServerRpc(RoomConfigNet cfg, ServerRpcParams rpc = default)
         {
             if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
-            Debug.Log($"[MP] Config alterada: modo={(cfg.GameMode == 0 ? "TDM" : "FFA")} budget={cfg.AttributeBudget} planejamento={cfg.PlanningTime}s");
+            Debug.Log($"[MP] Config alterada: modo={GameModes.Name(cfg.GameMode)} budget={cfg.AttributeBudget} planejamento={cfg.PlanningTime}s");
             _config.Value = cfg;
         }
 
@@ -340,7 +341,8 @@ namespace PangeaSkirmish
                 for (int i = 0; i < _slots.Count; i++)
                 {
                     var slot = _slots[i];
-                    slot.Team = _config.Value.GameMode == 1 ? i : (i % 2);
+                    slot.Team = _config.Value.GameMode == GameModes.PvpFreeForAll ? i
+                              : _config.Value.GameMode == GameModes.Coop ? 0 : (i % 2);
                     _slots[i] = slot;
                 }
 
@@ -528,6 +530,10 @@ namespace PangeaSkirmish
                 }
                 else Debug.LogError("[MP] prefab Net/LockstepBattleSyncNet nao encontrado!");
             }
+
+            // Coop: as feras entram antes do início (mesmo RPC de spawn dos jogadores).
+            if (_config.Value.GameMode == GameModes.Coop && PlacementSync.Instance != null)
+                PlacementSync.Instance.SpawnBeastsForCoop(_slots.Count, 1);
 
             // Gerar seed determinístico e iniciar batalha
             int seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);

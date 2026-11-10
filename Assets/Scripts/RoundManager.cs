@@ -496,8 +496,13 @@ namespace PangeaSkirmish
 
             // 1) Unidades livres comprometem o plano na fila (plano vazio = Esperar).
             //    Ordem por unitId: mesma em todas as máquinas (lockstep).
+            //    As feras (Coop) planejam aqui, em toda máquina, com o mesmo estado (GDD-015 §4).
             foreach (var u in _units)
-                if (!u.IsDead && !u.IsBusy) u.BuildQueueFromPlan();
+            {
+                if (u.IsDead || u.IsBusy) continue;
+                if (BeastAI.Controls(u)) BeastAI.Plan(u, _units, _grid);
+                u.BuildQueueFromPlan();
+            }
 
             // 2) Próximo ponto de decisão = menor fila restante entre os vivos.
             int segment = int.MaxValue;
@@ -608,7 +613,19 @@ namespace PangeaSkirmish
             // ---- Win condition (SP / MP-TDM / MP-FFA) ----
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
-                if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0) // TDM
+                if (GameModes.IsCoop)
+                {
+                    int alive = CountAliveTeams(out int survivingTeam);
+                    if (alive == 0)     { GameOver("Derrota! Ninguém saiu vivo da camada."); yield break; }
+                    if (alive == 1)
+                    {
+                        GameOver(survivingTeam == BeastAI.TeamId
+                            ? "Derrota! As feras venceram."
+                            : "Vitória! A camada foi vencida.");
+                        yield break;
+                    }
+                }
+                else if (GameModes.IsTeamBased) // PvP Times
                 {
                     int alive = CountAliveTeams(out int survivingTeam);
                     if (alive == 0)     { GameOver("Empate! Todos eliminados."); yield break; }
@@ -1108,8 +1125,9 @@ namespace PangeaSkirmish
             bool isOwner = !RuntimeMultiplayerSession.IsMultiplayer
                 || reactor.ownerId == RuntimeMultiplayerSession.LocalClientId;
 
-            // IA (inimigo em SP) decide automaticamente
-            if (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy)
+            // IA decide automaticamente: inimigo em SP, ou fera do Coop (igual em toda máquina).
+            if (BeastAI.Controls(reactor)
+                || (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy))
             {
                 var aiChoice = AutoPickReaction(reactor, options);
                 ApplyReaction(reactor, aiChoice, triggerTarget);
@@ -1460,7 +1478,7 @@ namespace PangeaSkirmish
         {
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
-                if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0)
+                if (GameModes.IsTeamBased)
                     return CountAliveTeams(out _) >= 2;
                 return CountAliveOwners(out _) >= 2;
             }

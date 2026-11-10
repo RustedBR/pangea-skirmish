@@ -39,7 +39,7 @@ namespace PangeaSkirmish
         private Label _joinCodeDisplay, _phaseLabel;
         private ScrollView _playerList, _chatLog;
         private TextField _chatInput;
-        private Button _tdmBtn, _ffaBtn, _budgetMinus, _budgetPlus, _planMinus, _planPlus, _advanceBtn;
+        private Button _tdmBtn, _ffaBtn, _coopBtn, _budgetMinus, _budgetPlus, _planMinus, _planPlus, _advanceBtn;
         private Label _budgetLabel, _planLabel;
         private VisualElement _hostControls, _waitingOverlay;
         private Label _waitingLabel;
@@ -162,6 +162,7 @@ namespace PangeaSkirmish
             _maxPlus         = r.Q<Button>("btn-max-plus");
             _tdmBtn          = r.Q<Button>("btn-tdm");
             _ffaBtn          = r.Q<Button>("btn-ffa");
+            _coopBtn         = r.Q<Button>("btn-coop");
             _budgetMinus     = r.Q<Button>("btn-budget-minus");
             _budgetPlus      = r.Q<Button>("btn-budget-plus");
             _planMinus       = r.Q<Button>("btn-plan-minus");
@@ -207,6 +208,8 @@ namespace PangeaSkirmish
 
             _tdmBtn.clicked += () => { _gameMode = 0; UpdateModeHighlight(); SyncConfig(); };
             _ffaBtn.clicked += () => { _gameMode = 1; UpdateModeHighlight(); SyncConfig(); };
+            if (_coopBtn != null)
+                _coopBtn.clicked += () => { _gameMode = GameModes.Coop; UpdateModeHighlight(); SyncConfig(); };
             _budgetMinus.clicked += () => { _budgetValue = Mathf.Max(10, _budgetValue - 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); };
             _budgetPlus.clicked  += () => { _budgetValue = Mathf.Min(100, _budgetValue + 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); };
             _planMinus.clicked   += () => { _planningValue = Mathf.Max(3f, _planningValue - 1f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
@@ -696,12 +699,14 @@ namespace PangeaSkirmish
         {
             if (_tdmBtn != null) _tdmBtn.EnableInClassList("room__mode-btn--active", _gameMode == 0);
             if (_ffaBtn != null) _ffaBtn.EnableInClassList("room__mode-btn--active", _gameMode == 1);
+            if (_coopBtn != null) _coopBtn.EnableInClassList("room__mode-btn--active", _gameMode == GameModes.Coop);
         }
 
         private void SetHostControlsInteractable(bool on)
         {
             _tdmBtn?.SetEnabled(on);
             _ffaBtn?.SetEnabled(on);
+            _coopBtn?.SetEnabled(on);
             _budgetMinus?.SetEnabled(on);
             _budgetPlus?.SetEnabled(on);
             _planMinus?.SetEnabled(on);

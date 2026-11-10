@@ -151,7 +151,7 @@ namespace PangeaSkirmish
             // FFA: 4 quadrantes por índice de slot (0=SW, 1=SE, 2=NW, 3=NE)
             int myTeam = slots[mySlotIdx].Team;
 
-            if (gameMode == 0) // TDM
+            if (gameMode != GameModes.PvpFreeForAll) // times (PvP Times e Coop: jogadores à esquerda)
             {
                 int xStart = myTeam == 0 ? 0 : halfW;
                 int xEnd   = myTeam == 0 ? halfW : w;
@@ -192,7 +192,7 @@ namespace PangeaSkirmish
             int halfW = w / 2;
             int myTeam = slots[slotIdx].Team;
 
-            if (gameMode == 0) // TDM
+            if (gameMode != GameModes.PvpFreeForAll) // times
             {
                 int xStart = myTeam == 0 ? 0 : halfW;
                 int xEnd   = myTeam == 0 ? halfW : w;
@@ -281,6 +281,42 @@ namespace PangeaSkirmish
             RoomManager.Instance.MarkPlaced(senderId);
         }
 
+        /// <summary>
+        /// Coop (host): posiciona as feras na metade direita do mapa, em células livres, e as
+        /// replica pelo mesmo RPC dos jogadores. Quantidade = jogadores + 1 (GDD-015 §3.3).
+        /// </summary>
+        public void SpawnBeastsForCoop(int playerCount, int layer)
+        {
+            if (!IsServer || _grid == null) return;
+            int count = Mathf.Max(1, playerCount) + 1;
+            int budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
+            int fp = AttributeStats.DefaultFootprint;
+            int w = _grid.width, h = _grid.height;
+            int spawned = 0;
+
+            // Varre da borda direita para o centro, espalhando no eixo Y.
+            for (int x = w - fp; x >= w / 2 && spawned < count; x -= fp + 1)
+            for (int k = 0; k < h && spawned < count; k++)
+            {
+                // Alterna em torno do meio: h/2, h/2+passo, h/2-passo...
+                int step = (k + 1) / 2 * (fp + 1);
+                int y = h / 2 - fp / 2 + ((k % 2 == 0) ? step : -step);
+                var anchor = new Vector2Int(x, y);
+                if (y < 0 || !_grid.IsAnchorInBounds(anchor, fp)) continue;
+                var cells = FootprintCells(anchor, fp);
+                bool free = true;
+                foreach (var c in cells) if (_occupiedCells.Contains(c)) { free = false; break; }
+                if (!free) continue;
+
+                foreach (var c in cells) _occupiedCells.Add(c);
+                uint unitId = _nextUnitId++;
+                string json = JsonUtility.ToJson(BeastAI.BuildPreset(spawned, layer, budget));
+                SpawnUnitClientRpc(unitId, BeastAI.OwnerId, BeastAI.TeamId, json, x, y);
+                spawned++;
+            }
+            Debug.Log($"[PlacementSync] Coop: {spawned}/{count} feras posicionadas (camada {layer})");
+        }
+
         [ClientRpc]
         private void SpawnUnitClientRpc(uint unitId, ulong ownerId, int team, string presetJson, int x, int y)
         {
@@ -295,8 +331,7 @@ namespace PangeaSkirmish
             // unit.team em MP é APENAS visual — a hostilidade real usa IsHostileTo
             // (teamId/ownerId), então essa divergência por cliente é segura.
             bool isAlly;
-            if (RuntimeMultiplayerSession.CurrentConfig != null
-                && RuntimeMultiplayerSession.CurrentConfig.gameMode == 0) // TDM
+            if (GameModes.IsTeamBased) // PvP Times e Coop
             {
                 int localTeam = 0;
                 var slots = RoomManager.Instance != null ? RoomManager.Instance.Slots : null;
@@ -322,6 +357,7 @@ namespace PangeaSkirmish
             unit.teamId   = team;
             unit.isPlayerCharacter = (ownerId == LocalId);
             unit.weaponId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
+            if (BeastAI.Controls(unit)) unit.definitionId = "monster"; // usa o modelo 3D da fera
             unit.stats    = (preset.stats ?? new UnitStatBlock()).ToAttributeStats();
             unit.Init(_grid, new Vector2Int(x, y), color,
                 !string.IsNullOrEmpty(preset.spritePath) ? preset.spritePath : CharacterSpriteCatalog.Default);

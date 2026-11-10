@@ -170,8 +170,8 @@ namespace PangeaSkirmish
             if (other == null) return false;
             if (!RuntimeMultiplayerSession.IsMultiplayer)
                 return team != other.team;
-            // gameMode 0 = TDM, 1 = FFA
-            if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0)
+            // Times (PvP Times e Coop) → por teamId; todos contra todos → por dono.
+            if (GameModes.IsTeamBased)
                 return teamId != other.teamId;
             return ownerId != other.ownerId;
         }
