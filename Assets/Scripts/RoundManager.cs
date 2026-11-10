@@ -445,7 +445,6 @@ namespace PangeaSkirmish
             {
                 var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
-                var spellsThisSlot  = new List<(Unit u, PlannedSpell spell, bool incr)>();
 
                 foreach (var u in _units)
                 {
@@ -455,8 +454,6 @@ namespace PangeaSkirmish
                         movesThisSlot.Add((u, u.plannedPath[act.Index], act.IsBonus));
                     else if (act.Type == ActionType.Attack && act.Index < u.plannedAttacks.Count)
                         attacksThisSlot.Add((u, u.plannedAttacks[act.Index], act.IsBonus, act.IsAimed));
-                    else if (act.Type == ActionType.Spell && act.Index < u.plannedSpells.Count)
-                        spellsThisSlot.Add((u, u.plannedSpells[act.Index], act.IsBonus));
                     // Concentrate: skip — resolved at end of round
                 }
 
@@ -496,9 +493,6 @@ namespace PangeaSkirmish
 
                 if (attacksThisSlot.Count > 0)
                     yield return ResolveAttackSlot(attacksThisSlot);
-
-                if (spellsThisSlot.Count > 0)
-                    yield return ResolveSpellSlot(spellsThisSlot);
 
                 if (!CheckAnyFactionAlive()) break;
 
@@ -968,89 +962,6 @@ namespace PangeaSkirmish
                         _camCtrl?.Shake(Tfx.shakeDurationNormal, Tfx.shakeMagnitudeNormal);
 
                     yield return new WaitForSeconds(postActionPause);
-                }
-            }
-        }
-
-        /// <summary>Resolve um slot de magia: foco no conjurador, resolve, coleta pushes, aplica após todas.</summary>
-        private IEnumerator ResolveSpellSlot(List<(Unit u, PlannedSpell spell, bool incr)> spells)
-        {
-            _phase = RoundPhase.ActionSpell;
-            _hud.SetPhase($"Round {_round} — Ação: Magia");
-
-            var pendingPushes = new List<(PendingPush push, Unit pusher)>();
-
-            foreach (var (u, spell, _) in spells)
-            {
-                if (u.IsDead) continue;
-
-                yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
-                yield return new WaitForSeconds(preActionPause);
-
-                bool willResolve = SpellResolver.WillResolve(u, spell, _units, _grid);
-                if (!willResolve)
-                {
-                    _hud.LogAction($"<color=#888888>x</color> {u.unitName}: magia falhou (fora de alcance/sem mana)", u);
-                    yield return new WaitForSeconds(slotPause);
-                    continue;
-                }
-
-                var (log, push) = SpellResolver.Resolve(u, spell, _units, _grid, _tileFx);
-
-                switch (spell.Target)
-                {
-                    case SpellTargetKind.Self:
-                        yield return SpellVfx.PlaySelfBuff(u, spell.Element, null);
-                        break;
-                    case SpellTargetKind.Unit when spell.TargetUnit != null:
-                        yield return SpellVfx.PlayProjectile(u, spell.TargetUnit, spell.Element, null);
-                        yield return SpellVfx.PlayImpact(spell.TargetUnit, spell.Element, null);
-                        break;
-                    case SpellTargetKind.Tile:
-                        yield return SpellVfx.PlayTileVfx(
-                            _grid.AnchorToWorldCenter(spell.TargetTile, u.stats.Footprint),
-                            spell.Element, null);
-                        break;
-                }
-
-                if (push.HasValue)
-                    pendingPushes.Add((push.Value, u));
-
-                if (log != null)
-                    _hud.LogAction(log, u);
-                _hud.RefreshUnitInfo();
-                yield return new WaitForSeconds(postActionPause);
-            }
-
-            // Aplica pushes DEPOIS de todas as magias do slot
-            if (pendingPushes.Count > 0)
-            {
-                yield return new WaitForSeconds(preActionPause);
-                foreach (var (push, pusher) in pendingPushes)
-                {
-                    var target = push.Target;
-                    if (target == null || target.IsDead) continue;
-
-                    Vector2Int fromAnchor = target.anchor;
-                    Vector2Int pushDest = fromAnchor + push.Direction * push.Tiles;
-                    int fp = target.stats.Footprint;
-
-                    if (_grid.IsAnchorInBounds(pushDest, fp) && !_grid.IsVoid(pushDest.x, pushDest.y))
-                    {
-                        target.anchor = pushDest;
-                        target.SnapToAnchor();
-                        if (_tileFx != null)
-                            yield return _tileFx.OnUnitMoved(target, fromAnchor, null);
-                        _hud.LogAction($"💨 {pusher.unitName} empurrou {target.unitName} para {pushDest}", pusher);
-                        _hud.RefreshUnitInfo();
-                    }
-                    else
-                    {
-                        target.TakeDamage(Tuning.Get().wallImpactDamage);
-                        _hud.LogAction($"💥 {target.unitName} bateu na parede!", target);
-                        _hud.RefreshUnitInfo();
-                    }
-                    yield return new WaitForSeconds(postActionPause * 0.5f);
                 }
             }
         }

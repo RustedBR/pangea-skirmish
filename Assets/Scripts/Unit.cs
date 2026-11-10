@@ -57,14 +57,11 @@ namespace PangeaSkirmish
 
         public bool hasPlannedMove   => plannedMoveCount   > 0;
         public bool hasPlannedAttack => plannedAttackCount > 0;
-        public bool hasPlannedSpell  => plannedSpells.Count > 0;
         public int currentHP;
         public int currentMana;
         public int reservedMana;
         public int rolledInitiative;
         public int plannedConcentrations;
-        public int plannedSpellBonusINT; // Mira Mágica (ação bônus de incremento): +INT na potência da magia
-        public readonly List<PlannedSpell>   plannedSpells = new List<PlannedSpell>();
         public readonly List<StatusEffect>   statusEffects = new List<StatusEffect>();
 
         public int AvailableMana => currentMana - reservedMana;
@@ -73,7 +70,7 @@ namespace PangeaSkirmish
 
         /// <summary>
         /// Atributo efetivo = base + bônus de buffs ativos (AttrBuff).
-        /// Usado por magias (SpellBook.AttributePair) e pode ser estendido p/ ataque físico.
+        /// Atributo efetivo (base + buffs de status).
         /// </summary>
         public int EffectiveStat(Attr attr)
         {
@@ -843,58 +840,6 @@ namespace PangeaSkirmish
             StartIdleAnim();
         }
 
-        // ------------------------------------------------------------------ MAGIA
-
-        public IEnumerator PlayCastAnim(Vector3 targetPos)
-        {
-            StopIdleAnim();
-            SetDirectionFromDelta(targetPos - transform.position);
-
-            int nCharging = FrameCount("charging");
-            if (nCharging > 0)
-            {
-                float dur = Tuning.Get().spellCastAnimDuration;
-                float t = 0f;
-                while (t < dur)
-                {
-                    float p = Mathf.Clamp01(t / dur);
-                    int frame = Mathf.Min(nCharging - 1, Mathf.FloorToInt(p * nCharging));
-                    ShowFrame("charging", frame);
-                    t += Time.deltaTime;
-                    yield return null;
-                }
-            }
-            else
-            {
-                yield return PlayAttackAnim(targetPos);
-            }
-
-            StartIdleAnim();
-        }
-
-        public int ApplySpellDamage(int rawPotency, SpellElement element)
-        {
-            if (rawPotency <= 0) return 0;
-            bool isPhysical = element == SpellElement.Physical;
-
-            int dmg = rawPotency;
-            if (isPhysical)
-            {
-                int strBuff = StatusEffectSystem.AttrBonus(statusEffects, Attr.STR);
-                dmg = Mathf.Max(Tuning.Get().spellMinDamage,
-                    rawPotency + strBuff - stats.PhysicalDefense);
-            }
-            else
-            {
-                int resist = StatusEffectSystem.ElementResist(statusEffects, element);
-                dmg = Mathf.Max(Tuning.Get().spellMinDamage, rawPotency - stats.MagicDefense - resist);
-                dmg = StatusEffectSystem.AbsorbWithShield(statusEffects, dmg);
-            }
-
-            TakeDamage(dmg, false);
-            return dmg;
-        }
-
         // ------------------------------------------------------------------ PLANO
 
         public void ResetPlan()
@@ -904,13 +849,11 @@ namespace PangeaSkirmish
             plannedMoveCount = 0;
             plannedPath.Clear();
             plannedAttacks.Clear();
-            plannedSpells.Clear();
             actionSequence.Clear();
             hasPlannedBonus       = false;
             bonusDamageThisAttack = false;
             aimBonusThisAttack    = false;
             plannedConcentrations = 0;
-            plannedSpellBonusINT = 0;
             reservedMana = 0;
             remainingAP  = stats.ActionPoints;
             remainingBAP = stats.BonusActionPoints;
@@ -925,8 +868,6 @@ namespace PangeaSkirmish
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
             for (int i = 0; i < plannedAttacks.Count; i++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
-            for (int i = 0; i < plannedSpells.Count; i++)
-                actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
             for (int c = 0; c < plannedConcentrations; c++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero });
         }

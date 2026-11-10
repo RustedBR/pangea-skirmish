@@ -43,19 +43,15 @@ namespace PangeaSkirmish
         private Label  _unitNameText, _unitHPText, _apText, _unitStatsText, _unitHintText;
         private VisualElement _commandMenu, _breadcrumbBar, _breadcrumbTextVE;
         private Label  _breadcrumbText;
-        private VisualElement _mainMenuPanel, _actionsMenuPanel, _attackMenuPanel,
-                              _magicMenuPanel, _spellTypeMenuPanel, _manaStepperPanel, _bonusMenuPanel;
+        private VisualElement _mainMenuPanel, _actionsMenuPanel, _attackMenuPanel, _bonusMenuPanel;
  private VisualElement _reactionMenu, _reactionButtons;
  private Label _reactionTimer, _reactionText;
         private VisualElement _seqBar, _seqContent;
         private VisualElement _promptPanel, _endPanel, _endWin;
-        private Label  _promptText, _bonusTimerText, _endText, _manaValueText, _manaPotencyText, _manaRangeValueText, _manaPowerValueText, _manaRangeLabel, _manaPowerLabel;
+        private Label  _promptText, _bonusTimerText, _endText;
         private Button _confirmButton, _moveButton, _attackUnitButton, _attackTileButton,
-                       _magicButton, _concentrateButton, _incrementButton, _aimButton, _miraMagiaButton,
+                       _concentrateButton, _incrementButton, _aimButton,
                        _undoButton, _clearButton, _powerStrikeButton, _quickStepButton,
-                       _spellSelfButton, _spellUnitButton, _spellTileButton,
-                       _manaRangeMinusButton, _manaRangePlusButton, _manaPowerMinusButton, _manaPowerPlusButton,
-                       _manaCastButton, _manaBackButton,
                        _simButton, _naoButton, _endMenuButton;
         private VisualElement _mpWaitingOverlay;
         private Label  _mpWaitingText;
@@ -93,10 +89,6 @@ namespace PangeaSkirmish
 
         // ── Menu cascata ──
         private Stack<VisualElement> _menuStack = new Stack<VisualElement>();
-        private readonly List<Button> _magicElementButtons = new List<Button>();
-        private readonly List<VisualElement> _magicElementImages = new List<VisualElement>();
-        private readonly List<Label> _magicElementLabels = new List<Label>();
-        private System.Action<SpellElement> _magicElementClick;
         private readonly List<VisualElement> _seqChips = new List<VisualElement>();
         private readonly List<VisualElement> _seqChipImages = new List<VisualElement>();
         private readonly List<Color> _seqChipBaseColors = new List<Color>();
@@ -158,9 +150,6 @@ namespace PangeaSkirmish
             _mainMenuPanel    = r.Q<VisualElement>("main-menu");
             _actionsMenuPanel = r.Q<VisualElement>("actions-menu");
             _attackMenuPanel  = r.Q<VisualElement>("attack-menu");
-            _magicMenuPanel   = r.Q<VisualElement>("magic-menu");
-            _spellTypeMenuPanel = r.Q<VisualElement>("spelltype-menu");
-            _manaStepperPanel = r.Q<VisualElement>("mana-menu");
             _bonusMenuPanel   = r.Q<VisualElement>("bonus-menu");
             _seqBar           = r.Q<VisualElement>("seq-bar");
             _seqContent       = r.Q<VisualElement>("seq-content");
@@ -170,12 +159,6 @@ namespace PangeaSkirmish
             _promptText       = r.Q<Label>("prompt-text");
             _bonusTimerText   = r.Q<Label>("bonus-timer");
             _endText          = r.Q<Label>("end-text");
-            _manaValueText    = r.Q<Label>("mana-value");
-            _manaPotencyText  = r.Q<Label>("mana-potency");
-            _manaRangeValueText = r.Q<Label>("mana-range-value");
-            _manaPowerValueText = r.Q<Label>("mana-power-value");
-            _manaRangeLabel = r.Q<Label>("mana-range-label");
-            _manaPowerLabel = r.Q<Label>("mana-power-label");
             _mpWaitingOverlay = r.Q<VisualElement>("mp-waiting");
             _mpWaitingText    = r.Q<Label>("mp-waiting-text");
             _reactionMenu     = r.Q<VisualElement>("reaction-menu");
@@ -188,42 +171,14 @@ namespace PangeaSkirmish
             _moveButton       = r.Q<Button>("btn-move");
             _attackUnitButton = r.Q<Button>("btn-attack-unit");
             _attackTileButton = r.Q<Button>("btn-attack-tile");
-            _magicButton      = r.Q<Button>("btn-magic");
             _concentrateButton= r.Q<Button>("btn-concentrate");
             _incrementButton  = r.Q<Button>("btn-increment");
             _aimButton        = r.Q<Button>("btn-aim");
-            _miraMagiaButton  = r.Q<Button>("btn-mira-magia");
             _undoButton       = r.Q<Button>("btn-undo");
             _clearButton      = r.Q<Button>("btn-clear");
-            _spellSelfButton  = r.Q<Button>("btn-spell-self");
-            _spellUnitButton  = r.Q<Button>("btn-spell-unit");
-            _spellTileButton  = r.Q<Button>("btn-spell-tile");
-            _manaRangeMinusButton = r.Q<Button>("mana-range-minus");
-            _manaRangePlusButton  = r.Q<Button>("mana-range-plus");
-            _manaPowerMinusButton = r.Q<Button>("mana-power-minus");
-            _manaPowerPlusButton  = r.Q<Button>("mana-power-plus");
-            _manaCastButton   = r.Q<Button>("mana-cast");
-            _manaBackButton   = r.Q<Button>("mana-back");
             _simButton        = r.Q<Button>("btn-sim");
             _naoButton        = r.Q<Button>("btn-nao");
             _endMenuButton    = r.Q<Button>("btn-end-menu");
-
-            // Magic elements (6 botões, ordem: Physical, Magic, Fire, Water, Air, Earth)
-            _magicElementButtons.Add(r.Q<Button>("btn-elem-physical"));
-            _magicElementButtons.Add(r.Q<Button>("btn-elem-magic"));
-            _magicElementButtons.Add(r.Q<Button>("btn-elem-fire"));
-            _magicElementButtons.Add(r.Q<Button>("btn-elem-water"));
-            _magicElementButtons.Add(r.Q<Button>("btn-elem-air"));
-            _magicElementButtons.Add(r.Q<Button>("btn-elem-earth"));
-            for (int i = 0; i < _magicElementButtons.Count; i++)
-            {
-                int captured = i;
-                _magicElementButtons[i].RegisterCallback<ClickEvent>(_ =>
-                {
-                    AudioManager.I?.Play(AudioManager.I.sfxUIClick);
-                    OnMagicElementClick((SpellElement)(captured + 1));
-                });
-            }
 
             // ── Tooltips de botões (hover > 3s) ──
             AttachMainButtonTooltips();
@@ -233,8 +188,6 @@ namespace PangeaSkirmish
             { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ShowSubMenu(_actionsMenuPanel, "Ações"); });
             r.Q<Button>("btn-bonus").RegisterCallback<ClickEvent>(_ =>
             { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ShowSubMenu(_bonusMenuPanel, "Bônus"); });
-            r.Q<Button>("btn-magic").RegisterCallback<ClickEvent>(_ =>
-            { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ShowSubMenu(_magicMenuPanel, "Magia"); });
             r.Q<Button>("btn-attack").RegisterCallback<ClickEvent>(_ =>
             { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ShowSubMenu(_attackMenuPanel, "Ações > Atacar"); });
             _endMenuButton.RegisterCallback<ClickEvent>(_ => SceneManager.LoadScene("MainMenu"));
@@ -347,19 +300,17 @@ namespace PangeaSkirmish
             {
                 int idx = i;
                 bool isAtk = seq[i] == ActionType.Attack;
-                bool isSpell = seq[i] == ActionType.Spell;
                 bool isConc = seq[i] == ActionType.Concentrate;
                 bool isBonus = scheduled != null && i < scheduled.Count && scheduled[i].IsBonus;
                 Color baseCol;
-                if (isSpell) baseCol = Tuning.Get().seqChipSpellColor;
-                else if (isConc) baseCol = Tuning.Get().seqChipConcentrateColor;
+                if (isConc) baseCol = Tuning.Get().seqChipConcentrateColor;
                 else baseCol = isBonus ? (isAtk ? CorChipAtkBn : CorChipMoveBn) : (isAtk ? CorChipAtk : CorChipMove);
 
                 var chip = new VisualElement();
                 chip.AddToClassList("bh-seq-chip");
                 chip.style.backgroundColor = baseCol;
                 chip.style.width = 90; chip.style.height = 24; chip.style.marginRight = 4;
-                var t = new Label($"{(isBonus ? "◆ " : "")}{i + 1}  {(isSpell ? "Magia" : isAtk ? "Atacar" : isConc ? "Concentrar" : "Mover")}");
+                var t = new Label($"{(isBonus ? "◆ " : "")}{i + 1}  {(isAtk ? "Atacar" : isConc ? "Concentrar" : "Mover")}");
                 t.style.color = Color.white; t.style.unityFontStyleAndWeight = FontStyle.Bold; t.style.fontSize = 12;
                 t.style.unityTextAlign = TextAnchor.MiddleCenter;
                 chip.Add(t);
@@ -409,56 +360,11 @@ namespace PangeaSkirmish
         public void BindAttackTile(Action a)  { BindButton(_attackTileButton, a); }
         public void BindPowerStrike(Action a) { BindButton(_powerStrikeButton, a); }
         public void BindQuickStep(Action a)   { BindButton(_quickStepButton, a); }
-        public void BindMagic(Action a)       { BindButton(_magicButton, a); }
         public void BindConcentrate(Action a) { BindButton(_concentrateButton, a); }
         public void BindIncrement(Action a)   { BindButton(_incrementButton, a); }
         public void BindAim(Action a)         { BindButton(_aimButton, a); }
-        public void BindMiraMagia(Action a)   { BindButton(_miraMagiaButton, a); }
         public void BindUndo(Action a)        { BindButton(_undoButton, a); }
         public void BindClear(Action a)       { BindButton(_clearButton, a); }
-        public void BindMagicElement(System.Action<SpellElement> a) { _magicElementClick = a; }
-        public void BindSpellSelf(Action a) { BindButton(_spellSelfButton, a); }
-        public void BindSpellUnit(Action a) { BindButton(_spellUnitButton, a); }
-        public void BindSpellTile(Action a) { BindButton(_spellTileButton, a); }
-        public void BindManaRangeMinus(Action a) { BindButton(_manaRangeMinusButton, a); }
-        public void BindManaRangePlus(Action a)  { BindButton(_manaRangePlusButton, a); }
-        public void BindManaPowerMinus(Action a) { BindButton(_manaPowerMinusButton, a); }
-        public void BindManaPowerPlus(Action a)  { BindButton(_manaPowerPlusButton, a); }
-        public void BindManaCast(Action a)  { BindButton(_manaCastButton, a); }
-        public void BindManaBack(Action a)  { BindButton(_manaBackButton, a); }
-        public VisualElement SpellTypeMenuPanel => _spellTypeMenuPanel;
-        public VisualElement ManaStepperPanel   => _manaStepperPanel;
-        public VisualElement MagicMenuPanel => _magicMenuPanel;
-
-        public void SetManaPreview(int manaRange, int manaPower, int max, int value, int range, bool isBuff)
-        {
-            bool isSelf = isBuff; // Self buff => o "alcance" é duração em rounds
-            if (_manaValueText != null)     _manaValueText.text     = $"{manaRange + manaPower} / {max} MP";
-            if (_manaRangeValueText != null) _manaRangeValueText.text = $"{manaRange}";
-            if (_manaPowerValueText != null) _manaPowerValueText.text = $"{manaPower}";
-
-            // Headers contextuais (Sugestão 1)
-            if (_manaRangeLabel != null) _manaRangeLabel.text = isSelf ? "Duração (Rounds)" : "Alcance (Tiles)";
-            if (_manaPowerLabel != null) _manaPowerLabel.text = isSelf ? "Buff (+Atributo)" : "Dano (Potência)";
-
-            // Preview claro com custo detalhado (Sugestão 4)
-            string label = isBuff ? $"Buff: +{value}" : $"Dano: {value}";
-            string scope = isSelf ? $"Duração: {range} rounds" : $"Alcance: {range} tiles";
-            int paCost = 1 + manaPower;
-            if (_manaPotencyText != null)
-                _manaPotencyText.text = $"{scope}  •  {label}  •  Custo: {paCost} PA ({manaRange} MP + {manaPower} PA)";
-
-            // Botões +/- mostram só o símbolo (custo detalhado está no preview + tooltip).
-            if (_manaRangePlusButton != null)  _manaRangePlusButton.text  = "+";
-            if (_manaRangeMinusButton != null) _manaRangeMinusButton.text = "−";
-            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.text  = "+";
-            if (_manaPowerMinusButton != null) _manaPowerMinusButton.text = "−";
-
-            if (_manaRangeMinusButton != null) _manaRangeMinusButton.SetEnabled(manaRange > 0);
-            if (_manaRangePlusButton != null)  _manaRangePlusButton.SetEnabled(manaRange + manaPower < max);
-            if (_manaPowerMinusButton != null) _manaPowerMinusButton.SetEnabled(manaPower > 1);
-            if (_manaPowerPlusButton != null)  _manaPowerPlusButton.SetEnabled(manaRange + manaPower < max);
-        }
 
         private static readonly Dictionary<Button, Action> _btnHandlers = new Dictionary<Button, Action>();
         private static readonly Dictionary<Button, Action> _bonusHandlers = new Dictionary<Button, Action>();
@@ -476,9 +382,6 @@ namespace PangeaSkirmish
         {
             _actionsMenuPanel.style.display = DisplayStyle.None;
             _attackMenuPanel.style.display = DisplayStyle.None;
-            _magicMenuPanel.style.display = DisplayStyle.None;
-            _spellTypeMenuPanel.style.display = DisplayStyle.None;
-            _manaStepperPanel.style.display = DisplayStyle.None;
             _bonusMenuPanel.style.display = DisplayStyle.None;
             _mainMenuPanel.style.display = DisplayStyle.Flex;
             _menuStack.Clear();
@@ -510,9 +413,6 @@ namespace PangeaSkirmish
             {
                 if (go == _actionsMenuPanel) parts.Add("Ações");
                 else if (go == _attackMenuPanel) parts.Add("Atacar");
-                else if (go == _magicMenuPanel) parts.Add("Magia");
-                else if (go == _spellTypeMenuPanel) parts.Add("Alvo");
-                else if (go == _manaStepperPanel) parts.Add("Mana");
                 else if (go == _bonusMenuPanel) parts.Add("Bônus");
             }
             parts.Reverse();
@@ -524,7 +424,6 @@ namespace PangeaSkirmish
                 _breadcrumbBar.style.display = string.IsNullOrEmpty(path) ? DisplayStyle.None : DisplayStyle.Flex;
             if (_breadcrumbText != null) _breadcrumbText.text = path;
         }
-        public void OnMagicElementClick(SpellElement element) => _magicElementClick?.Invoke(element);
 
         // ── ESTADOS DE BOTÕES ──
         public void SetMoveState(bool canAdd, int count, bool isPicking)
@@ -546,16 +445,6 @@ namespace PangeaSkirmish
             _attackTileButton.SetEnabled(canAdd || isPicking);
             _attackTileButton.style.backgroundColor = SkinTint(isPicking ? CorAtivo : canAdd ? CorNormal : CorDisabled);
             _attackTileButton.text = (isPicking ? "▶ " : "") + "2 - Atacar Tile";
-        }
-        public void SetMagicState(bool canAdd, bool isPicking = false)
-        {
-            for (int i = 0; i < _magicElementButtons.Count; i++)
-            {
-                _magicElementButtons[i].SetEnabled(canAdd || isPicking);
-                if (isPicking) _magicElementButtons[i].style.backgroundColor = SkinTint(CorAtivo);
-                else if (canAdd) _magicElementButtons[i].style.backgroundColor = SkinTint(SpellBook.ElementColor((SpellElement)(i + 1)));
-                else _magicElementButtons[i].style.backgroundColor = SkinTint(CorDisabled);
-            }
         }
         public void SetConcentrateState(bool canAdd, bool isPicking = false)
         {
@@ -744,38 +633,12 @@ namespace PangeaSkirmish
             AttachButtonTooltip(_moveButton, "Move a unidade pelo mapa. Custa PA por tile de deslocamento.");
             AttachButtonTooltip(_attackUnitButton, "Ataque direto a uma unidade inimiga. Custa PA; dano vem de STR/DEX.");
             AttachButtonTooltip(_attackTileButton, "Ataque a um tile (chão/área). Custa PA.");
-            AttachButtonTooltip(_magicButton, "Conjura magia de 1 dos 6 elementos. Custa PA + Mana.");
             AttachButtonTooltip(_concentrateButton, "Ação Bônus: acumula concentração (+dano em ataques futuros).");
             AttachButtonTooltip(_incrementButton, "Ação Bônus: +1 no próximo dano causado (incremento).");
             AttachButtonTooltip(_aimButton, "Ação Bônus: Mira tradicional (+precisão no próximo ataque).");
-            AttachButtonTooltip(_miraMagiaButton, "Ação Bônus (1 PAB): +INT na potência da PRÓXIMA magia.");
             AttachButtonTooltip(_confirmButton, "Confirma o plano de ações da unidade.");
             AttachButtonTooltip(_undoButton, "Remove a última ação adicionada ao plano.");
             AttachButtonTooltip(_clearButton, "Remove TODAS as ações do plano.");
-
-            // Alvo da magia
-            AttachButtonTooltip(_spellSelfButton, "Buff em SI MESMO: +atributos do elemento por N rounds (ManaRange = rounds).");
-            AttachButtonTooltip(_spellUnitButton, "Dano mágico a uma unidade inimiga. Potência = atributos × ManaPower.");
-            AttachButtonTooltip(_spellTileButton, "Efeito no tile: varia por elemento (fogo, água, vento, teleporte, orbe, elevar).");
-
-            // Stepper de mana (2 pools)
-            AttachButtonTooltip(_manaRangeMinusButton, "Duração/Alcance: -1 round de buff OU -1 tile de alcance (só gasta Mana).");
-            AttachButtonTooltip(_manaRangePlusButton, "Duração/Alcance: +1 round de buff OU +1 tile de alcance (só gasta Mana).");
-            AttachButtonTooltip(_manaPowerMinusButton, "Buff/Dano: -1 (menos atributo de buff ou menos dano; -1 PA).");
-            AttachButtonTooltip(_manaPowerPlusButton, "Buff/Dano: +1 (mais atributo de buff ou mais dano; +1 PA).");
-            AttachButtonTooltip(_manaCastButton, "Conjura a magia com os parâmetros de mana escolhidos.");
-            AttachButtonTooltip(_manaBackButton, "Volta ao menu de alvo da magia.");
-
-            // Elementos (índice 0..5 = Physical, Magic, Fire, Water, Air, Earth)
-            if (_magicElementButtons.Count == 6)
-            {
-                AttachButtonTooltip(_magicElementButtons[0], "FÍSICO — Self: +DEX/+STR por rounds. Tile: teleporte. Unidade: dano físico (DEX+STR).");
-                AttachButtonTooltip(_magicElementButtons[1], "MÁGICO — Self: +INT/+WIS por rounds. Tile: orbe de mana. Unidade: dano mágico (INT+WIS).");
-                AttachButtonTooltip(_magicElementButtons[2], "FOGO — Self: +INT/+VIT. Tile: fogo (dano por round). Unidade: dano de fogo.");
-                AttachButtonTooltip(_magicElementButtons[3], "ÁGUA — Self: +VIT/+INT. Tile: água (terreno molhado). Unidade: dano de água.");
-                AttachButtonTooltip(_magicElementButtons[4], "AR — Self: +AGI/+INT. Tile: vento (empurra unidades). Unidade: dano + empurrão.");
-                AttachButtonTooltip(_magicElementButtons[5], "TERRA — Self: +VIT/+STR. Tile: eleva pedra. Unidade: dano de terra.");
-            }
 
             // Submenus (abrem cascata)
             var btnActions = Root.Q<Button>("btn-actions");

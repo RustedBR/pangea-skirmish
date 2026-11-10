@@ -21,23 +21,6 @@ namespace PangeaSkirmish
     }
 
     [Serializable]
-    public class SpellWire
-    {
-        /// <summary>SpellElement cast para int.</summary>
-        public int  element;
-        /// <summary>SpellTargetKind cast para int.</summary>
-        public int  targetKind;
-        /// <summary>UnitRegistry id (targetKind==Unit); 0 = sem alvo.</summary>
-        public uint targetUnitId;
-        public int  targetTileX;
-        public int  targetTileY;
-        public int  manaRange;  // alcance/duração
-        public int  manaPower;   // potência/atributo
-        public int  directionX;
-        public int  directionY;
-    }
-
-    [Serializable]
     public class ScheduledWire
     {
         /// <summary>ActionType cast para int.</summary>
@@ -67,7 +50,6 @@ namespace PangeaSkirmish
         public List<int> pathY = new List<int>();
 
         public List<AttackWire>    attacks  = new List<AttackWire>();
-        public List<SpellWire>     spells   = new List<SpellWire>();
         public List<ScheduledWire> sequence = new List<ScheduledWire>();
 
         // ---- Conversores -------------------------------------------------------
@@ -102,22 +84,6 @@ namespace PangeaSkirmish
                     targetUnitId = atk.TargetUnit != null ? UnitRegistry.GetId(atk.TargetUnit) : 0u,
                     targetTileX  = atk.TargetTile.x,
                     targetTileY  = atk.TargetTile.y,
-                });
-            }
-
-            foreach (var sp in u.plannedSpells)
-            {
-                w.spells.Add(new SpellWire
-                {
-                    element      = (int)sp.Element,
-                    targetKind   = (int)sp.Target,
-                    targetUnitId = sp.TargetUnit != null ? UnitRegistry.GetId(sp.TargetUnit) : 0u,
-                    targetTileX  = sp.TargetTile.x,
-                    targetTileY  = sp.TargetTile.y,
-                    manaRange   = sp.ManaRange,
-                    manaPower   = sp.ManaPower,
-                    directionX   = sp.Direction.x,
-                    directionY   = sp.Direction.y,
                 });
             }
 
@@ -163,22 +129,6 @@ namespace PangeaSkirmish
                     Mode       = (AttackMode)aw.mode,
                     TargetUnit = target,
                     TargetTile = new Vector2Int(aw.targetTileX, aw.targetTileY),
-                });
-            }
-
-            u.plannedSpells.Clear();
-            foreach (var sw in w.spells)
-            {
-                Unit target = sw.targetUnitId != 0 ? UnitRegistry.Get(sw.targetUnitId) : null;
-                u.plannedSpells.Add(new PlannedSpell
-                {
-                    Element    = (SpellElement)sw.element,
-                    Target     = (SpellTargetKind)sw.targetKind,
-                    TargetUnit = target,
-                    TargetTile = new Vector2Int(sw.targetTileX, sw.targetTileY),
-                    ManaRange = sw.manaRange,
-                    ManaPower  = sw.manaPower,
-                    Direction  = new Vector2Int(sw.directionX, sw.directionY),
                 });
             }
 

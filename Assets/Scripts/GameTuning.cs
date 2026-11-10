@@ -455,25 +455,10 @@ namespace PangeaSkirmish
         [Range(0f, 1f)] public float sfxVolume = 1f;
         [Range(0f, 1f)] public float musicVolume = 1f;
 
-        // ═════════════════════════ MAGIA ═════════════════════════
+        // ═════════════════════════ ELEMENTOS & TILES ═════════════════════════
+        // Sistema de conjuração removido (refazer a partir do GDD-013). Mantidos: efeitos de tile e cores.
 
-        [Header("═══ MAGIA: CUSTO & ALCANCE ═══")]
-        [Tooltip("Mana gasta por magia Self (buff).")]
-        public int spellSelfManaCost = 2;
-        [Tooltip("Tiles de alcance por mana gasta. Alcance = mana × spellRangePerMana + bônus do conduíte.")]
-        public int spellRangePerMana = 1;
-        [Tooltip("Bônus multiplicativo de afinidade quando o elemento da magia coincide com a afinidade do conduíte. 0.25 = +25% de dano.")]
-        public float conduitAffinityBonus = 0.25f;
-        [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
-        public int spellMinDamage = 1;
-        [Tooltip("Base de POTÊNCIA DE DANO: P = manaPower × base × (atributos do elemento). Decisão Marcus 2026-07-10 (sem teto).")]
-        public float spellPotencyBaseDamage = 0.075f;
-        [Tooltip("Base de POTÊNCIA DE BUFF (Self): mesmo cálculo de dano, base mais alta. Decisão Marcus 2026-07-10 (sem teto).")]
-        public float spellPotencyBaseBuff = 0.375f;
-
-        [Header("═══ MAGIA: SELF (BUFFS) ═══")]
-
-        [Header("═══ MAGIA: TILE (TERRENO) ═══")]
+        [Header("═══ EFEITOS DE TILE ═══")]
         [Tooltip("Fator de dano de fogo em tile: potência do fogo × fator = dano por tique. 1.0 = dano igual à magia direta (Decisão Marcus 2026-07-11, após potência base pela metade).")]
         public float fireTileDamageFactor = 1.0f;
         [Tooltip("Duração (rounds) do fogo em tile antes de apagar.")]
@@ -489,20 +474,9 @@ namespace PangeaSkirmish
         [Tooltip("Quantidade de altura adicionada ao tile de Pedra por Terra-Tile.")]
         public int earthRaiseAmount = 1;
 
-        [Header("═══ MAGIA: PROJÉTIL & RITMO ═══")]
-        [Tooltip("Nº de tiles que um projétil de Ar empurra o alvo ao acertar.")]
-        public int airProjectilePushTiles = 1;
-        [Tooltip("Velocidade do projétil (unidades/s). Maior = bala mais rápida.")]
-        public float spellProjectileSpeed = 14f;
-        [Tooltip("Dano de impacto contra parede quando empurrado e não há tile livre.")]
-        public int wallImpactDamage = 2;
-        [Tooltip("Arco parabólico do projétil (0 = reto, 1 = arco alto).")]
-        public float spellProjectileArc = 0.6f;
-        [Tooltip("Duração (s) da animação de conjuração (charging frames).")]
-        public float spellCastAnimDuration = 0.5f;
         [Range(0f, 1f)] public float tileEffectOverlayAlpha = 0.65f;
 
-        [Header("═══ MAGIA: CORES ═══")]
+        [Header("═══ CORES (ELEMENTOS & GRID) ═══")]
         [Tooltip("Cor do elemento Físico.")]
         public Color elemPhysicalColor = new Color(0.80f, 0.60f, 0.30f);
         [Tooltip("Cor do elemento Mágico.")]
@@ -515,60 +489,14 @@ namespace PangeaSkirmish
         public Color elemAirColor = new Color(0.70f, 0.90f, 1.00f);
         [Tooltip("Cor do elemento Terra.")]
         public Color elemEarthColor = new Color(0.50f, 0.35f, 0.15f);
-        [Tooltip("Cor do highlight de tiles alvo de magia.")]
-        public Color spellTargetHighlightColor = new Color(0.30f, 0.80f, 1.00f, 0.70f);
         [Tooltip("Cor do range de ataque destacado ao selecionar a unidade e ao mirar unidade.")]
         public Color attackRangeColor = new Color(1.00f, 0.82f, 0.30f, 0.35f);
         [Tooltip("Cor do range do inimigo ao passar o mouse sobre ele.")]
         public Color enemyRangeColor = new Color(1.00f, 0.28f, 0.22f, 0.45f);
-        [Tooltip("Cor do chip de magia na sequência de ações.")]
-        public Color seqChipSpellColor = new Color(0.60f, 0.20f, 0.80f);
         [Tooltip("Cor do chip de Concentração na barra de sequência de ações.")]
         public Color seqChipConcentrateColor = new Color(0.15f, 0.55f, 0.55f);
         [Tooltip("Cor do texto de mana na HUD.")]
         public Color manaTextColor = new Color(0.40f, 0.60f, 1.00f);
-
-        [Header("═══ MAGIA: SPRITES ═══")]
-        [Tooltip("Path do spritesheet de projétil Físico (Resources relative, sem extensão).")]
-        public string projectileSheetPhysical = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 1A";
-        [Tooltip("Path do spritesheet de projétil Mágico.")]
-        public string projectileSheetMagic = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 2A";
-        [Tooltip("Path do spritesheet de projétil Fogo.")]
-        public string projectileSheetFire = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 3A";
-        [Tooltip("Path do spritesheet de projétil Água.")]
-        public string projectileSheetWater = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 4A";
-        [Tooltip("Path do spritesheet de projétil Ar.")]
-        public string projectileSheetAir = "Sprites/BDragon1727/Bullets/Bullet 24x24 Part 5A Free";
-        [Tooltip("Path do spritesheet de projétil Terra.")]
-        public string projectileSheetEarth = "Sprites/BDragon1727/Bullets/Bullet 24x24 Part 6A Free";
-        [Tooltip("Path do spritesheet de impacto (explosão) — Effects.")]
-        public string impactSheetPath = "Sprites/BDragon1727/Effects/113";
-        [Tooltip("Índice do primeiro frame do sheet de IMPACTO a animar (atlas grande: janela)")]
-        public int impactFrameStart = 0;
-        [Tooltip("Quantos frames animar no IMPACTO a partir do início (0 = todos os frames do sheet)")]
-        public int impactFrameCount = 0;
-        [Tooltip("Path do spritesheet de aura de buff Self — RPGEffects.")]
-        public string auraSheetPath = "Sprites/BDragon1727/RPGEffects/1010";
-        [Tooltip("Índice do primeiro frame do sheet de AURA (Self) a animar")]
-        public int auraFrameStart = 0;
-        [Tooltip("Quantos frames animar na AURA a partir do início (0 = todos os frames do sheet)")]
-        public int auraFrameCount = 0;
-        [Tooltip("Escala do sprite de projétil no mundo.")]
-        public float spellProjectileScale = 1.5f;
-        [Tooltip("Escala do sprite de impacto/aura/tile-VFX no mundo.")]
-        public float spellVfxScale = 2f;
-        [Tooltip("FPS da animação de projétil/impacto/aura.")]
-        public float spellVfxFps = 12f;
-        [Tooltip("Ligar logs de debug de VFX de magia no Console (útil para testar).")]
-        public bool spellVfxDebugLogs = true;
-        [Tooltip("Índice do frame do sheet de projétil (os sheets têm variantes de COR; um frame fixo evita o projétil 'piscar' entre cores). -1 = animar por todos os frames.")]
-        public int spellProjectileFrame = 0;
-
-        [Header("═══ MAGIA: IA ═══")]
-        [Tooltip("Ligado = IA usa magia quando tem mana e alvo.")]
-        public bool aiUseSpells = true;
-        [Tooltip("Threshold de mana para IA considerar Concentração. 0 = sempre tenta concentrar quando sem mana.")]
-        public int aiConcentrationThreshold = 0;
 
         [Header("═══ BARRAS NO MUNDO (HP/MP) ═══")]
         [Tooltip("Mostrar barras de HP/MP flutuando sobre as unidades no campo.")]

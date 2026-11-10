@@ -126,15 +126,15 @@ namespace PangeaSkirmish
             // Serializa o plano das unidades do jogador local e envia
             var wire = new RoundPlansWire();
             bool hasAnyAction = false;
-            int nMoves = 0, nAtks = 0, nSpells = 0;
+            int nMoves = 0, nAtks = 0;
             foreach (var u in _units)
             {
                 if (u.ownerId != LocalId) continue;
                 wire.plans.Add(UnitPlanWire.FromUnit(u));
                 if (u.actionSequence.Count > 0) hasAnyAction = true;
-                nMoves += u.plannedMoveCount; nAtks += u.plannedAttacks.Count; nSpells += u.plannedSpells.Count;
+                nMoves += u.plannedMoveCount; nAtks += u.plannedAttacks.Count;
             }
-            Debug.Log($"[Lockstep] enviando plano (clientId={LocalId}): unidades={wire.plans.Count} moves={nMoves} atks={nAtks} spells={nSpells}");
+            Debug.Log($"[Lockstep] enviando plano (clientId={LocalId}): unidades={wire.plans.Count} moves={nMoves} atks={nAtks}");
 
             // Track AFK
             ulong myId = LocalId;
@@ -285,8 +285,8 @@ namespace PangeaSkirmish
                     {
                         envelope.plans.AddRange(partial.plans);
                         int m = 0, a = 0, s = 0;
-                        foreach (var p in partial.plans) { m += p.plannedMoveCount; a += p.attacks.Count; s += p.spells.Count; }
-                        Debug.Log($"[Lockstep] plano de clientId={kv.Key}: unidades={partial.plans.Count} moves={m} atks={a} spells={s}");
+                        foreach (var p in partial.plans) { m += p.plannedMoveCount; a += p.attacks.Count; }
+                        Debug.Log($"[Lockstep] plano de clientId={kv.Key}: unidades={partial.plans.Count} moves={m} atks={a}");
                     }
                 }
                 catch (Exception e)

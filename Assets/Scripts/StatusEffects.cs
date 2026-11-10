@@ -13,7 +13,7 @@ namespace PangeaSkirmish
         public SpellElement Element;
 
         // Bônus de atributo (para AttrBuff — buffs Self rework).
-        // Cada elemento buffa os 2 atributos do seu par (ver SpellBook.AttributePair).
+        // Cada elemento buffa os 2 atributos do seu par (a ser redefinido pelo novo sistema de magia).
         public int StrBonus;
         public int VitBonus;
         public int DexBonus;
@@ -143,8 +143,8 @@ namespace PangeaSkirmish
             {
                 if (fx.IsPhysicalMight) parts.Add($"Poder Físico (+{fx.StrBonus}STR/+{fx.VitBonus}VIT, {fx.RoundsLeft}r)");
                 else if (fx.IsMagicShield) parts.Add($"Escudo Mágico ({fx.ShieldRemaining}, {fx.RoundsLeft}r)");
-                else if (fx.IsElementResist) parts.Add($"Resist {SpellBook.ElementName(fx.Element)} ({fx.ResistAmount}, {fx.RoundsLeft}r)");
-                else if (fx.IsAttrBuff) parts.Add($"Buff {SpellBook.ElementName(fx.Element)} (r{fx.RoundsLeft})");
+                else if (fx.IsElementResist) parts.Add($"Resist {ElementInfo.Name(fx.Element)} ({fx.ResistAmount}, {fx.RoundsLeft}r)");
+                else if (fx.IsAttrBuff) parts.Add($"Buff {ElementInfo.Name(fx.Element)} (r{fx.RoundsLeft})");
             }
             return string.Join(" | ", parts);
         }

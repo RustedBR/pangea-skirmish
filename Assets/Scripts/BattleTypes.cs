@@ -7,7 +7,7 @@ namespace PangeaSkirmish
     public enum Team { Player, Enemy }
 
     /// <summary>Fases do round no combate "semi-action".</summary>
-    public enum RoundPhase { Initiative, Planning, ActionMovement, ActionAttack, ActionSpell, Resolving, GameOver }
+    public enum RoundPhase { Initiative, Planning, ActionMovement, ActionAttack, Resolving, GameOver }
 
     /// <summary>Resultado de uma jogada de ataque.</summary>
     public enum HitResult { Miss, Hit, Critical }
@@ -160,14 +160,12 @@ namespace PangeaSkirmish
         public int    range  = 1;  // alcance (tiles)
 
         [Header("Magia (conduíte)")]
-        public float spellPowerMult = 1f;
-        public int   spellRangeBonus = 0;
         public SpellElement elementAffinity = SpellElement.None;
     }
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES
 
-    public enum ActionType { Move, Attack, Spell, Concentrate }
+    public enum ActionType { Move, Attack, Concentrate }
 
     /// <summary>
     /// Uma entrada na sequência de ações planejadas de uma unidade.
