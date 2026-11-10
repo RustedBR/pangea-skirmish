@@ -131,7 +131,7 @@ namespace PangeaSkirmish
             {
                 if (u.ownerId != LocalId) continue;
                 wire.plans.Add(UnitPlanWire.FromUnit(u));
-                if (u.actionSequence.Count > 0) hasAnyAction = true;
+                if (u.actionSequence.Count > 0 || u.IsBusy) hasAnyAction = true; // ocupada não é AFK
                 nMoves += u.plannedMoveCount; nAtks += u.plannedAttacks.Count;
             }
             Debug.Log($"[Lockstep] enviando plano (clientId={LocalId}): unidades={wire.plans.Count} moves={nMoves} atks={nAtks}");

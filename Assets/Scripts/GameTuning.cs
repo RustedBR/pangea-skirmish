@@ -16,6 +16,30 @@ namespace PangeaSkirmish
         [Header("═══ COMBATE & REGRAS ═══")]
         [Tooltip("Segundos da fase de Planejamento por round. Menor = jogo mais frenético; maior = mais tempo para pensar.")]
         public float planningTime = 15f;
+
+        [Header("═══ SEMI-TURNO POR TICKS (GDD-014) ═══")]
+        [Tooltip("Segundos para decidir num ponto de decisão (SP). Em MP vale o planningTime da sala.")]
+        public float decisionTime = 8f;
+        [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]
+        public int maxQueueTicks = 6;
+        [Tooltip("Ticks base: andar (1 waypoint).")]
+        public int ticksMove = 1;
+        [Tooltip("Ticks base: ataque normal.")]
+        public int ticksAttack = 2;
+        [Tooltip("Ticks base: golpe poderoso (ataque com bônus).")]
+        public int ticksPowerStrike = 3;
+        [Tooltip("Ticks base: concentrar.")]
+        public int ticksConcentrate = 2;
+        [Tooltip("Ticks de Esperar (timeout sem ação). Não escala com AGI.")]
+        public int ticksWait = 1;
+        [Tooltip("k da fórmula de velocidade: ticks = base × k / (k + AGI). Maior = AGI pesa menos.")]
+        public float tickAgiFactor = 10f;
+        [Tooltip("A cada N ticks globais: status, efeitos de tile e reações renovam (equivale ao antigo round).")]
+        public int ticksPerRound = 4;
+        [Tooltip("Ticks adicionados à fila de quem reage.")]
+        public int reactionTickCost = 1;
+        [Tooltip("Segundos de resolução visual por tick (orçamento de animação).")]
+        public float tickResolveTime = 0.4f;
         [Tooltip("Segundos extras de tolerância quando o tempo acaba com PA sobrando. 0 = corte seco no fim do timer.")]
         public float planningGraceSeconds = 2f;
         [Tooltip("Segundos do prompt de confirmação de ação bônus. Menor = decisão mais apressada.")]
@@ -562,7 +586,7 @@ namespace PangeaSkirmish
         // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
-        public float reactionChoiceTime   = 50f;
+        public float reactionChoiceTime   = 3f;
         [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
         public float dodgeReactionPerAGI  = 0.03f;
         [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]

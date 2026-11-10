@@ -36,8 +36,65 @@ namespace PangeaSkirmish
         public bool bonusDamageThisAttack;
         public bool aimBonusThisAttack;
         public bool hasPlannedBonus;
+        /// <summary>Ticks livres na fila deste ponto de decisão (GDD-014; antigo PA).</summary>
         public int remainingAP;
         public int remainingBAP;
+
+        // ── Semi-turno por ticks (GDD-014) ──
+        /// <summary>Fila comprometida. Não vazia = unidade ocupada (não decide neste ponto).</summary>
+        public readonly List<QueuedAction> queue = new List<QueuedAction>();
+        public bool IsBusy => queue.Count > 0;
+        public int QueueTicksRemaining
+        {
+            get { int t = 0; foreach (var q in queue) t += q.Remaining; return t; }
+        }
+
+        /// <summary>Ticks que o plano atual (actionSequence) ocupa.</summary>
+        public int PlannedTicks()
+        {
+            int t = 0;
+            foreach (var a in actionSequence) t += TickRules.Duration(this, a);
+            return t;
+        }
+
+        /// <summary>Recalcula remainingAP = maxQueueTicks − ticks planejados.</summary>
+        public void RecomputeTickBudget() =>
+            remainingAP = Tuning.Get().maxQueueTicks - PlannedTicks();
+
+        /// <summary>Cabe uma ação de 'type' no orçamento restante?</summary>
+        public bool CanFit(ActionType type, bool isBonus = false) =>
+            remainingAP >= TickRules.Duration(this, type, isBonus);
+
+        /// <summary>Converte o plano (actionSequence + listas) na fila de ticks. Plano vazio = Esperar.</summary>
+        public void BuildQueueFromPlan()
+        {
+            queue.Clear();
+            foreach (var a in actionSequence)
+            {
+                var q = new QueuedAction { Type = a.Type, IsBonus = a.IsBonus, IsAimed = a.IsAimed,
+                                           Duration = TickRules.Duration(this, a) };
+                if (a.Type == ActionType.Move)
+                {
+                    if (a.Index >= plannedPath.Count) continue;
+                    q.Dest = plannedPath[a.Index];
+                }
+                else if (a.Type == ActionType.Attack)
+                {
+                    if (a.Index >= plannedAttacks.Count) continue;
+                    q.Attack = plannedAttacks[a.Index];
+                }
+                queue.Add(q);
+            }
+            if (queue.Count == 0)
+                queue.Add(new QueuedAction { Type = ActionType.Wait, Duration = TickRules.Duration(this, ActionType.Wait, false) });
+        }
+
+        /// <summary>Insere uma espera no início da fila (custo de reação).</summary>
+        public void DelayQueue(int ticks)
+        {
+            if (ticks <= 0) return;
+            queue.Insert(0, new QueuedAction { Type = ActionType.Wait, Duration = ticks });
+        }
 
         // ── Ações Bônus (rework): reações ──
         /// <summary>Reações disponíveis neste round (1/round, renova em StartRound).</summary>
@@ -161,7 +218,7 @@ namespace PangeaSkirmish
             plannedBonusAnchor = startAnchor;
             currentHP    = stats.MaxHP;
             currentMana  = stats.MaxMana;
-            remainingAP  = stats.ActionPoints;
+            remainingAP  = Tuning.Get().maxQueueTicks;
             remainingBAP = stats.BonusActionPoints;
 
             // A unidade vira filha do _gridRig (organização/pivot; ele não gira
@@ -855,7 +912,7 @@ namespace PangeaSkirmish
             aimBonusThisAttack    = false;
             plannedConcentrations = 0;
             reservedMana = 0;
-            remainingAP  = stats.ActionPoints;
+            remainingAP  = Tuning.Get().maxQueueTicks;
             remainingBAP = stats.BonusActionPoints;
             dodgeReactBonus = 0f;
             blockReduction  = 0f;

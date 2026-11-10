@@ -474,7 +474,7 @@ namespace PangeaSkirmish
         }
         public void UpdateAPDisplay(Unit u)
         {
-            _apText.text = $"<b>PA</b> {u.remainingAP}/{u.stats.ActionPoints}   " +
+            _apText.text = $"<b>Tempo</b> {u.remainingAP}/{Tuning.Get().maxQueueTicks} ticks   " +
                            $"<b>PAB</b> {u.remainingBAP}/{u.stats.BonusActionPoints}";
         }
 
@@ -509,7 +509,7 @@ namespace PangeaSkirmish
                                 : ratio > Thp.hpBarRedThreshold    ? Thp.hpBarMidColor
                                                                    : Thp.hpBarLowColor;
             _unitHPText.text = $"HP  {u.currentHP} / {s.MaxHP}";
-            _apText.text = $"<b>PA</b> {u.remainingAP}/{s.ActionPoints}   <b>PAB</b> {u.remainingBAP}/{s.BonusActionPoints}";
+            _apText.text = $"<b>Tempo</b> {u.remainingAP}/{Tuning.Get().maxQueueTicks} ticks   <b>PAB</b> {u.remainingBAP}/{s.BonusActionPoints}";
             var buffs = StatusEffectSystem.Summary(u.statusEffects);
             _unitStatsText.text =
                 $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
@@ -744,7 +744,8 @@ namespace PangeaSkirmish
                 {
                     var btn = new Button(() => _reactionPick?.Invoke(opt))
                     {
-                        text = ReactionLabel(opt)
+                        // GDD-014: com uma só opção, é a confirmação rápida sim/não.
+                        text = options.Count == 1 ? $"Sim — {ReactionLabel(opt)}" : ReactionLabel(opt)
                     };
                     btn.AddToClassList("pg-button");
                     _reactionButtons.Add(btn);
@@ -752,7 +753,7 @@ namespace PangeaSkirmish
                 // Botão "Não reagir"
                 var skip = new Button(() => _reactionPick?.Invoke(ReactionKind.None))
                 {
-                    text = "Não reagir"
+                    text = options.Count == 1 ? "Não" : "Não reagir"
                 };
                 skip.AddToClassList("pg-button");
                 skip.style.backgroundColor = CorDisabled;

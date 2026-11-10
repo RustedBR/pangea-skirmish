@@ -123,7 +123,7 @@ namespace PangeaSkirmish
                 return;
             }
 
-            if (_controlled.remainingAP > 0)
+            if (_controlled.CanFit(ActionType.Move))
             {
                 EnterMovePicking();
                 return;
@@ -144,7 +144,7 @@ namespace PangeaSkirmish
                 return;
             }
 
-            if (_controlled.remainingAP > 0)
+            if (_controlled.CanFit(ActionType.Attack))
             {
                 EnterAttackUnitPicking();
                 return;
@@ -161,7 +161,7 @@ namespace PangeaSkirmish
                 return;
             }
 
-            if (_controlled.remainingAP > 0)
+            if (_controlled.CanFit(ActionType.Attack))
             {
                 EnterAttackTilePicking();
                 return;
@@ -196,6 +196,7 @@ namespace PangeaSkirmish
                     Type = action.Type,
                     Index = action.Index,
                     IsBonus = false,
+                    IsAimed = action.IsAimed,
                     BonusStep = action.BonusStep
                 };
                 _controlled.remainingBAP++;
@@ -208,17 +209,25 @@ namespace PangeaSkirmish
                     Debug.Log("PAB insuficiente para Golpe Poderoso");
                     return;
                 }
+                int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
+                               - TickRules.Duration(_controlled, ActionType.Attack, false);
+                if (extraTicks > _controlled.remainingAP)
+                {
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para Golpe Poderoso", _controlled);
+                    return;
+                }
                 _controlled.actionSequence[idx] = new ScheduledAction
                 {
                     Type = action.Type,
                     Index = action.Index,
                     IsBonus = true,
+                    IsAimed = action.IsAimed,
                     BonusStep = action.BonusStep
                 };
                 _controlled.remainingBAP--;
             }
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -256,7 +265,7 @@ namespace PangeaSkirmish
                 _controlled.hasPlannedBonus = false;
                 RefreshSequenceVisuals();
                 SyncButtonStates();
-                _hud.UpdateAPDisplay(_controlled);
+                _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
                 return;
             }
 
@@ -277,7 +286,7 @@ namespace PangeaSkirmish
             _controlled.actionSequence[idx] = action;
             _controlled.remainingBAP--;
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -323,7 +332,7 @@ namespace PangeaSkirmish
             HideCursorGhost();
             _hud.HidePrompt();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu();
@@ -336,6 +345,11 @@ namespace PangeaSkirmish
             // Concentração agora é um CONTADOR: cada clique adiciona uma (gasta 1 PAB),
             // até acabar o PAB ou a mana projetada encher. Cancela via Desfazer/Limpar.
             if (_controlled.remainingBAP <= 0) return;
+            if (!_controlled.CanFit(ActionType.Concentrate))
+            {
+                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
+                return;
+            }
             int projectedMana = _controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen;
             if (projectedMana >= _controlled.stats.MaxMana)
             {
@@ -350,7 +364,7 @@ namespace PangeaSkirmish
             });
             _hud.LogAction($"{_controlled.unitName} planejou concentrar ({_controlled.plannedConcentrations})", _controlled);
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -388,7 +402,7 @@ namespace PangeaSkirmish
                 _controlled.remainingBAP--;
             }
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -444,7 +458,7 @@ namespace PangeaSkirmish
                 _controlled.remainingBAP--;
             }
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -585,7 +599,6 @@ namespace PangeaSkirmish
             _controlled.actionSequence.Add(new ScheduledAction
                 { Type = ActionType.Move, Index = _controlled.plannedMoveCount, IsBonus = false, BonusStep = Vector2Int.zero });
             _controlled.plannedMoveCount++;
-            _controlled.remainingAP--;
 
             // ghost permanente no waypoint confirmado
             var pg = CreateGhostAt(dest, Tuning.Get().moveGhostColor);
@@ -593,14 +606,13 @@ namespace PangeaSkirmish
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
         }
 
         private void CancelAllMoves()
         {
-            _controlled.remainingAP      += _controlled.plannedMoveCount;
             _controlled.plannedMoveCount  = 0;
             _controlled.plannedAnchor     = _controlled.anchor;
             _controlled.plannedPath.Clear();
@@ -615,7 +627,7 @@ namespace PangeaSkirmish
             HideCursorGhost();
             _grid.ClearHighlight();
             SyncButtonStates();
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
         }
 
@@ -651,7 +663,6 @@ namespace PangeaSkirmish
                 BonusStep = Vector2Int.zero
             });
 
-            _controlled.remainingAP--;
 
             // Marca a UNIDADE como alvo (footprint + sprite vermelhos), em vez de um losango no tile.
             // Um marcador invisível sobre a unidade ancora o número da ordem (mantém o 1:1 com a sequência).
@@ -662,7 +673,7 @@ namespace PangeaSkirmish
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
         }
@@ -709,13 +720,12 @@ namespace PangeaSkirmish
                 BonusStep = Vector2Int.zero
             });
 
-            _controlled.remainingAP--;
             var ghostColor = Tuning.Get().tileTargetGhostColor; // ciano
             _pathGhosts.Add(CreateGhostAt(anchor, ghostColor));
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
         }
@@ -739,7 +749,6 @@ namespace PangeaSkirmish
                 _controlled.plannedAnchor = _controlled.plannedMoveCount > 0
                     ? _controlled.plannedPath[_controlled.plannedPath.Count - 1]
                     : _controlled.anchor;
-                _controlled.remainingAP++;
                 if (last.IsBonus)
                 {
                     _controlled.remainingBAP++;
@@ -752,7 +761,6 @@ namespace PangeaSkirmish
             else if (last.Type == ActionType.Attack)
             {
                 _controlled.plannedAttacks.RemoveAt(_controlled.plannedAttacks.Count - 1);
-                _controlled.remainingAP++;
                 if (last.IsBonus) _controlled.remainingBAP++;
                 if (last.IsAimed) _controlled.remainingBAP++;
 
@@ -772,7 +780,7 @@ namespace PangeaSkirmish
             _controlled.actionSequence.RemoveAt(_controlled.actionSequence.Count - 1);
 
             if (_mode == PlanMode.MovePicking) SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             ClearGhostLabels();
             RefreshSequenceVisuals();
@@ -784,7 +792,6 @@ namespace PangeaSkirmish
             if (!_active || _controlled == null) return;
             if (_controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0 && _controlled.plannedConcentrations == 0) return;
 
-            _controlled.remainingAP = _controlled.stats.ActionPoints;
             _controlled.remainingBAP = _controlled.stats.BonusActionPoints;
             _controlled.plannedMoveCount = 0;
             _controlled.plannedAnchor = _controlled.anchor;
@@ -800,7 +807,7 @@ namespace PangeaSkirmish
             HideCursorGhost();
             _grid.ClearHighlight();
             if (_mode != PlanMode.Idle) SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
             ShowSelfAttackRange(); // recomputa o range para a posição resetada
@@ -986,21 +993,22 @@ namespace PangeaSkirmish
         private void SyncButtonStates()
         {
             if (_controlled == null) return;
+            _controlled.RecomputeTickBudget();
             bool hasSequence = _controlled.actionSequence.Count > 0;
             _hud.SetMoveState(
-                canAdd:    _controlled.remainingAP > 0,
+                canAdd:    _controlled.CanFit(ActionType.Move),
                 count:     _controlled.plannedMoveCount,
                 isPicking: _mode == PlanMode.MovePicking);
             _hud.SetAttackUnitState(
-                canAdd:    _controlled.remainingAP > 0,
+                canAdd:    _controlled.CanFit(ActionType.Attack),
                 count:     _controlled.plannedAttacks.Count,
                 isPicking: _mode == PlanMode.AttackUnitPicking);
             _hud.SetAttackTileState(
-                canAdd:    _controlled.remainingAP > 0,
+                canAdd:    _controlled.CanFit(ActionType.Attack),
                 count:     _controlled.plannedAttacks.Count,
                 isPicking: _mode == PlanMode.AttackTilePicking);
             _hud.SetConcentrateState(
-                canAdd:    _controlled.remainingBAP > 0
+                canAdd:    _controlled.remainingBAP > 0 && _controlled.CanFit(ActionType.Concentrate)
                            && (_controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen) < _controlled.stats.MaxMana,
                 isPicking: false);
             _hud.SetIncrementState(

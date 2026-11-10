@@ -107,6 +107,9 @@ namespace PangeaSkirmish
         public static void ApplyToUnit(UnitPlanWire w, Unit u)
         {
             if (u == null) return;
+            // GDD-014: unidade ocupada mantém a fila comprometida (carry-over). Toda máquina
+            // calcula IsBusy igual (mesma simulação), então ignorar aqui é determinístico.
+            if (u.IsBusy) return;
 
             u.plannedMoveCount     = w.plannedMoveCount;
             u.plannedAnchor        = new Vector2Int(w.plannedAnchorX, w.plannedAnchorY);

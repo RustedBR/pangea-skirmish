@@ -165,7 +165,7 @@ namespace PangeaSkirmish
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES
 
-    public enum ActionType { Move, Attack, Concentrate }
+    public enum ActionType { Move, Attack, Concentrate, Wait }
 
     /// <summary>
     /// Uma entrada na sequência de ações planejadas de uma unidade.
@@ -180,6 +180,50 @@ namespace PangeaSkirmish
         public bool       IsBonus;     // potencializada com 1 PAB (Golpe Poderoso/Incremento)
         public bool       IsAimed;     // mirada com 1 PAB (Mirar): +DEX no próximo ataque
         public Vector2Int BonusStep;   // destino do passo extra (Type==Move && IsBonus)
+    }
+
+    /// <summary>
+    /// Ação já comprometida na fila de ticks da unidade (GDD-014). Autocontida: guarda
+    /// destino/ataque por valor, então sobrevive entre pontos de decisão (carry-over).
+    /// </summary>
+    [Serializable]
+    public class QueuedAction
+    {
+        public ActionType    Type;
+        public Vector2Int    Dest;       // Move
+        public PlannedAttack Attack;     // Attack
+        public bool          IsBonus;
+        public bool          IsAimed;
+        public int           Duration;   // ticks totais
+        public int           Elapsed;    // ticks já decorridos
+        public int Remaining => Mathf.Max(0, Duration - Elapsed);
+    }
+
+    /// <summary>Duração das ações em ticks (GDD-014 §2). Determinístico (só stats + tuning).</summary>
+    public static class TickRules
+    {
+        public static int BaseTicks(ActionType type, bool isBonus)
+        {
+            var T = Tuning.Get();
+            switch (type)
+            {
+                case ActionType.Move:        return T.ticksMove;
+                case ActionType.Attack:      return isBonus ? T.ticksPowerStrike : T.ticksAttack;
+                case ActionType.Concentrate: return T.ticksConcentrate;
+                default:                     return T.ticksWait;
+            }
+        }
+
+        /// <summary>ticks = max(1, round(base × k / (k + AGI))). Esperar não escala.</summary>
+        public static int Duration(Unit u, ActionType type, bool isBonus)
+        {
+            int b = BaseTicks(type, isBonus);
+            if (type == ActionType.Wait || u == null) return Mathf.Max(1, b);
+            float k = Mathf.Max(1f, Tuning.Get().tickAgiFactor);
+            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.AGI))));
+        }
+
+        public static int Duration(Unit u, ScheduledAction a) => Duration(u, a.Type, a.IsBonus);
     }
 
     // ------------------------------------------------------------------ ATAQUE
