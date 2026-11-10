@@ -200,12 +200,15 @@ namespace PangeaSkirmish
 
             float minX = float.MaxValue, maxX = float.MinValue;
             float minY = float.MaxValue, maxY = float.MinValue;
+            // Extensão na TELA: profundidade (Z) aparece pela metade e altura (Y) quase inteira.
+            float sinP = Mathf.Sin(World3D.CamPitch * Mathf.Deg2Rad), cosP = Mathf.Cos(World3D.CamPitch * Mathf.Deg2Rad);
             foreach (var p in positions)
             {
+                float sy = p.z * sinP + p.y * cosP;
                 if (p.x < minX) minX = p.x;
                 if (p.x > maxX) maxX = p.x;
-                if (p.y < minY) minY = p.y;
-                if (p.y > maxY) maxY = p.y;
+                if (sy < minY) minY = sy;
+                if (sy > maxY) maxY = sy;
             }
 
             float width  = (maxX - minX) + padding * 2f;
@@ -1331,7 +1334,7 @@ namespace PangeaSkirmish
             sr.sprite = StepGhostSprite();
             sr.sortingOrder = 9000;
             float gs = fp * Tuning.Get().stepGhostScale; // mesma escala do footprint da unidade (alinha com o tile)
-            ghost.transform.localScale = new Vector3(gs, gs, 1f);
+            ghost.transform.localScale = new Vector3(gs, gs * World3D.GroundStretch, 1f);
             // Fix (2026-07-20): marcador de chão, deitado no XZ (câmera reto de cima).
             ghost.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             ghost.SetActive(false);

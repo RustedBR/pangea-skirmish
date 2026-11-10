@@ -1,6 +1,7 @@
 # Pangea Skirmish - gerado por scripts/gen_models.py (nao editar a mao)
 mtllib Staff.mtl
 o Shaft
+g Shaft
 usemtl wood
 vn 0.00000 -1.00000 0.00000
 v 0.02400 -0.35000 0.00000
@@ -249,6 +250,7 @@ v 0.02613 0.53249 0.00000
 v 0.01637 0.53768 -0.01522
 f 165//38 166//38 167//38 168//38
 o Conduit
+g Conduit
 usemtl conduit
 vn 0.00000 1.00000 0.00000
 v -0.00000 0.67000 -0.05000

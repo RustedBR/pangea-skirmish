@@ -32,7 +32,7 @@ namespace PangeaSkirmish
         // (ver Configure — reto de cima, não mais inclinada). Em ortográfica a
         // altura exata não importa para a projeção, só precisa ficar acima do
         // chão com clip planes normais (não mais negativo).
-        private const float CAM_HEIGHT = 20f;
+        private const float CAM_HEIGHT = 60f; // distância ao longo da visão (ortográfica: só evita clipping)
 
         private Vector2 _panMinXY = new Vector2(-50f, -50f);
         private Vector2 _panMaxXY = new Vector2(50f, 50f);
@@ -140,8 +140,11 @@ namespace PangeaSkirmish
             // Câmera normal acima do chão: near/far clip padrão (nada de negativo).
             _cam.nearClipPlane = 0.3f;
             _cam.farClipPlane  = 1000f;
-            _cam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            _cam.transform.position = new Vector3(initialCenter.x, CAM_HEIGHT, initialCenter.z);
+            // Mundo 3D (2026-11): câmera inclinada de verdade (ver World3D). O chão agora é
+            // um grid quadrado girado 45°, então a inclinação não duplica mais distorção.
+            _cam.transform.rotation = World3D.CamRotation;
+            _cam.transform.position = new Vector3(initialCenter.x, 0f, initialCenter.z)
+                                      - (World3D.CamRotation * Vector3.forward) * CAM_HEIGHT;
 
             _targetXY = _curXY = new Vector2(initialCenter.x, initialCenter.z);
             _targetSize = _curSize = initialSize;
@@ -548,7 +551,7 @@ namespace PangeaSkirmish
             {
                 Vector2 d = Mouse.current.delta.ReadValue();
                 // d.x → X mundo, d.y → Z mundo (mundo XZ sob câmera 45°).
-                _targetXY = ClampCenter(_targetXY + new Vector2(-d.x, -d.y) * worldPerPixel * dragSpeed);
+                _targetXY = ClampCenter(_targetXY + new Vector2(-d.x, -d.y * World3D.GroundStretch) * worldPerPixel * dragSpeed);
                 return true;
             }
 
@@ -569,7 +572,9 @@ namespace PangeaSkirmish
                     {
                         float speed = edgePanSpeed * (_curSize / Mathf.Max(1f, Tuning.Get().edgePanReferenceZoom));
                         // dir.y (tela) → Z mundo
-                        _targetXY = ClampCenter(_targetXY + new Vector2(dir.x, dir.y).normalized * speed * Time.deltaTime);
+                        Vector2 pan = new Vector2(dir.x, dir.y).normalized;
+                        pan.y *= World3D.GroundStretch; // chão inclinado: 1 de tela = 2 de profundidade
+                        _targetXY = ClampCenter(_targetXY + pan * speed * Time.deltaTime);
                         return true;
                     }
                 }
@@ -589,12 +594,14 @@ namespace PangeaSkirmish
         {
             // _curXY = (X mundo, Z mundo). Câmera reto de cima, altura fixa.
             _cam.orthographicSize = _curSize * (1f + _zoomPunch);
-            _cam.transform.position = new Vector3(_curXY.x, CAM_HEIGHT, _curXY.y);
+            // _curXY é o ponto do CHÃO no centro da tela; a câmera recua ao longo da visão.
+            _cam.transform.position = new Vector3(_curXY.x, 0f, _curXY.y)
+                                      - (World3D.CamRotation * Vector3.forward) * CAM_HEIGHT;
 
             // Roll em torno do próprio forward: gira a imagem na tela sem mudar o
             // ângulo de visão com o chão, então NÃO reintroduz a dupla distorção
             // isométrica (que vinha de inclinar a câmera, não de rolá-la).
-            var baseRot = Quaternion.Euler(90f, 0f, 0f);
+            var baseRot = World3D.CamRotation;
             _cam.transform.rotation = Mathf.Abs(_rollDeg) < 0.01f
                 ? baseRot
                 : Quaternion.AngleAxis(_rollDeg, baseRot * Vector3.forward) * baseRot;

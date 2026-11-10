@@ -1,6 +1,7 @@
 # Pangea Skirmish - gerado por scripts/gen_models.py (nao editar a mao)
 mtllib Sword.mtl
 o Grip
+g Grip
 usemtl leather
 vn 0.00000 -1.00000 0.00000
 v 0.02200 -0.07000 0.00000
@@ -144,6 +145,7 @@ v -0.08500 0.07000 -0.02500
 v -0.08500 0.07000 0.02500
 f 93//22 94//22 95//22 96//22
 o Blade
+g Blade
 usemtl stone
 vn 0.00000 -1.00000 0.00000
 v -0.03750 0.10000 -0.01100

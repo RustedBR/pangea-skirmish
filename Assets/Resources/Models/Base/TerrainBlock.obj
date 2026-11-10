@@ -1,6 +1,7 @@
 # Pangea Skirmish - gerado por scripts/gen_models.py (nao editar a mao)
 mtllib TerrainBlock.mtl
 o Top
+g Top
 usemtl top
 vn 0.00000 -1.00000 0.00000
 v -0.50000 -0.12000 -0.50000
@@ -39,6 +40,7 @@ v -0.50000 -0.12000 -0.50000
 v -0.50000 -0.12000 0.50000
 f 21//6 22//6 23//6 24//6
 o Side
+g Side
 usemtl side
 vn 0.00000 -1.00000 0.00000
 v -0.50000 -0.50000 -0.50000

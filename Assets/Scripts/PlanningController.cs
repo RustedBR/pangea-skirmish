@@ -534,7 +534,7 @@ namespace PangeaSkirmish
             sr.sprite = GhostSprite();
             sr.color = color;
             sr.sortingOrder = 4000; // acima dos tiles, abaixo dos ghosts de waypoint (5000)
-            g.transform.localScale = Vector3.one; // 1 tile
+            g.transform.localScale = new Vector3(1f, World3D.GroundStretch, 1f); // 1 tile, deitado
             // Fix (2026-07-20): marcador de chão, deitado no XZ como os tiles
             // (câmera reto de cima) — sem isso ficava de canto/invisível.
             g.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
@@ -1060,7 +1060,7 @@ namespace PangeaSkirmish
             sr.color = color;
             sr.sortingOrder = 5000;
             int fp = _controlled != null ? _controlled.stats.Footprint : AttributeStats.DefaultFootprint;
-            g.transform.localScale = new Vector3(fp, fp, 1f);
+            g.transform.localScale = new Vector3(fp, fp * World3D.GroundStretch, 1f);
             // Fix (2026-07-20): marcador de chão, deitado no XZ (ver CreateCellGhost).
             g.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             g.SetActive(false);

@@ -150,6 +150,7 @@ namespace PangeaSkirmish
         private GridManager _grid;
         private SpriteRenderer _sr;
         private WeaponOverlay _weapon;
+        private UnitModel3D _model;   // corpo 3D (mundo 3D); o sprite vira só estado
         private readonly Dictionary<string, Sprite> _frames = new Dictionary<string, Sprite>();
         private Color _baseTint = Color.white;
         private string _baseDir = "SE";  // NE ou SE
@@ -243,6 +244,9 @@ namespace PangeaSkirmish
             _baseTint = team == Team.Enemy ? Tuning.Get().enemyTint : Color.white;
 
             BuildVisual(resourcePath);
+            _model = UnitModel3D.Attach(this, _sr, _footprint, teamColor, resourcePath, _spriteH,
+                                        WeaponCatalog.Get(weaponId));
+            RefreshFacing();
             SnapToAnchor();
             StartIdleAnim();
         }
@@ -619,6 +623,7 @@ namespace PangeaSkirmish
             }
             ShowFrame(_currentState, _currentFrame);
             if (_weapon != null) _weapon.RefreshDirection(_baseDir, _flip);
+            if (_model != null) _model.SetScreenQuadrant(telaDir);
         }
 
         // Define o facing a partir do vetor de movimento.
@@ -883,6 +888,7 @@ namespace PangeaSkirmish
 
             float dur = Mathf.Max(0.05f, Tuning.Get().attackAnimDuration);
             if (_weapon != null) _weapon.PlayAttack(_baseDir, _flip, dur);
+            if (_model != null) _model.PlayAttack(dur);
 
             float t = 0f;
             while (t < dur)

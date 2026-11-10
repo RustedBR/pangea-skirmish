@@ -1,6 +1,7 @@
 # Pangea Skirmish - gerado por scripts/gen_models.py (nao editar a mao)
 mtllib Bow.mtl
 o Limbs
+g Limbs
 usemtl wood
 vn 0.00000 -1.00000 0.00000
 v -0.00700 -0.31786 -0.19799
@@ -328,6 +329,7 @@ v -0.02000 -0.06000 -0.02250
 v -0.02000 -0.06000 0.02250
 f 213//54 214//54 215//54 216//54
 o String
+g String
 usemtl string
 vn 0.00000 -1.00000 0.00000
 v -0.00300 -0.31786 -0.19399

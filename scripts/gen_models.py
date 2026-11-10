@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Gera os modelos 3D low-poly base do Pangea Skirmish (OBJ + MTL), sem dependências.
 
-Uso:  python3 scripts/gen_models.py            -> escreve em Assets/Models/Base/
+Uso:  python3 scripts/gen_models.py            -> escreve em Assets/Resources/Models/Base/
       python3 scripts/gen_models.py --preview  -> também gera docs/models-3d-preview.png (requer Pillow e numpy)
 
 Convenções (espaço do OBJ, mão direita; a Unity inverte X ao importar):
@@ -17,7 +17,7 @@ import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(ROOT, "Assets", "Models", "Base")
+OUT_DIR = os.path.join(ROOT, "Assets", "Resources", "Models", "Base")
 PREVIEW = os.path.join(ROOT, "docs", "models-3d-preview.png")
 
 COLORS = {
@@ -226,6 +226,7 @@ def write_obj(name, objects):
     vi = ni = 0
     for oname, faces in objects:
         lines.append("o %s" % oname)
+        lines.append("g %s" % oname)
         current = None
         for poly, mat in faces:
             if mat not in used:

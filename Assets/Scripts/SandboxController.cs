@@ -386,7 +386,7 @@ namespace PangeaSkirmish
                 var topGo = new GameObject("Top");
                 topGo.transform.SetParent(go.transform, false);
                 topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                topGo.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
+                topGo.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale * World3D.GroundStretch, 1f);
 
                 var sr = topGo.AddComponent<SpriteRenderer>();
 
@@ -687,7 +687,7 @@ namespace PangeaSkirmish
             var go = new GameObject("HoverCursor");
             // Migração XY→XZ (2026-07-20): cursor de tile é topo → deita no XZ.
             go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
+            go.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale * World3D.GroundStretch, 1f);
             _hoverCursor = go.AddComponent<SpriteRenderer>();
             _hoverCursor.sprite = BuildCursorSprite();
             _hoverCursor.sortingOrder = 9000;
