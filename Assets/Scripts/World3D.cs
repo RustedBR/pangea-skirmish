@@ -50,7 +50,38 @@ namespace PangeaSkirmish
             { "conduit", new Color(0.35f, 0.85f, 0.95f) },
             { "fur", new Color(0.50f, 0.36f, 0.24f) }, { "fur_dark", new Color(0.30f, 0.21f, 0.15f) },
             { "belly", new Color(0.72f, 0.60f, 0.44f) }, { "eye_glow", new Color(0.95f, 0.75f, 0.15f) },
+            // classes
+            { "hood", new Color(0.27f, 0.35f, 0.22f) }, { "trim", new Color(0.88f, 0.74f, 0.34f) },
+            { "hide", new Color(0.28f, 0.27f, 0.30f) },
+            // armas de ferro
+            { "iron", new Color(0.70f, 0.73f, 0.78f) }, { "iron_dark", new Color(0.40f, 0.42f, 0.47f) },
+            // feras: alfa e espreitador
+            { "hide_dark", new Color(0.16f, 0.15f, 0.18f) }, { "hide_belly", new Color(0.42f, 0.38f, 0.40f) },
+            { "eye_red", new Color(0.98f, 0.22f, 0.14f) },
+            { "scale", new Color(0.30f, 0.48f, 0.30f) }, { "scale_dark", new Color(0.17f, 0.30f, 0.20f) },
+            { "scale_belly", new Color(0.74f, 0.76f, 0.48f) },
+            // magias ("element" é pintado em runtime com a cor do elemento)
+            { "element", new Color(0.85f, 0.85f, 0.90f) }, { "element_core", new Color(1f, 1f, 1f) },
+            { "fire", new Color(0.98f, 0.45f, 0.10f) }, { "fire_core", new Color(1f, 0.88f, 0.35f) },
+            { "water", new Color(0.25f, 0.58f, 0.95f) }, { "water_light", new Color(0.75f, 0.90f, 1f) },
+            { "air", new Color(0.86f, 0.95f, 0.98f) },
+            { "rock", new Color(0.50f, 0.44f, 0.38f) }, { "rock_dark", new Color(0.33f, 0.29f, 0.26f) },
+            { "magic", new Color(0.72f, 0.48f, 1f) },
+            { "soul", new Color(0.80f, 0.95f, 1f) }, { "soul_dark", new Color(0.20f, 0.35f, 0.50f) },
+            { "leaf", new Color(0.36f, 0.72f, 0.30f) }, { "leaf_dark", new Color(0.22f, 0.46f, 0.20f) },
         };
+
+        /// <summary>O modelo existe em Resources/Models/Base? (sem logar erro, para escolher com reserva)</summary>
+        public static bool Has(string modelName)
+        {
+            if (string.IsNullOrEmpty(modelName)) return false;
+            if (!_prefabs.TryGetValue(modelName, out var prefab) || prefab == null)
+            {
+                prefab = Resources.Load<GameObject>("Models/Base/" + modelName);
+                _prefabs[modelName] = prefab;
+            }
+            return prefab != null;
+        }
 
         private static Shader LowPolyShader
         {

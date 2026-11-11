@@ -1,0 +1,21 @@
+newmtl leather
+Kd 0.420 0.260 0.130
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl iron_dark
+Kd 0.400 0.420 0.470
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl iron
+Kd 0.700 0.730 0.780
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

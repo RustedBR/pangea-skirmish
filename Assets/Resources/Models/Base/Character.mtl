@@ -19,15 +19,15 @@ Ks 0 0 0
 d 1
 illum 1
 
-newmtl hair
-Kd 0.200 0.130 0.090
+newmtl eye
+Kd 0.060 0.050 0.050
 Ka 0 0 0
 Ks 0 0 0
 d 1
 illum 1
 
-newmtl eye
-Kd 0.060 0.050 0.050
+newmtl hair
+Kd 0.200 0.130 0.090
 Ka 0 0 0
 Ks 0 0 0
 d 1

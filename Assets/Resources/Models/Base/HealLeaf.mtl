@@ -1,0 +1,21 @@
+newmtl leaf_dark
+Kd 0.220 0.460 0.200
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl leaf
+Kd 0.360 0.720 0.300
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl water
+Kd 0.250 0.580 0.950
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

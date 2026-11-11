@@ -58,7 +58,8 @@ namespace PangeaSkirmish
             _root = new GameObject("Model3D").transform;
             _root.SetParent(transform, false);
 
-            var go = World3D.Spawn(_monster ? "Monster" : "Character", _root);
+            ModelName = _monster ? MonsterModelFor(_unit) : CharacterModelFor(_unit, weapon);
+            var go = World3D.Spawn(ModelName, _root);
             if (go == null) { enabled = false; Destroy(_root.gameObject); return; }
             _model = go.transform;
 
@@ -82,6 +83,7 @@ namespace PangeaSkirmish
                 _legL = MakePivot("LegL", 0f, 1f, 0f);
                 _legR = MakePivot("LegR", 0f, 1f, 0f);
                 EquipWeaponModel(weapon);
+                if (ModelName == "Tank") EquipShield();
             }
 
             if (teamColor.a > 0.01f && teamColor != Color.white)
@@ -113,9 +115,76 @@ namespace PangeaSkirmish
             return pivot;
         }
 
+        /// <summary>Nome do modelo do corpo em uso (Warrior, Mage, MonsterAlpha...). Para testes e depuração.</summary>
+        public string ModelName { get; private set; }
+        /// <summary>Nome do modelo da arma na mão direita, ou null.</summary>
+        public string WeaponModelName { get; private set; }
+
+        /// <summary>
+        /// Classe → modelo. A definição da unidade decide; sem definição (personagem criado pelo
+        /// jogador), a arma decide: cajado/varinha = Mago, arco = Arqueiro, machado/espada = Guerreiro.
+        /// </summary>
+        public static string CharacterModelFor(Unit u, WeaponDef weapon)
+        {
+            string s = ((u.definitionId ?? "") + "|" + (u.unitName ?? "")).ToLowerInvariant();
+            string pick = null;
+            if (s.Contains("tank") || s.Contains("tanque")) pick = "Tank";
+            else if (s.Contains("archer") || s.Contains("arqueir")) pick = "Archer";
+            else if (s.Contains("mage") || s.Contains("mago") || s.Contains("maga")) pick = "Mage";
+            else if (s.Contains("warrior") || s.Contains("guerreir")) pick = "Warrior";
+            else if (weapon != null)
+            {
+                string id = (weapon.id ?? "").ToLowerInvariant();
+                if (id.Contains("staff") || id.Contains("wand") || id.Contains("scepter")) pick = "Mage";
+                else if (id.Contains("bow")) pick = "Archer";
+                else if (id.Contains("axe") || id.Contains("hatchet") || id.Contains("sword")) pick = "Warrior";
+            }
+            return World3D.Has(pick) ? pick : "Character";
+        }
+
+        /// <summary>Variedade de feras: o nome decide (alfa, espreitador); senão o número da fera alterna os três tipos.</summary>
+        public static string MonsterModelFor(Unit u)
+        {
+            string s = ((u.definitionId ?? "") + "|" + (u.unitName ?? "")).ToLowerInvariant();
+            string pick = "Monster";
+            if (s.Contains("alfa") || s.Contains("alpha")) pick = "MonsterAlpha";
+            else if (s.Contains("espreit") || s.Contains("stalker") || s.Contains("lagart")) pick = "MonsterStalker";
+            else
+            {
+                int n = 0;
+                foreach (char c in u.unitName ?? "") if (char.IsDigit(c)) n = n * 10 + (c - '0');
+                if (n > 0) pick = n % 3 == 0 ? "MonsterAlpha" : n % 3 == 2 ? "MonsterStalker" : "Monster";
+            }
+            return World3D.Has(pick) ? pick : "Monster";
+        }
+
+        private void EquipShield()
+        {
+            if (_armL == null || !World3D.Has("Shield")) return;
+            var go = World3D.Spawn("Shield", _armL);
+            if (go == null) return;
+            go.transform.localPosition = new Vector3(-0.07f, -0.22f, 0.05f);
+            go.transform.localRotation = Quaternion.Euler(0f, -70f, 0f);
+            go.transform.localScale = Vector3.one * 0.85f;
+        }
+
         private void EquipWeaponModel(WeaponDef w)
         {
             if (w == null || _armR == null) return;
+            // Modelo próprio da arma (o nome do OBJ é o id do catálogo) antes das famílias genéricas.
+            if (World3D.Has(w.id))
+            {
+                var own = World3D.Spawn(w.id, _armR);
+                if (own != null)
+                {
+                    string lid = w.id.ToLowerInvariant();
+                    bool swung = lid.Contains("sword") || lid.Contains("axe") || lid.Contains("hatchet");
+                    own.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
+                    own.transform.localRotation = swung ? Quaternion.Euler(65f, 0f, 0f) : Quaternion.identity;
+                    WeaponModelName = w.id;
+                    return;
+                }
+            }
             string id = (w.id ?? "").ToLowerInvariant();
             string model = "Sword";
             // O nome decide primeiro (cajados também têm alcance longo); alcance é só desempate.
@@ -127,6 +196,7 @@ namespace PangeaSkirmish
 
             var go = World3D.Spawn(model, _armR);
             if (go == null) return;
+            WeaponModelName = model;
             // Mão: ponta de baixo do braço (o pivô fica no ombro, a ~0.32 acima da mão).
             go.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
             go.transform.localRotation = model == "Sword" ? Quaternion.Euler(65f, 0f, 0f) : Quaternion.identity;

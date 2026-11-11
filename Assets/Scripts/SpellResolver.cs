@@ -88,6 +88,22 @@ namespace PangeaSkirmish
             foreach (var c in z.Cells)
             {
                 if (!grid.IsAnchorInBounds(c, 1)) continue;
+                if (z.Kind == SpellEffect.Barrier && World3D.Has("WallBlock"))
+                {
+                    var holder = new GameObject($"Zone_{z.Name}");
+                    GridAnchored.Attach(holder, c, 1);
+                    var wall = World3D.Spawn("WallBlock", holder.transform);
+                    if (wall != null)
+                    {
+                        // variação determinística por célula, para a muralha não parecer carimbada
+                        wall.transform.localRotation = Quaternion.Euler(0f, 90f * ((c.x * 7 + c.y * 13) & 3), 0f);
+                        wall.transform.localScale = new Vector3(1f, 0.9f + 0.1f * ((c.x + c.y) & 1), 1f);
+                        holder.SetActive(true);
+                        z.Visuals.Add(holder);
+                        continue;
+                    }
+                    Object.Destroy(holder);
+                }
                 var g = new GameObject($"Zone_{z.Name}");
                 var sr = g.AddComponent<SpriteRenderer>();
                 sr.sprite = CellSprite(); sr.color = col; sr.sortingOrder = 4900;
