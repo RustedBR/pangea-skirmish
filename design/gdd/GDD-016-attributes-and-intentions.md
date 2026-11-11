@@ -230,3 +230,11 @@ Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase n
 - **Erro no simulador:** a regeneração de Instinto estava sob um `if` extra e rendia metade do que dizia, então os números da seção 13 foram calibrados com Instinto mais escasso que o jogo. Corrigido em `scripts/balance_sim.py` e a busca foi refeita.
 - **Valores finais** (substituem a tabela da seção 13 onde diferem): dano de STR **4** por ponto (era 2,5), bloqueio **4%** por ponto de VIT, reação de esquiva **4%** por ponto de AGI. Vida 20 + 4·VIT, esquiva 5%/AGI, golpe poderoso +4 e Instinto 1 + 0,25·(STR+VIT) não mudam.
 - **Simulação (corrigida):** os cinco arquétipos principais, incluindo um Ágil com AGI 12, ficam entre 44% e 56%; os extremos (14/3/3, 3/14/3, 3/3/14) entre 41% e 43%. Lutas de cerca de 8,6 ticks.
+
+### 13.2 Armadura percentual e cadência das feras (2026-11-11)
+
+Queixas: o personagem tomava mais dano do que devia, principalmente defendendo, e os inimigos pareciam atacar mais vezes.
+
+- **Armadura:** era um desconto **fixo** de 1 por ponto de VIT. Depois que o dano de STR subiu, ela ficou irrelevante (STR 4 e VIT 4: reduzia 31% do dano antes, 19% depois). Passa a ser **percentual**: 8% por ponto de VIT, teto de 60%. O desconto fixo foi zerado.
+- **Feras atacavam o dobro:** a arma "Claws" não existe no catálogo e caía no ataque desarmado de **1 tick**, contra 2 de uma espada. O padrão desarmado (e das feras) passou a **2 ticks**.
+- **Números refeitos** com o simulador (que agora tem armadura percentual): vida 30 + 3·VIT, dano de STR 3,5 por ponto, bloqueio 2% por ponto de VIT (a defesa passiva agora vem da armadura), reação de esquiva 3% por ponto de AGI. Cinco arquétipos entre 50% e 56%, extremos entre 31% e 50%, lutas de ~13 ticks.

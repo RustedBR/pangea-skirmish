@@ -24,12 +24,12 @@ MonoBehaviour:
   strDamageMaxRange: 4
   aimDexMultiplier: 1
   statFormulas:
-    hpBase: 20
-    hpPerVIT: 4
+    hpBase: 30
+    hpPerVIT: 3
     manaBase: 5
     manaPerWIS: 3
     weaponBase: 1
-    dmgPerSTR: 4
+    dmgPerSTR: 3.5
     dmgPerINT: 2
     iniPerAGI: 1
     iniPerDEX: 1
@@ -46,7 +46,9 @@ MonoBehaviour:
     critDamageMul: 1.5
     damageVariance: 0.15
     armorBase: 0
-    armorPerVIT: 1
+    armorPerVIT: 0
+    armorPctPerVIT: 0.08
+    armorPctMax: 0.6
     magicResistBase: 0
     magicResistPerWIS: 1
     manaRegenBase: 2
@@ -143,6 +145,7 @@ MonoBehaviour:
   instinctRegenTicks: 3
   agiRegenFrom: 6
   agiRegenStep: 3
+  ticksUnarmed: 2
   spriteScalePerFootprint: 1.4
   footprintScalePerFootprint: 0.95
   spriteFootOffsetRatio: -0.1
@@ -396,7 +399,7 @@ MonoBehaviour:
   worldBarPillRect: {x: 68, y: 68, z: 38, w: 8}
   worldBarPillBorder: {x: 8, y: 3, z: 8, w: 3}
   reactionChoiceTime: 3
-  dodgeReactionPerAGI: 0.04
-  blockReductionPerVIT: 0.04
+  dodgeReactionPerAGI: 0.03
+  blockReductionPerVIT: 0.02
   maxBlockReduction: 0.6
   aooDamageMult: 1

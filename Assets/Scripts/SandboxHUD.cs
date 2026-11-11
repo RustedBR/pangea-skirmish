@@ -250,7 +250,7 @@ namespace PangeaSkirmish
                 _derivedLabel.text = $"HP {d.MaxHP}   Mov {d.MoveStep}   Instinto {d.MaxInstinct}\n" +
                                      $"ATQ {d.PhysicalDamage}   Ini {d.Initiative}\n" +
                                      $"Acierto {d.HitChance * 100:F0}%   Esquiva {d.DodgeChance * 100:F0}%   Crítico {d.CritChance * 100:F0}%\n" +
-                                     $"Def.Física {d.PhysicalDefense}   Def.Mágica {d.MagicDefense}";
+                                     $"Def.Física {Mathf.RoundToInt(d.PhysicalReduction * 100f)}%   Def.Mágica {d.MagicDefense}";
             }
         }
 

@@ -13,11 +13,11 @@ def mk(**kw):
     p=dict(hp_base=5,hp_per_vit=3,dmg_per_str=2,armor_per_vit=1,block_per_vit=0.03,block_max=0.6,
            dodge_per_agi=0.02,dodge_react_per_agi=0.03,inst_base=3,inst_per=0.5,regen=2,
            cost_power=2,cost_react=2,power_bonus=3,move_base=2,move_per_agi=0.5,move_cap=6,
-           weapon=5,wticks=2,dex=3,agi_regen=False,agi_regen_from=6,agi_regen_step=3,hit_base=0.9,hit_per_dex=0.03,crit_dex=0.02,var=0.15)
+           armor_pct=0.0,armor_pct_cap=0.6,weapon=5,wticks=2,dex=3,agi_regen=False,agi_regen_from=6,agi_regen_step=3,hit_base=0.9,hit_per_dex=0.03,crit_dex=0.02,var=0.15)
     p.update(kw); return p
 def stats(b,P):
     s,v,a=b
-    return dict(hp=P['hp_base']+P['hp_per_vit']*v, dmg=P['weapon']+P['dmg_per_str']*s, arm=P['armor_per_vit']*v,
+    return dict(hp=P['hp_base']+P['hp_per_vit']*v, dmg=P['weapon']+P['dmg_per_str']*s, arm=P['armor_per_vit']*v, armp=min(P['armor_pct_cap'],P['armor_pct']*v),
         dodge=min(0.9,P['dodge_per_agi']*a), inst=max(1,round(P['inst_base']+P['inst_per']*(s+v))),
         blk=min(P['block_max'],P['block_per_vit']*v), rdodge=P['dodge_react_per_agi']*a, prefers_block=v>a,
         hit=min(1,P['hit_base']+P['hit_per_dex']*P['dex']), crit=P['crit_dex']*P['dex'],
@@ -56,7 +56,7 @@ def fight(A,B,P,rng,maxt=80):
             ticks = x['st']['ticks_pow'] if pw else x['st']['ticks']
             x['next']=t+ticks
             if rng.random()<hit:
-                dmg=max(1,d-y['st']['arm'])
+                dmg=max(1,round(d*(1-y['st']['armp']))-y['st']['arm'])
                 if rng.random()<x['st']['crit']: dmg=round(dmg*1.5)
                 dmg=round(dmg*(1-blk)); y['hp']-=dmg
         if u[0]['hp']<=0 or u[1]['hp']<=0: break

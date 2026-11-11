@@ -194,4 +194,23 @@ public class TickRulesTests
         _u.stats.STR = 8f; _u.stats.VIT = 8f; // 16 pontos de corpo
         Assert.LessOrEqual(_u.stats.MaxInstinct, 6, "Instinto máximo baixo (era 11 com os mesmos pontos)");
     }
+
+    [Test]
+    public void Armor_IsPercentageAndCapped()
+    {
+        var T = Tuning.Get();
+        AttributeStats.Formulas = T.statFormulas;
+        _u.stats.VIT = 4f;
+        float r4 = _u.stats.PhysicalReduction;
+        Assert.AreEqual(Mathf.Clamp(4f * T.statFormulas.armorPctPerVIT, 0f, T.statFormulas.armorPctMax), r4, 0.0001f);
+        Assert.Greater(r4, 0.2f, "VIT 4 deve reduzir mais de 20% do dano");
+        _u.stats.VIT = 99f;
+        Assert.AreEqual(T.statFormulas.armorPctMax, _u.stats.PhysicalReduction, 0.0001f, "respeita o teto");
+    }
+
+    [Test]
+    public void Unarmed_AttackIsAsSlowAsAMediumWeapon()
+    {
+        Assert.AreEqual(2, Tuning.Get().ticksUnarmed, "feras não podem atacar o dobro de vezes que uma espada");
+    }
 }

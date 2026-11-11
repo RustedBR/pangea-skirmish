@@ -195,4 +195,14 @@ public class BeastAITest
         Assert.AreEqual(1, CountOf(hero, ActionType.Attack));
         Assert.Greater(GridManager.FootprintGap(hero.plannedAnchor, 3, foe.anchor, 3), before, "afasta-se depois do golpe");
     }
+
+    [UnityTest]
+    public IEnumerator Beast_AttacksAsSlowlyAsAMediumWeapon()
+    {
+        yield return Setup();
+        var beast = Spawn("Fera", Team.Enemy, new Vector2Int(8, 6), true);   // arma "Claws" (fora do catálogo)
+        var hero  = Spawn("Heroi", Team.Player, new Vector2Int(2, 6), false); // IronSword (média)
+        Assert.AreEqual(hero.stats.AttackTicks, beast.stats.AttackTicks, "mesma cadência que uma arma média");
+        Assert.GreaterOrEqual(TickRules.Duration(beast, ActionType.Attack, false), 2);
+    }
 }

@@ -50,8 +50,8 @@ namespace PangeaSkirmish
         public int instinctReaction = 2;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
-        [Tooltip("Ticks base do ataque desarmado (armas usam WeaponDef.attackTicks).")]
-        public int ticksUnarmed = 1;
+        [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]
+        public int ticksUnarmed = 2;
         [Tooltip("Ticks somados à base da arma num golpe poderoso.")]
         public int ticksPowerStrikeExtra = 1;
         [Tooltip("Ticks base: concentrar.")]

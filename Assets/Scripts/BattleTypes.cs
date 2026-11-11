@@ -51,6 +51,9 @@ namespace PangeaSkirmish
         [Header("Defesa / Mitigação")]
         public int armorBase     = 0;
         public int armorPerVIT   = 1;
+        [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT (substitui a armadura fixa: dano alto passa a ser reduzido na mesma proporção).")]
+        public float armorPctPerVIT = 0f;
+        public float armorPctMax    = 0.6f;
         public int magicResistBase  = 0;
         public int magicResistPerWIS = 1;
 
@@ -153,6 +156,8 @@ namespace PangeaSkirmish
         public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI);
         public float CritChance => Mathf.Clamp01(DEX * F.critPerDEX);
         public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT);
+        /// <summary>Redução percentual do dano físico pela VIT (0..armorPctMax).</summary>
+        public float PhysicalReduction => Mathf.Clamp(VIT * F.armorPctPerVIT, 0f, F.armorPctMax);
         public int MagicDefense => F.magicResistBase + Mathf.RoundToInt(WIS * F.magicResistPerWIS);
 
         public HitResult RollHit(float attackerHitChance, float targetDodgeChance)
@@ -182,6 +187,7 @@ namespace PangeaSkirmish
             // [−varInt, +varInt] determinístico
             int variance = varInt > 0 ? BattleRng.Next(-varInt, varInt + 1) : 0;
             int dmg = baseDamage + variance;
+            if (isPhysical) dmg = Mathf.RoundToInt(dmg * (1f - PhysicalReduction));
             dmg -= isPhysical ? PhysicalDefense : MagicDefense;
             return Mathf.Max(Tuning.Get().minDamageFloor, dmg);
         }
