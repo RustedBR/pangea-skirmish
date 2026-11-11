@@ -56,7 +56,7 @@ namespace PangeaSkirmish
                 return $"<color=#ff8800>⚔ AoO</color> {attacker.unitName} errou {target.unitName}{missTag}";
             }
 
-            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
+            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true, defender: target.stats);
             if (res == HitResult.Critical)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul * Tuning.Get().aooDamageMult);
             else
@@ -146,7 +146,7 @@ namespace PangeaSkirmish
                 string missTag = bonus ? " <color=#ffd700>+INCR</color>" : "";
                 return $"<color=#888888>x</color> {attacker.unitName} errou {target.unitName}{missTag}";
             }
-            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
+            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true, defender: target.stats);
             if (res == HitResult.Critical)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             // Bloqueio (reação): reduz dano recebido
@@ -212,7 +212,7 @@ namespace PangeaSkirmish
             dmg = SpellResolver.ApplyFury(attacker, dmg, aimDmg);
 
             // Sem rolagem de dodge — acerto garantido se o tile tem inimigo
-            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
+            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true, defender: target.stats);
             if (attacker.stats.RollCrit()) // critico ainda rola (independente de dodge)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             bool crit = attacker.stats.RollCritLast;

@@ -199,15 +199,22 @@ namespace PangeaSkirmish
             return _rollCritLast;
         }
 
-        public int RollDamage(int baseDamage, bool isPhysical)
+        /// <summary>
+        /// Rola o dano de um golpe destas stats (atacante) contra <paramref name="defender"/>.
+        /// A variância é do atacante; armadura % (VIT), defesa flat e defesa mágica são do DEFENSOR.
+        /// Antes de 2026-11-11 a redução usava as stats do próprio atacante (VIT alta batia mais
+        /// fraco e não protegia). Sem defensor, usa estas stats (compatibilidade de testes antigos).
+        /// </summary>
+        public int RollDamage(int baseDamage, bool isPhysical, AttributeStats defender = null)
         {
+            var d = defender ?? this;
             float halfRange = baseDamage * F.damageVariance;
             int varInt = Mathf.RoundToInt(halfRange);
             // [−varInt, +varInt] determinístico
             int variance = varInt > 0 ? BattleRng.Next(-varInt, varInt + 1) : 0;
             int dmg = baseDamage + variance;
-            if (isPhysical) dmg = Mathf.RoundToInt(dmg * (1f - PhysicalReduction));
-            dmg -= isPhysical ? PhysicalDefense : MagicDefense;
+            if (isPhysical) dmg = Mathf.RoundToInt(dmg * (1f - d.PhysicalReduction));
+            dmg -= isPhysical ? d.PhysicalDefense : d.MagicDefense;
             return Mathf.Max(Tuning.Get().minDamageFloor, dmg);
         }
     }
