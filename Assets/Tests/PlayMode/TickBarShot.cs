@@ -41,6 +41,8 @@ public class TickBarShot
         var beast2 = Make("Fera 2", Team.Enemy, new Vector2Int(9, 8), BeastAI.OwnerId);
         var units = new List<Unit> { hero, beast, beast2 };
 
+        foreach (var oldHud in Object.FindObjectsByType<BattleHUD>(FindObjectsSortMode.None)) Object.Destroy(oldHud.gameObject);
+        yield return null;
         var hud = PangeaScreen.Spawn<BattleHUD>("BattleHUD");
         yield return null; yield return null;
         hud.ShowUnitInfo(hero);
@@ -69,6 +71,7 @@ public class TickBarShot
         VisualElement atk = null;
         root.Query<Label>().ForEach(l => { if (atk == null && l.text.Contains("Atacar") && l.text.StartsWith("3")) atk = l.parent; });
         Assert.IsNotNull(atk, "bloco de ataque do plano não encontrado");
+        using (var e = PointerDownEvent.GetPooled()) { e.target = atk; atk.SendEvent(e); }
         for (int i = 0; i < 5; i++) yield return null;
         yield return new WaitForEndOfFrame();
 

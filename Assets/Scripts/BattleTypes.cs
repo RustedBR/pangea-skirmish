@@ -72,7 +72,8 @@ namespace PangeaSkirmish
 
         public AttributeStats ToAttributeStats() => new AttributeStats
         {
-            STR = STR, VIT = VIT, DEX = DEX, AGI = AGI, INT = INT, WIS = WIS,
+            // AGI limitada ao teto (personagens antigos podem trazer mais): acima dele não rende nada.
+            STR = STR, VIT = VIT, DEX = DEX, AGI = Mathf.Min(AGI, CharacterConfig.AgiMax), INT = INT, WIS = WIS,
             Footprint = Footprint, AttackRange = AttackRange,
         };
     }

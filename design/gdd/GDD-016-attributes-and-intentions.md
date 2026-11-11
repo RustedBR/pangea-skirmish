@@ -201,3 +201,25 @@ Ainda não feito (passos 5 a 7): posturas automáticas com opção de confirmar,
 - **Janela de incremento:** entre dois ticks, se algum jogador tem a **próxima ação** (que ainda não começou) como ataque e Instinto suficiente, abre uma janela de `incrementWindowSeconds` (1,8s). Teclas `1` Golpe poderoso (−2 Instinto, +1 tick) e `2` Mirar (−1 Instinto).
 - **Rede:** o host abre e fecha a janela para todos. Os pedidos viajam como RPC e ficam em buffer; só são aplicados, na mesma ordem, quando a janela fecha. Nenhuma máquina muda a fila no meio de um tick. Pedido fora da janela, ou de quem não é dono da unidade, é ignorado.
 - **Fora desta etapa:** passo rápido durante os ticks (precisa de destino) e botões clicáveis na janela (hoje só teclado).
+
+## 13. Revisão do Corpo após testes (2026-11-11)
+
+Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase não defende no bloqueio; AGI acima de 6 não serve para nada; Instinto sobrava.
+
+**Diagnóstico por simulação** (`scripts/balance_sim.py`, 1x1 corpo a corpo, 20 pontos de corpo): com as fórmulas antigas o Tanque extremo vencia 92% em média, o Bruto extremo só 37% e o Ágil extremo 26%; as lutas duravam 2 a 7 ticks.
+
+| Item | Antes | Agora |
+|---|---|---|
+| Vida | 5 + 3·VIT | **20 + 4·VIT** |
+| Dano de STR | 2 por ponto | **2,5 por ponto** |
+| Golpe poderoso | +3 de dano | **+4** |
+| Bloqueio (VIT) | 3% por ponto | **5% por ponto** (teto 60%) |
+| Esquiva (AGI) | 2% por ponto; reação +3% | **5% por ponto; reação +5%** |
+| Andada (AGI) | 2 + AGI/2, teto 6 | **2 + 0,67·AGI, teto 6**: AGI 6 já chega ao máximo |
+| Teto da AGI | 20 | **6** (acima não rende) |
+| Instinto máximo | 3 + 0,5·(STR+VIT) | **1 + 0,25·(STR+VIT)** |
+| Regeneração de Instinto | 1 a cada 2 ticks | **1 a cada 3 ticks** |
+
+**Resultado na simulação:** os quatro arquétipos principais ficam entre 45% e 57%, o Ágil extremo (AGI 14) cai para 16% e a duração média da luta sobe para ~11 ticks. O Instinto cai de 10 para 5 no mesmo build, ou seja, cerca de 4 buffs ou reações por luta.
+
+**Limites da simulação:** não considera andar, alcance, fuga nem intenções. AGI e DEX valem mais no jogo real do que ali, então vale reavaliar depois de jogar.

@@ -30,16 +30,16 @@ namespace PangeaSkirmish
         public int maxQueueTicks = 6;
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
         public float moveTilesBase = 2f;
-        public float moveTilesPerAGI = 0.5f;
+        public float moveTilesPerAGI = 0.67f;
         [Tooltip("Teto de tiles que uma ação de andar cobre.")]
         public int maxTilesPerMove = 6;
 
         [Header("═══ INSTINTO (GDD-016) ═══")]
         [Tooltip("Instinto máximo = instinctBase + (STR + VIT) × instinctPerBodyPoint.")]
-        public float instinctBase = 3f;
-        public float instinctPerBodyPoint = 0.5f;
+        public float instinctBase = 1f;
+        public float instinctPerBodyPoint = 0.25f;
         [Tooltip("Recupera 1 de Instinto a cada N ticks.")]
-        public int instinctRegenTicks = 2;
+        public int instinctRegenTicks = 3;
         public int instinctPowerStrike = 2;
         public int instinctAim = 1;
         public int instinctQuickStep = 1;
@@ -108,6 +108,8 @@ namespace PangeaSkirmish
         public int attributeMin = 1;
         [Tooltip("Valor máximo por atributo no editor de personagem do menu.")]
         public int attributeMax = 20;
+        [Tooltip("Teto da AGI: acima disso a andada já está no máximo e só sobra esquiva (GDD-016 §2).")]
+        public int agiMax = 6;
 
 
         // ═════════════════════════ UNIDADES ═════════════════════════
@@ -610,9 +612,9 @@ namespace PangeaSkirmish
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
         public float reactionChoiceTime   = 3f;
         [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
-        public float dodgeReactionPerAGI  = 0.03f;
+        public float dodgeReactionPerAGI  = 0.05f;
         [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
-        public float blockReductionPerVIT = 0.03f;
+        public float blockReductionPerVIT = 0.05f;
         [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]

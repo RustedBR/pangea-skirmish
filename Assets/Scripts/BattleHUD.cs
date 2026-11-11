@@ -555,24 +555,21 @@ namespace PangeaSkirmish
             if (_ticksBar == null) return;
             var pop = new VisualElement();
             var ps = pop.style;
+            pop.AddToClassList("bh-window");                 // mesmo painel azul da HUD
             ps.position = Position.Absolute;
-            ps.backgroundColor = new Color(0.07f, 0.10f, 0.22f, 0.98f);
-            ps.paddingLeft = ps.paddingRight = 8; ps.paddingTop = ps.paddingBottom = 6;
-            ps.borderTopLeftRadius = ps.borderTopRightRadius = ps.borderBottomLeftRadius = ps.borderBottomRightRadius = 6;
-            ps.borderTopWidth = ps.borderBottomWidth = ps.borderLeftWidth = ps.borderRightWidth = 1;
-            var bc = new Color(0.42f, 0.58f, 1f);
-            ps.borderTopColor = ps.borderBottomColor = ps.borderLeftColor = ps.borderRightColor = bc;
-            var head = new Label($"Ação {idx + 1}: {ActionName(type, false)}"); head.style.fontSize = 11;
-            head.style.color = new Color(0.74f, 0.85f, 1f); head.style.unityFontStyleAndWeight = FontStyle.Bold; head.style.marginBottom = 4;
+            ps.minWidth = 290; ps.paddingLeft = ps.paddingRight = 12; ps.paddingTop = ps.paddingBottom = 10;
+            var head = new Label($"AÇÃO {idx + 1} · {ActionName(type, false).ToUpperInvariant()}");
+            head.AddToClassList("bh-title"); head.style.marginBottom = 8;
             pop.Add(head);
             void Opt(int kind, string text, bool on, bool enabled)
             {
                 var b = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnIncrementPick?.Invoke(idx, kind); }) { text = text };
-                b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 24;
-                b.style.fontSize = 11; b.style.unityTextAlign = TextAnchor.MiddleLeft;
-                b.style.backgroundColor = on ? new Color(1f, 0.80f, 0.33f) : new Color(0.10f, 0.14f, 0.30f);
-                b.style.color = on ? new Color(0.06f, 0.08f, 0.16f) : new Color(0.93f, 0.95f, 1f);
+                b.AddToClassList("bh-intent-btn");
+                if (on) b.AddToClassList("armed");
+                b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 5; b.style.height = 36;
+                b.style.fontSize = 14; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 10;
                 b.SetEnabled(enabled);
+                if (!enabled) b.style.opacity = 0.45f;
                 pop.Add(b);
             }
             if (type == ActionType.Attack)
@@ -585,7 +582,8 @@ namespace PangeaSkirmish
             Opt(11, "▶ Mover para depois", false, idx < count - 1);
             Opt(12, "✕ Remover", false, true);
             var close = new Button(CloseIncrementPopup) { text = "Fechar" };
-            close.style.marginLeft = close.style.marginRight = 0; close.style.height = 22; close.style.fontSize = 10;
+            close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
+            close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 2;
             pop.Add(close);
             _ticksBar.Add(pop);
             var ab = anchor.worldBound; var bb = _ticksBar.worldBound;
@@ -601,31 +599,29 @@ namespace PangeaSkirmish
             if (_ticksBar == null) return;
             var pop = new VisualElement();
             var ps = pop.style;
+            pop.AddToClassList("bh-window");                 // mesmo painel azul da HUD
             ps.position = Position.Absolute;
-            ps.backgroundColor = new Color(0.07f, 0.10f, 0.22f, 0.98f);
-            ps.paddingLeft = ps.paddingRight = 8; ps.paddingTop = ps.paddingBottom = 6;
-            ps.borderTopLeftRadius = ps.borderTopRightRadius = ps.borderBottomLeftRadius = ps.borderBottomRightRadius = 6;
-            ps.borderTopWidth = ps.borderBottomWidth = ps.borderLeftWidth = ps.borderRightWidth = 1;
-            var bc = new Color(0.42f, 0.58f, 1f);
-            ps.borderTopColor = ps.borderBottomColor = ps.borderLeftColor = ps.borderRightColor = bc;
-            var head = new Label(title); head.style.fontSize = 11; head.style.color = new Color(0.74f, 0.85f, 1f);
-            head.style.unityFontStyleAndWeight = FontStyle.Bold; head.style.marginBottom = 4;
+            ps.minWidth = 290; ps.paddingLeft = ps.paddingRight = 12; ps.paddingTop = ps.paddingBottom = 10;
+            var head = new Label(title.ToUpperInvariant());
+            head.AddToClassList("bh-title"); head.style.marginBottom = 8;
             pop.Add(head);
 
             VisualElement Opt(int kind, string text, bool on, bool enabled)
             {
                 var b = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); CloseIncrementPopup(); pick?.Invoke(kind); }) { text = text };
-                b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 26;
-                b.style.fontSize = 11; b.style.unityTextAlign = TextAnchor.MiddleLeft;
-                b.style.backgroundColor = on ? new Color(1f, 0.80f, 0.33f) : new Color(0.10f, 0.14f, 0.30f);
-                b.style.color = on ? new Color(0.06f, 0.08f, 0.16f) : new Color(0.93f, 0.95f, 1f);
+                b.AddToClassList("bh-intent-btn");
+                if (on) b.AddToClassList("armed");
+                b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 5; b.style.height = 36;
+                b.style.fontSize = 14; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 10;
                 b.SetEnabled(enabled);
+                if (!enabled) b.style.opacity = 0.45f;
                 return b;
             }
             pop.Add(Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().instinctPowerStrike} Instinto, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, powerEnabled));
             pop.Add(Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().instinctAim} Instinto)", aimOn, aimEnabled));
             var close = new Button(CloseIncrementPopup) { text = "Fechar" };
-            close.style.marginLeft = close.style.marginRight = 0; close.style.height = 22; close.style.fontSize = 10;
+            close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
+            close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 2;
             pop.Add(close);
 
             _ticksBar.Add(pop);

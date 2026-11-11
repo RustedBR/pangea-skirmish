@@ -168,4 +168,26 @@ public class TickRulesTests
         _u.currentInstinct = 99;
         Assert.IsFalse(_u.TryIncrementNext(0), "só ataques");
     }
+
+    [Test]
+    public void Agi_IsCappedWhenBuildingStats()
+    {
+        var block = new UnitStatBlock { AGI = 14f };
+        Assert.AreEqual(CharacterConfig.AgiMax, block.ToAttributeStats().AGI, "AGI acima do teto não rende");
+        Assert.AreEqual(6, CharacterConfig.AgiMax);
+    }
+
+    [Test]
+    public void Agi6_AlreadyReachesMaxWalk()
+    {
+        _u.stats.AGI = CharacterConfig.AgiMax;
+        Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "com AGI 6 a andada já está no máximo");
+    }
+
+    [Test]
+    public void Instinct_IsScarce()
+    {
+        _u.stats.STR = 8f; _u.stats.VIT = 8f; // 16 pontos de corpo
+        Assert.LessOrEqual(_u.stats.MaxInstinct, 6, "Instinto máximo baixo (era 11 com os mesmos pontos)");
+    }
 }

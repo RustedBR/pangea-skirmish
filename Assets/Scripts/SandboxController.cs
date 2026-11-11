@@ -927,7 +927,7 @@ namespace PangeaSkirmish
                 case "STR": p.stats.STR = Mathf.Clamp(p.stats.STR + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
                 case "VIT": p.stats.VIT = Mathf.Clamp(p.stats.VIT + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
                 case "DEX": p.stats.DEX = Mathf.Clamp(p.stats.DEX + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
-                case "AGI": p.stats.AGI = Mathf.Clamp(p.stats.AGI + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
+                case "AGI": p.stats.AGI = Mathf.Clamp(p.stats.AGI + delta, CharacterConfig.AttrMin, CharacterConfig.AgiMax); break;
                 case "INT": p.stats.INT = Mathf.Clamp(p.stats.INT + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
                 case "WIS": p.stats.WIS = Mathf.Clamp(p.stats.WIS + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
             }
