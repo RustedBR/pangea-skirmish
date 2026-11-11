@@ -130,7 +130,7 @@
 .bh-ticks {
   position: absolute; bottom: 12px; left: 0; right: 0; width: 700px;
   margin-left: auto; margin-right: auto;
-  flex-direction: column; align-items: stretch; display: none;
+  flex-direction: column; align-items: stretch; display: none; padding: 6px 8px;
 }
 .bh-ticks-label { font-size: 11px; color: rgb(189, 217, 255); -unity-font-style: bold; -unity-text-align: middle-center; margin-bottom: 4px; }
 .bh-ticks-track { flex-direction: row; gap: 3px; align-items: stretch; height: 34px; }

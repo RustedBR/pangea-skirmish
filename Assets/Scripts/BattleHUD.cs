@@ -337,11 +337,11 @@ namespace PangeaSkirmish
             if (seq == null || seq.Count == 0)
             {
                 _selectedSeqIndex = -1;
-                if (_ticksBar != null) _ticksBar.style.display = DisplayStyle.None;
+                SetPlanEditorVisible(false);
                 return;
             }
             if (_selectedSeqIndex >= seq.Count) _selectedSeqIndex = -1;
-            if (_ticksBar != null) _ticksBar.style.display = DisplayStyle.Flex;
+            SetPlanEditorVisible(true);
 
             // Duração de cada ação (GDD-016: DEX acelera; Move/Wait não escalam)
             Unit u = _lastUnit;
@@ -432,7 +432,16 @@ namespace PangeaSkirmish
             foreach (var c in _seqChips) if (c != null) c.RemoveFromHierarchy();
             _seqChips.Clear();
             _selectedSeqIndex = -1;
-            if (_ticksBar != null) _ticksBar.style.display = DisplayStyle.None;
+            SetPlanEditorVisible(false);
+        }
+
+        /// <summary>O editor do plano (track + chips) só aparece enquanto há plano; as fileiras ficam sempre.</summary>
+        private void SetPlanEditorVisible(bool on)
+        {
+            var d = on ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_ticksTrack != null) _ticksTrack.style.display = d;
+            if (_ticksQueue != null) _ticksQueue.style.display = d;
+            if (_ticksLabel != null) _ticksLabel.style.display = d;
         }
         private void OnSeqChipClicked(int index)
         {
@@ -516,6 +525,7 @@ namespace PangeaSkirmish
         // ── LOG DE BATALHA (mini-log, mostrado junto da inspeção) ──
         public void LogAction(string line, Unit unit = null)
         {
+            SetRowEvent(unit, line);
             LogAction(new LogEntry { displayText = line, tooltipText = line,
                 team = unit != null ? unit.team : Team.Player, unit = unit });
         }
@@ -526,41 +536,46 @@ namespace PangeaSkirmish
             Debug.Log("[Battle] " + entry.tooltipText);
             TrimMiniLog();
         }
-        // ── LINHA DO TEMPO DE TICKS (GDD-014 §7) ──
-        private VisualElement _timelinePanel;
+        // ── LINHA DO TEMPO DE TICKS (GDD-014 §7) — fileiras dentro da barra de ticks ──
+        private VisualElement _ticksRows;
+        private Label _ticksRowsHeader;
+        private sealed class RowRef { public VisualElement row; public Label evt; }
+        private readonly Dictionary<Unit, RowRef> _rowRefs = new Dictionary<Unit, RowRef>();
+        private readonly Dictionary<Unit, (string text, float time)> _rowEvents = new Dictionary<Unit, (string, float)>();
+        private const float RowFlashSeconds = 2.2f;
         private static Color TlMove   => new Color(0.38f, 0.62f, 0.80f);
         private static Color TlAttack => new Color(0.80f, 0.44f, 0.32f);
         private static Color TlConc   => new Color(0.36f, 0.66f, 0.62f);
         private static Color TlWait   => new Color(0.42f, 0.44f, 0.50f);
+        private static readonly System.Text.RegularExpressions.Regex RichTag =
+            new System.Text.RegularExpressions.Regex("<[^>]+>");
 
         /// <summary>
-        /// Painel no canto superior direito: uma linha por unidade viva, com uma célula por tick
-        /// de fila. As SUAS unidades mostram o tipo de cada ação; as dos outros só quantos ticks
-        /// faltam (informação incompleta, como no Primeiro Jogo).
+        /// Uma fileira por unidade viva na barra inferior: nome, uma célula por tick da fila e o
+        /// TEXTO do que a unidade acabou de fazer, que acende e vai apagando. As suas unidades
+        /// mostram o tipo de cada ação; as dos outros só quantos ticks faltam (informação incompleta).
         /// </summary>
         public void UpdateTimeline(int tick, List<Unit> units, System.Func<Unit, bool> isMine)
         {
-            if (Root == null) return;
-            if (_timelinePanel == null)
+            if (_ticksBar == null) return;
+            _ticksBar.style.display = DisplayStyle.Flex;
+            if (_ticksRows == null)
             {
-                _timelinePanel = new VisualElement { name = "tick-timeline", pickingMode = PickingMode.Ignore };
-                var st = _timelinePanel.style;
-                st.position = Position.Absolute; st.top = 64; st.right = 12;
-                st.paddingLeft = 8; st.paddingRight = 8; st.paddingTop = 6; st.paddingBottom = 6;
-                st.backgroundColor = new Color(0.08f, 0.09f, 0.13f, 0.82f);
-                st.borderTopLeftRadius = st.borderTopRightRadius = st.borderBottomLeftRadius = st.borderBottomRightRadius = 6;
-                st.borderTopWidth = st.borderBottomWidth = st.borderLeftWidth = st.borderRightWidth = 1;
-                var bc = new Color(0.25f, 0.32f, 0.52f);
-                st.borderTopColor = st.borderBottomColor = st.borderLeftColor = st.borderRightColor = bc;
-                Root.Add(_timelinePanel);
+                _ticksRows = new VisualElement { name = "ticks-rows", pickingMode = PickingMode.Ignore };
+                _ticksRows.style.marginTop = 4;
+                _ticksRowsHeader = new Label { pickingMode = PickingMode.Ignore };
+                _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.74f, 0.85f, 1f);
+                _ticksRowsHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
+                _ticksRowsHeader.style.unityTextAlign = TextAnchor.MiddleCenter;
+                _ticksRowsHeader.style.marginBottom = 3;
+                _ticksBar.Add(_ticksRowsHeader);
+                _ticksBar.Add(_ticksRows);
+                _ticksBar.schedule.Execute(FadeRowFlashes).Every(120);
             }
-            _timelinePanel.Clear();
-
-            var head = new Label($"TICK {tick}") { pickingMode = PickingMode.Ignore };
-            head.style.color = new Color(0.67f, 0.83f, 1f);
-            head.style.unityFontStyleAndWeight = FontStyle.Bold; head.style.fontSize = 12;
-            head.style.marginBottom = 4;
-            _timelinePanel.Add(head);
+            _ticksRowsHeader.text = $"TICK {tick}";
+            _ticksRows.Clear();
+            _rowRefs.Clear();
+            int maxCells = Mathf.Max(1, Tuning.Get().maxQueueTicks);
 
             foreach (var u in units)
             {
@@ -568,42 +583,83 @@ namespace PangeaSkirmish
                 bool mine = isMine != null && isMine(u);
 
                 var row = new VisualElement { pickingMode = PickingMode.Ignore };
-                row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Center;
-                row.style.marginBottom = 3;
+                var rs = row.style;
+                rs.flexDirection = FlexDirection.Row; rs.alignItems = Align.Center;
+                rs.marginBottom = 2; rs.paddingLeft = 4; rs.paddingRight = 4; rs.paddingTop = 2; rs.paddingBottom = 2;
+                rs.borderTopLeftRadius = rs.borderTopRightRadius = rs.borderBottomLeftRadius = rs.borderBottomRightRadius = 4;
 
                 var name = new Label(u.unitName) { pickingMode = PickingMode.Ignore };
-                name.style.width = 74; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
-                name.style.color = u.IsBusy ? new Color(0.78f, 0.80f, 0.86f) : new Color(0.50f, 0.90f, 0.58f);
+                name.style.width = 84; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
+                name.style.color = u.IsBusy ? new Color(0.80f, 0.82f, 0.88f) : new Color(0.52f, 0.90f, 0.60f);
                 name.style.unityFontStyleAndWeight = mine ? FontStyle.Bold : FontStyle.Normal;
                 row.Add(name);
 
-                if (!u.IsBusy)
+                var cells = new VisualElement { pickingMode = PickingMode.Ignore };
+                cells.style.flexDirection = FlexDirection.Row; cells.style.width = maxCells * 22 + 4;
+                int used = 0;
+                if (u.IsBusy)
                 {
-                    var free = new Label("decide agora") { pickingMode = PickingMode.Ignore };
-                    free.style.fontSize = 10; free.style.color = new Color(0.50f, 0.90f, 0.58f);
-                    row.Add(free);
-                }
-                else
-                {
+                    bool first = true;
                     foreach (var q in u.queue)
                     {
-                        for (int i = 0; i < q.Remaining; i++)
+                        for (int i = 0; i < q.Remaining && used < maxCells; i++, used++)
                         {
                             var cell = new Label(i == 0 && mine ? ActionLetter(q.Type) : "") { pickingMode = PickingMode.Ignore };
                             var cs = cell.style;
-                            cs.width = 20; cs.height = 15; cs.marginRight = 2;
+                            cs.width = 20; cs.height = 16; cs.marginRight = 2;
                             cs.unityTextAlign = TextAnchor.MiddleCenter; cs.fontSize = 10;
-                            cs.color = new Color(0.07f, 0.08f, 0.11f);
-                            cs.unityFontStyleAndWeight = FontStyle.Bold;
+                            cs.color = new Color(0.07f, 0.08f, 0.11f); cs.unityFontStyleAndWeight = FontStyle.Bold;
                             cs.backgroundColor = mine ? ActionColor(q.Type) : TlWait;
                             cs.borderTopLeftRadius = cs.borderBottomLeftRadius = i == 0 ? 3 : 0;
                             cs.borderTopRightRadius = cs.borderBottomRightRadius = i == q.Remaining - 1 ? 3 : 0;
-                            row.Add(cell);
+                            if (first && i == 0)  // a ação em andamento: contorno claro
+                            {
+                                cs.borderTopWidth = cs.borderBottomWidth = cs.borderLeftWidth = cs.borderRightWidth = 1;
+                                var hc = new Color(1f, 0.95f, 0.7f);
+                                cs.borderTopColor = cs.borderBottomColor = cs.borderLeftColor = cs.borderRightColor = hc;
+                            }
+                            cells.Add(cell);
                         }
+                        first = false;
                     }
                 }
-                _timelinePanel.Add(row);
+                row.Add(cells);
+
+                var evt = new Label("") { pickingMode = PickingMode.Ignore };
+                evt.style.flexGrow = 1; evt.style.fontSize = 11; evt.style.overflow = Overflow.Hidden;
+                evt.style.whiteSpace = WhiteSpace.NoWrap; evt.style.marginLeft = 6;
+                if (!u.IsBusy) evt.text = "decide agora";
+                row.Add(evt);
+
+                _ticksRows.Add(row);
+                _rowRefs[u] = new RowRef { row = row, evt = evt };
+                ApplyRowEvent(u);
             }
+        }
+
+        /// <summary>Texto do que a unidade fez (acende a fileira e vai apagando).</summary>
+        public void SetRowEvent(Unit u, string richText)
+        {
+            if (u == null) return;
+            string clean = RichTag.Replace(richText ?? "", "").Trim();
+            if (clean.Length == 0) return;
+            _rowEvents[u] = (clean, Time.unscaledTime);
+            ApplyRowEvent(u);
+        }
+
+        private void ApplyRowEvent(Unit u)
+        {
+            if (!_rowRefs.TryGetValue(u, out var r) || !_rowEvents.TryGetValue(u, out var e)) return;
+            float age = Time.unscaledTime - e.time;
+            float k = Mathf.Clamp01(1f - age / RowFlashSeconds);   // 1 = acabou de acontecer
+            r.evt.text = e.text;
+            r.evt.style.color = Color.Lerp(new Color(0.62f, 0.66f, 0.76f), new Color(1f, 0.93f, 0.62f), k);
+            r.row.style.backgroundColor = new Color(0.95f, 0.78f, 0.35f, 0.20f * k);
+        }
+
+        private void FadeRowFlashes()
+        {
+            foreach (var kv in _rowRefs) ApplyRowEvent(kv.Key);
         }
 
         private static string ActionLetter(ActionType t) =>
