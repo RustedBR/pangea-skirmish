@@ -205,6 +205,8 @@ namespace PangeaSkirmish
         public int    range  = 1;  // alcance (tiles)
         [Tooltip("Peso da arma em ticks base do ataque: 1 leve, 2 média, 3 pesada. A DEX encurta.")]
         public int    attackTicks = 2;
+        [Tooltip("Dureza: quanto dano FIXO o Bloquear absorve com esta arma/escudo (PF2e: Shield Block).")]
+        public int    blockHardness = 2;
 
         [Header("Magia (conduíte)")]
         public SpellElement elementAffinity = SpellElement.None;
@@ -296,7 +298,7 @@ namespace PangeaSkirmish
     public enum AttackMode { Auto, Unit, Tile }
 
     /// <summary>Reações do rework de Ações Bônus. Disparadas por trigger na fase de ação.</summary>
-    public enum ReactionKind { None, CounterAttack, Dodge, Block }
+    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step }
 
     /// <summary>Ataque planejado pelo jogador (ou IA) com alvo específico ou posição.</summary>
     public struct PlannedAttack

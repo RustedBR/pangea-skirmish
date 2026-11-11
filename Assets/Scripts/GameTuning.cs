@@ -96,16 +96,16 @@ namespace PangeaSkirmish
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2, attackTicks=1 },
-            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2, attackTicks=3 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2, attackTicks=2 },
-            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2, attackTicks=2 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3, attackTicks=2 },
-            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3, attackTicks=2 },
-            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3, attackTicks=1 },
-            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5, attackTicks=3 },
-            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3, attackTicks=1 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5, attackTicks=2 },
+            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2, attackTicks=1, blockHardness=2 },
+            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2, attackTicks=3, blockHardness=2 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2, attackTicks=2, blockHardness=3 },
+            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2, attackTicks=2, blockHardness=3 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3, attackTicks=2, blockHardness=2 },
+            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3, attackTicks=2, blockHardness=2 },
+            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3, attackTicks=1, blockHardness=0 },
+            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5, attackTicks=3, blockHardness=0 },
+            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3, attackTicks=1, blockHardness=1 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5, attackTicks=2, blockHardness=2 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]
@@ -616,9 +616,11 @@ namespace PangeaSkirmish
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
         public float reactionChoiceTime   = 3f;
         [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
-        public float dodgeReactionPerAGI  = 0.04f;
+        public float dodgeReactionPerAGI  = 0.09f;
         [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
-        public float blockReductionPerVIT = 0.04f;
+        public float blockReductionPerVIT = 0.04f;   // legado (percentual): o Bloquear agora é FIXO
+        [Tooltip("Bloquear: redução fixa = VIT × este valor + dureza da arma (GDD-017).")]
+        public float blockFlatPerVIT = 0.25f;
         [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]

@@ -1175,12 +1175,27 @@ namespace PangeaSkirmish
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxCritical, AttackAimPos(u, atk));
 
                 // ── Reação rápida sim/não (alvo sob ataque) ──
+                // Interceptar: um aliado adjacente recebe o golpe no lugar de um alvo em risco.
+                var atkEff = atk;
+                if (attackTarget != null)
+                {
+                    var guard = FindInterceptor(attackTarget, u);
+                    if (guard != null)
+                    {
+                        guard.ConsumeReaction();
+                        guard.DelayQueue(Tuning.Get().reactionTickCost);
+                        _hud.LogAction($"<color=#ffd700>🛡</color> {guard.unitName}: Interceptou o golpe em {attackTarget.unitName}!", guard);
+                        atkEff.TargetUnit = guard; atkEff.Mode = AttackMode.Unit;
+                        attackTarget = guard;
+                    }
+                }
+                _reactionAttacker = u;
                 if (attackTarget != null && attackTarget.CanReact())
                     yield return WaitReaction(attackTarget,
-                        new List<ReactionKind> { PreferredDefense(attackTarget) }, null);
+                        new List<ReactionKind> { PickDefense(attackTarget, u) }, u);
 
-                string log = AttackResolver.ResolveAttack(u, atk, _units);
-                if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockReduction = 0f; }
+                string log = AttackResolver.ResolveAttack(u, atkEff, _units);
+                if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockFlat = 0; }
                 if (atk.TargetUnit != null) u.enteredReach.Remove(atk.TargetUnit); // engajou: sair depois não dá AoO
                 if (log != null)
                 {
@@ -1213,8 +1228,13 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Defesa preferida da unidade (postura por atributo): AGI ≥ VIT → Esquiva; senão Bloqueio.</summary>
-        private static ReactionKind PreferredDefense(Unit u) =>
-            u.stats.AGI >= u.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
+        private ReactionKind PickDefense(Unit u, Unit attacker)
+        {
+            // AGI muito acima da VIT e há tile para sair do alcance: Passo reativo; senão a postura por atributo.
+            if (u.stats.AGI >= u.stats.VIT + 4f && FindStepTile(u, attacker).HasValue) return ReactionKind.Step;
+            return u.stats.AGI >= u.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
+        }
+        private Unit _reactionAttacker;
 
         /// <summary>Prevê se o ataque vai causar dano (há alvo válido dentro do alcance).</summary>
         private bool WillAttackHit(Unit u, PlannedAttack atk)
@@ -1358,6 +1378,57 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>
+        /// <summary>Bloquear (PF2e Shield Block): redução FIXA = VIT × fator + dureza da arma.</summary>
+        public static int BlockAmount(Unit u)
+        {
+            var w = WeaponCatalog.Get(u.weaponId);
+            return Mathf.Max(1, Mathf.RoundToInt(u.stats.VIT * Tuning.Get().blockFlatPerVIT) + (w != null ? w.blockHardness : 0));
+        }
+
+        /// <summary>
+        /// Passo reativo: até 2 tiles para longe do atacante, parando fora do alcance dele. Sem
+        /// golpe reativo. Null se nenhum tile livre tira o alvo do alcance. Determinístico.
+        /// </summary>
+        private Vector2Int? FindStepTile(Unit u, Unit attacker)
+        {
+            if (u == null || attacker == null || _grid == null) return null;
+            int fp = u.stats.Footprint;
+            var blockers = new List<Unit>();
+            foreach (var o in _units) if (o != u && !o.IsDead) blockers.Add(o);
+            Vector2Int? best = null; int bestGap = GridManager.FootprintGap(u.anchor, fp, attacker.anchor, attacker.stats.Footprint);
+            foreach (var a in _grid.GetReachableAnchors(u.anchor, 2, fp, blockers))
+            {
+                int g = GridManager.FootprintGap(a, fp, attacker.anchor, attacker.stats.Footprint);
+                if (g <= attacker.stats.AttackRange) continue;           // precisa sair do alcance
+                if (g > bestGap || (g == bestGap && best.HasValue && (a.x < best.Value.x || (a.x == best.Value.x && a.y < best.Value.y))))
+                { bestGap = g; best = a; }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Instinto e
+        /// mais vida que ele, recebe o golpe no lugar quando o alvo estaria em risco (golpe fatal
+        /// ou vida abaixo de 40%). Escolhe o de mais vida; empate pelo menor id.
+        /// </summary>
+        private Unit FindInterceptor(Unit target, Unit attacker)
+        {
+            if (target == null || attacker == null) return null;
+            int expected = attacker.stats.PhysicalDamage;
+            bool atRisk = target.currentHP <= expected || target.currentHP < target.stats.MaxHP * 0.4f;
+            if (!atRisk) return null;
+            Unit best = null; uint bestId = uint.MaxValue;
+            foreach (var a in _units)
+            {
+                if (a == target || a == attacker || a.IsDead || a.IsHostileTo(target) || !a.CanReact()) continue;
+                if (a.currentHP <= target.currentHP) continue;
+                if (GridManager.FootprintGap(a.anchor, a.stats.Footprint, target.anchor, target.stats.Footprint) > 1) continue;
+                uint id = UnitRegistry.GetId(a);
+                if (best == null || a.currentHP > best.currentHP || (a.currentHP == best.currentHP && id < bestId)) { best = a; bestId = id; }
+            }
+            return best;
+        }
+
         private ReactionKind AutoPickReaction(Unit reactor, List<ReactionKind> options)
         {
             // AoO sempre prioritário se disponível
@@ -1394,11 +1465,20 @@ namespace PangeaSkirmish
                         Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
                     break;
                 case ReactionKind.Block:
-                    reactor.blockReduction = Mathf.Min(T.maxBlockReduction,
-                        reactor.stats.VIT * T.blockReductionPerVIT);
-                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (-" +
-                        Mathf.RoundToInt(reactor.blockReduction * 100) + "% dano)", reactor);
+                    reactor.blockFlat = BlockAmount(reactor);
+                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
                     break;
+                case ReactionKind.Step:
+                    {
+                        var dest = FindStepTile(reactor, triggerTarget);
+                        if (dest.HasValue)
+                        {
+                            var from = reactor.anchor;
+                            reactor.anchor = dest.Value; reactor.plannedAnchor = dest.Value; reactor.SnapToAnchor();
+                            _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Passo reativo! saiu do alcance", reactor);
+                        }
+                        break;
+                    }
             }
         }
 
@@ -1409,7 +1489,7 @@ namespace PangeaSkirmish
             if (reactor == null) return;
             _pendingReactionChoice = (ReactionKind)kind;
             _reactionResolved = true;
-            ApplyReaction(reactor, (ReactionKind)kind, null);
+            ApplyReaction(reactor, (ReactionKind)kind, _reactionAttacker);
         }
 
         /// <summary>

@@ -59,6 +59,7 @@ MonoBehaviour:
     damage: 10
     range: 1
     attackTicks: 1
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 1
@@ -67,6 +68,7 @@ MonoBehaviour:
     damage: 8
     range: 2
     attackTicks: 3
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6
@@ -75,6 +77,7 @@ MonoBehaviour:
     damage: 6
     range: 3
     attackTicks: 2
+    blockHardness: 3
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
@@ -83,6 +86,7 @@ MonoBehaviour:
     damage: 4
     range: 4
     attackTicks: 2
+    blockHardness: 3
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
@@ -91,6 +95,7 @@ MonoBehaviour:
     damage: 3
     range: 7
     attackTicks: 2
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 2
@@ -99,6 +104,7 @@ MonoBehaviour:
     damage: 3
     range: 6
     attackTicks: 2
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
@@ -107,6 +113,7 @@ MonoBehaviour:
     damage: 2
     range: 8
     attackTicks: 1
+    blockHardness: 0
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
@@ -115,6 +122,7 @@ MonoBehaviour:
     damage: 1
     range: 10
     attackTicks: 3
+    blockHardness: 0
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
@@ -123,6 +131,7 @@ MonoBehaviour:
     damage: 2
     range: 5
     attackTicks: 1
+    blockHardness: 1
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
@@ -131,6 +140,7 @@ MonoBehaviour:
     damage: 3
     range: 7
     attackTicks: 2
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6
@@ -399,7 +409,8 @@ MonoBehaviour:
   worldBarPillRect: {x: 68, y: 68, z: 38, w: 8}
   worldBarPillBorder: {x: 8, y: 3, z: 8, w: 3}
   reactionChoiceTime: 3
-  dodgeReactionPerAGI: 0.03
+  dodgeReactionPerAGI: 0.09
   blockReductionPerVIT: 0.02
+  blockFlatPerVIT: 0.25
   maxBlockReduction: 0.6
   aooDamageMult: 1

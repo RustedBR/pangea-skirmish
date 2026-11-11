@@ -156,7 +156,7 @@ namespace PangeaSkirmish
         /// <summary>Bônus de dodge temporário desta reação (somado ao DodgeChance no RollHit).</summary>
         public float dodgeReactBonus;
         /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
-        public float blockReduction;
+        public int blockFlat;
 
         public bool CanReact() => currentInstinct >= Tuning.Get().instinctReaction && remainingReactions > 0;
         public void ConsumeReaction()
@@ -1012,7 +1012,7 @@ namespace PangeaSkirmish
             remainingAP  = Tuning.Get().maxQueueTicks;
             remainingBAP = currentInstinct;
             dodgeReactBonus = 0f;
-            blockReduction  = 0f;
+            blockFlat       = 0;
         }
 
         public void RebuildSequenceFromLists()

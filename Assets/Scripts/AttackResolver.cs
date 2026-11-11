@@ -64,10 +64,10 @@ namespace PangeaSkirmish
             else
                 rolled = Mathf.RoundToInt(rolled * Tuning.Get().aooDamageMult);
             // Bloqueio (reação do alvo): reduz dano recebido
-            if (target.blockReduction > 0f)
-                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
+                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
             target.TakeDamage(rolled, res == HitResult.Critical);
-            target.dodgeReactBonus = 0f; target.blockReduction = 0f; // reação é de 1 uso
+            target.dodgeReactBonus = 0f; target.blockFlat = 0; // reação é de 1 uso
             ConsumeStrBuffOnHit(attacker);
 
             string deathTag = "<color=#ff6666>MORTO</color>";
@@ -130,8 +130,8 @@ namespace PangeaSkirmish
             if (res == HitResult.Critical)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             // Bloqueio (reação): reduz dano recebido
-            if (target.blockReduction > 0f)
-                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
+                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
             target.TakeDamage(rolled, res == HitResult.Critical);
             ConsumeStrBuffOnHit(attacker);
 
@@ -196,8 +196,8 @@ namespace PangeaSkirmish
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             bool crit = attacker.stats.RollCritLast;
             // Bloqueio (reação): reduz dano recebido (ataques de Tile também)
-            if (target.blockReduction > 0f)
-                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
+                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
             target.TakeDamage(rolled, crit);
             ConsumeStrBuffOnHit(attacker);
 

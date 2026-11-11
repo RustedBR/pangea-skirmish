@@ -1222,6 +1222,7 @@ namespace PangeaSkirmish
         {
             ReactionKind.CounterAttack => "⚔ Contra-ataque",
             ReactionKind.Dodge         => "↯ Esquiva",
+            ReactionKind.Step          => "↯ Passo reativo",
             ReactionKind.Block         => "🛡 Bloqueio",
             _ => "?"
         };
