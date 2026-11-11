@@ -223,3 +223,10 @@ Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase n
 **Resultado na simulação:** os quatro arquétipos principais ficam entre 45% e 57%, o Ágil extremo (AGI 14) cai para 16% e a duração média da luta sobe para ~11 ticks. O Instinto cai de 10 para 5 no mesmo build, ou seja, cerca de 4 buffs ou reações por luta.
 
 **Limites da simulação:** não considera andar, alcance, fuga nem intenções. AGI e DEX valem mais no jogo real do que ali, então vale reavaliar depois de jogar.
+
+### 13.1 Correção (2026-11-11): AGI acima de 6 e simulador
+
+- **AGI acima de 6 não é mais limitada.** A andada mantém o teto de 6 tiles, e o excedente vira **fôlego**: a cada 3 pontos de AGI acima de 6, o Instinto volta 1 tick mais cedo (AGI 6 = a cada 3 ticks, AGI 9 = a cada 2, AGI 12 = a cada tick). A esquiva continua crescendo.
+- **Erro no simulador:** a regeneração de Instinto estava sob um `if` extra e rendia metade do que dizia, então os números da seção 13 foram calibrados com Instinto mais escasso que o jogo. Corrigido em `scripts/balance_sim.py` e a busca foi refeita.
+- **Valores finais** (substituem a tabela da seção 13 onde diferem): dano de STR **4** por ponto (era 2,5), bloqueio **4%** por ponto de VIT, reação de esquiva **4%** por ponto de AGI. Vida 20 + 4·VIT, esquiva 5%/AGI, golpe poderoso +4 e Instinto 1 + 0,25·(STR+VIT) não mudam.
+- **Simulação (corrigida):** os cinco arquétipos principais, incluindo um Ágil com AGI 12, ficam entre 44% e 56%; os extremos (14/3/3, 3/14/3, 3/3/14) entre 41% e 43%. Lutas de cerca de 8,6 ticks.

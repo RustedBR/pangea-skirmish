@@ -816,9 +816,8 @@ namespace PangeaSkirmish
         {
             _globalTick++;
             // Instinto volta aos poucos (GDD-016 §3).
-            int regenEvery = Mathf.Max(1, Tuning.Get().instinctRegenTicks);
-            if (_globalTick % regenEvery == 0)
-                foreach (var u in _units) if (!u.IsDead) u.GainInstinct(1);
+            foreach (var u in _units)
+                if (!u.IsDead && _globalTick % u.stats.InstinctRegenTicks == 0) u.GainInstinct(1);
             int per = Mathf.Max(1, Tuning.Get().ticksPerRound);
             if (_globalTick % per != 0) yield break;
             foreach (var u in _units)

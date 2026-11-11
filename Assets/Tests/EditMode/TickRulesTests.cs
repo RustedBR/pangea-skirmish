@@ -170,18 +170,22 @@ public class TickRulesTests
     }
 
     [Test]
-    public void Agi_IsCappedWhenBuildingStats()
+    public void Agi_AboveSix_KeepsWalkCapButSpeedsInstinctRegen()
     {
-        var block = new UnitStatBlock { AGI = 14f };
-        Assert.AreEqual(CharacterConfig.AgiMax, block.ToAttributeStats().AGI, "AGI acima do teto não rende");
-        Assert.AreEqual(6, CharacterConfig.AgiMax);
+        _u.stats.AGI = 6f;
+        Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "com AGI 6 a andada já está no teto");
+        int regen6 = _u.stats.InstinctRegenTicks;
+        _u.stats.AGI = 12f;
+        Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "o teto de andada continua");
+        Assert.Less(_u.stats.InstinctRegenTicks, regen6, "AGI acima de 6 acelera o Instinto");
+        Assert.AreEqual(1, _u.stats.InstinctRegenTicks, "AGI 12: 1 ponto por tick");
     }
 
     [Test]
-    public void Agi6_AlreadyReachesMaxWalk()
+    public void Agi_IsNotCappedAtSixWhenBuildingStats()
     {
-        _u.stats.AGI = CharacterConfig.AgiMax;
-        Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "com AGI 6 a andada já está no máximo");
+        var block = new UnitStatBlock { AGI = 14f };
+        Assert.AreEqual(14f, block.ToAttributeStats().AGI);
     }
 
     [Test]

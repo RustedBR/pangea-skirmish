@@ -72,7 +72,6 @@ namespace PangeaSkirmish
 
         public AttributeStats ToAttributeStats() => new AttributeStats
         {
-            // AGI limitada ao teto (personagens antigos podem trazer mais): acima dele não rende nada.
             STR = STR, VIT = VIT, DEX = DEX, AGI = Mathf.Min(AGI, CharacterConfig.AgiMax), INT = INT, WIS = WIS,
             Footprint = Footprint, AttackRange = AttackRange,
         };
@@ -115,6 +114,20 @@ namespace PangeaSkirmish
                 var T = Tuning.Get();
                 int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
                 return Mathf.Clamp(tiles, 1, Mathf.Max(1, T.maxTilesPerMove));
+            }
+        }
+
+        /// <summary>
+        /// Ticks entre cada ponto de Instinto regenerado. A AGI acima de agiRegenFrom acelera:
+        /// a andada já está no teto, então o excedente vira fôlego (GDD-016 §13).
+        /// </summary>
+        public int InstinctRegenTicks
+        {
+            get
+            {
+                var T = Tuning.Get();
+                int bonus = Mathf.Max(0, Mathf.FloorToInt(AGI) - T.agiRegenFrom) / Mathf.Max(1, T.agiRegenStep);
+                return Mathf.Max(1, T.instinctRegenTicks - bonus);
             }
         }
 
