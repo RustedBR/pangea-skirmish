@@ -56,6 +56,18 @@ namespace PangeaSkirmish
         // ── Modo Intenção (GDD-016 §6) ──
         private enum ArmedIntent { None, Charge, HitAndRun, Retreat }
         private ArmedIntent _armed = ArmedIntent.None;
+        // ── Modo Livre: cada clique ACRESCENTA um passo (GDD-016 §6) ──
+        private bool _freeMode;
+        private int _retargetIdx = -1;      // índice (na sequência) do bloco de andar cujo destino será trocado
+        private float _lastEnemyClickTime; private Unit _lastEnemyClicked;
+        public bool FreeMode => _freeMode;
+
+        public void SetFreeMode(bool on)
+        {
+            _freeMode = on; _retargetIdx = -1; _armed = ArmedIntent.None;
+            _hud.SetFreeModeLabel(on);
+            ShowIntentHint();
+        }
         private Unit _previewUnit;            // alvo da prévia atual (segundo clique nele confirma)
         private Vector2Int? _previewCell;     // idem, para clique no chão
         /// <summary>Pedido de confirmação do plano (Enter, Espaço ou segundo clique no mesmo alvo).</summary>
@@ -99,11 +111,9 @@ namespace PangeaSkirmish
             _hud.BindUndo(OnUndoClick);
             _hud.BindClear(OnClearClick);
             _hud.OnSeqChipToggled = OnSeqChipToggled;
-            _hud.OnIncrementPick = (idx, kind) =>
-            {
-                _hud.SelectSeqIndex(idx);
-                if (kind == 0) OnPowerStrikeClick(); else OnAimClick();
-            };
+            _hud.OnIncrementPick = OnBlockAction;
+            _hud.OnFreeModeToggled = () => SetFreeMode(!_freeMode);
+            _hud.SetFreeModeLabel(_freeMode);
             // Painel de INTENÇÕES (reformulação): botões 1-3 armam como as teclas 1/2/3.
             _hud.OnIntentSelected = slot =>
             {
@@ -854,8 +864,12 @@ namespace PangeaSkirmish
         {
             // Banda própria no topo (reformulação): a dica de intenção NÃO usa mais o
             // prompt de canto, que cobria o botão Confirmar (bug antigo de confirmação).
-            _hud.ShowIntentBand($"⚡ INTENÇÃO: <b>{IntentName(_armed)}</b>",
-                                "clique no inimigo p/ montar a fila  •  Enter/2º clique confirma");
+            if (_freeMode)
+                _hud.ShowIntentBand("✎ MODO LIVRE",
+                                    "clique no chão = andar  •  no inimigo = atacar (2x = até acabar o tempo)  •  clique num bloco p/ editar  •  Backspace desfaz  •  Tab volta às intenções");
+            else
+                _hud.ShowIntentBand($"⚡ INTENÇÃO: <b>{IntentName(_armed)}</b>",
+                                    "clique no inimigo p/ montar a fila  •  Tab = modo livre  •  Enter/2º clique confirma");
             _hud.SetIntentArmed(IntentSlot(_armed));
         }
         private static int IntentSlot(ArmedIntent i) => i switch
@@ -886,6 +900,8 @@ namespace PangeaSkirmish
             var kb = Keyboard.current;
             if (kb != null)
             {
+                if (kb.tabKey.wasPressedThisFrame) { SetFreeMode(!_freeMode); return true; }
+                if (kb.backspaceKey.wasPressedThisFrame && _controlled.actionSequence.Count > 0) { OnUndoClick(); return true; }
                 if (kb.digit1Key.wasPressedThisFrame) { Arm(ArmedIntent.Charge); return true; }
                 if (kb.digit2Key.wasPressedThisFrame) { Arm(ArmedIntent.HitAndRun); return true; }
                 if (kb.digit3Key.wasPressedThisFrame)
@@ -907,6 +923,7 @@ namespace PangeaSkirmish
             bool ctrl  = kb != null && kb.ctrlKey.isPressed;
 
             var unit = HitUnitWithCollider();
+            if (_freeMode) return FreeClick(unit, shift, ctrl);
             if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
             {
                 // Segundo clique no mesmo alvo confirma a prévia.
@@ -936,6 +953,155 @@ namespace PangeaSkirmish
                 return true;
             }
             return false;
+        }
+
+        // ------------------------------------------------------------------ MODO LIVRE
+
+        private bool FreeClick(Unit unit, bool shift, bool ctrl)
+        {
+            if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
+            {
+                bool dbl = _lastEnemyClicked == unit && Time.unscaledTime - _lastEnemyClickTime < 0.4f;
+                _lastEnemyClicked = unit; _lastEnemyClickTime = Time.unscaledTime;
+                FreeAppendAttack(unit, fill: dbl && !shift);
+                return true;
+            }
+            var cell = HitAnchor();
+            if (!cell.HasValue || !_grid.IsAnchorInBounds(cell.Value, _controlled.stats.Footprint)) return false;
+            if (unit != null && unit != _controlled) return false;
+            if (_retargetIdx >= 0) { RetargetMove(_retargetIdx, cell.Value); return true; }
+            FreeAppendMove(cell.Value);
+            return true;
+        }
+
+        private bool CanReachFrom(Vector2Int from, Vector2Int to)
+        {
+            var reach = _grid.GetReachableAnchors(from, _controlled.stats.MoveStep, _controlled.stats.Footprint, BlockerUnits(_controlled));
+            return to == from || reach.Contains(to);
+        }
+
+        private void FreeAppendMove(Vector2Int c)
+        {
+            if (!_controlled.CanFit(ActionType.Move)) { _hud.ShowPlanNote("Sem tick livre para andar"); return; }
+            var from = _controlled.plannedAnchor;
+            if (c == from) return;
+            if (!CanReachFrom(from, c))
+            {
+                _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.stats.MoveStep} tiles");
+                return;
+            }
+            _controlled.plannedPath.Add(c);
+            _controlled.plannedAnchor = c;
+            _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = _controlled.plannedMoveCount });
+            _controlled.plannedMoveCount++;
+            _previewUnit = null; _previewCell = c;
+            RebuildPlanVisuals();
+        }
+
+        private void FreeAppendAttack(Unit target, bool fill)
+        {
+            int added = 0;
+            while (_controlled.CanFit(ActionType.Attack))
+            {
+                _controlled.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = target, TargetTile = target.anchor });
+                _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = _controlled.plannedAttacks.Count - 1 });
+                _controlled.RecomputeTickBudget();
+                added++;
+                if (!fill) break;
+            }
+            if (added == 0) { _hud.ShowPlanNote("Sem tick livre para atacar"); return; }
+            int gap = GridManager.FootprintGap(_controlled.plannedAnchor, _controlled.stats.Footprint, target.anchor, target.stats.Footprint);
+            if (gap > _controlled.stats.AttackRange)
+                _hud.ShowPlanNote("Atenção: daquela posição o alvo está fora de alcance — ande antes");
+            _previewUnit = target; _previewCell = null;
+            RebuildPlanVisuals();
+        }
+
+        private void RecomputePlannedAnchor()
+        {
+            var pos = _controlled.anchor;
+            foreach (var a in _controlled.actionSequence)
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) pos = _controlled.plannedPath[a.Index];
+            _controlled.plannedAnchor = pos;
+        }
+
+        private Vector2Int PositionBefore(int seqIdx)
+        {
+            var pos = _controlled.anchor;
+            for (int i = 0; i < seqIdx && i < _controlled.actionSequence.Count; i++)
+            {
+                var a = _controlled.actionSequence[i];
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) pos = _controlled.plannedPath[a.Index];
+            }
+            return pos;
+        }
+
+        private void RetargetMove(int seqIdx, Vector2Int c)
+        {
+            _retargetIdx = -1;
+            if (seqIdx < 0 || seqIdx >= _controlled.actionSequence.Count) return;
+            var a = _controlled.actionSequence[seqIdx];
+            if (a.Type != ActionType.Move || a.Index >= _controlled.plannedPath.Count) return;
+            if (!CanReachFrom(PositionBefore(seqIdx), c))
+            { _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.stats.MoveStep} tiles"); ShowIntentHint(); return; }
+            _controlled.plannedPath[a.Index] = c;
+            RecomputePlannedAnchor();
+            ShowIntentHint();
+            RebuildPlanVisuals();
+        }
+
+        private void RemoveAction(int seqIdx)
+        {
+            if (seqIdx < 0 || seqIdx >= _controlled.actionSequence.Count) return;
+            var a = _controlled.actionSequence[seqIdx];
+            _controlled.actionSequence.RemoveAt(seqIdx);
+            if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count)
+            {
+                _controlled.plannedPath.RemoveAt(a.Index); _controlled.plannedMoveCount--;
+                for (int i = 0; i < _controlled.actionSequence.Count; i++)
+                    if (_controlled.actionSequence[i].Type == ActionType.Move && _controlled.actionSequence[i].Index > a.Index)
+                    { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
+                _controlled.hasPlannedBonus = false;
+            }
+            else if (a.Type == ActionType.Attack && a.Index < _controlled.plannedAttacks.Count)
+            {
+                _controlled.plannedAttacks.RemoveAt(a.Index);
+                for (int i = 0; i < _controlled.actionSequence.Count; i++)
+                    if (_controlled.actionSequence[i].Type == ActionType.Attack && _controlled.actionSequence[i].Index > a.Index)
+                    { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
+            }
+            else if (a.Type == ActionType.Concentrate && _controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
+            RecomputePlannedAnchor();
+            _hud.SelectSeqIndex(-1);
+            RebuildPlanVisuals();
+        }
+
+        private void SwapAction(int i, int j)
+        {
+            if (i < 0 || j < 0 || i >= _controlled.actionSequence.Count || j >= _controlled.actionSequence.Count) return;
+            var t = _controlled.actionSequence[i];
+            _controlled.actionSequence[i] = _controlled.actionSequence[j];
+            _controlled.actionSequence[j] = t;
+            RecomputePlannedAnchor();
+            RebuildPlanVisuals();
+        }
+
+        /// <summary>Ações do menu de um bloco do plano (códigos em BattleHUD.BlockKind).</summary>
+        private void OnBlockAction(int idx, int kind)
+        {
+            if (!_active || _controlled == null || idx < 0 || idx >= _controlled.actionSequence.Count) return;
+            switch (kind)
+            {
+                case 0: _hud.SelectSeqIndex(idx); OnPowerStrikeClick(); break;
+                case 1: _hud.SelectSeqIndex(idx); OnAimClick(); break;
+                case 10: SwapAction(idx, idx - 1); break;
+                case 11: SwapAction(idx, idx + 1); break;
+                case 12: RemoveAction(idx); break;
+                case 13:
+                    _retargetIdx = idx;
+                    _hud.ShowPlanNote("Clique no tile do novo destino (Esc cancela)");
+                    break;
+            }
         }
 
         /// <summary>Roda o montador, guarda o alvo da prévia e redesenha fantasmas, marcas e barra de ticks.</summary>
@@ -1048,7 +1214,9 @@ namespace PangeaSkirmish
         {
             if (!_active || Mouse.current == null) return;
 
-            // ESC: voltar no menu cascata (quando não está em nenhum modo de picking)
+            // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)
+            if (_retargetIdx >= 0 && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            { _retargetIdx = -1; ShowIntentHint(); return; }
             if (_mode == PlanMode.Idle && Keyboard.current != null
                 && Keyboard.current.escapeKey.wasPressedThisFrame)
             {

@@ -95,6 +95,22 @@ namespace PangeaSkirmish
 
         /// <summary>Disparado quando o jogador clica numa intenção do painel (slot 0..2).</summary>
         public Action<int> OnIntentSelected;
+        public Action OnFreeModeToggled;
+        private Button _freeBtn;
+
+        public void SetFreeModeLabel(bool on)
+        {
+            if (_freeBtn == null && _intentsPanel != null)
+            {
+                _freeBtn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); OnFreeModeToggled?.Invoke(); });
+                _freeBtn.AddToClassList("bh-intent-btn");
+                _freeBtn.style.marginBottom = 4;
+                _intentsPanel.Insert(Mathf.Min(1, _intentsPanel.childCount), _freeBtn);
+            }
+            if (_freeBtn == null) return;
+            _freeBtn.text = on ? "✎ Modo livre: LIGADO (Tab)" : "✎ Modo livre (Tab)";
+            _freeBtn.EnableInClassList("armed", on);
+        }
         /// <summary>Marca o botão de intenção atualmente armado (slot 0..2, ou -1).</summary>
         public void SetIntentArmed(int slot)
         {
@@ -513,6 +529,52 @@ namespace PangeaSkirmish
             if (_incPopup != null) { _incPopup.RemoveFromHierarchy(); _incPopup = null; }
         }
 
+        /// <summary>Menu de um bloco do plano: editar (destino, ordem, remover) e incrementar.</summary>
+        private void OpenBlockMenu(VisualElement anchor, int idx, ActionType type, bool powerOn, bool aimOn, int count)
+        {
+            CloseIncrementPopup();
+            if (_ticksBar == null) return;
+            var pop = new VisualElement();
+            var ps = pop.style;
+            ps.position = Position.Absolute;
+            ps.backgroundColor = new Color(0.07f, 0.10f, 0.22f, 0.98f);
+            ps.paddingLeft = ps.paddingRight = 8; ps.paddingTop = ps.paddingBottom = 6;
+            ps.borderTopLeftRadius = ps.borderTopRightRadius = ps.borderBottomLeftRadius = ps.borderBottomRightRadius = 6;
+            ps.borderTopWidth = ps.borderBottomWidth = ps.borderLeftWidth = ps.borderRightWidth = 1;
+            var bc = new Color(0.42f, 0.58f, 1f);
+            ps.borderTopColor = ps.borderBottomColor = ps.borderLeftColor = ps.borderRightColor = bc;
+            var head = new Label($"Ação {idx + 1}: {ActionName(type, false)}"); head.style.fontSize = 11;
+            head.style.color = new Color(0.74f, 0.85f, 1f); head.style.unityFontStyleAndWeight = FontStyle.Bold; head.style.marginBottom = 4;
+            pop.Add(head);
+            void Opt(int kind, string text, bool on, bool enabled)
+            {
+                var b = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnIncrementPick?.Invoke(idx, kind); }) { text = text };
+                b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 24;
+                b.style.fontSize = 11; b.style.unityTextAlign = TextAnchor.MiddleLeft;
+                b.style.backgroundColor = on ? new Color(1f, 0.80f, 0.33f) : new Color(0.10f, 0.14f, 0.30f);
+                b.style.color = on ? new Color(0.06f, 0.08f, 0.16f) : new Color(0.93f, 0.95f, 1f);
+                b.SetEnabled(enabled);
+                pop.Add(b);
+            }
+            if (type == ActionType.Attack)
+            {
+                Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().instinctPowerStrike} Instinto, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, true);
+                Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().instinctAim} Instinto)", aimOn, true);
+            }
+            if (type == ActionType.Move) Opt(13, "⌖ Mudar destino", false, true);
+            Opt(10, "◀ Mover para antes", false, idx > 0);
+            Opt(11, "▶ Mover para depois", false, idx < count - 1);
+            Opt(12, "✕ Remover", false, true);
+            var close = new Button(CloseIncrementPopup) { text = "Fechar" };
+            close.style.marginLeft = close.style.marginRight = 0; close.style.height = 22; close.style.fontSize = 10;
+            pop.Add(close);
+            _ticksBar.Add(pop);
+            var ab = anchor.worldBound; var bb = _ticksBar.worldBound;
+            ps.left = Mathf.Max(0f, ab.x - bb.x);
+            ps.bottom = bb.height + 4;
+            _incPopup = pop;
+        }
+
         private void OpenIncrementPopup(VisualElement anchor, string title, bool powerOn, bool aimOn,
                                         bool powerEnabled, bool aimEnabled, Action<int> pick)
         {
@@ -694,19 +756,19 @@ namespace PangeaSkirmish
                         var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus),
                                               $"{idx + 1} {BlockText(planUnit, _planSeq[i], bonus, aimed, tiles)}", true);
                         seg.pickingMode = PickingMode.Position;
-                        if (_planSeq[i] == ActionType.Attack)
                         {
                             bool aimOn = _planSched != null && i < _planSched.Count && _planSched[i].IsAimed;
-                            bool pw = bonus, am = aimOn;
+                            bool pw = bonus, am = aimOn; var tp = _planSeq[i]; int cnt = _planSeq.Count;
                             var segRef = seg;
-                            seg.RegisterCallback<ClickEvent>(_ =>
+                            // PointerDown (não ClickEvent): o bloco é refeito com frequência e o clique completo se perdia.
+                            seg.RegisterCallback<PointerDownEvent>(ev =>
                             {
+                                ev.StopPropagation();
                                 if (_incPopup != null) { CloseIncrementPopup(); return; }
                                 _selectedSeqIndex = idx;
-                                OpenIncrementPopup(segRef, $"Ataque {idx + 1}", pw, am, true, true, k => OnIncrementPick?.Invoke(idx, k));
+                                OpenBlockMenu(segRef, idx, tp, pw, am, cnt);
                             });
                         }
-                        else seg.RegisterCallback<ClickEvent>(_ => OnSeqChipClicked(idx));
                         seg.style.opacity = idx == _selectedSeqIndex ? 1f : 0.82f;
                         track.Add(seg); _seqChips.Add(seg);
                         used += d;
@@ -731,8 +793,9 @@ namespace PangeaSkirmish
                             var segRef = seg; var wu = u;
                             seg.style.borderTopColor = seg.style.borderBottomColor = seg.style.borderLeftColor = seg.style.borderRightColor = new Color(1f, 0.9f, 0.5f);
                             ((Label)seg.ElementAt(0)).text = label + "  ▾";
-                            seg.RegisterCallback<ClickEvent>(_ =>
+                            seg.RegisterCallback<PointerDownEvent>(ev =>
                             {
+                                ev.StopPropagation();
                                 if (_incPopup != null) { CloseIncrementPopup(); return; }
                                 OpenIncrementPopup(segRef, "Incrementar o próximo ataque", wu.queue.Count > 0 && wu.queue[0].IsBonus,
                                     wu.queue.Count > 0 && wu.queue[0].IsAimed, wu.CanIncrementNext(0), wu.CanIncrementNext(1),
