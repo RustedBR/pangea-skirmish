@@ -128,8 +128,7 @@
 
 /* BARRA DE TICKS (GDD-016 §7) — track proporcional ao custo + chips da fila */
 .bh-ticks {
-  position: absolute; bottom: 12px; left: 0; right: 0; width: 780px;
-  margin-left: auto; margin-right: auto;
+  position: absolute; bottom: 12px; left: 50%; width: 780px; translate: -50% 0;
   flex-direction: column; align-items: stretch; display: none; padding: 6px 8px;
 }
 .bh-ticks-label { font-size: 11px; color: rgb(189, 217, 255); -unity-font-style: bold; -unity-text-align: middle-center; margin-bottom: 4px; }
@@ -169,10 +168,11 @@
 
 /* PAINEL DE INTENÇÕES — direita, substitui o menu cascata */
 .bh-intents {
-  position: absolute; right: 12px; bottom: 12px; width: 240px;
+  position: absolute; right: 12px; bottom: 12px; width: 250px;
   flex-direction: column; gap: 5px;
 }
 .bh-intent-btn {
+  margin: 0; padding: 0 6px; min-width: 0;
   height: 34px; border-radius: 6px; cursor: pointer;
   background-color: rgb(18, 26, 56);
   border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid; border-top-color: rgb(106, 134, 200);
@@ -184,6 +184,7 @@
 .bh-intent-dim { opacity: 0.45; }
 .bh-intents-actions { flex-direction: row; gap: 5px; margin-top: 2px; }
 .bh-actbtn {
+  margin: 0; padding: 0 4px; min-width: 0; flex-shrink: 1; flex-basis: 0;
   flex-grow: 1; height: 32px; border-radius: 6px; border-width: 1px;
   border-color: rgb(42, 58, 106); border-style: solid;
   font-size: 12px; -unity-font-style: bold; cursor: pointer; -unity-text-align: middle-center;
