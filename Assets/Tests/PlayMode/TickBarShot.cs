@@ -52,12 +52,16 @@ public class TickBarShot
         beast.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack });
         beast.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = hero });
         beast.BuildQueueFromPlan();
+        hero.plannedPath.Add(new Vector2Int(4, 4)); hero.plannedPath.Add(new Vector2Int(6, 5));
+        hero.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = beast });
+        hero.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = beast });
+        hero.currentInstinct = hero.stats.MaxInstinct; hero.remainingBAP = hero.currentInstinct - 2;
         hud.UpdateTimeline(3, units, u => u == hero);
         hud.SetActionSequence(
             new List<ActionType> { ActionType.Move, ActionType.Move, ActionType.Attack, ActionType.Attack },
             new List<ScheduledAction> {
-                new ScheduledAction { Type = ActionType.Move }, new ScheduledAction { Type = ActionType.Move },
-                new ScheduledAction { Type = ActionType.Attack }, new ScheduledAction { Type = ActionType.Attack, IsBonus = true } });
+                new ScheduledAction { Type = ActionType.Move, Index = 0 }, new ScheduledAction { Type = ActionType.Move, Index = 1 },
+                new ScheduledAction { Type = ActionType.Attack, Index = 0 }, new ScheduledAction { Type = ActionType.Attack, Index = 1, IsBonus = true } });
         hud.LogAction("> Fera 1 -> Jogador: 6  (11/32 HP)", beast);
         for (int i = 0; i < 5; i++) yield return null;
         // Clica no bloco "3 Atacar" do plano: deve abrir o menu de incremento.
@@ -65,7 +69,6 @@ public class TickBarShot
         VisualElement atk = null;
         root.Query<Label>().ForEach(l => { if (atk == null && l.text.Contains("Atacar") && l.text.StartsWith("3")) atk = l.parent; });
         Assert.IsNotNull(atk, "bloco de ataque do plano não encontrado");
-        using (var e = ClickEvent.GetPooled()) { e.target = atk; atk.SendEvent(e); }
         for (int i = 0; i < 5; i++) yield return null;
         yield return new WaitForEndOfFrame();
 

@@ -458,7 +458,8 @@ namespace PangeaSkirmish
         // ── FILEIRAS DE TICKS (GDD-014 §7): a fila e as informações são a MESMA coisa ──
         // Uma fileira por unidade viva: nome + faixa de ticks. Cada bloco é uma ação com o tamanho
         // do seu custo em ticks, e o texto do que acontece aparece DENTRO do bloco em andamento.
-        private VisualElement _ticksRows;
+        private VisualElement _ticksRows, _headerRow, _pipsRow;
+        private Label _previewLine;
         private Label _ticksRowsHeader;
         private sealed class RowRef { public VisualElement seg; public Label label; public string defaultText; public Color baseColor; }
         private readonly Dictionary<Unit, RowRef> _rowRefs = new Dictionary<Unit, RowRef>();
@@ -574,11 +575,21 @@ namespace PangeaSkirmish
                 _ticksRowsHeader = new Label { pickingMode = PickingMode.Ignore };
                 _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.74f, 0.85f, 1f);
                 _ticksRowsHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
-                _ticksRowsHeader.style.unityTextAlign = TextAnchor.MiddleCenter;
-                _ticksRowsHeader.style.marginBottom = 4;
+                _ticksRowsHeader.style.unityTextAlign = TextAnchor.UpperLeft;
+                _ticksRowsHeader.style.flexGrow = 1; _ticksRowsHeader.style.whiteSpace = WhiteSpace.Normal;
+                _headerRow = new VisualElement { pickingMode = PickingMode.Ignore };
+                _headerRow.style.flexDirection = FlexDirection.Row; _headerRow.style.justifyContent = Justify.SpaceBetween;
+                _headerRow.style.marginBottom = 4;
+                _pipsRow = new VisualElement { pickingMode = PickingMode.Ignore };
+                _pipsRow.style.flexDirection = FlexDirection.Row; _pipsRow.style.alignItems = Align.Center;
+                _headerRow.Add(_ticksRowsHeader); _headerRow.Add(_pipsRow);
                 _ticksRows = new VisualElement { name = "ticks-rows" };
-                _ticksBar.Add(_ticksRowsHeader);
+                _previewLine = new Label { pickingMode = PickingMode.Ignore };
+                _previewLine.style.fontSize = 11; _previewLine.style.color = new Color(0.62f, 0.69f, 0.82f);
+                _previewLine.style.marginTop = 4; _previewLine.style.whiteSpace = WhiteSpace.Normal;
+                _ticksBar.Add(_headerRow);
                 _ticksBar.Add(_ticksRows);
+                _ticksBar.Add(_previewLine);
                 _ticksBar.schedule.Execute(FadeRowFlashes).Every(120);
             }
             SetPlanEditorVisible(false);
@@ -599,8 +610,7 @@ namespace PangeaSkirmish
             if (planning)
             {
                 int free = Mathf.Max(0, maxTicks - planTotal);
-                _headBase += $"  •  PLANO {Mathf.Min(planTotal, maxTicks)}/{maxTicks} ticks  ({free} livre{(free == 1 ? "" : "s")})" +
-                             $"  •  Instinto {planUnit.remainingBAP}/{planUnit.stats.MaxInstinct}";
+                _headBase += $"  •  PLANO {Mathf.Min(planTotal, maxTicks)}/{maxTicks} ticks  ({free} livre{(free == 1 ? "" : "s")})";
                 _headCosts = $"Custo: Andar {TickRules.Duration(planUnit, ActionType.Move, false)} tick  •  " +
                              $"Atacar {TickRules.Duration(planUnit, ActionType.Attack, false)}  •  Golpe poderoso {TickRules.Duration(planUnit, ActionType.Attack, true)}";
             }
@@ -614,7 +624,7 @@ namespace PangeaSkirmish
             rtrack.style.flexDirection = FlexDirection.Row; rtrack.style.flexGrow = 1;
             for (int k = 1; k <= maxTicks; k++)
             {
-                var rl = new Label(k.ToString()) { pickingMode = PickingMode.Ignore };
+                var rl = new Label(k == 1 ? "agora" : "+" + (k - 1)) { pickingMode = PickingMode.Ignore };
                 rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 9; rl.style.height = 11;
                 rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 2;
                 rl.style.color = new Color(0.55f, 0.62f, 0.80f);
@@ -623,6 +633,23 @@ namespace PangeaSkirmish
             }
             ruler.Add(rtrack);
             _ticksRows.Add(ruler);
+
+            BuildPips(planning ? planUnit : null);
+            UpdatePreviewLine(planning ? planUnit : null);
+
+            // Ameaças (elemento da linha do tempo compartilhada): ataques de outros em unidades suas.
+            var threats = new List<(Unit target, int endTick, Unit by)>();
+            foreach (var o in _tlUnits)
+            {
+                if (o == null || o.IsDead || (_tlIsMine != null && _tlIsMine(o))) continue;
+                int at = 0;
+                foreach (var q in o.queue)
+                {
+                    at += q.Remaining;
+                    if (q.Type == ActionType.Attack && q.Attack.TargetUnit != null && _tlIsMine != null && _tlIsMine(q.Attack.TargetUnit))
+                        threats.Add((q.Attack.TargetUnit, at, o));
+                }
+            }
 
             foreach (var u in _tlUnits)
             {
@@ -643,19 +670,29 @@ namespace PangeaSkirmish
 
                 var track = new VisualElement { pickingMode = PickingMode.Ignore };
                 track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 28;
+                track.style.position = Position.Relative;
                 int used = 0;
                 bool firstSeg = true;
 
                 if (isPlanRow)
                 {
                     // Plano em edição: blocos clicáveis (mesmo clique de antes p/ golpe poderoso e passo rápido).
+                    Vector2Int prevPos = planUnit.anchor;
                     for (int i = 0; i < _planSeq.Count && used < maxTicks; i++)
                     {
                         int idx = i;
                         bool bonus = _planSched != null && i < _planSched.Count && _planSched[i].IsBonus;
+                        bool aimed = _planSched != null && i < _planSched.Count && _planSched[i].IsAimed;
                         int d = TickRules.Duration(planUnit, _planSeq[i], bonus);
+                        int tiles = 0;
+                        if (_planSeq[i] == ActionType.Move && _planSched != null && i < _planSched.Count && _planSched[i].Index < planUnit.plannedPath.Count)
+                        {
+                            var dest = planUnit.plannedPath[_planSched[i].Index];
+                            tiles = Mathf.Max(Mathf.Abs(dest.x - prevPos.x), Mathf.Abs(dest.y - prevPos.y));
+                            prevPos = dest;
+                        }
                         var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus),
-                                              $"{idx + 1} {(bonus ? "◆ " : "")}{ActionName(_planSeq[i], bonus)}", true);
+                                              $"{idx + 1} {BlockText(planUnit, _planSeq[i], bonus, aimed, tiles)}", true);
                         seg.pickingMode = PickingMode.Position;
                         if (_planSeq[i] == ActionType.Attack)
                         {
@@ -681,8 +718,12 @@ namespace PangeaSkirmish
                     {
                         if (used >= maxTicks) break;
                         int d = Mathf.Min(q.Remaining, maxTicks - used);
-                        string label = mine ? ActionName(q.Type, q.IsBonus) : "ocupada";
-                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus) : TlWait, label, mine);
+                        bool threat = false;
+                        foreach (var th in threats) if (th.by == u && q.Type == ActionType.Attack && q.Attack.TargetUnit == th.target) threat = true;
+                        string label = mine ? BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0)
+                                     : threat ? "⚠ ataca você" : "ocupada";
+                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus) : threat ? new Color(0.55f, 0.20f, 0.20f) : TlWait, label, mine || threat);
+                        if (threat) ((Label)seg.ElementAt(0)).style.color = new Color(1f, 0.82f, 0.80f);
                         track.Add(seg);
                         if (firstSeg && mine && u == _windowUnit && q.Type == ActionType.Attack)
                         {
@@ -722,10 +763,87 @@ namespace PangeaSkirmish
                     }
                     track.Add(rest);
                 }
+                if (mine)
+                    foreach (var th in threats)
+                    {
+                        if (th.target != u || th.endTick > maxTicks) continue;
+                        var mark = new VisualElement { pickingMode = PickingMode.Ignore };
+                        mark.style.position = Position.Absolute; mark.style.top = 0; mark.style.bottom = 0;
+                        mark.style.left = Length.Percent(th.endTick * 100f / maxTicks); mark.style.width = 2;
+                        mark.style.marginLeft = -2; mark.style.backgroundColor = new Color(1f, 0.38f, 0.33f);
+                        var ml = new Label("!") { pickingMode = PickingMode.Ignore };
+                        ml.style.position = Position.Absolute; ml.style.top = -2; ml.style.left = -4; ml.style.fontSize = 11;
+                        ml.style.color = new Color(1f, 0.55f, 0.50f); ml.style.unityFontStyleAndWeight = FontStyle.Bold;
+                        mark.Add(ml);
+                        track.Add(mark);
+                    }
                 row.Add(track);
                 _ticksRows.Add(row);
                 ApplyRowEvent(u);
             }
+        }
+
+        private static int ExpectedDamage(Unit u, bool bonus, bool aimed) =>
+            u.stats.PhysicalDamage + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
+            + (aimed ? Mathf.RoundToInt(u.stats.DEX * Tuning.Get().aimDexMultiplier) : 0);
+
+        /// <summary>Texto de um bloco: ícone, nome e efeito (tiles que anda, dano esperado).</summary>
+        private static string BlockText(Unit u, ActionType t, bool bonus, bool aimed, int tiles)
+        {
+            switch (t)
+            {
+                case ActionType.Move:   return tiles > 0 ? $"→ Andar {tiles}" : bonus ? "→ Passo rápido" : "→ Andar";
+                case ActionType.Attack: return $"{(bonus ? "◆ Golpe" : "⚔ Atacar")}{(aimed ? " ◎" : "")} ~{ExpectedDamage(u, bonus, aimed)}";
+                case ActionType.Concentrate: return "✦ Concentrar";
+                default: return "… Esperar";
+            }
+        }
+
+        /// <summary>Instinto como pips: dourado = livre após o plano, vazado = reservado pelo plano, apagado = gasto.</summary>
+        private void BuildPips(Unit u)
+        {
+            _pipsRow.Clear();
+            if (u == null) return;
+            var lab = new Label("Instinto") { pickingMode = PickingMode.Ignore };
+            lab.style.fontSize = 10; lab.style.color = new Color(0.62f, 0.69f, 0.82f); lab.style.marginRight = 5;
+            _pipsRow.Add(lab);
+            int max = u.stats.MaxInstinct, free = Mathf.Clamp(u.remainingBAP, 0, max), have = Mathf.Clamp(u.currentInstinct, 0, max);
+            for (int i = 0; i < max; i++)
+            {
+                var p = new VisualElement { pickingMode = PickingMode.Ignore };
+                p.style.width = 9; p.style.height = 9; p.style.marginRight = 2;
+                p.style.borderTopLeftRadius = p.style.borderTopRightRadius = p.style.borderBottomLeftRadius = p.style.borderBottomRightRadius = 2;
+                var gold = new Color(1f, 0.80f, 0.33f);
+                if (i < free) p.style.backgroundColor = gold;
+                else if (i < have)
+                {
+                    p.style.borderTopWidth = p.style.borderBottomWidth = p.style.borderLeftWidth = p.style.borderRightWidth = 1;
+                    p.style.borderTopColor = p.style.borderBottomColor = p.style.borderLeftColor = p.style.borderRightColor = gold;
+                }
+                else p.style.backgroundColor = new Color(0.23f, 0.29f, 0.48f);
+                _pipsRow.Add(p);
+            }
+        }
+
+        /// <summary>Linha de prévia do plano: dano e chance de acerto do primeiro ataque.</summary>
+        private void UpdatePreviewLine(Unit u)
+        {
+            if (_previewLine == null) return;
+            if (u == null || u.plannedAttacks.Count == 0) { _previewLine.text = ""; return; }
+            var a = u.plannedAttacks[0];
+            int n = u.plannedAttacks.Count;
+            int total = 0;
+            if (_planSched != null)
+                foreach (var sa in _planSched)
+                    if (sa.Type == ActionType.Attack) total += ExpectedDamage(u, sa.IsBonus, sa.IsAimed);
+            string who = a.TargetUnit != null ? a.TargetUnit.unitName : "o alvo";
+            string hit = "";
+            if (a.TargetUnit != null)
+            {
+                float h = Mathf.Clamp01(u.stats.HitChance - a.TargetUnit.stats.DodgeChance);
+                hit = $" • {Mathf.RoundToInt(h * 100f)}% de acerto";
+            }
+            _previewLine.text = $"Plano: {n} ataque{(n > 1 ? "s" : "")} em {who} • ~{total} de dano no total{hit}";
         }
 
         private static Color SegColor(ActionType t, bool bonus) =>
