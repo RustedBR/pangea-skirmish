@@ -18,6 +18,32 @@ public static class BuildWebGL
             .Select(s => new SceneAssetEntry(s.path))
             .ToArray();
 
+        ApplyCanonicalConfig();
+
+        var opts = new BuildPlayerOptions
+        {
+            scenes = scenes.Select(s => s.Path).ToArray(),
+            locationPathName = "Build/WebGL",
+            target = BuildTarget.WebGL,
+            options = BuildOptions.None,
+        };
+
+        Debug.Log($"[BuildWebGL] Iniciando build WebGL -> {opts.locationPathName} ({scenes.Length} cenas)");
+        var report = BuildPipeline.BuildPlayer(opts);
+        Debug.Log($"[BuildWebGL] Resultado: {report.summary.result} | erros={report.summary.totalErrors} | tamanho={report.summary.totalSize} bytes");
+        if (report.summary.result != BuildResult.Succeeded)
+            EditorApplication.Exit(1);
+
+        FixWebGLIndexUrls(opts.locationPathName);
+    }
+
+    /// <summary>
+    /// Aplica a configuração canônica de WebGL. FONTE ÚNICA: o menu
+    /// (BuildSystem.BuildWebGL) e o build headless (Build) chamam este método, para
+    /// nunca mais haver duas cópias que se desalinham.
+    /// </summary>
+    public static void ApplyCanonicalConfig()
+    {
         // =====================================================================
         // CONFIG CANÔNICA — TRAVADA EM 2026-07-10. NÃO ALTERAR SEM MEDIR.
         //
@@ -77,25 +103,10 @@ public static class BuildWebGL
         // salvo em disco ANTES do build — por isso SaveAssets() é obrigatório aqui.
         PlayerSettings.WebGL.template = "PROJECT:PangeaSkirmish";
         AssetDatabase.SaveAssets();
-
-        var opts = new BuildPlayerOptions
-        {
-            scenes = scenes.Select(s => s.Path).ToArray(),
-            locationPathName = "Build/WebGL",
-            target = BuildTarget.WebGL,
-            options = BuildOptions.None,
-        };
-
-        Debug.Log($"[BuildWebGL] Iniciando build WebGL -> {opts.locationPathName} ({scenes.Length} cenas)");
-        var report = BuildPipeline.BuildPlayer(opts);
-        Debug.Log($"[BuildWebGL] Resultado: {report.summary.result} | erros={report.summary.totalErrors} | tamanho={report.summary.totalSize} bytes");
-        if (report.summary.result != BuildResult.Succeeded)
-            EditorApplication.Exit(1);
-
-        FixWebGLIndexUrls(opts.locationPathName);
     }
 
-    private static void FixWebGLIndexUrls(string locationPathName)
+    /// <summary>Corrige as URLs do index.html conforme os arquivos que existem em Build/ (.unityweb, .br, .gz ou puros).</summary>
+    public static void FixWebGLIndexUrls(string locationPathName)
     {
         var indexPath = System.IO.Path.Combine(locationPathName, "index.html");
         if (!System.IO.File.Exists(indexPath))

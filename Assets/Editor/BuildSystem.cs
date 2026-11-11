@@ -23,18 +23,11 @@ namespace PangeaSkirmish.Editor
             string buildPath = "Build/WebGL";
             Directory.CreateDirectory(buildPath);
 
-            // === CONFIGURACAO WEBGL CANONICA (validada 2026-07-10, skill unity-mcp-workflow) ===
-            // Medium stripping OBRIGATORIO (56MB, <100MB Pages) + ExplicitlyThrownExceptionsOnly
-            // (pega excecao do SDK Relay/Lobby em vez de abort() silencioso) + compression Disabled
-            // (sem .br) + template PROJECT:PangeaSkirmish. NAO usar exceptionSupport=None (aborta MP).
-            PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
-            PlayerSettings.SetManagedStrippingLevel(
-                UnityEditor.Build.NamedBuildTarget.WebGL, ManagedStrippingLevel.Medium);
-            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
-            PlayerSettings.WebGL.template = "PROJECT:PangeaSkirmish";
-            AssetDatabase.SaveAssets();
-            // =========================================================================================
+            // Configuração canônica (Medium + Explicit + Brotli + decompressionFallback + template):
+            // vem do BuildWebGL.cs, a fonte única. O menu já teve uma cópia própria com
+            // compressão Disabled e nomes .data/.wasm fixos — gerava um build que o
+            // Pages não serve. `global::` porque este tipo tem um método chamado BuildWebGL.
+            global::BuildWebGL.ApplyCanonicalConfig();
 
             var options = new BuildPlayerOptions
             {
@@ -45,32 +38,7 @@ namespace PangeaSkirmish.Editor
             };
 
             ExecuteBuild(options, "WebGL");
-            FixWebGLIndexUrls(buildPath);
-        }
-
-        // CORRECAO OBRIGATORIA: o template PROJECT:PangeaSkirmish gera index.html com
-        // loaderUrl/dataUrl/frameworkUrl/codeUrl apontando para a PASTA "Build/" (vazia),
-        // em vez dos arquivos WebGL.*. Isso da 404 + "Falha no carregamento do <script>".
-        // Corrige os 4 caminhos para WebGL.loader.js/.data/.framework.js/.wasm.
-        private static void FixWebGLIndexUrls(string locationPathName)
-        {
-            var indexPath = System.IO.Path.Combine(locationPathName, "index.html");
-            if (!System.IO.File.Exists(indexPath))
-            {
-                Debug.LogWarning("[BuildSystem] index.html nao encontrado para post-fix.");
-                return;
-            }
-            var html = System.IO.File.ReadAllText(indexPath);
-            var original = html;
-            html = html.Replace("var loaderUrl = buildUrl + \"/\";", "var loaderUrl = buildUrl + \"/WebGL.loader.js\";")
-                       .Replace("dataUrl: buildUrl + \"/\",", "dataUrl: buildUrl + \"/WebGL.data\",")
-                       .Replace("frameworkUrl: buildUrl + \"/\",", "frameworkUrl: buildUrl + \"/WebGL.framework.js\",")
-                       .Replace("codeUrl: buildUrl + \"/\",", "codeUrl: buildUrl + \"/WebGL.wasm\",");
-            if (html != original)
-            {
-                System.IO.File.WriteAllText(indexPath, html);
-                Debug.Log("[BuildSystem] Index URLs corrigidas para WebGL.* (canonico).");
-            }
+            global::BuildWebGL.FixWebGLIndexUrls(buildPath);
         }
 
         [MenuItem(PangeaMenu.Build + "Windows")]
