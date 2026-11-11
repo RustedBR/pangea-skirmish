@@ -69,14 +69,38 @@ namespace PangeaSkirmish
         {
             remainingAP  = Tuning.Get().maxQueueTicks - PlannedTicks();
             remainingBAP = currentStamina - PlannedStaminaCost();
+            reservedMana = PlannedManaCost();
         }
 
         /// <summary>Estâmina que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
         public int PlannedStaminaCost()
         {
             int c = 0;
-            foreach (var a in actionSequence) c += TickRules.StaminaCost(a);
+            foreach (var a in actionSequence) c += TickRules.StaminaCost(this, a);
             return c;
+        }
+
+        /// <summary>Mana que o plano atual gasta (magias Elementais). Derivado do plano: igual em toda máquina.</summary>
+        public int PlannedManaCost()
+        {
+            int c = 0;
+            foreach (var a in actionSequence) c += TickRules.ManaCost(this, a);
+            return c;
+        }
+
+        /// <summary>Cabe esta magia no orçamento de ticks e no recurso dela? (motivo em 'why' quando não cabe)</summary>
+        public bool CanFitSpell(SpellDef s, out string why)
+        {
+            why = null;
+            if (s == null) { why = "magia desconhecida"; return false; }
+            int d = TickRules.Duration(this, ActionType.Spell, false, s);
+            if (remainingAP < d) { why = $"sem tick livre ({d} tick{(d == 1 ? "" : "s")})"; return false; }
+            if (s.IsPhysical)
+            {
+                if (remainingBAP < s.cost) { why = $"Estâmina insuficiente ({remainingBAP}/{s.cost})"; return false; }
+            }
+            else if (AvailableMana < s.cost) { why = $"Mana insuficiente ({AvailableMana}/{s.cost})"; return false; }
+            return true;
         }
 
         /// <summary>Recupera Estâmina (regeneração por tick), até o máximo.</summary>
@@ -94,10 +118,18 @@ namespace PangeaSkirmish
             // Compromete a Estâmina do plano (ações bônus). Feito aqui, a partir do plano,
             // para valer igual em todas as máquinas do lockstep.
             currentStamina = Mathf.Max(0, currentStamina - PlannedStaminaCost());
+            // Mana das magias Elementais também é comprometida aqui (GDD-019 §1: gasta mesmo se interrompida).
+            currentMana = Mathf.Max(0, currentMana - PlannedManaCost());
+            reservedMana = 0;
             foreach (var a in actionSequence)
             {
                 var q = new QueuedAction { Type = a.Type, IsBonus = a.IsBonus, IsAimed = a.IsAimed,
                                            Duration = TickRules.Duration(this, a) };
+                if (a.Type == ActionType.Spell)
+                {
+                    if (a.Index >= plannedSpells.Count) continue;
+                    q.Spell = plannedSpells[a.Index];
+                }
                 if (a.Type == ActionType.Move)
                 {
                     if (a.Index >= plannedPath.Count) continue;
@@ -173,6 +205,8 @@ namespace PangeaSkirmish
         public int reservedMana;
         public int rolledInitiative;
         public int plannedConcentrations;
+        /// <summary>Magias planejadas (GDD-019). ScheduledAction.Index aponta aqui quando Type == Spell.</summary>
+        public readonly List<PlannedSpell>   plannedSpells = new List<PlannedSpell>();
         public readonly List<StatusEffect>   statusEffects = new List<StatusEffect>();
 
         public int AvailableMana => currentMana - reservedMana;
@@ -1029,6 +1063,7 @@ namespace PangeaSkirmish
             plannedMoveCount = 0;
             plannedPath.Clear();
             plannedAttacks.Clear();
+            plannedSpells.Clear();
             actionSequence.Clear();
             hasPlannedBonus       = false;
             bonusDamageThisAttack = false;
@@ -1050,6 +1085,8 @@ namespace PangeaSkirmish
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
             for (int c = 0; c < plannedConcentrations; c++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero });
+            for (int i = 0; i < plannedSpells.Count; i++)
+                actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
         }
     }
 }

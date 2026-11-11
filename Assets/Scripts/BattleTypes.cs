@@ -233,7 +233,17 @@ namespace PangeaSkirmish
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES
 
-    public enum ActionType { Move, Attack, Concentrate, Wait }
+    /// <summary>Spell fica por último para manter os casts inteiros do PlanWire (0..3) estáveis.</summary>
+    public enum ActionType { Move, Attack, Concentrate, Wait, Spell }
+
+    /// <summary>Magia planejada (GDD-019): id do catálogo + alvo (unidade ou tile; alcance −1 = sem alvo).</summary>
+    public struct PlannedSpell
+    {
+        public string     SpellId;
+        public Unit       TargetUnit;
+        public Vector2Int TargetTile;
+        public SpellDef   Def => SpellCatalog.Get(SpellId);
+    }
 
     /// <summary>
     /// Uma entrada na sequência de ações planejadas de uma unidade.
@@ -260,6 +270,7 @@ namespace PangeaSkirmish
         public ActionType    Type;
         public Vector2Int    Dest;       // Move
         public PlannedAttack Attack;     // Attack
+        public PlannedSpell  Spell;      // Spell
         public bool          IsBonus;
         public bool          IsAimed;
         public int           Duration;   // ticks totais
@@ -278,6 +289,7 @@ namespace PangeaSkirmish
                 case ActionType.Move:        return T.ticksMove;
                 case ActionType.Attack:      return T.ticksUnarmed + (isBonus ? T.ticksPowerStrikeExtra : 0);
                 case ActionType.Concentrate: return T.ticksConcentrate;
+                case ActionType.Spell:       return T.ticksConcentrate; // sem SpellDef: usa Duration(u, type, bonus, spell)
                 default:                     return T.ticksWait;
             }
         }
@@ -287,9 +299,13 @@ namespace PangeaSkirmish
         /// Andar e Esperar não escalam (o alcance da andada é da AGI). A base do ataque é o
         /// peso da arma da unidade.
         /// </summary>
-        public static int Duration(Unit u, ActionType type, bool isBonus)
+        public static int Duration(Unit u, ActionType type, bool isBonus) => Duration(u, type, isBonus, null);
+
+        /// <summary>Magias usam spell.ticksBase como base; a DEX encurta como qualquer ação (GDD-018).</summary>
+        public static int Duration(Unit u, ActionType type, bool isBonus, SpellDef spell)
         {
             int b = BaseTicks(type, isBonus);
+            if (type == ActionType.Spell && spell != null) b = Mathf.Max(1, spell.ticksBase);
             if (u == null) return Mathf.Max(1, b);
             if (type == ActionType.Attack)
                 b = Mathf.Max(1, u.stats.AttackTicks) + (isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0);
@@ -309,7 +325,31 @@ namespace PangeaSkirmish
             return c;
         }
 
-        public static int Duration(Unit u, ScheduledAction a) => Duration(u, a.Type, a.IsBonus);
+        public static int Duration(Unit u, ScheduledAction a) =>
+            Duration(u, a.Type, a.IsBonus, a.Type == ActionType.Spell ? SpellOf(u, a) : null);
+
+        /// <summary>SpellDef de uma ação Spell do plano (ou null).</summary>
+        public static SpellDef SpellOf(Unit u, ScheduledAction a)
+        {
+            if (u == null || a.Type != ActionType.Spell || a.Index < 0 || a.Index >= u.plannedSpells.Count) return null;
+            return u.plannedSpells[a.Index].Def;
+        }
+
+        /// <summary>Estâmina do plano incluindo magia Física (GDD-019 §2).</summary>
+        public static int StaminaCost(Unit u, ScheduledAction a)
+        {
+            int c = StaminaCost(a);
+            var s = SpellOf(u, a);
+            if (s != null && s.IsPhysical) c += s.cost;
+            return c;
+        }
+
+        /// <summary>Mana do plano: só magia Elemental (GDD-018: sem mistura).</summary>
+        public static int ManaCost(Unit u, ScheduledAction a)
+        {
+            var s = SpellOf(u, a);
+            return (s != null && !s.IsPhysical) ? s.cost : 0;
+        }
     }
 
     // ------------------------------------------------------------------ ATAQUE

@@ -97,6 +97,107 @@ namespace PangeaSkirmish
         public Action<int> OnIntentSelected;
         public Action OnFreeModeToggled;
         private Button _freeBtn;
+        /// <summary>Jogador escolheu uma magia no menu (id do SpellCatalog).</summary>
+        public Action<string> OnSpellPick;
+        private Button _spellBtn;
+        private Unit _spellMenuUnit;
+
+        /// <summary>Botão "Magia" no painel de intenções; abre o catálogo para a unidade controlada.</summary>
+        public void SetSpellMenuUnit(Unit u)
+        {
+            _spellMenuUnit = u;
+            if (_spellBtn == null && _intentsPanel != null)
+            {
+                _spellBtn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ToggleSpellMenu(); }) { text = SpellGlyph + " Magia" };
+                _spellBtn.AddToClassList("bh-intent-btn");
+                _spellBtn.style.marginBottom = 4;
+                int at = _freeBtn != null ? _intentsPanel.IndexOf(_freeBtn) + 1 : Mathf.Min(1, _intentsPanel.childCount);
+                _intentsPanel.Insert(Mathf.Clamp(at, 0, _intentsPanel.childCount), _spellBtn);
+            }
+            if (_spellBtn != null) _spellBtn.SetEnabled(u != null);
+        }
+
+        private void ToggleSpellMenu()
+        {
+            if (_incPopup != null && _incPopup.name == "spell-menu") { CloseIncrementPopup(); return; }
+            OpenSpellMenu();
+        }
+
+        /// <summary>
+        /// Catálogo de magias (GDD-019 §6): dois grupos (Física em Estâmina, Elemental em Mana).
+        /// Cada linha mostra nome, montagem, custo, ticks com a DEX atual e alcance/área;
+        /// o hover escreve o efeito na linha de baixo. Linhas que não cabem ficam apagadas com o motivo.
+        /// </summary>
+        private void OpenSpellMenu()
+        {
+            CloseIncrementPopup();
+            var u = _spellMenuUnit;
+            if (_ticksBar == null || u == null) return;
+            var pop = new VisualElement { name = "spell-menu" };
+            var ps = pop.style;
+            pop.AddToClassList("bh-window");
+            ps.position = Position.Absolute;
+            ps.minWidth = 700; ps.maxWidth = 900; ps.paddingLeft = ps.paddingRight = 12; ps.paddingTop = ps.paddingBottom = 10;
+            var head = new Label("MAGIA"); head.AddToClassList("bh-title"); head.style.marginBottom = 6; pop.Add(head);
+
+            var hover = new Label("Passe o mouse sobre uma magia para ver o efeito.") { pickingMode = PickingMode.Ignore };
+            hover.style.fontSize = 12; hover.style.whiteSpace = WhiteSpace.Normal; hover.style.marginTop = 6;
+            hover.style.color = new Color(0.80f, 0.86f, 1f); hover.style.minHeight = 34;
+
+            var scroll = new ScrollView(ScrollViewMode.Vertical);
+            scroll.style.maxHeight = Mathf.Max(220f, Screen.height - 180f);
+            var cols = new VisualElement(); cols.style.flexDirection = FlexDirection.Row;
+            void Group(string title, string resName, int have, System.Func<SpellDef, bool> pick)
+            {
+                var col = new VisualElement(); col.style.flexGrow = 1; col.style.flexBasis = 0; col.style.marginRight = 8;
+                var t = new Label($"{title}  <color=#9fb3d9>({resName} {have})</color>") { pickingMode = PickingMode.Ignore };
+                t.style.fontSize = 12; t.style.unityFontStyleAndWeight = FontStyle.Bold; t.style.marginBottom = 4;
+                t.style.color = new Color(0.74f, 0.85f, 1f);
+                col.Add(t);
+                foreach (var s in SpellCatalog.All())
+                {
+                    if (!pick(s)) continue;
+                    bool ok = u.CanFitSpell(s, out string why);
+                    int ticks = TickRules.Duration(u, ActionType.Spell, false, s);
+                    string reach = s.range < 0 ? "sem alvo" : s.range == 0 ? "em si" : $"alc {s.range}";
+                    string area  = s.area > 0 ? (s.effect == SpellEffect.Barrier ? $"linha {s.area}" : $"raio {s.area}") : "";
+                    string meta  = $"{reach}{(area != "" ? " · " + area : "")}";
+                    var b = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnSpellPick?.Invoke(s.id); });
+                    b.AddToClassList("bh-intent-btn");
+                    b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 36;
+                    b.style.fontSize = 12; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 8;
+                    b.style.borderLeftWidth = 4; b.style.borderLeftColor = ElementInfo.Color(s.PrimaryElement);
+                    b.text = $"{SpellGlyph} <b>{s.displayName}</b>  <color=#9fb3d9>[{s.MontageText()}]</color>\n" +
+                             $"<size=11>−{s.cost} {resName} · {ticks} tick{(ticks == 1 ? "" : "s")} · {meta}</size>";
+                    b.SetEnabled(ok);
+                    if (!ok) b.style.opacity = 0.45f;
+                    string eff = s.description;
+                    if (s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push)
+                        eff += $"  (~{s.Amount(u.stats.INT)} de dano com INT {u.stats.INT:0})";
+                    else if (s.effect == SpellEffect.Heal) eff += $"  (~{s.Amount(u.stats.INT)} de cura com INT {u.stats.INT:0})";
+                    if (!ok) eff = $"<color=#ff9a8a>Não cabe: {why}.</color>  " + eff;
+                    if (!s.IsPhysical) eff += "  <color=#c9b8ff>Interrompível.</color>";
+                    var captured = eff;
+                    b.RegisterCallback<PointerEnterEvent>(_ => hover.text = captured);
+                    col.Add(b);
+                }
+                cols.Add(col);
+            }
+            Group("FÍSICA", "Estâmina", u.remainingBAP, s => s.IsPhysical);
+            Group("ELEMENTAL · PURAS", "Mana", u.AvailableMana, s => !s.IsPhysical && s.IsPure);
+            Group("ELEMENTAL · PARES", "Mana", u.AvailableMana, s => !s.IsPhysical && s.IsPair);
+            scroll.Add(cols);
+            pop.Add(scroll);
+            pop.Add(hover);
+            var close = new Button(CloseIncrementPopup) { text = "Fechar" };
+            close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
+            close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 4;
+            pop.Add(close);
+            _ticksBar.Add(pop);
+            var bb = _ticksBar.worldBound;
+            ps.left = 0; ps.bottom = bb.height + 4;
+            _incPopup = pop;
+        }
 
         public void SetFreeModeLabel(bool on)
         {
@@ -641,7 +742,7 @@ namespace PangeaSkirmish
         private static string ActionName(ActionType t, bool bonus) =>
             t == ActionType.Move ? (bonus ? "Passo rápido" : "Andar")
           : t == ActionType.Attack ? (bonus ? "Golpe poderoso" : "Atacar")
-          : t == ActionType.Concentrate ? "Concentrar" : "Esperar";
+          : t == ActionType.Concentrate ? "Concentrar" : t == ActionType.Spell ? "Magia" : "Esperar";
 
         private void RebuildTickRows()
         {
@@ -681,7 +782,9 @@ namespace PangeaSkirmish
             if (planning)
             {
                 for (int i = 0; i < _planSeq.Count; i++)
-                    planTotal += TickRules.Duration(planUnit, _planSeq[i], _planSched != null && i < _planSched.Count && _planSched[i].IsBonus);
+                    planTotal += (_planSched != null && i < _planSched.Count)
+                               ? TickRules.Duration(planUnit, _planSched[i])
+                               : TickRules.Duration(planUnit, _planSeq[i], false);
             }
             _headBase = $"TICK {_tlTick}";
             if (planning)
@@ -760,7 +863,8 @@ namespace PangeaSkirmish
                         int idx = i;
                         bool bonus = _planSched != null && i < _planSched.Count && _planSched[i].IsBonus;
                         bool aimed = _planSched != null && i < _planSched.Count && _planSched[i].IsAimed;
-                        int d = TickRules.Duration(planUnit, _planSeq[i], bonus);
+                        int d = (_planSched != null && i < _planSched.Count) ? TickRules.Duration(planUnit, _planSched[i])
+                                                                             : TickRules.Duration(planUnit, _planSeq[i], bonus);
                         int tiles = 0;
                         if (_planSeq[i] == ActionType.Move && _planSched != null && i < _planSched.Count && _planSched[i].Index < planUnit.plannedPath.Count)
                         {
@@ -768,8 +872,17 @@ namespace PangeaSkirmish
                             tiles = Mathf.Max(Mathf.Abs(dest.x - prevPos.x), Mathf.Abs(dest.y - prevPos.y));
                             prevPos = dest;
                         }
-                        var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus),
-                                              $"{idx + 1} {BlockText(planUnit, _planSeq[i], bonus, aimed, tiles)}", true);
+                        SpellDef planSpell = (_planSeq[i] == ActionType.Spell && _planSched != null && i < _planSched.Count)
+                                           ? TickRules.SpellOf(planUnit, _planSched[i]) : null;
+                        string planText = planSpell != null ? SpellBlockText(planUnit, planSpell) : BlockText(planUnit, _planSeq[i], bonus, aimed, tiles);
+                        var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus, planSpell),
+                                              $"{idx + 1} {planText}", true);
+                        if (planSpell != null && !planSpell.IsPhysical)
+                        {   // borda tracejada = interrompível (GDD-019 §9.1); UI Toolkit não tem dash, então borda clara fina
+                            seg.style.borderTopWidth = seg.style.borderBottomWidth = seg.style.borderLeftWidth = seg.style.borderRightWidth = 1;
+                            seg.style.borderTopColor = seg.style.borderBottomColor = seg.style.borderLeftColor = seg.style.borderRightColor = new Color(1f, 1f, 1f, 0.55f);
+                            seg.tooltip = $"Interrompida se tomar ≥ {Mathf.CeilToInt(planUnit.stats.MaxHP * Tuning.Get().spellInterruptHpFraction)} de dano antes de terminar. A Mana é gasta mesmo assim.";
+                        }
                         seg.pickingMode = PickingMode.Position;
                         {
                             bool aimOn = _planSched != null && i < _planSched.Count && _planSched[i].IsAimed;
@@ -797,9 +910,10 @@ namespace PangeaSkirmish
                         int d = Mathf.Min(q.Remaining, maxTicks - used);
                         bool threat = false;
                         foreach (var th in threats) if (th.by == u && q.Type == ActionType.Attack && q.Attack.TargetUnit == th.target) threat = true;
-                        string label = mine ? BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0)
-                                     : threat ? "⚠ ataca você" : "ocupada";
-                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus) : threat ? new Color(0.55f, 0.20f, 0.20f) : TlWait, label, mine || threat);
+                        SpellDef qSpell = q.Type == ActionType.Spell ? q.Spell.Def : null;
+                        string label = mine ? (qSpell != null ? SpellBlockText(u, qSpell) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0))
+                                     : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? "✦ conjurando" : "ocupada";
+                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.55f, 0.20f, 0.20f) : TlWait, label, mine || threat);
                         if (threat) ((Label)seg.ElementAt(0)).style.color = new Color(1f, 0.82f, 0.80f);
                         track.Add(seg);
                         if (firstSeg && mine && u == _windowUnit && q.Type == ActionType.Attack)
@@ -820,7 +934,7 @@ namespace PangeaSkirmish
                         if (firstSeg)
                         {
                             _rowRefs[u] = new RowRef { seg = seg, label = (Label)seg.ElementAt(0), defaultText = label,
-                                                       baseColor = mine ? SegColor(q.Type, q.IsBonus) : TlWait };
+                                                       baseColor = mine ? SegColor(q.Type, q.IsBonus, qSpell) : TlWait };
                             firstSeg = false;
                         }
                         used += d;
@@ -925,7 +1039,27 @@ namespace PangeaSkirmish
 
         private static Color SegColor(ActionType t, bool bonus) =>
             bonus ? TlBonus : t == ActionType.Move ? TlMove : t == ActionType.Attack ? TlAttack
-          : t == ActionType.Concentrate ? TlConc : TlWait;
+          : t == ActionType.Concentrate || t == ActionType.Spell ? TlConc : TlWait;
+
+        /// <summary>Bloco de magia na cor do elemento principal (Física = cor do Físico). GDD-019 §6.</summary>
+        private static Color SegColor(ActionType t, bool bonus, SpellDef spell)
+        {
+            if (t != ActionType.Spell || spell == null) return SegColor(t, bonus);
+            var c = ElementInfo.Color(spell.PrimaryElement);
+            return Color.Lerp(c, Color.black, 0.25f);
+        }
+
+        /// <summary>Glifo das magias na HUD. A fonte desenha ✦ como "+" (confunde com "+ 3 livres"); ◈ existe no mesmo bloco de ◆/◎.</summary>
+        public const string SpellGlyph = "◈";
+
+        private static string SpellBlockText(Unit u, SpellDef s)
+        {
+            if (s == null) return SpellGlyph + " Magia";
+            string eff = s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push
+                       ? $" ~{s.Amount(u.stats.INT)}"
+                       : s.effect == SpellEffect.Heal ? $" +{s.Amount(u.stats.INT)}" : "";
+            return $"{SpellGlyph} {s.displayName}{eff}";
+        }
 
         /// <summary>Bloco de ação: largura proporcional aos ticks, texto dentro.</summary>
         private static VisualElement MakeSegment(int ticks, Color color, string text, bool strong)
@@ -988,9 +1122,9 @@ namespace PangeaSkirmish
         }
 
         private static string ActionLetter(ActionType t) =>
-            t == ActionType.Move ? "M" : t == ActionType.Attack ? "A" : t == ActionType.Concentrate ? "C" : "E";
+            t == ActionType.Move ? "M" : t == ActionType.Attack ? "A" : t == ActionType.Concentrate ? "C" : t == ActionType.Spell ? SpellGlyph : "E";
         private static Color ActionColor(ActionType t) =>
-            t == ActionType.Move ? TlMove : t == ActionType.Attack ? TlAttack : t == ActionType.Concentrate ? TlConc : TlWait;
+            t == ActionType.Move ? TlMove : t == ActionType.Attack ? TlAttack : t == ActionType.Concentrate || t == ActionType.Spell ? TlConc : TlWait;
 
         public void LogRound(int round)
         {

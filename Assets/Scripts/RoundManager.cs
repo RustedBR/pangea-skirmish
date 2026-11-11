@@ -174,7 +174,7 @@ namespace PangeaSkirmish
         }
 
         private static string ActionShort(ActionType t) =>
-            t == ActionType.Move ? "Mov" : t == ActionType.Attack ? "Atq" : t == ActionType.Concentrate ? "Con" : "Esp";
+            t == ActionType.Move ? "Mov" : t == ActionType.Attack ? "Atq" : t == ActionType.Concentrate ? "Con" : t == ActionType.Spell ? "Mag" : "Esp";
 
         /// <summary>Foco automático suave: pede o alvo ao CameraController e espera assentar.</summary>
         private IEnumerator FocusCamera(Vector3 center, float size, float duration)
@@ -546,6 +546,18 @@ namespace PangeaSkirmish
                             if (u.plannedConcentrations > 0) u.plannedConcentrations--;
                             _hud.LogAction($"✦ {u.unitName} concentrou +{regen} Mana", u);
                             break;
+                        case ActionType.Spell:
+                        {
+                            // Passo 5 do GDD-019 (resolução) ainda não existe: o recurso já foi
+                            // comprometido no BuildQueueFromPlan; aqui só registramos a conjuração.
+                            var def = u.queue == null ? null : head.Spell.Def;
+                            string nm = def != null ? def.displayName : head.Spell.SpellId;
+                            string mont = def != null ? def.MontageText() : "?";
+                            string tgt = head.Spell.TargetUnit != null ? $" em {head.Spell.TargetUnit.unitName}"
+                                       : (def != null && def.range >= 0) ? $" em ({head.Spell.TargetTile.x},{head.Spell.TargetTile.y})" : "";
+                            _hud.LogAction($"✦ {u.unitName} conjura <b>{nm}</b> [{mont}]{tgt} — efeito ainda não implementado", u);
+                            break;
+                        }
                     }
                 }
 

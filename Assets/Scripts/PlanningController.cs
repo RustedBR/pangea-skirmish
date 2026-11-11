@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace PangeaSkirmish
 {
-    public enum PlanMode { Idle, MovePicking, AttackUnitPicking, AttackTilePicking, QuickStepPicking }
+    public enum PlanMode { Idle, MovePicking, AttackUnitPicking, AttackTilePicking, QuickStepPicking, SpellTilePicking }
 
     /// <summary>
     /// Controla o planejamento do jogador (fase de planning).
@@ -112,8 +112,10 @@ namespace PangeaSkirmish
             _hud.BindClear(OnClearClick);
             _hud.OnSeqChipToggled = OnSeqChipToggled;
             _hud.OnIncrementPick = OnBlockAction;
+            _hud.OnSpellPick = OnSpellPick;
             _hud.OnFreeModeToggled = () => SetFreeMode(!_freeMode);
             _hud.SetFreeModeLabel(_freeMode);
+            _hud.SetSpellMenuUnit(_controlled);
             // Painel de INTENÇÕES (reformulação): botões 1-3 armam como as teclas 1/2/3.
             _hud.OnIntentSelected = slot =>
             {
@@ -424,7 +426,7 @@ namespace PangeaSkirmish
             {
                 // Aplicar bônus: gasta PAB
                 var probe = action; probe.IsBonus = true;
-                if (_controlled.remainingBAP < TickRules.StaminaCost(probe))
+                if (_controlled.remainingBAP < TickRules.StaminaCost(_controlled, probe))
                 {
                     _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Estâmina insuficiente", _controlled);
                     return;
@@ -980,6 +982,71 @@ namespace PangeaSkirmish
             return to == from || reach.Contains(to);
         }
 
+        // ---------------------------------------------------------------- MAGIA (GDD-019)
+        private SpellDef _pendingSpell;
+
+        /// <summary>Jogador escolheu uma magia no menu da HUD: sem alvo → entra direto; com alvo → escolhe tile.</summary>
+        private void OnSpellPick(string spellId)
+        {
+            if (!_active || _controlled == null) return;
+            var s = SpellCatalog.Get(spellId);
+            if (s == null) return;
+            if (!_controlled.CanFitSpell(s, out string why)) { _hud.ShowPlanNote($"{s.displayName}: {why}"); return; }
+            if (s.range < 0 || s.range == 0)
+            {
+                AppendSpell(s, null, _controlled.plannedAnchor);
+                return;
+            }
+            _pendingSpell = s;
+            EnterSpellTilePicking(s);
+            _hud.ShowPlanNote($"{s.displayName}: escolha o alvo (alcance {s.range}{(s.area > 0 ? $", área {s.area}" : "")}). Esc cancela.");
+        }
+
+        private void EnterSpellTilePicking(SpellDef s)
+        {
+            ClearRangeGhosts();
+            var from = _controlled.plannedAnchor;
+            _attackable.Clear();
+            int fp = _controlled.stats.Footprint;
+            int reach = _controlled.IsDulled ? Mathf.Max(1, s.range - Tuning.Get().dullRangePenalty) : s.range;
+            int budget = reach + fp;
+            for (int dx = -budget; dx <= budget; dx++)
+            for (int dy = -budget; dy <= budget; dy++)
+            {
+                var a = new Vector2Int(from.x + dx, from.y + dy);
+                if (!_grid.IsAnchorInBounds(a, fp)) continue;
+                if (GridManager.FootprintGap(from, fp, a, fp) <= reach) _attackable.Add(a);
+            }
+            var col = ElementInfo.Color(s.PrimaryElement);
+            _grid.HighlightAnchors(_attackable, col);
+            EnsureCursorGhost();
+            SetCursorGhostColor(col);
+            SetMode(PlanMode.SpellTilePicking);
+        }
+
+        private void CommitSpellTile(Vector2Int anchor)
+        {
+            var s = _pendingSpell;
+            if (s == null || !_attackable.Contains(anchor)) return;
+            Unit target = null;
+            foreach (var o in _allUnits)
+                if (o != null && !o.IsDead && GridManager.FootprintsOverlap(o.anchor, o.stats.Footprint, anchor, 1)) { target = o; break; }
+            AppendSpell(s, target, anchor);
+            _pendingSpell = null;
+            HideCursorGhost();
+            SetMode(PlanMode.Idle);
+        }
+
+        private void AppendSpell(SpellDef s, Unit target, Vector2Int tile)
+        {
+            _controlled.plannedSpells.Add(new PlannedSpell { SpellId = s.id, TargetUnit = target, TargetTile = tile });
+            _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = _controlled.plannedSpells.Count - 1 });
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
+            _hud.LogAction($"✦ {_controlled.unitName} planejou <b>{s.displayName}</b> [{s.MontageText()}]{(target != null ? " em " + target.unitName : "")}", _controlled);
+            SyncButtonStates();
+            RebuildPlanVisuals();
+        }
+
         private void FreeAppendMove(Vector2Int c)
         {
             if (!_controlled.CanFit(ActionType.Move)) { _hud.ShowPlanNote("Sem tick livre para andar"); return; }
@@ -1071,6 +1138,13 @@ namespace PangeaSkirmish
                     { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
             }
             else if (a.Type == ActionType.Concentrate && _controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
+            else if (a.Type == ActionType.Spell && a.Index < _controlled.plannedSpells.Count)
+            {
+                _controlled.plannedSpells.RemoveAt(a.Index);
+                for (int i = 0; i < _controlled.actionSequence.Count; i++)
+                    if (_controlled.actionSequence[i].Type == ActionType.Spell && _controlled.actionSequence[i].Index > a.Index)
+                    { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
+            }
             RecomputePlannedAnchor();
             _hud.SelectSeqIndex(-1);
             RebuildPlanVisuals();
@@ -1124,6 +1198,13 @@ namespace PangeaSkirmish
             {
                 if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count)
                     _pathGhosts.Add(CreateGhostAt(_controlled.plannedPath[a.Index], Tuning.Get().moveGhostColor));
+                else if (a.Type == ActionType.Spell && a.Index < _controlled.plannedSpells.Count)
+                {
+                    var sp = _controlled.plannedSpells[a.Index];
+                    var def = sp.Def;
+                    if (def != null && def.range >= 0)
+                        _pathGhosts.Add(CreateGhostAt(sp.TargetTile, ElementInfo.Color(def.PrimaryElement)));
+                }
                 else if (a.Type == ActionType.Attack && a.Index < _controlled.plannedAttacks.Count)
                 {
                     var t = _controlled.plannedAttacks[a.Index].TargetUnit;
@@ -1217,6 +1298,11 @@ namespace PangeaSkirmish
             // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)
             if (_retargetIdx >= 0 && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             { _retargetIdx = -1; ShowIntentHint(); return; }
+            if (_mode == PlanMode.SpellTilePicking && Keyboard.current != null
+                && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                _pendingSpell = null; HideCursorGhost(); SetMode(PlanMode.Idle); ShowIntentHint(); return;
+            }
             if (_mode == PlanMode.Idle && Keyboard.current != null
                 && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
@@ -1283,6 +1369,17 @@ namespace PangeaSkirmish
                 }
                 else
                     HideCursorGhost();
+            }
+            else if (_mode == PlanMode.SpellTilePicking)
+            {
+                var hovered = HitAnchor();
+                bool valid = hovered.HasValue && _attackable.Contains(hovered.Value);
+                if (valid)
+                {
+                    PlaceGhost(_cursorGhost, hovered.Value);
+                    if (Mouse.current.leftButton.wasPressedThisFrame) CommitSpellTile(hovered.Value);
+                }
+                else HideCursorGhost();
             }
             else if (_mode == PlanMode.QuickStepPicking)
             {
