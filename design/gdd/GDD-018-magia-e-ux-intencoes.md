@@ -91,3 +91,20 @@ Sem restrição, toda unidade tem as mesmas opções, e a diferença entre perso
 2. Que atributo escala a magia Física: STR para força, AGI para salto, VIT para pele? Ou tudo pelo Instinto?
 3. Os pares são fixos (Água+Terra = cura, sempre) ou o jogador combina na hora?
 4. A magia Física continua custando Instinto e a Elemental Mana, sem mistura?
+
+## 7. Decisões do Marcus (rodada 3) **[CANON]**
+
+| Tema | Decisão |
+|------|---------|
+| Orçamento de pontos | **Manter como está.** DEX só muda de lado (Corpo: STR, VIT, AGI, DEX; Mente: WIS, INT). |
+| Magia Física | **Sistema novo**, que complementa as reações e o golpe poderoso. Não é só renomear. |
+| Recurso físico | **Estâmina** substitui o nome "Instinto" em todo o jogo. |
+| Elemental | Catálogo de **15 magias nomeadas e fixas** (5 puras + 10 pares). **Sem combinação na hora** por enquanto. Cada magia mostra **o que foi montado e como** (quais elementos), para abrir a combinação livre no futuro. |
+| Ticks | **Tudo por DEX**, inclusive conjurar. |
+| Custos | **Sem mistura:** Física gasta Estâmina, Elemental gasta Mana. |
+
+**Escala da magia Física por atributo:**
+- **STR** → força de um ataque (Ataque poderoso)
+- **AGI** → movimento e esquiva (Contra-ataque)
+- **VIT** → vida e defesa (Defender)
+- **DEX** → velocidade da ação e precisão (Ataque rápido ou Mirar)
