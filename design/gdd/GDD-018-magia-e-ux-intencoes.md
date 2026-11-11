@@ -62,3 +62,32 @@ Sem restrição, toda unidade tem as mesmas opções, e a diferença entre perso
 - **A. Afinidade por atributo:** o custo e a potência de cada elemento dependem de INT/WIS/DEX (ex.: Fogo escala com INT, Água com WIS, Ar com DEX).
 - **B. Conduítes:** quem tem o conduíte certo conjura o elemento barato e forte; sem conduíte, caro e fraco.
 - **C. Aptidão por nascimento:** cada ser tem um elemento favorito (bônus), mas pode usar os outros.
+
+## 6. Decisões do Marcus (rodada 2) **[CANON]**
+
+**Fundamento.** Todos os seres vivos têm pedaços de Xaliah e Yorgoth em si. É isso que permite usar o **esforço mental** para fazer magia.
+
+**Atributos (muda o GDD-016):**
+- **Físicos:** STR, VIT, AGI, **DEX**
+- **Mágicos:** WIS, INT
+
+**Magia Física** = controlar o próprio corpo e fazer o que não seria comum sem meios mágicos. Exemplos:
+- Pular o triplo do que conseguiria.
+- Forçar um cadeado usando o triplo da força.
+- Defender um ataque à distância só com a pele, com resistência tripla.
+
+**Magia Elemental** = controlar a mana ao redor, fundi-la com a mana da própria mente e conjurar algo "do nada" no mundo material. Exemplos:
+- **Água + Terra** → cura feridas.
+- **Fogo + Ar** → explosão à distância.
+- **Só Mágico** → visão mágica (como a *mage sight* do Mundo das Trevas).
+
+### Leitura de design **[PROPOSTA]**
+- A magia Física é o "triplo": amplificadores do corpo, pagos com Instinto. As reações do GDD-017 e o golpe poderoso já são magia Física sem o nome.
+- A magia Elemental é **combinatória**: os pares de elementos (10 pares + 5 puros) formam o catálogo. Isso resolve em parte o "todos conjuram tudo": a diferença entre seres vem de **quais pares cada um domina** e de quão forte, não de quem pode ou não conjurar.
+- Mágico puro = **percepção**. Faz par com a lore (mente = sentidos) e com o embotamento: gastar Mana cega, conjurar Mágico enxerga.
+
+### Perguntas da rodada 2 **[ABERTO]**
+1. Com DEX físico, ela continua governando a **velocidade em ticks** de todas as ações (inclusive conjurar)? Ou a conjuração passa para INT/WIS?
+2. Que atributo escala a magia Física: STR para força, AGI para salto, VIT para pele? Ou tudo pelo Instinto?
+3. Os pares são fixos (Água+Terra = cura, sempre) ou o jogador combina na hora?
+4. A magia Física continua custando Instinto e a Elemental Mana, sem mistura?
