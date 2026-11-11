@@ -150,9 +150,9 @@ MonoBehaviour:
   moveTilesBase: 2
   moveTilesPerAGI: 0.67
   maxTilesPerMove: 6
-  instinctBase: 1
-  instinctPerBodyPoint: 0.25
-  instinctRegenTicks: 3
+  staminaBase: 1
+  staminaPerBodyPoint: 0.25
+  staminaRegenTicks: 3
   agiRegenFrom: 6
   agiRegenStep: 3
   powerStrikeMult: 1.5

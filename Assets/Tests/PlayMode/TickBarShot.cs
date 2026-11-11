@@ -57,7 +57,7 @@ public class TickBarShot
         hero.plannedPath.Add(new Vector2Int(4, 4)); hero.plannedPath.Add(new Vector2Int(6, 5));
         hero.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = beast });
         hero.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = beast });
-        hero.currentInstinct = hero.stats.MaxInstinct; hero.remainingBAP = hero.currentInstinct - 2;
+        hero.currentStamina = hero.stats.MaxStamina; hero.remainingBAP = hero.currentStamina - 2;
         hud.UpdateTimeline(3, units, u => u == hero);
         hud.SetActionSequence(
             new List<ActionType> { ActionType.Move, ActionType.Move, ActionType.Attack, ActionType.Attack },

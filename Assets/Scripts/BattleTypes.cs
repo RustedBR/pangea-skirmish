@@ -121,29 +121,29 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
-        /// Ticks entre cada ponto de Instinto regenerado. A AGI acima de agiRegenFrom acelera:
+        /// Ticks entre cada ponto de Estâmina regenerado. A AGI acima de agiRegenFrom acelera:
         /// a andada já está no teto, então o excedente vira fôlego (GDD-016 §13).
         /// </summary>
-        public int InstinctRegenTicks
+        public int StaminaRegenTicks
         {
             get
             {
                 var T = Tuning.Get();
                 int bonus = Mathf.Max(0, Mathf.FloorToInt(AGI) - T.agiRegenFrom) / Mathf.Max(1, T.agiRegenStep);
-                return Mathf.Max(1, T.instinctRegenTicks - bonus);
+                return Mathf.Max(1, T.staminaRegenTicks - bonus);
             }
         }
 
         /// <summary>Ticks base do ataque, pelo peso da arma equipada (GDD-016 §2.1).</summary>
         public int AttackTicks = 2;
 
-        /// <summary>Instinto máximo: reserva do Corpo (GDD-016 §3).</summary>
-        public int MaxInstinct
+        /// <summary>Estâmina máxima: reserva do Corpo (GDD-016 §3).</summary>
+        public int MaxStamina
         {
             get
             {
                 var T = Tuning.Get();
-                return Mathf.Max(1, Mathf.RoundToInt(T.instinctBase + (STR + VIT) * T.instinctPerBodyPoint));
+                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + (STR + VIT) * T.staminaPerBodyPoint));
             }
         }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
@@ -279,14 +279,14 @@ namespace PangeaSkirmish
             return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX))));
         }
 
-        // ---- Custos em Instinto (GDD-016 §3) ----
-        public static int InstinctCost(ScheduledAction a)
+        // ---- Custos em Estâmina (GDD-016 §3) ----
+        public static int StaminaCost(ScheduledAction a)
         {
             var T = Tuning.Get();
             int c = 0;
-            if (a.Type == ActionType.Attack && a.IsBonus) c += T.instinctPowerStrike;
-            if (a.Type == ActionType.Attack && a.IsAimed) c += T.instinctAim;
-            if (a.Type == ActionType.Move   && a.IsBonus) c += T.instinctQuickStep;
+            if (a.Type == ActionType.Attack && a.IsBonus) c += T.staminaPowerStrike;
+            if (a.Type == ActionType.Attack && a.IsAimed) c += T.staminaAim;
+            if (a.Type == ActionType.Move   && a.IsBonus) c += T.staminaQuickStep;
             return c;
         }
 

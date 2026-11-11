@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Status** | Proposta para revisão — nada implementado |
+| **Status** | Aprovado (2026-11-11) — em implementação. Interrupção: ticks restantes saem da fila e a unidade decide no tick seguinte [CANON] |
 | **Branch** | feat/magia-e-ux-intencoes |
 | **Depende de** | GDD-013 (lore), GDD-014 (ticks), GDD-016 (atributos), GDD-017 (reações), GDD-018 (decisões) |
 | **Substitui** | GDD-003 (magia antiga, removida) |
@@ -115,7 +115,7 @@ Todas as unidades conhecem as 15 magias (inatas, [CANON]). A diferença vem de:
 
 ## 8. Ordem de implementação sugerida
 
-1. Renomear Instinto → **Estâmina** (código, UI, GDDs, tuning).
+1. Renomear Estâmina → **Estâmina** (código, UI, GDDs, tuning).
 2. Mover DEX para Corpo na ficha e no `Attr`.
 3. Mana: nova fórmula, regen por tick, Concentrar, embotamento.
 4. `SpellDef` + catálogo em `ScriptableObject` (as 15 + 4), com montagem (elementos) explícita.

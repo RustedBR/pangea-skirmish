@@ -71,21 +71,21 @@ public class TickRulesTests
     }
 
     [Test]
-    public void Instinct_PlanCostIsCommittedWhenQueueIsBuilt()
+    public void Stamina_PlanCostIsCommittedWhenQueueIsBuilt()
     {
         _u.stats.STR = 4f; _u.stats.VIT = 4f;
-        _u.currentInstinct = _u.stats.MaxInstinct;
-        int max = _u.currentInstinct;
-        Assert.AreEqual(Mathf.RoundToInt(_t.instinctBase + 8 * _t.instinctPerBodyPoint), max);
+        _u.currentStamina = _u.stats.MaxStamina;
+        int max = _u.currentStamina;
+        Assert.AreEqual(Mathf.RoundToInt(_t.staminaBase + 8 * _t.staminaPerBodyPoint), max);
 
         _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, IsBonus = true });
         _u.RecomputeTickBudget();
-        Assert.AreEqual(max - _t.instinctPowerStrike, _u.remainingBAP, "golpe poderoso reserva Instinto no plano");
+        Assert.AreEqual(max - _t.staminaPowerStrike, _u.remainingBAP, "golpe poderoso reserva Estâmina no plano");
 
         _u.BuildQueueFromPlan();
-        Assert.AreEqual(max - _t.instinctPowerStrike, _u.currentInstinct, "o gasto vale ao comprometer a fila");
-        _u.GainInstinct(999);
-        Assert.AreEqual(max, _u.currentInstinct, "não passa do máximo");
+        Assert.AreEqual(max - _t.staminaPowerStrike, _u.currentStamina, "o gasto vale ao comprometer a fila");
+        _u.GainStamina(999);
+        Assert.AreEqual(max, _u.currentStamina, "não passa do máximo");
     }
 
     [Test]
@@ -128,31 +128,31 @@ public class TickRulesTests
     }
 
     [Test]
-    public void Increment_NextAttack_SpendsInstinctAndLengthensIt()
+    public void Increment_NextAttack_SpendsStaminaAndLengthensIt()
     {
         _u.stats.STR = 4f; _u.stats.VIT = 4f; _u.stats.AttackTicks = 2;
-        _u.currentInstinct = _u.stats.MaxInstinct;
-        int before = _u.currentInstinct;
+        _u.currentStamina = _u.stats.MaxStamina;
+        int before = _u.currentStamina;
         _u.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Tile });
         _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = 0 });
         _u.BuildQueueFromPlan();
         int dur = _u.queue[0].Duration;
 
         Assert.IsTrue(_u.TryIncrementNext(0), "golpe poderoso na próxima ação");
-        Assert.AreEqual(before - _t.instinctPowerStrike, _u.currentInstinct);
+        Assert.AreEqual(before - _t.staminaPowerStrike, _u.currentStamina);
         Assert.AreEqual(dur + _t.ticksPowerStrikeExtra, _u.queue[0].Duration);
         Assert.IsFalse(_u.TryIncrementNext(0), "não duplica o golpe poderoso");
 
         Assert.IsTrue(_u.TryIncrementNext(1), "mirar ainda pode");
         Assert.IsTrue(_u.queue[0].IsAimed);
-        Assert.AreEqual(before - _t.instinctPowerStrike - _t.instinctAim, _u.currentInstinct);
+        Assert.AreEqual(before - _t.staminaPowerStrike - _t.staminaAim, _u.currentStamina);
     }
 
     [Test]
     public void Increment_Refused_WhenStartedWalkingOrBroke()
     {
         _u.stats.STR = 4f; _u.stats.VIT = 4f;
-        _u.currentInstinct = _u.stats.MaxInstinct;
+        _u.currentStamina = _u.stats.MaxStamina;
         _u.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Tile });
         _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = 0 });
         _u.BuildQueueFromPlan();
@@ -160,25 +160,25 @@ public class TickRulesTests
         Assert.IsFalse(_u.TryIncrementNext(0), "ação já começou");
 
         _u.queue[0].Elapsed = 0;
-        _u.currentInstinct = 0;
-        Assert.IsFalse(_u.TryIncrementNext(1), "sem Instinto");
+        _u.currentStamina = 0;
+        Assert.IsFalse(_u.TryIncrementNext(1), "sem Estâmina");
 
         _u.queue.Clear();
         _u.queue.Add(new QueuedAction { Type = ActionType.Move, Duration = 1 });
-        _u.currentInstinct = 99;
+        _u.currentStamina = 99;
         Assert.IsFalse(_u.TryIncrementNext(0), "só ataques");
     }
 
     [Test]
-    public void Agi_AboveSix_KeepsWalkCapButSpeedsInstinctRegen()
+    public void Agi_AboveSix_KeepsWalkCapButSpeedsStaminaRegen()
     {
         _u.stats.AGI = 6f;
         Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "com AGI 6 a andada já está no teto");
-        int regen6 = _u.stats.InstinctRegenTicks;
+        int regen6 = _u.stats.StaminaRegenTicks;
         _u.stats.AGI = 12f;
         Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "o teto de andada continua");
-        Assert.Less(_u.stats.InstinctRegenTicks, regen6, "AGI acima de 6 acelera o Instinto");
-        Assert.AreEqual(1, _u.stats.InstinctRegenTicks, "AGI 12: 1 ponto por tick");
+        Assert.Less(_u.stats.StaminaRegenTicks, regen6, "AGI acima de 6 acelera a Estâmina");
+        Assert.AreEqual(1, _u.stats.StaminaRegenTicks, "AGI 12: 1 ponto por tick");
     }
 
     [Test]
@@ -189,10 +189,10 @@ public class TickRulesTests
     }
 
     [Test]
-    public void Instinct_IsScarce()
+    public void Stamina_IsScarce()
     {
         _u.stats.STR = 8f; _u.stats.VIT = 8f; // 16 pontos de corpo
-        Assert.LessOrEqual(_u.stats.MaxInstinct, 6, "Instinto máximo baixo (era 11 com os mesmos pontos)");
+        Assert.LessOrEqual(_u.stats.MaxStamina, 6, "Estâmina máxima baixo (era 11 com os mesmos pontos)");
     }
 
     [Test]

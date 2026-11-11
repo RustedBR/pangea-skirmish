@@ -12,16 +12,16 @@
 
 1. **Previsão x realidade.** A fila é planejada olhando o estado de agora, mas o inimigo muda a posição durante os ticks. Uma intenção "Investir" pode virar andar até um tile vazio. **[PROPOSTA]** Alvo por unidade (segue o alvo), não por tile; ícone de aviso quando o alvo sai de alcance.
 2. **Compromisso sem cancelar.** Fila longa + sem cancelar = erro de clique caro. **[PROPOSTA]** Janela curta de desfazer só do último bloco, antes de confirmar.
-3. **Informação demais na barra de ticks.** Blocos, régua, ameaças, pips de Instinto e prévia disputam atenção. **[PROPOSTA]** Camadas: padrão mostra só a sua fila e ameaças; detalhes ao passar o mouse.
+3. **Informação demais na barra de ticks.** Blocos, régua, ameaças, pips de Estâmina e prévia disputam atenção. **[PROPOSTA]** Camadas: padrão mostra só a sua fila e ameaças; detalhes ao passar o mouse.
 4. **Poucos cliques vs. controle fino.** Intenções rápidas escondem o Modo Livre. **[PROPOSTA]** Mostrar na intenção o que ela vira (preview em blocos) e um atalho para "abrir no Modo Livre".
 5. **Mobile.** Sem hover e sem Tab; menus de bloco e popups de incremento são pequenos para o dedo. **[ABERTO]** Fluxo toque dedicado.
 6. **Janelas de decisão simultâneas.** Em multiplayer, quem decide mais rápido espera os outros; o tempo de 15s pode ser longo ou curto conforme o número de unidades. **[ABERTO]** Tempo proporcional à fila.
-7. **Reações escondidas.** O usuário relatou que não viu as reações aparecerem. **[PROPOSTA]** Mostrar no bloco ameaçado quais reações estão disponíveis e o custo em Instinto antes do tick.
-8. **Aprendizado.** Muitos conceitos (ticks, Instinto, intenções, reações). **[PROPOSTA]** Tutorial com combate contra uma fera, introduzindo um conceito por vez.
+7. **Reações escondidas.** O usuário relatou que não viu as reações aparecerem. **[PROPOSTA]** Mostrar no bloco ameaçado quais reações estão disponíveis e o custo em Estâmina antes do tick.
+8. **Aprendizado.** Muitos conceitos (ticks, Estâmina, intenções, reações). **[PROPOSTA]** Tutorial com combate contra uma fera, introduzindo um conceito por vez.
 
 ## 2. Sistema de magia (Mana) — direção
 
-Princípios vindos da lore: magia da mente (Mágico, Água, Terra, Fogo, Ar); todos podem conjurar; mais conjuração = sentidos mais embotados; o Físico fica no corpo (Instinto).
+Princípios vindos da lore: magia da mente (Mágico, Água, Terra, Fogo, Ar); todos podem conjurar; mais conjuração = sentidos mais embotados; o Físico fica no corpo (Estâmina).
 
 - **Conduítes** amplificam/direcionam elementos (GDD-013 §6). **[PROPOSTA]** Equipamento que dá afinidade e reduz o custo do elemento.
 - **Duração em ticks.** Conjurar tem tempo de conjuração (ex.: 3 ticks), o efeito acontece no fim e pode ser interrompido por dano. Combina com o semi-turno e com as reações.
@@ -39,7 +39,7 @@ Princípios vindos da lore: magia da mente (Mágico, Água, Terra, Fogo, Ar); to
 ## 3. Perguntas abertas
 
 1. Magias são aprendidas, equipadas em espaços ou vêm só dos conduítes?
-2. Mana regenera por tick como o Instinto, ou só por "Concentrar"?
+2. Mana regenera por tick como a Estâmina, ou só por "Concentrar"?
 3. O embotamento dos sentidos afeta o jogador (névoa) ou só a unidade (mira)?
 4. Magia de área acerta aliados?
 
@@ -82,15 +82,15 @@ Sem restrição, toda unidade tem as mesmas opções, e a diferença entre perso
 - **Só Mágico** → visão mágica (como a *mage sight* do Mundo das Trevas).
 
 ### Leitura de design **[PROPOSTA]**
-- A magia Física é o "triplo": amplificadores do corpo, pagos com Instinto. As reações do GDD-017 e o golpe poderoso já são magia Física sem o nome.
+- A magia Física é o "triplo": amplificadores do corpo, pagos com Estâmina. As reações do GDD-017 e o golpe poderoso já são magia Física sem o nome.
 - A magia Elemental é **combinatória**: os pares de elementos (10 pares + 5 puros) formam o catálogo. Isso resolve em parte o "todos conjuram tudo": a diferença entre seres vem de **quais pares cada um domina** e de quão forte, não de quem pode ou não conjurar.
 - Mágico puro = **percepção**. Faz par com a lore (mente = sentidos) e com o embotamento: gastar Mana cega, conjurar Mágico enxerga.
 
 ### Perguntas da rodada 2 **[ABERTO]**
 1. Com DEX físico, ela continua governando a **velocidade em ticks** de todas as ações (inclusive conjurar)? Ou a conjuração passa para INT/WIS?
-2. Que atributo escala a magia Física: STR para força, AGI para salto, VIT para pele? Ou tudo pelo Instinto?
+2. Que atributo escala a magia Física: STR para força, AGI para salto, VIT para pele? Ou tudo pela Estâmina?
 3. Os pares são fixos (Água+Terra = cura, sempre) ou o jogador combina na hora?
-4. A magia Física continua custando Instinto e a Elemental Mana, sem mistura?
+4. A magia Física continua custando Estâmina e a Elemental Mana, sem mistura?
 
 ## 7. Decisões do Marcus (rodada 3) **[CANON]**
 
@@ -98,7 +98,7 @@ Sem restrição, toda unidade tem as mesmas opções, e a diferença entre perso
 |------|---------|
 | Orçamento de pontos | **Manter como está.** DEX só muda de lado (Corpo: STR, VIT, AGI, DEX; Mente: WIS, INT). |
 | Magia Física | **Sistema novo**, que complementa as reações e o golpe poderoso. Não é só renomear. |
-| Recurso físico | **Estâmina** substitui o nome "Instinto" em todo o jogo. |
+| Recurso físico | **Estâmina** substitui o nome "Estâmina" em todo o jogo. |
 | Elemental | Catálogo de **15 magias nomeadas e fixas** (5 puras + 10 pares). **Sem combinação na hora** por enquanto. Cada magia mostra **o que foi montado e como** (quais elementos), para abrir a combinação livre no futuro. |
 | Ticks | **Tudo por DEX**, inclusive conjurar. |
 | Custos | **Sem mistura:** Física gasta Estâmina, Elemental gasta Mana. |

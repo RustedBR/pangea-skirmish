@@ -780,7 +780,7 @@ namespace PangeaSkirmish
                 });
             if (mine != null)
                 _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
-                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Instinto, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Estâmina, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
             while (_windowClosedSeq < seq && guard > 0f)
@@ -817,9 +817,9 @@ namespace PangeaSkirmish
         private IEnumerator AdvanceGlobalTick()
         {
             _globalTick++;
-            // Instinto volta aos poucos (GDD-016 §3).
+            // Estâmina volta aos poucos (GDD-016 §3).
             foreach (var u in _units)
-                if (!u.IsDead && _globalTick % u.stats.InstinctRegenTicks == 0) u.GainInstinct(1);
+                if (!u.IsDead && _globalTick % u.stats.StaminaRegenTicks == 0) u.GainStamina(1);
             int per = Mathf.Max(1, Tuning.Get().ticksPerRound);
             if (_globalTick % per != 0) yield break;
             foreach (var u in _units)
@@ -1160,9 +1160,9 @@ namespace PangeaSkirmish
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
-                    // Ataque perdido devolve o Instinto do golpe poderoso / mirar.
-                    if (incr) u.GainInstinct(Tuning.Get().instinctPowerStrike);
-                    if (aimed) u.GainInstinct(Tuning.Get().instinctAim);
+                    // Ataque perdido devolve a Estâmina do golpe poderoso / mirar.
+                    if (incr) u.GainStamina(Tuning.Get().staminaPowerStrike);
+                    if (aimed) u.GainStamina(Tuning.Get().staminaAim);
                     _hud.RefreshUnitInfo();
                     continue;
                 }
@@ -1419,7 +1419,7 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
-        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Instinto e
+        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Estâmina e
         /// mais vida que ele, recebe o golpe no lugar quando o alvo estaria em risco (golpe fatal
         /// ou vida abaixo de 40%). Escolhe o de mais vida; empate pelo menor id.
         /// </summary>

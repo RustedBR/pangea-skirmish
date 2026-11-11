@@ -239,10 +239,10 @@ namespace PangeaSkirmish
             else
             {
                 // Aplicar bônus: gasta PAB
-                if (_controlled.remainingBAP < Tuning.Get().instinctPowerStrike)
+                if (_controlled.remainingBAP < Tuning.Get().staminaPowerStrike)
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente para Golpe Poderoso", _controlled);
-                    _hud.ShowPlanNote("Instinto insuficiente para o Golpe poderoso");
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Estâmina insuficiente para Golpe Poderoso", _controlled);
+                    _hud.ShowPlanNote("Estâmina insuficiente para o Golpe poderoso");
                     return;
                 }
                 int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
@@ -377,7 +377,7 @@ namespace PangeaSkirmish
 
             // Concentração agora é um CONTADOR: cada clique adiciona uma (gasta 1 PAB),
             // até acabar o PAB ou a mana projetada encher. Cancela via Desfazer/Limpar.
-            // Concentrar é da Mente: custa tempo, não Instinto.
+            // Concentrar é da Mente: custa tempo, não Estâmina.
             if (!_controlled.CanFit(ActionType.Concentrate))
             {
                 _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
@@ -424,9 +424,9 @@ namespace PangeaSkirmish
             {
                 // Aplicar bônus: gasta PAB
                 var probe = action; probe.IsBonus = true;
-                if (_controlled.remainingBAP < TickRules.InstinctCost(probe))
+                if (_controlled.remainingBAP < TickRules.StaminaCost(probe))
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente", _controlled);
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Estâmina insuficiente", _controlled);
                     return;
                 }
                 action.IsBonus = true;
@@ -472,9 +472,9 @@ namespace PangeaSkirmish
             else
             {
                 // Aplicar mira: gasta PAB
-                if (_controlled.remainingBAP < Tuning.Get().instinctAim)
+                if (_controlled.remainingBAP < Tuning.Get().staminaAim)
                 {
-                    _hud.ShowPlanNote("Instinto insuficiente para Mirar");
+                    _hud.ShowPlanNote("Estâmina insuficiente para Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction

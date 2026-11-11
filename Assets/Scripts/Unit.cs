@@ -40,10 +40,10 @@ namespace PangeaSkirmish
         public bool hasPlannedBonus;
         /// <summary>Ticks livres na fila deste ponto de decisão (GDD-014; antigo PA).</summary>
         public int remainingAP;
-        /// <summary>Instinto ainda livre NESTE plano (currentInstinct − custo planejado). Antigo PAB.</summary>
+        /// <summary>Estâmina ainda livre NESTE plano (currentStamina − custo planejado). Antigo PAB.</summary>
         public int remainingBAP;
-        /// <summary>Instinto atual: reserva do Corpo, paga ações bônus e reações (GDD-016 §3).</summary>
-        public int currentInstinct;
+        /// <summary>Estâmina atual: reserva do Corpo, paga ações bônus e reações (GDD-016 §3).</summary>
+        public int currentStamina;
 
         // ── Semi-turno por ticks (GDD-014) ──
         /// <summary>Fila comprometida. Não vazia = unidade ocupada (não decide neste ponto).</summary>
@@ -68,20 +68,20 @@ namespace PangeaSkirmish
         public void RecomputeTickBudget()
         {
             remainingAP  = Tuning.Get().maxQueueTicks - PlannedTicks();
-            remainingBAP = currentInstinct - PlannedInstinctCost();
+            remainingBAP = currentStamina - PlannedStaminaCost();
         }
 
-        /// <summary>Instinto que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
-        public int PlannedInstinctCost()
+        /// <summary>Estâmina que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
+        public int PlannedStaminaCost()
         {
             int c = 0;
-            foreach (var a in actionSequence) c += TickRules.InstinctCost(a);
+            foreach (var a in actionSequence) c += TickRules.StaminaCost(a);
             return c;
         }
 
-        /// <summary>Recupera Instinto (regeneração por tick), até o máximo.</summary>
-        public void GainInstinct(int amount) =>
-            currentInstinct = Mathf.Clamp(currentInstinct + amount, 0, stats.MaxInstinct);
+        /// <summary>Recupera Estâmina (regeneração por tick), até o máximo.</summary>
+        public void GainStamina(int amount) =>
+            currentStamina = Mathf.Clamp(currentStamina + amount, 0, stats.MaxStamina);
 
         /// <summary>Cabe uma ação de 'type' no orçamento restante?</summary>
         public bool CanFit(ActionType type, bool isBonus = false) =>
@@ -91,9 +91,9 @@ namespace PangeaSkirmish
         public void BuildQueueFromPlan()
         {
             queue.Clear();
-            // Compromete o Instinto do plano (ações bônus). Feito aqui, a partir do plano,
+            // Compromete a Estâmina do plano (ações bônus). Feito aqui, a partir do plano,
             // para valer igual em todas as máquinas do lockstep.
-            currentInstinct = Mathf.Max(0, currentInstinct - PlannedInstinctCost());
+            currentStamina = Mathf.Max(0, currentStamina - PlannedStaminaCost());
             foreach (var a in actionSequence)
             {
                 var q = new QueuedAction { Type = a.Type, IsBonus = a.IsBonus, IsAimed = a.IsAimed,
@@ -114,13 +114,13 @@ namespace PangeaSkirmish
                 queue.Add(new QueuedAction { Type = ActionType.Wait, Duration = TickRules.Duration(this, ActionType.Wait, false) });
         }
 
-        /// <summary>Custo em Instinto de um incremento: 0 = golpe poderoso, 1 = mirar.</summary>
+        /// <summary>Custo em Estâmina de um incremento: 0 = golpe poderoso, 1 = mirar.</summary>
         public static int IncrementCost(int kind) =>
-            kind == 0 ? Tuning.Get().instinctPowerStrike : Tuning.Get().instinctAim;
+            kind == 0 ? Tuning.Get().staminaPowerStrike : Tuning.Get().staminaAim;
 
         /// <summary>
         /// A próxima ação da fila (que ainda não começou) pode receber o incremento?
-        /// Só ataques; golpe poderoso uma vez, mirar uma vez; exige Instinto.
+        /// Só ataques; golpe poderoso uma vez, mirar uma vez; exige Estâmina.
         /// </summary>
         public bool CanIncrementNext(int kind)
         {
@@ -129,7 +129,7 @@ namespace PangeaSkirmish
             if (q.Type != ActionType.Attack || q.Elapsed > 0) return false;
             if (kind == 0 && q.IsBonus) return false;
             if (kind == 1 && q.IsAimed) return false;
-            return currentInstinct >= IncrementCost(kind);
+            return currentStamina >= IncrementCost(kind);
         }
 
         /// <summary>Aplica o incremento (golpe poderoso alonga o ataque em ticks). Determinístico.</summary>
@@ -139,7 +139,7 @@ namespace PangeaSkirmish
             var q = queue[0];
             if (kind == 0) { q.IsBonus = true; q.Duration = TickRules.Duration(this, ActionType.Attack, true); }
             else q.IsAimed = true;
-            currentInstinct -= IncrementCost(kind);
+            currentStamina -= IncrementCost(kind);
             return true;
         }
 
@@ -158,10 +158,10 @@ namespace PangeaSkirmish
         /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
         public int blockFlat;
 
-        public bool CanReact() => currentInstinct >= Tuning.Get().instinctReaction && remainingReactions > 0;
+        public bool CanReact() => currentStamina >= Tuning.Get().staminaReaction && remainingReactions > 0;
         public void ConsumeReaction()
         {
-            currentInstinct   = Mathf.Max(0, currentInstinct - Tuning.Get().instinctReaction);
+            currentStamina   = Mathf.Max(0, currentStamina - Tuning.Get().staminaReaction);
             remainingReactions = Mathf.Max(0, remainingReactions - 1);
         }
         public void ResetReactionsForRound() => remainingReactions = 1;
@@ -275,8 +275,8 @@ namespace PangeaSkirmish
             currentHP    = stats.MaxHP;
             currentMana  = stats.MaxMana;
             remainingAP  = Tuning.Get().maxQueueTicks;
-            currentInstinct = stats.MaxInstinct;
-            remainingBAP = currentInstinct;
+            currentStamina = stats.MaxStamina;
+            remainingBAP = currentStamina;
 
             // A unidade vira filha do _gridRig (organização/pivot; ele não gira
             // mais fisicamente — ver GridManager _viewOrientation).
@@ -1010,7 +1010,7 @@ namespace PangeaSkirmish
             plannedConcentrations = 0;
             reservedMana = 0;
             remainingAP  = Tuning.Get().maxQueueTicks;
-            remainingBAP = currentInstinct;
+            remainingBAP = currentStamina;
             dodgeReactBonus = 0f;
             blockFlat       = 0;
         }

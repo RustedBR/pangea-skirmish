@@ -44,7 +44,7 @@ public class BeastCadenceTest
         }
         var hero = Make("Heroi", Team.Player, new Vector2Int(5, 6), "IronSword", 0, 0);
         var beast = Make("Fera", Team.Enemy, new Vector2Int(8, 6), "Claws", 1, BeastAI.OwnerId);
-        hero.currentHP = 99999; hero.currentInstinct = 0;             // sem reação: não abre menu
+        hero.currentHP = 99999; hero.currentStamina = 0;             // sem reação: não abre menu
         var units = new List<Unit> { hero, beast };
 
         var rm = new GameObject("RM").AddComponent<RoundManager>();

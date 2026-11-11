@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Simulador de combate 1x1 para balancear atributos do CORPO (GDD-016 §13).
 
-Replica as fórmulas do jogo (HP, dano, armadura, esquiva, bloqueio, Instinto, golpe
+Replica as fórmulas do jogo (HP, dano, armadura, esquiva, bloqueio, Estâmina, golpe
 poderoso, reação e ticks) entre arquétipos de 20 pontos de corpo (STR/VIT/AGI) e
 imprime a tabela de vitórias. Não simula movimento nem alcance: só o corpo a corpo.
 
@@ -65,7 +65,7 @@ BUILDS={'Bruto 10/5/5':(10,5,5),'Tanque 5/10/5':(5,10,5),'Ágil 5/5/10':(5,5,10)
         'Ágil extremo 3/3/14':(3,3,14),'Bruto extremo 14/3/3':(14,3,3),'Tanque extremo 3/14/3':(3,14,3)}
 def table(P,N=1500,seed=1):
     rng=random.Random(seed); names=list(BUILDS)
-    print("%-22s"%""+"".join("%-9s"%n.split()[0][:8] for n in names)+" | média  TTK   Instinto máx")
+    print("%-22s"%""+"".join("%-9s"%n.split()[0][:8] for n in names)+" | média  TTK   Estâmina máx")
     for a in names:
         row=[];ttks=[]
         for b in names:

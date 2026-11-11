@@ -354,7 +354,7 @@ namespace PangeaSkirmish
                                                                        : Thp.hpBarLowColor;
             }
             if (_unitHPText != null) _unitHPText.text = $"HP  {u.currentHP} / {s.MaxHP}";
-            if (_apText != null) _apText.text = $"<b>Instinto</b> {u.remainingBAP}/{s.MaxInstinct}";
+            if (_apText != null) _apText.text = $"<b>Estâmina</b> {u.remainingBAP}/{s.MaxStamina}";
             var buffs = StatusEffectSystem.Summary(u.statusEffects);
             if (_unitStatsText != null)
                 _unitStatsText.text =
@@ -464,7 +464,7 @@ namespace PangeaSkirmish
         {
             if (u != null) _lastUnit = u;
             if (_apText != null && u != null)
-                _apText.text = $"<b>Instinto</b> {u.remainingBAP}/{u.stats.MaxInstinct}";
+                _apText.text = $"<b>Estâmina</b> {u.remainingBAP}/{u.stats.MaxStamina}";
         }
 
         // ── TEXTOS PÚBLICOS ──
@@ -574,8 +574,8 @@ namespace PangeaSkirmish
             }
             if (type == ActionType.Attack)
             {
-                Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().instinctPowerStrike} Instinto, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, true);
-                Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().instinctAim} Instinto)", aimOn, true);
+                Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().staminaPowerStrike} Estâmina, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, true);
+                Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().staminaAim} Estâmina)", aimOn, true);
             }
             if (type == ActionType.Move) Opt(13, "⌖ Mudar destino", false, true);
             Opt(10, "◀ Mover para antes", false, idx > 0);
@@ -617,8 +617,8 @@ namespace PangeaSkirmish
                 if (!enabled) b.style.opacity = 0.45f;
                 return b;
             }
-            pop.Add(Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().instinctPowerStrike} Instinto, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, powerEnabled));
-            pop.Add(Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().instinctAim} Instinto)", aimOn, aimEnabled));
+            pop.Add(Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().staminaPowerStrike} Estâmina, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, powerEnabled));
+            pop.Add(Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().staminaAim} Estâmina)", aimOn, aimEnabled));
             var close = new Button(CloseIncrementPopup) { text = "Fechar" };
             close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
             close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 2;
@@ -876,15 +876,15 @@ namespace PangeaSkirmish
             }
         }
 
-        /// <summary>Instinto como pips: dourado = livre após o plano, vazado = reservado pelo plano, apagado = gasto.</summary>
+        /// <summary>Estâmina como pips: dourado = livre após o plano, vazado = reservado pelo plano, apagado = gasto.</summary>
         private void BuildPips(Unit u)
         {
             _pipsRow.Clear();
             if (u == null) return;
-            var lab = new Label("Instinto") { pickingMode = PickingMode.Ignore };
+            var lab = new Label("Estâmina") { pickingMode = PickingMode.Ignore };
             lab.style.fontSize = 10; lab.style.color = new Color(0.62f, 0.69f, 0.82f); lab.style.marginRight = 5;
             _pipsRow.Add(lab);
-            int max = u.stats.MaxInstinct, free = Mathf.Clamp(u.remainingBAP, 0, max), have = Mathf.Clamp(u.currentInstinct, 0, max);
+            int max = u.stats.MaxStamina, free = Mathf.Clamp(u.remainingBAP, 0, max), have = Mathf.Clamp(u.currentStamina, 0, max);
             for (int i = 0; i < max; i++)
             {
                 var p = new VisualElement { pickingMode = PickingMode.Ignore };

@@ -44,7 +44,7 @@ Isso segue a lore: **descer tem peso, recuar não tem nenhum** (GDD-013 §7).
 ### 3.2 O peso de descer **[PROPOSTA]**
 
 - As unidades **não se curam por completo** entre camadas: recuperam uma parte da vida e da Mana.
-- A cada camada, o **custo em Instinto** das ações físicas sobe um pouco (o corpo entra na densidade).
+- A cada camada, o **custo em Estâmina** das ações físicas sobe um pouco (o corpo entra na densidade).
 - Não existe número máximo de camadas. A dificuldade cresce sem fim, como no paradoxo de Aquiles e a tartaruga: sempre há mais uma.
 
 ### 3.3 Camadas **[PROPOSTA]**
@@ -126,7 +126,7 @@ Passo 4 — a descida (feito):
 
 - Ao vencer uma camada, o **anfitrião** escolhe **Descer** ou **Recuar**; os outros veem o aviso de espera.
 - **Descer:** as feras mortas saem, os jogadores voltam ao ponto de partida, e entram `jogadores + camada` feras, mais fortes a cada camada (+10% de atributos por camada).
-- **Peso de descer:** entre camadas a unidade recupera só 30% da vida máxima e 50% da Mana. Quem caiu volta de pé com 25% da vida. Como o Instinto ainda não existe, o custo crescente de Instinto ficou para depois.
+- **Peso de descer:** entre camadas a unidade recupera só 30% da vida máxima e 50% da Mana. Quem caiu volta de pé com 25% da vida. Como a Estâmina ainda não existe, o custo crescente de Estâmina ficou para depois.
 - **Recuar:** a descida termina em vitória, com o número de camadas vencidas.
 - **Marca de profundidade:** a camada mais funda vencida fica salva no aparelho (`PlayerPrefs`, chave `pangea.coop.deepestLayer`). Ainda não aparece em nenhuma tela.
 - O mapa é o mesmo em todas as camadas até o passo 5.
