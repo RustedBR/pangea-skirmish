@@ -213,4 +213,15 @@ public class TickRulesTests
     {
         Assert.AreEqual(2, Tuning.Get().ticksUnarmed, "feras não podem atacar o dobro de vezes que uma espada");
     }
+
+    [Test]
+    public void PowerStrike_MultipliesDamage_NotJustTicks()
+    {
+        _u.stats.STR = 4f; _u.stats.WeaponDamage = 5;
+        int b = _u.stats.PhysicalDamage;
+        int power = AttackResolver.PowerDamage(_u, true, 0);
+        Assert.AreEqual(Mathf.RoundToInt(b * Tuning.Get().powerStrikeMult), power);
+        Assert.Greater(power, b + 4, "mais que o antigo bônus fixo de +4");
+        Assert.AreEqual(b + 3, AttackResolver.PowerDamage(_u, false, 3), "a mira soma, sem multiplicar");
+    }
 }

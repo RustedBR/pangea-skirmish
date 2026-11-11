@@ -155,6 +155,7 @@ MonoBehaviour:
   instinctRegenTicks: 3
   agiRegenFrom: 6
   agiRegenStep: 3
+  powerStrikeMult: 1.5
   ticksUnarmed: 2
   spriteScalePerFootprint: 1.4
   footprintScalePerFootprint: 0.95

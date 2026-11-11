@@ -156,7 +156,6 @@ namespace PangeaSkirmish
             _hud.SetPhase($"Tick {_globalTick} — Decisão");
             _hud.SetTimerVisible(false);
             _hud.SetConfirmVisible(false);
-            _hud.LogRound(_globalTick);
             LogTimeline();
             yield return new WaitForSeconds(Tuning.Get().roundBannerHold);
             EnterPlanning();
@@ -548,6 +547,9 @@ namespace PangeaSkirmish
                             break;
                     }
                 }
+
+                // Cabeçalho do tick no histórico: cada ação fica sob o tick em que realmente acontece.
+                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) _hud.LogRound(_globalTick);
 
                 // Um enquadramento por tick, cobrindo todos que agem.
                 if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
@@ -1177,22 +1179,23 @@ namespace PangeaSkirmish
                 // ── Reação rápida sim/não (alvo sob ataque) ──
                 // Interceptar: um aliado adjacente recebe o golpe no lugar de um alvo em risco.
                 var atkEff = atk;
+                _reactionAttacker = u;
                 if (attackTarget != null)
                 {
                     var guard = FindInterceptor(attackTarget, u);
+                    _interceptedBy = null;
                     if (guard != null)
+                        yield return WaitReaction(guard, new List<ReactionKind> { ReactionKind.Intercept }, u);
+                    if (_interceptedBy != null)
                     {
-                        guard.ConsumeReaction();
-                        guard.DelayQueue(Tuning.Get().reactionTickCost);
-                        _hud.LogAction($"<color=#ffd700>🛡</color> {guard.unitName}: Interceptou o golpe em {attackTarget.unitName}!", guard);
-                        atkEff.TargetUnit = guard; atkEff.Mode = AttackMode.Unit;
-                        attackTarget = guard;
+                        var g = _interceptedBy; _interceptedBy = null;
+                        _hud.LogAction($"<color=#ffd700>🛡</color> {g.unitName}: Interceptou o golpe em {attackTarget.unitName}!", g);
+                        atkEff.TargetUnit = g; atkEff.Mode = AttackMode.Unit;
+                        attackTarget = g;
                     }
                 }
-                _reactionAttacker = u;
                 if (attackTarget != null && attackTarget.CanReact())
-                    yield return WaitReaction(attackTarget,
-                        new List<ReactionKind> { PickDefense(attackTarget, u) }, u);
+                    yield return WaitReaction(attackTarget, DefenseOptions(attackTarget, u), u);
 
                 string log = AttackResolver.ResolveAttack(u, atkEff, _units);
                 if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockFlat = 0; }
@@ -1235,6 +1238,15 @@ namespace PangeaSkirmish
             return u.stats.AGI >= u.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
         }
         private Unit _reactionAttacker;
+        private Unit _interceptedBy;
+
+        /// <summary>Opções do menu de defesa: Esquiva e Bloquear sempre; Passo reativo se há tile para sair do alcance.</summary>
+        private List<ReactionKind> DefenseOptions(Unit u, Unit attacker)
+        {
+            var list = new List<ReactionKind> { ReactionKind.Dodge, ReactionKind.Block };
+            if (FindStepTile(u, attacker).HasValue) list.Add(ReactionKind.Step);
+            return list;
+        }
 
         /// <summary>Prevê se o ataque vai causar dano (há alvo válido dentro do alcance).</summary>
         private bool WillAttackHit(Unit u, PlannedAttack atk)
@@ -1433,6 +1445,8 @@ namespace PangeaSkirmish
         {
             // AoO sempre prioritário se disponível
             if (options.Contains(ReactionKind.CounterAttack)) return ReactionKind.CounterAttack;
+            if (options.Contains(ReactionKind.Intercept)) return ReactionKind.Intercept;
+            if (options.Contains(ReactionKind.Step) && reactor.stats.AGI >= reactor.stats.VIT + 4f) return ReactionKind.Step;
             // Esquiva se AGI > VIT, senão Bloqueio
             if (options.Contains(ReactionKind.Dodge) && options.Contains(ReactionKind.Block))
                 return reactor.stats.AGI >= reactor.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
@@ -1467,6 +1481,9 @@ namespace PangeaSkirmish
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
                     _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
+                    break;
+                case ReactionKind.Intercept:
+                    _interceptedBy = reactor;    // o fluxo do ataque redireciona o golpe
                     break;
                 case ReactionKind.Step:
                     {

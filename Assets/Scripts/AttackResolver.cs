@@ -46,9 +46,7 @@ namespace PangeaSkirmish
 
             bool bonus = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            int  dmg   = BaseDamage(attacker)
-                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
-                       + aimDmg;
+            int  dmg   = PowerDamage(attacker, bonus, aimDmg);
 
             var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
             if (res == HitResult.Miss)
@@ -116,7 +114,7 @@ namespace PangeaSkirmish
 
             bool bonus  = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            int  dmg    = BaseDamage(attacker) + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0) + aimDmg;
+            int  dmg    = PowerDamage(attacker, bonus, aimDmg);
 
             // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
             var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
@@ -186,9 +184,7 @@ namespace PangeaSkirmish
             bool bonus = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
             // Dano SEM +STR extra (diferente do comportamento anterior)
-            int  dmg   = BaseDamage(attacker)
-                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
-                       + aimDmg;
+            int  dmg   = PowerDamage(attacker, bonus, aimDmg);
 
             // Sem rolagem de dodge — acerto garantido se o tile tem inimigo
             int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
@@ -235,6 +231,10 @@ namespace PangeaSkirmish
 
         // ---- Helpers ----
         private static int BaseDamage(Unit u) => u.stats.PhysicalDamage;
+
+        /// <summary>Dano do golpe: base (× powerStrikeMult no golpe poderoso) + dano da mira.</summary>
+        public static int PowerDamage(Unit u, bool power, int aimDmg) =>
+            Mathf.RoundToInt(BaseDamage(u) * (power ? Tuning.Get().powerStrikeMult : 1f)) + aimDmg;
 
         private static bool ConsumeBonus(Unit u)
         {

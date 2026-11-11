@@ -298,7 +298,7 @@ namespace PangeaSkirmish
     public enum AttackMode { Auto, Unit, Tile }
 
     /// <summary>Reações do rework de Ações Bônus. Disparadas por trigger na fase de ação.</summary>
-    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step }
+    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step, Intercept }
 
     /// <summary>Ataque planejado pelo jogador (ou IA) com alvo específico ou posição.</summary>
     public struct PlannedAttack

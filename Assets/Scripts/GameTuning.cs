@@ -44,6 +44,8 @@ namespace PangeaSkirmish
         public int agiRegenFrom = 6;
         [Tooltip("A cada N pontos de AGI acima de agiRegenFrom, o Instinto volta 1 tick mais cedo.")]
         public int agiRegenStep = 3;
+        [Tooltip("Golpe poderoso multiplica o dano base por este valor (e custa +1 tick e Instinto).")]
+        public float powerStrikeMult = 1.5f;
         public int instinctPowerStrike = 2;
         public int instinctAim = 1;
         public int instinctQuickStep = 1;

@@ -862,8 +862,7 @@ namespace PangeaSkirmish
         }
 
         private static int ExpectedDamage(Unit u, bool bonus, bool aimed) =>
-            u.stats.PhysicalDamage + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
-            + (aimed ? Mathf.RoundToInt(u.stats.DEX * Tuning.Get().aimDexMultiplier) : 0);
+            AttackResolver.PowerDamage(u, bonus, aimed ? Mathf.RoundToInt(u.stats.DEX * Tuning.Get().aimDexMultiplier) : 0);
 
         /// <summary>Texto de um bloco: ícone, nome e efeito (tiles que anda, dano esperado).</summary>
         private static string BlockText(Unit u, ActionType t, bool bonus, bool aimed, int tiles)
@@ -1170,7 +1169,7 @@ namespace PangeaSkirmish
                 {
                     var btn = new Button(() => _reactionPick?.Invoke(opt))
                     {
-                        text = options.Count == 1 ? $"Sim — {ReactionLabel(opt)}" : ReactionLabel(opt)
+                        text = options.Count == 1 ? $"Sim — {ReactionLabelFor(opt, reactor)}" : ReactionLabelFor(opt, reactor)
                     };
                     btn.AddToClassList("pg-button");
                     _reactionButtons.Add(btn);
@@ -1218,11 +1217,21 @@ namespace PangeaSkirmish
             }
             if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.None;
         }
+        private static string ReactionLabelFor(ReactionKind k, Unit u)
+        {
+            string baseText = ReactionLabel(k);
+            if (u == null) return baseText;
+            var T = Tuning.Get();
+            if (k == ReactionKind.Block) return $"{baseText}  (−{RoundManager.BlockAmount(u)} de dano)";
+            if (k == ReactionKind.Dodge) return $"{baseText}  (+{Mathf.RoundToInt(Mathf.Clamp01(u.stats.AGI * T.dodgeReactionPerAGI) * 100f)}%)";
+            return baseText;
+        }
         private static string ReactionLabel(ReactionKind k) => k switch
         {
             ReactionKind.CounterAttack => "⚔ Contra-ataque",
             ReactionKind.Dodge         => "↯ Esquiva",
             ReactionKind.Step          => "↯ Passo reativo",
+            ReactionKind.Intercept     => "🛡 Interceptar",
             ReactionKind.Block         => "🛡 Bloqueio",
             _ => "?"
         };
