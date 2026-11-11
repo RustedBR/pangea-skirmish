@@ -298,6 +298,16 @@ namespace PangeaSkirmish
         private SpriteRenderer _sr;
         private WeaponOverlay _weapon;
         private UnitModel3D _model;   // corpo 3D (mundo 3D); o sprite vira só estado
+        /// <summary>Corpo 3D da unidade (null se o modelo não carregou).</summary>
+        public UnitModel3D Model3D => _model;
+
+        /// <summary>Animação de uma reação defensiva (GDD-017): Bloquear ergue o escudo, Esquiva e Passo desviam.</summary>
+        public void PlayReactionAnim(ReactionKind kind)
+        {
+            if (_model == null) return;
+            if (kind == ReactionKind.Block || kind == ReactionKind.Intercept) _model.PlayBlock();
+            else if (kind == ReactionKind.Dodge || kind == ReactionKind.Step) _model.PlayDodge();
+        }
         private readonly Dictionary<string, Sprite> _frames = new Dictionary<string, Sprite>();
         private Color _baseTint = Color.white;
         private string _baseDir = "SE";  // NE ou SE
@@ -894,6 +904,7 @@ namespace PangeaSkirmish
             AudioManager.I?.Play(AudioManager.I.sfxHit);
             OnDamageTaken?.Invoke(this, amount, isCritical);
             StartCoroutine(FlashHit());
+            if (_model != null) { if (IsDead) _model.PlayDeath(); else _model.PlayHit(); }
             if (IsDead)
             {
                 StopIdleAnim();
@@ -949,6 +960,8 @@ namespace PangeaSkirmish
         {
             AudioManager.I?.Play(AudioManager.I.sfxDeath);
             if (_sr == null) yield break;
+            // Com corpo 3D: primeiro ele tomba e a alma sai (UnitModel3D.PlayDeath); só depois some.
+            if (_model != null) yield return new WaitForSeconds(0.75f);
             float dur = Tuning.Get().deathFadeDuration;
             float t = 0f;
             Color from   = _sr.color;
@@ -1066,7 +1079,7 @@ namespace PangeaSkirmish
 
         // ------------------------------------------------------------------ ATAQUE
 
-        public IEnumerator PlayAttackAnim(Vector3 targetPos)
+        public IEnumerator PlayAttackAnim(Vector3 targetPos, bool power = false)
         {
             AudioManager.I?.Play(AudioManager.I.sfxAttack);
             StopIdleAnim();
@@ -1082,7 +1095,7 @@ namespace PangeaSkirmish
 
             float dur = Mathf.Max(0.05f, Tuning.Get().attackAnimDuration);
             if (_weapon != null) _weapon.PlayAttack(_baseDir, _flip, dur);
-            if (_model != null) _model.PlayAttack(dur);
+            if (_model != null) _model.PlayAttack(dur, targetPos, power || furyReady > 0f);
 
             float t = 0f;
             while (t < dur)

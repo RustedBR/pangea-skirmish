@@ -627,12 +627,22 @@ namespace PangeaSkirmish
                     yield return ResolveAttackSlot(attacksThisSlot);
 
                 // Magias que terminam neste tick (GDD-019). Ordem por unitId, como o resto do lockstep.
+                bool anySpellFx = false;
                 foreach (var (su, sp) in spellsThisSlot)
                 {
                     if (su.IsDead) continue;
+                    // Visual primeiro (lê posições de antes do efeito); o Salto anima de onde saiu.
+                    var castFrom = su.transform.position;
+                    ActionFx.PlaySpell(su, sp, _grid);
                     foreach (var line in SpellResolver.Resolve(su, sp, _units, _grid, _spellField))
                         _hud.LogAction(line, su);
+                    var sdef = sp.Def;
+                    if (sdef != null && (sdef.effect == SpellEffect.Leap || sdef.effect == SpellEffect.Teleport) && su.Model3D != null
+                        && su.transform.position != castFrom && sdef.effect == SpellEffect.Leap)
+                        su.Model3D.PlayLeap(castFrom, 0.5f);
+                    anySpellFx = true;
                 }
+                if (anySpellFx) yield return new WaitForSeconds(Tuning.Get().spellFxPause);
 
                 yield return AdvanceGlobalTick();
                 foreach (var line in SpellResolver.TickEffects(_units, _spellField)) _hud.LogAction(line, null);
@@ -1205,7 +1215,7 @@ namespace PangeaSkirmish
                 Vector3 aimPos = AttackAimPos(u, atk);
                 BattleLabel.CreateAttack(_cam, u.HeadWorld, u.unitName);
                 animating++;
-                StartCoroutine(RunThen(u.PlayAttackAnim(aimPos), () => animating--));
+                StartCoroutine(RunThen(u.PlayAttackAnim(aimPos, incr), () => animating--));
             }
             while (animating > 0) yield return null;
 
@@ -1535,15 +1545,18 @@ namespace PangeaSkirmish
                     break;
                 case ReactionKind.Dodge:
                     reactor.dodgeReactBonus = Mathf.Clamp01(reactor.stats.AGI * T.dodgeReactionPerAGI);
+                    reactor.PlayReactionAnim(ReactionKind.Dodge);
                     _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquiva! (+" +
                         Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
+                    reactor.PlayReactionAnim(ReactionKind.Block);
                     _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
                     break;
                 case ReactionKind.Intercept:
                     _interceptedBy = reactor;    // o fluxo do ataque redireciona o golpe
+                    reactor.PlayReactionAnim(ReactionKind.Intercept);
                     break;
                 case ReactionKind.Step:
                     {
@@ -1551,7 +1564,9 @@ namespace PangeaSkirmish
                         if (dest.HasValue)
                         {
                             var from = reactor.anchor;
+                            var stepFrom = reactor.transform.position;
                             reactor.anchor = dest.Value; reactor.plannedAnchor = dest.Value; reactor.SnapToAnchor();
+                            if (reactor.Model3D != null) reactor.Model3D.PlayLeap(stepFrom, 0.25f);
                             _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Passo reativo! saiu do alcance", reactor);
                         }
                         break;

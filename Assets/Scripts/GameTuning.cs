@@ -74,6 +74,8 @@ namespace PangeaSkirmish
         public int conduitManaDiscount = 1;
         [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
         public float conduitPotBonus = 0.25f;
+        [Tooltip("Pausa (s) depois que as magias de um tick resolvem, para o projétil e o impacto serem vistos.")]
+        public float spellFxPause = 0.45f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
         [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]
