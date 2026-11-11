@@ -152,6 +152,7 @@ namespace PangeaSkirmish
 
             // Painel de intenções (substitui o command-menu cascata)
             _intentsPanel     = r.Q<VisualElement>("intents-panel");
+            HookUiPointerDown();
             _intentButtons    = new[]
             {
                 r.Q<Button>("btn-intent-1"), r.Q<Button>("btn-intent-2"), r.Q<Button>("btn-intent-3")
@@ -232,12 +233,30 @@ namespace PangeaSkirmish
         /// <summary>True quando o cursor está sobre QUALQUER elemento do painel do HUD.
         /// O antigo EventSystem.IsPointerOverGameObject(U GUI) não enxerga UI Toolkit —
         /// por isso os cliques nos botões (Confirmar etc.) vazavam pro grid.</summary>
+        private int _uiDownFrame = -10;
+        private bool _uiDownHooked;
+        private void HookUiPointerDown()
+        {
+            if (_uiDownHooked || Root == null) return;
+            _uiDownHooked = true;
+            Root.RegisterCallback<PointerDownEvent>(e =>
+            {
+                var t = e.target as VisualElement;
+                if (t != null && t != Root && t.name != "root" && !t.ClassListContains("bh-root")) _uiDownFrame = Time.frameCount;
+            }, TrickleDown.TrickleDown);
+        }
+
         public bool IsPointerOverUI()
         {
             if (Root == null || Root.panel == null) return false;
+            HookUiPointerDown();
             if (Mouse.current == null) return false;
             Vector2 screen = Mouse.current.position.ReadValue();
             Vector2 local = RuntimePanelUtils.ScreenToPanel(Root.panel, screen);
+            // O menu de bloco fica ACIMA da barra, fora da área dela: o Pick não o enxerga.
+            if (_incPopup != null && _incPopup.worldBound.Contains(local)) return true;
+            // O mesmo toque que a HUD consumiu não pode vazar para o mapa (o menu some ao clicar).
+            if (Mathf.Abs(Time.frameCount - _uiDownFrame) <= 1) return true;
             var picked = Root.panel.Pick(local);
             // O UXML tem um "root" de tela inteira dentro do contêiner do documento: ele não é
             // UI clicável. Sem esta exceção o cursor estaria SEMPRE "sobre a HUD" e todo

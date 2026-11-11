@@ -6,6 +6,7 @@ using PangeaSkirmish;
 using PangeaSkirmish.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 /// <summary>Modo Livre: adicionar, remover, reordenar e trocar destino de ações do plano.</summary>
 public class FreeModeTest
@@ -114,5 +115,22 @@ public class FreeModeTest
         _retarget.Invoke(_pc, new object[] { 0, new Vector2Int(3, 8) });
         Assert.AreEqual(new Vector2Int(3, 8), _hero.plannedPath[0]);
         Assert.AreEqual(new Vector2Int(3, 8), _hero.plannedAnchor);
+    }
+
+    [UnityTest]
+    public IEnumerator HudPointerDown_BlocksMapClickInSameFrame()
+    {
+        yield return Setup();
+        var hud = Object.FindFirstObjectByType<BattleHUD>();
+        var root = hud.GetComponent<UIDocument>().rootVisualElement;
+        var any = root.Q<VisualElement>("intents-panel");
+        Assert.IsNotNull(any, "painel de intenções");
+        using (var e = PointerDownEvent.GetPooled())
+        {
+            e.target = any;
+            any.SendEvent(e);
+        }
+        var f = typeof(BattleHUD).GetField("_uiDownFrame", BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.AreEqual(Time.frameCount, (int)f.GetValue(hud), "o toque consumido pela HUD deve ser registrado");
     }
 }
