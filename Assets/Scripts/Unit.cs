@@ -541,8 +541,11 @@ namespace PangeaSkirmish
             {
                 float dx = Mathf.Abs(x - 32) / 32f;
                 float dy = Mathf.Abs(y - 16) / 16f;
-                bool inside = (dx + dy) <= 0.95f;
-                tex.SetPixel(x, y, inside ? Color.white : Color.clear);
+                // Contorno nítido + preenchimento leve: lê como "placa" no chão, não como mancha.
+                float d = dx + dy;
+                Color px = Color.clear;
+                if (d <= 0.95f) px = new Color(1f, 1f, 1f, d >= 0.82f ? 1f : 0.16f);
+                tex.SetPixel(x, y, px);
             }
             tex.Apply();
             _sharedFootprint = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 32);

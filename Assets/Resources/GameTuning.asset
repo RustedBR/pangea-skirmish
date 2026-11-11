@@ -138,9 +138,9 @@ MonoBehaviour:
   footprintScalePerFootprint: 0.95
   spriteFootOffsetRatio: -0.1
   headHeightRatio: 0.9
-  footprintAlpha: 0.411
-  playerFootprintColor: {r: 0.3, g: 0.6, b: 1, a: 0.8}
-  enemyFootprintColor: {r: 1, g: 0.38, b: 0.2, a: 0.8}
+  footprintAlpha: 0.9
+  playerFootprintColor: {r: 0.38, g: 0.62, b: 0.80, a: 1}
+  enemyFootprintColor: {r: 0.80, g: 0.44, b: 0.32, a: 1}
   enemyTint: {r: 0.55, g: 0.55, b: 0.65, a: 1}
   targetHoverColor: {r: 1, g: 0.92, b: 0.25, a: 0.95}
   attackMarkColor: {r: 0.2, g: 0.03, b: 0.03, a: 0.95}
@@ -242,9 +242,9 @@ MonoBehaviour:
   seqLabelScale: 0.7
   floatingLabelFontSize: 80
   floatingLabelCharacterSize: 0.06
-  moveGhostColor: {r: 1, g: 1, b: 1, a: 0.3}
+  moveGhostColor: {r: 1, g: 1, b: 1, a: 0.22}
   unitTargetColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
-  tileTargetColor: {r: 0.35, g: 0.85, b: 0.95, a: 1}
+  tileTargetColor: {r: 0.50, g: 0.74, b: 0.84, a: 1}
   tileTargetGhostColor: {r: 0.35, g: 0.85, b: 0.95, a: 0.45}
   cursorGhostColor: {r: 1, g: 1, b: 0.6, a: 0.45}
   seqLabelMoveColor: {r: 0.1, g: 0.23, b: 0.36, a: 1}
@@ -252,9 +252,9 @@ MonoBehaviour:
   seqLabelBaseHeight: 0.7
   stepGhostColor: {r: 1, g: 0.9, b: 0.35, a: 0.55}
   stepGhostScale: 0.95
-  reachHighlightColor: {r: 0.35, g: 0.85, b: 0.45, a: 1}
-  bonusHighlightColor: {r: 0.9, g: 0.75, b: 0.3, a: 1}
-  gridLineColor: {r: 1, g: 1, b: 1, a: 0.25}
+  reachHighlightColor: {r: 0.52, g: 0.74, b: 0.55, a: 1}
+  bonusHighlightColor: {r: 0.86, g: 0.74, b: 0.46, a: 1}
+  gridLineColor: {r: 1, g: 1, b: 1, a: 0.10}
   sideFaceLeftColor: {r: 0.38, g: 0.25, b: 0.12, a: 1}
   sideFaceRightColor: {r: 0.5, g: 0.34, b: 0.2, a: 1}
   playerTeamColor: {r: 0.3, g: 0.5, b: 0.92, a: 1}
@@ -335,8 +335,8 @@ MonoBehaviour:
   elemAirColor: {r: 0.7, g: 0.9, b: 1, a: 1}
   elemEarthColor: {r: 0.5, g: 0.35, b: 0.15, a: 1}
   spellTargetHighlightColor: {r: 0.3, g: 0.8, b: 1, a: 0.7}
-  attackRangeColor: {r: 1, g: 0.82, b: 0.3, a: 0.35}
-  enemyRangeColor: {r: 1, g: 0.28, b: 0.22, a: 0.45}
+  attackRangeColor: {r: 0.86, g: 0.70, b: 0.40, a: 0.30}
+  enemyRangeColor: {r: 0.80, g: 0.40, b: 0.34, a: 0.34}
   seqChipSpellColor: {r: 0.6, g: 0.2, b: 0.8, a: 1}
   seqChipConcentrateColor: {r: 0.15, g: 0.55, b: 0.55, a: 1}
   manaTextColor: {r: 0.4, g: 0.6, b: 1, a: 1}

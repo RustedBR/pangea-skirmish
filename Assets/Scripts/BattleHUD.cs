@@ -526,11 +526,96 @@ namespace PangeaSkirmish
             Debug.Log("[Battle] " + entry.tooltipText);
             TrimMiniLog();
         }
+        // ── LINHA DO TEMPO DE TICKS (GDD-014 §7) ──
+        private VisualElement _timelinePanel;
+        private static Color TlMove   => new Color(0.38f, 0.62f, 0.80f);
+        private static Color TlAttack => new Color(0.80f, 0.44f, 0.32f);
+        private static Color TlConc   => new Color(0.36f, 0.66f, 0.62f);
+        private static Color TlWait   => new Color(0.42f, 0.44f, 0.50f);
+
+        /// <summary>
+        /// Painel no canto superior direito: uma linha por unidade viva, com uma célula por tick
+        /// de fila. As SUAS unidades mostram o tipo de cada ação; as dos outros só quantos ticks
+        /// faltam (informação incompleta, como no Primeiro Jogo).
+        /// </summary>
+        public void UpdateTimeline(int tick, List<Unit> units, System.Func<Unit, bool> isMine)
+        {
+            if (Root == null) return;
+            if (_timelinePanel == null)
+            {
+                _timelinePanel = new VisualElement { name = "tick-timeline", pickingMode = PickingMode.Ignore };
+                var st = _timelinePanel.style;
+                st.position = Position.Absolute; st.top = 64; st.right = 12;
+                st.paddingLeft = 8; st.paddingRight = 8; st.paddingTop = 6; st.paddingBottom = 6;
+                st.backgroundColor = new Color(0.08f, 0.09f, 0.13f, 0.82f);
+                st.borderTopLeftRadius = st.borderTopRightRadius = st.borderBottomLeftRadius = st.borderBottomRightRadius = 6;
+                st.borderTopWidth = st.borderBottomWidth = st.borderLeftWidth = st.borderRightWidth = 1;
+                var bc = new Color(0.25f, 0.32f, 0.52f);
+                st.borderTopColor = st.borderBottomColor = st.borderLeftColor = st.borderRightColor = bc;
+                Root.Add(_timelinePanel);
+            }
+            _timelinePanel.Clear();
+
+            var head = new Label($"TICK {tick}") { pickingMode = PickingMode.Ignore };
+            head.style.color = new Color(0.67f, 0.83f, 1f);
+            head.style.unityFontStyleAndWeight = FontStyle.Bold; head.style.fontSize = 12;
+            head.style.marginBottom = 4;
+            _timelinePanel.Add(head);
+
+            foreach (var u in units)
+            {
+                if (u == null || u.IsDead) continue;
+                bool mine = isMine != null && isMine(u);
+
+                var row = new VisualElement { pickingMode = PickingMode.Ignore };
+                row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Center;
+                row.style.marginBottom = 3;
+
+                var name = new Label(u.unitName) { pickingMode = PickingMode.Ignore };
+                name.style.width = 74; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
+                name.style.color = u.IsBusy ? new Color(0.78f, 0.80f, 0.86f) : new Color(0.50f, 0.90f, 0.58f);
+                name.style.unityFontStyleAndWeight = mine ? FontStyle.Bold : FontStyle.Normal;
+                row.Add(name);
+
+                if (!u.IsBusy)
+                {
+                    var free = new Label("decide agora") { pickingMode = PickingMode.Ignore };
+                    free.style.fontSize = 10; free.style.color = new Color(0.50f, 0.90f, 0.58f);
+                    row.Add(free);
+                }
+                else
+                {
+                    foreach (var q in u.queue)
+                    {
+                        for (int i = 0; i < q.Remaining; i++)
+                        {
+                            var cell = new Label(i == 0 && mine ? ActionLetter(q.Type) : "") { pickingMode = PickingMode.Ignore };
+                            var cs = cell.style;
+                            cs.width = 20; cs.height = 15; cs.marginRight = 2;
+                            cs.unityTextAlign = TextAnchor.MiddleCenter; cs.fontSize = 10;
+                            cs.color = new Color(0.07f, 0.08f, 0.11f);
+                            cs.unityFontStyleAndWeight = FontStyle.Bold;
+                            cs.backgroundColor = mine ? ActionColor(q.Type) : TlWait;
+                            cs.borderTopLeftRadius = cs.borderBottomLeftRadius = i == 0 ? 3 : 0;
+                            cs.borderTopRightRadius = cs.borderBottomRightRadius = i == q.Remaining - 1 ? 3 : 0;
+                            row.Add(cell);
+                        }
+                    }
+                }
+                _timelinePanel.Add(row);
+            }
+        }
+
+        private static string ActionLetter(ActionType t) =>
+            t == ActionType.Move ? "M" : t == ActionType.Attack ? "A" : t == ActionType.Concentrate ? "C" : "E";
+        private static Color ActionColor(ActionType t) =>
+            t == ActionType.Move ? TlMove : t == ActionType.Attack ? TlAttack : t == ActionType.Concentrate ? TlConc : TlWait;
+
         public void LogRound(int round)
         {
             var hGo = new VisualElement();
             hGo.AddToClassList("bh-round-hdr");
-            var t = new Label($"v  Round {round}");
+            var t = new Label($"Tick {round}");
             t.AddToClassList("bh-round-hdr-text");
             hGo.Add(t);
             if (_logContent != null) _logContent.Add(hGo);

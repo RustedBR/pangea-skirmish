@@ -20,6 +20,8 @@ namespace PangeaSkirmish
         [Header("═══ SEMI-TURNO POR TICKS (GDD-014) ═══")]
         [Tooltip("Segundos para decidir num ponto de decisão (SP). Em MP vale o planningTime da sala.")]
         public float decisionTime = 8f;
+        [Tooltip("Zoom mínimo (tamanho ortográfico) ao enquadrar o grupo durante os ticks. Maior = mais longe.")]
+        public float tickFrameMinSize = 8f;
         [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]
         public int maxQueueTicks = 6;
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]

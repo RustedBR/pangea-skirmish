@@ -14,6 +14,11 @@ public class BeastAITest
     private IEnumerator Setup()
     {
         LogAssert.ignoreFailingMessages = true;
+        foreach (var old in Object.FindObjectsByType<Unit>(FindObjectsSortMode.None)) Object.Destroy(old.gameObject);
+        foreach (var old in Object.FindObjectsByType<GridManager>(FindObjectsSortMode.None)) Object.Destroy(old.gameObject);
+        foreach (var old in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None)) Object.Destroy(old.gameObject);
+        yield return null;
+
         var tuning = Resources.Load<GameTuning>("GameTuning");
         RuntimeTuning.Active = tuning;
         AttributeStats.Formulas = tuning.statFormulas;

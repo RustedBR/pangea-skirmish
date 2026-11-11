@@ -155,7 +155,7 @@ namespace PangeaSkirmish
             _hud.SetPhase($"Tick {_globalTick} — Decisão");
             _hud.SetTimerVisible(false);
             _hud.SetConfirmVisible(false);
-            _hud.LogRound(_round);
+            _hud.LogRound(_globalTick);
             LogTimeline();
             yield return new WaitForSeconds(Tuning.Get().roundBannerHold);
             EnterPlanning();
@@ -169,18 +169,8 @@ namespace PangeaSkirmish
         {
             ulong localId = RuntimeMultiplayerSession.IsMultiplayer && Unity.Netcode.NetworkManager.Singleton != null
                 ? Unity.Netcode.NetworkManager.Singleton.LocalClientId : 0;
-            var parts = new List<string>();
-            foreach (var u in _units)
-            {
-                if (u.IsDead) continue;
-                bool mine = RuntimeMultiplayerSession.IsMultiplayer ? u.ownerId == localId : u == _playerUnit;
-                if (!u.IsBusy) { parts.Add($"{u.unitName}: <color=#60ff70>livre</color>"); continue; }
-                if (!mine) { parts.Add($"{u.unitName}: ocupada"); continue; }
-                var q = new List<string>();
-                foreach (var a in u.queue) q.Add($"{ActionShort(a.Type)}{a.Remaining}");
-                parts.Add($"{u.unitName}: [{string.Join(" ", q)}]");
-            }
-            _hud.Log($"<color=#aad4ff>⏱ Tick {_globalTick}</color>  " + string.Join("  •  ", parts));
+            _hud.UpdateTimeline(_globalTick, _units, u =>
+                RuntimeMultiplayerSession.IsMultiplayer ? u.ownerId == localId : u == _playerUnit);
         }
 
         private static string ActionShort(ActionType t) =>
@@ -284,9 +274,7 @@ namespace PangeaSkirmish
                     // Ocupada: não decide neste ponto — confirma sozinha (pequeno atraso para o
                     // host já ter aberto a janela de coleta).
                     _hud.SetTimerVisible(false);
-                    _hud.SetConfirmVisible(false);
-                    _hud.LogAction($"<color=#888888>…</color> {controlled.unitName} ocupada ({controlled.QueueTicksRemaining} tick(s) na fila)", controlled);
-                    _timer = planningTime;
+                    _hud.SetConfirmVisible(false);                    _timer = planningTime;
                     StartCoroutine(AutoConfirmBusy());
                 }
                 else if (controlled != null && !controlled.IsDead)
@@ -414,7 +402,7 @@ namespace PangeaSkirmish
 
         private IEnumerator AutoConfirmBusy()
         {
-            yield return new WaitForSeconds(0.6f);
+            yield return new WaitForSeconds(0.25f);
             if (_phase == RoundPhase.Planning) ConfirmPlan();
         }
 
@@ -585,15 +573,14 @@ namespace PangeaSkirmish
                 {
                     bool willMoveNext = u.queue.Count > 0 && u.queue[0].Type == ActionType.Move;
                     if (willMoveNext && t < segment - 1) continue;
-                    int tiles = burstMoves[u];
-                    _hud.LogAction($">> {u.unitName} avancou {tiles} tile{(tiles > 1 ? "s" : "")} -> {NearestUnitName(u)}", u);
-                    burstMoves.Remove(u);
+                    int tiles = burstMoves[u];                    burstMoves.Remove(u);
                 }
 
                 if (attacksThisSlot.Count > 0)
                     yield return ResolveAttackSlot(attacksThisSlot);
 
                 yield return AdvanceGlobalTick();
+                LogTimeline();
 
                 if (!CheckAnyFactionAlive()) break;
 
@@ -743,11 +730,23 @@ namespace PangeaSkirmish
         /// <summary>Enquadra um grupo de posições (respeita câmera Manual).</summary>
         private IEnumerator FrameGroup(List<Vector3> positions)
         {
-            if (_camCtrl == null || positions.Count == 0 || _camCtrl.Mode == CameraMode.Manual) yield break;
+            if (_camCtrl == null || _camCtrl.Mode == CameraMode.Manual) yield break;
+            // Enquadra TODAS as unidades vivas (mais os destinos): a câmera fica estável de um
+            // tick para o outro e nada que acontece no combate sai de quadro. Antes enquadrava
+            // só quem agia no tick, com zoom apertado, e perdia o resto do grupo.
+            var all = new List<Vector3>(positions);
+            foreach (var u in _units) if (!u.IsDead) all.Add(u.transform.position);
+            if (all.Count == 0) yield break;
             Vector3 c = Vector3.zero;
-            foreach (var p in positions) c += p;
-            c /= positions.Count;
-            _camCtrl.FocusOnArea(c, CalcZoomForPositions(positions.ToArray()));
+            float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
+            foreach (var p in all)
+            {
+                minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x);
+                minZ = Mathf.Min(minZ, p.z); maxZ = Mathf.Max(maxZ, p.z);
+            }
+            c = new Vector3((minX + maxX) * 0.5f, 0f, (minZ + maxZ) * 0.5f);
+            float size = Mathf.Max(CalcZoomForPositions(all.ToArray(), 3.5f), Tuning.Get().tickFrameMinSize);
+            _camCtrl.FocusOnArea(c, size);
             yield return _camCtrl.WaitUntilSettled(camMoveDuration);
         }
 
@@ -994,11 +993,6 @@ namespace PangeaSkirmish
         {
             // GDD-014: só o resultado, sem animação de disputa nem pausas.
             if (contestants.Count < 2 || winner == null) yield break;
-            _hud.LogAction(
-                $"<color=#aad4ff>INI {context}:</color> " +
-                string.Join(" vs ", contestants.ConvertAll(c => $"{c.u.unitName}({c.total})")) +
-                $" -> <color=#60ff70>{winner.unitName}</color> vence",
-                winner);
         }
 
         /// <summary>Resolve um slot de ataque: rola iniciativa fresca, executa em ordem desc.</summary>
@@ -1258,8 +1252,6 @@ namespace PangeaSkirmish
             {
                 if (final != ReactionKind.None)
                     ApplyReaction(reactor, final, triggerTarget);
-                else
-                    _hud.LogAction($"<color=#888888>~</color> {reactor.unitName}: reação não usada", reactor);
             }
         }
 

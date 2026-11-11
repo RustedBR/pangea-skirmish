@@ -1496,7 +1496,7 @@ namespace PangeaSkirmish
         {
             if (_tiles == null || _tiles[cell.x, cell.y] == null) return;
             // Mundo 3D: o Top é uma camada sobre o bloco — destaque translúcido.
-            if (c.a > 0.01f) c.a = Mathf.Min(c.a, 0.55f);
+            if (c.a > 0.01f) c.a = Mathf.Min(c.a, 0.34f);
             _tiles[cell.x, cell.y].color = c;
         }
     }
