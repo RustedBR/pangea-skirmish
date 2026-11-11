@@ -64,6 +64,16 @@ namespace PangeaSkirmish
         public int dullRangePenalty = 1;
         [Tooltip("Acerto perdido no embotamento (0.10 = −10%).")]
         [Range(0f, 1f)] public float dullHitPenalty = 0.10f;
+
+        [Header("═══ MAGIAS (GDD-019) ═══")]
+        [Tooltip("Catálogo de magias. Vazio = usa SpellCatalog (4 Físicas + 15 Elementais) do código.")]
+        public SpellDef[] spells = System.Array.Empty<SpellDef>();
+        [Tooltip("Conjuração Elemental é interrompida se o conjurador tomar ≥ esta fração do HP máximo durante a duração.")]
+        [Range(0f, 1f)] public float spellInterruptHpFraction = 0.25f;
+        [Tooltip("Conduíte: desconto de Mana nas magias que usam o elemento do conduíte.")]
+        public int conduitManaDiscount = 1;
+        [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
+        public float conduitPotBonus = 0.25f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
         [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]
