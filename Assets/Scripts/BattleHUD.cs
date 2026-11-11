@@ -332,113 +332,32 @@ namespace PangeaSkirmish
         // ── BARRA DE TICKS (GDD-016 §7) — substitui o seq-bar de chips fixos ──
         public void SetActionSequence(List<ActionType> seq, List<ScheduledAction> scheduled = null)
         {
-            foreach (var c in _seqChips) if (c != null) c.RemoveFromHierarchy();
-            _seqChips.Clear();
             if (seq == null || seq.Count == 0)
             {
                 _selectedSeqIndex = -1;
-                SetPlanEditorVisible(false);
-                return;
+                _planSeq = null; _planSched = null;
             }
-            if (_selectedSeqIndex >= seq.Count) _selectedSeqIndex = -1;
-            SetPlanEditorVisible(true);
-
-            // Duração de cada ação (GDD-016: DEX acelera; Move/Wait não escalam)
-            Unit u = _lastUnit;
-            var durations = new List<int>();
-            int total = 0;
-            for (int i = 0; i < seq.Count; i++)
+            else
             {
-                bool isBonus = scheduled != null && i < scheduled.Count && scheduled[i].IsBonus;
-                int d = TickRules.Duration(u, seq[i], isBonus);
-                durations.Add(d);
-                total += d;
+                if (_selectedSeqIndex >= seq.Count) _selectedSeqIndex = -1;
+                _planSeq = new List<ActionType>(seq);
+                _planSched = scheduled != null ? new List<ScheduledAction>(scheduled) : null;
             }
-            int maxTicks = Mathf.Max(1, Tuning.Get().maxQueueTicks);
-
-            if (_ticksLabel != null)
-                _ticksLabel.text = $"FILA — TEMPO {Mathf.Min(total, maxTicks)}/{maxTicks} TICKS";
-
-            // Track: célula por tick, cor pela ação dona do tick (move/atk/bônus/concentrar)
-            if (_ticksTrack != null)
-            {
-                _ticksTrack.Clear();
-                int tick = 0;
-                for (int i = 0; i < durations.Count && tick < maxTicks; i++)
-                {
-                    ActionType t = seq[i];
-                    bool isBonus = scheduled != null && i < scheduled.Count && scheduled[i].IsBonus;
-                    bool isConc  = t == ActionType.Concentrate;
-                    for (int dTick = 0; dTick < durations[i] && tick < maxTicks; dTick++, tick++)
-                    {
-                        var cell = new VisualElement();
-                        cell.AddToClassList("bh-tick");
-                        if (isConc) cell.AddToClassList("used-conc");
-                        else if (isBonus) cell.AddToClassList("used-bonus");
-                        else if (t == ActionType.Attack) cell.AddToClassList("used-atk");
-                        else cell.AddToClassList("used-move");
-                        _ticksTrack.Add(cell);
-                    }
-                }
-                while (tick < maxTicks)
-                {
-                    var cell = new VisualElement();
-                    cell.AddToClassList("bh-tick");
-                    _ticksTrack.Add(cell);
-                    tick++;
-                }
-            }
-
-            // Chips da fila: número + nome + custo (mesmo clique p/ toggle BAP)
-            if (_ticksQueue != null)
-            {
-                _ticksQueue.Clear();
-                for (int i = 0; i < seq.Count; i++)
-                {
-                    int idx = i;
-                    bool isBonus = scheduled != null && i < scheduled.Count && scheduled[i].IsBonus;
-                    bool isConc  = seq[i] == ActionType.Concentrate;
-                    string name = isConc ? "Concentrar" : seq[i] == ActionType.Attack
-                                  ? (isBonus ? "Golpe Poderoso" : "Atacar") : "Andar";
-                    string prefix = isBonus ? "◆ " : "";
-
-                    var chip = new VisualElement();
-                    chip.AddToClassList("bh-qact");
-                    if (isConc) chip.AddToClassList("conc");
-                    else if (isBonus) chip.AddToClassList("bonus");
-                    else if (seq[i] == ActionType.Attack) chip.AddToClassList("atk");
-                    else chip.AddToClassList("move");
-
-                    var n = new Label((idx + 1).ToString());
-                    n.AddToClassList("bh-qact-n");
-                    chip.Add(n);
-                    var txt = new Label(prefix + name);
-                    txt.AddToClassList("bh-qact-txt");
-                    chip.Add(txt);
-                    var cost = new Label("·" + durations[i].ToString());
-                    cost.AddToClassList("bh-qact-cost");
-                    chip.Add(cost);
-
-                    var c = chip;
-                    c.RegisterCallback<ClickEvent>(_ => OnSeqChipClicked(idx));
-                    _ticksQueue.Add(c);
-                    _seqChips.Add(c);
-                }
-            }
-            RefreshSeqChipHighlight();
+            RebuildTickRows();
         }
         public void HideActionSequence()
         {
             foreach (var c in _seqChips) if (c != null) c.RemoveFromHierarchy();
             _seqChips.Clear();
             _selectedSeqIndex = -1;
-            SetPlanEditorVisible(false);
+            _planSeq = null; _planSched = null;
+            RebuildTickRows();
         }
 
-        /// <summary>O editor do plano (track + chips) só aparece enquanto há plano; as fileiras ficam sempre.</summary>
+        /// <summary>O editor antigo (track + chips + rótulo) foi absorvido pelas fileiras: fica sempre oculto.</summary>
         private void SetPlanEditorVisible(bool on)
         {
-            var d = on ? DisplayStyle.Flex : DisplayStyle.None;
+            var d = DisplayStyle.None;
             if (_ticksTrack != null) _ticksTrack.style.display = d;
             if (_ticksQueue != null) _ticksQueue.style.display = d;
             if (_ticksLabel != null) _ticksLabel.style.display = d;
@@ -536,112 +455,182 @@ namespace PangeaSkirmish
             Debug.Log("[Battle] " + entry.tooltipText);
             TrimMiniLog();
         }
-        // ── LINHA DO TEMPO DE TICKS (GDD-014 §7) — fileiras dentro da barra de ticks ──
+        // ── FILEIRAS DE TICKS (GDD-014 §7): a fila e as informações são a MESMA coisa ──
+        // Uma fileira por unidade viva: nome + faixa de ticks. Cada bloco é uma ação com o tamanho
+        // do seu custo em ticks, e o texto do que acontece aparece DENTRO do bloco em andamento.
         private VisualElement _ticksRows;
         private Label _ticksRowsHeader;
-        private sealed class RowRef { public VisualElement row; public Label evt; }
+        private sealed class RowRef { public VisualElement seg; public Label label; public string defaultText; public Color baseColor; }
         private readonly Dictionary<Unit, RowRef> _rowRefs = new Dictionary<Unit, RowRef>();
         private readonly Dictionary<Unit, (string text, float time)> _rowEvents = new Dictionary<Unit, (string, float)>();
         private const float RowFlashSeconds = 2.2f;
-        private static Color TlMove   => new Color(0.38f, 0.62f, 0.80f);
-        private static Color TlAttack => new Color(0.80f, 0.44f, 0.32f);
-        private static Color TlConc   => new Color(0.36f, 0.66f, 0.62f);
-        private static Color TlWait   => new Color(0.42f, 0.44f, 0.50f);
+        private List<Unit> _tlUnits; private System.Func<Unit, bool> _tlIsMine; private int _tlTick;
+        private List<ActionType> _planSeq; private List<ScheduledAction> _planSched;
+        private static Color TlMove   => new Color(0.29f, 0.56f, 0.89f);
+        private static Color TlAttack => new Color(0.89f, 0.34f, 0.29f);
+        private static Color TlBonus  => new Color(1.00f, 0.80f, 0.33f);
+        private static Color TlConc   => new Color(0.59f, 0.47f, 1.00f);
+        private static Color TlWait   => new Color(0.36f, 0.38f, 0.46f);
+        private static Color TlEmpty  => new Color(0.07f, 0.10f, 0.22f);
         private static readonly System.Text.RegularExpressions.Regex RichTag =
             new System.Text.RegularExpressions.Regex("<[^>]+>");
 
-        /// <summary>
-        /// Uma fileira por unidade viva na barra inferior: nome, uma célula por tick da fila e o
-        /// TEXTO do que a unidade acabou de fazer, que acende e vai apagando. As suas unidades
-        /// mostram o tipo de cada ação; as dos outros só quantos ticks faltam (informação incompleta).
-        /// </summary>
         public void UpdateTimeline(int tick, List<Unit> units, System.Func<Unit, bool> isMine)
         {
-            if (_ticksBar == null) return;
+            _tlTick = tick; _tlUnits = units; _tlIsMine = isMine;
+            RebuildTickRows();
+        }
+
+        private static string ActionName(ActionType t, bool bonus) =>
+            t == ActionType.Move ? (bonus ? "Passo rápido" : "Andar")
+          : t == ActionType.Attack ? (bonus ? "Golpe poderoso" : "Atacar")
+          : t == ActionType.Concentrate ? "Concentrar" : "Esperar";
+
+        private void RebuildTickRows()
+        {
+            if (_ticksBar == null || _tlUnits == null) return;
             _ticksBar.style.display = DisplayStyle.Flex;
             if (_ticksRows == null)
             {
-                _ticksRows = new VisualElement { name = "ticks-rows", pickingMode = PickingMode.Ignore };
-                _ticksRows.style.marginTop = 4;
                 _ticksRowsHeader = new Label { pickingMode = PickingMode.Ignore };
                 _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.74f, 0.85f, 1f);
                 _ticksRowsHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
                 _ticksRowsHeader.style.unityTextAlign = TextAnchor.MiddleCenter;
-                _ticksRowsHeader.style.marginBottom = 3;
+                _ticksRowsHeader.style.marginBottom = 4;
+                _ticksRows = new VisualElement { name = "ticks-rows" };
                 _ticksBar.Add(_ticksRowsHeader);
                 _ticksBar.Add(_ticksRows);
                 _ticksBar.schedule.Execute(FadeRowFlashes).Every(120);
             }
-            _ticksRowsHeader.text = $"TICK {tick}";
+            SetPlanEditorVisible(false);
             _ticksRows.Clear();
             _rowRefs.Clear();
-            int maxCells = Mathf.Max(1, Tuning.Get().maxQueueTicks);
+            _seqChips.Clear();
+            int maxTicks = Mathf.Max(1, Tuning.Get().maxQueueTicks);
 
-            foreach (var u in units)
+            Unit planUnit = _lastUnit;
+            bool planning = _planSeq != null && _planSeq.Count > 0 && planUnit != null;
+            int planTotal = 0;
+            string head = $"TICK {_tlTick}";
+            if (planning)
+            {
+                for (int i = 0; i < _planSeq.Count; i++)
+                    planTotal += TickRules.Duration(planUnit, _planSeq[i], _planSched != null && i < _planSched.Count && _planSched[i].IsBonus);
+                head += $"  •  PLANO {Mathf.Min(planTotal, maxTicks)}/{maxTicks} ticks";
+            }
+            _ticksRowsHeader.text = head;
+
+            foreach (var u in _tlUnits)
             {
                 if (u == null || u.IsDead) continue;
-                bool mine = isMine != null && isMine(u);
+                bool mine = _tlIsMine != null && _tlIsMine(u);
+                bool isPlanRow = planning && u == planUnit;
 
                 var row = new VisualElement { pickingMode = PickingMode.Ignore };
-                var rs = row.style;
-                rs.flexDirection = FlexDirection.Row; rs.alignItems = Align.Center;
-                rs.marginBottom = 2; rs.paddingLeft = 4; rs.paddingRight = 4; rs.paddingTop = 2; rs.paddingBottom = 2;
-                rs.borderTopLeftRadius = rs.borderTopRightRadius = rs.borderBottomLeftRadius = rs.borderBottomRightRadius = 4;
+                row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Stretch;
+                row.style.marginBottom = 3;
 
                 var name = new Label(u.unitName) { pickingMode = PickingMode.Ignore };
-                name.style.width = 84; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
-                name.style.color = u.IsBusy ? new Color(0.80f, 0.82f, 0.88f) : new Color(0.52f, 0.90f, 0.60f);
+                name.style.width = 78; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
+                name.style.unityTextAlign = TextAnchor.MiddleLeft;
+                name.style.color = (u.IsBusy || isPlanRow) ? new Color(0.80f, 0.82f, 0.88f) : new Color(0.52f, 0.90f, 0.60f);
                 name.style.unityFontStyleAndWeight = mine ? FontStyle.Bold : FontStyle.Normal;
                 row.Add(name);
 
-                var cells = new VisualElement { pickingMode = PickingMode.Ignore };
-                cells.style.flexDirection = FlexDirection.Row; cells.style.width = maxCells * 22 + 4;
+                var track = new VisualElement { pickingMode = PickingMode.Ignore };
+                track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 28;
                 int used = 0;
-                if (u.IsBusy)
+                bool firstSeg = true;
+
+                if (isPlanRow)
                 {
-                    bool first = true;
-                    foreach (var q in u.queue)
+                    // Plano em edição: blocos clicáveis (mesmo clique de antes p/ golpe poderoso e passo rápido).
+                    for (int i = 0; i < _planSeq.Count && used < maxTicks; i++)
                     {
-                        for (int i = 0; i < q.Remaining && used < maxCells; i++, used++)
-                        {
-                            var cell = new Label(i == 0 && mine ? ActionLetter(q.Type) : "") { pickingMode = PickingMode.Ignore };
-                            var cs = cell.style;
-                            cs.width = 20; cs.height = 16; cs.marginRight = 2;
-                            cs.unityTextAlign = TextAnchor.MiddleCenter; cs.fontSize = 10;
-                            cs.color = new Color(0.07f, 0.08f, 0.11f); cs.unityFontStyleAndWeight = FontStyle.Bold;
-                            cs.backgroundColor = mine ? ActionColor(q.Type) : TlWait;
-                            cs.borderTopLeftRadius = cs.borderBottomLeftRadius = i == 0 ? 3 : 0;
-                            cs.borderTopRightRadius = cs.borderBottomRightRadius = i == q.Remaining - 1 ? 3 : 0;
-                            if (first && i == 0)  // a ação em andamento: contorno claro
-                            {
-                                cs.borderTopWidth = cs.borderBottomWidth = cs.borderLeftWidth = cs.borderRightWidth = 1;
-                                var hc = new Color(1f, 0.95f, 0.7f);
-                                cs.borderTopColor = cs.borderBottomColor = cs.borderLeftColor = cs.borderRightColor = hc;
-                            }
-                            cells.Add(cell);
-                        }
-                        first = false;
+                        int idx = i;
+                        bool bonus = _planSched != null && i < _planSched.Count && _planSched[i].IsBonus;
+                        int d = TickRules.Duration(planUnit, _planSeq[i], bonus);
+                        var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus),
+                                              $"{idx + 1} {(bonus ? "◆ " : "")}{ActionName(_planSeq[i], bonus)}", true);
+                        seg.pickingMode = PickingMode.Position;
+                        seg.RegisterCallback<ClickEvent>(_ => OnSeqChipClicked(idx));
+                        seg.style.opacity = idx == _selectedSeqIndex ? 1f : 0.82f;
+                        track.Add(seg); _seqChips.Add(seg);
+                        used += d;
                     }
                 }
-                row.Add(cells);
+                else if (u.IsBusy)
+                {
+                    foreach (var q in u.queue)
+                    {
+                        if (used >= maxTicks) break;
+                        int d = Mathf.Min(q.Remaining, maxTicks - used);
+                        string label = mine ? ActionName(q.Type, q.IsBonus) : "ocupada";
+                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus) : TlWait, label, mine);
+                        track.Add(seg);
+                        if (firstSeg)
+                        {
+                            _rowRefs[u] = new RowRef { seg = seg, label = (Label)seg.ElementAt(0), defaultText = label,
+                                                       baseColor = mine ? SegColor(q.Type, q.IsBonus) : TlWait };
+                            firstSeg = false;
+                        }
+                        used += d;
+                    }
+                }
 
-                var evt = new Label("") { pickingMode = PickingMode.Ignore };
-                evt.style.flexGrow = 1; evt.style.fontSize = 11; evt.style.overflow = Overflow.Hidden;
-                evt.style.whiteSpace = WhiteSpace.NoWrap; evt.style.marginLeft = 6;
-                if (!u.IsBusy) evt.text = "decide agora";
-                row.Add(evt);
-
+                if (used < maxTicks)
+                {
+                    var rest = MakeSegment(maxTicks - used, TlEmpty, (!u.IsBusy && !isPlanRow) ? "decide agora" : "", false);
+                    if (!u.IsBusy && !isPlanRow)
+                    {
+                        var l = (Label)rest.ElementAt(0);
+                        l.style.color = new Color(0.52f, 0.90f, 0.60f);
+                        _rowRefs[u] = new RowRef { seg = rest, label = l, defaultText = "decide agora", baseColor = TlEmpty };
+                    }
+                    track.Add(rest);
+                }
+                row.Add(track);
                 _ticksRows.Add(row);
-                _rowRefs[u] = new RowRef { row = row, evt = evt };
                 ApplyRowEvent(u);
             }
         }
 
-        /// <summary>Texto do que a unidade fez (acende a fileira e vai apagando).</summary>
+        private static Color SegColor(ActionType t, bool bonus) =>
+            bonus ? TlBonus : t == ActionType.Move ? TlMove : t == ActionType.Attack ? TlAttack
+          : t == ActionType.Concentrate ? TlConc : TlWait;
+
+        /// <summary>Bloco de ação: largura proporcional aos ticks, texto dentro.</summary>
+        private static VisualElement MakeSegment(int ticks, Color color, string text, bool strong)
+        {
+            var seg = new VisualElement { pickingMode = PickingMode.Ignore };
+            var ss = seg.style;
+            ss.flexGrow = Mathf.Max(1, ticks); ss.flexBasis = 0; ss.marginRight = 2;
+            ss.backgroundColor = color; ss.justifyContent = Justify.Center;
+            ss.borderTopLeftRadius = ss.borderTopRightRadius = ss.borderBottomLeftRadius = ss.borderBottomRightRadius = 4;
+            ss.borderTopWidth = ss.borderBottomWidth = ss.borderLeftWidth = ss.borderRightWidth = 1;
+            var bc = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f);
+            ss.borderTopColor = ss.borderBottomColor = ss.borderLeftColor = ss.borderRightColor = bc;
+            ss.paddingLeft = ss.paddingRight = 6; ss.overflow = Overflow.Hidden;
+            var l = new Label(text) { pickingMode = PickingMode.Ignore };
+            l.style.fontSize = 11; l.style.whiteSpace = WhiteSpace.NoWrap; l.style.overflow = Overflow.Hidden;
+            l.style.unityTextAlign = TextAnchor.MiddleCenter; l.style.textOverflow = TextOverflow.Ellipsis;
+            l.style.unityFontStyleAndWeight = strong ? FontStyle.Bold : FontStyle.Normal;
+            l.style.color = (color.r + color.g + color.b) > 1.9f ? new Color(0.06f, 0.08f, 0.16f) : Color.white;
+            seg.Add(l);
+            return seg;
+        }
+
+        /// <summary>Texto do que a unidade fez: aparece DENTRO do bloco em andamento e vai apagando.</summary>
         public void SetRowEvent(Unit u, string richText)
         {
             if (u == null) return;
-            string clean = RichTag.Replace(richText ?? "", "").Trim();
+            string clean = RichTag.Replace(richText ?? "", "");
+            // Cabe num bloco pequeno: tira o prefixo, o "(vida/vida HP)" e os espaços duplos.
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\(\d+/\d+ HP\)", "");
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^(?:[>\s*✦▼↯⚔🛡💥💨~!]|x\s)+", "");
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\s{2,}", " ").Trim();
+            // "Fera 1 -> Jogador: 6" vira "→ Jogador −6": cabe até num bloco de 1 tick.
+            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^.*?->\s*(.*?):\s*(\d+)\b.*$", "→ $1 −$2");
             if (clean.Length == 0) return;
             _rowEvents[u] = (clean, Time.unscaledTime);
             ApplyRowEvent(u);
@@ -649,12 +638,19 @@ namespace PangeaSkirmish
 
         private void ApplyRowEvent(Unit u)
         {
-            if (!_rowRefs.TryGetValue(u, out var r) || !_rowEvents.TryGetValue(u, out var e)) return;
-            float age = Time.unscaledTime - e.time;
-            float k = Mathf.Clamp01(1f - age / RowFlashSeconds);   // 1 = acabou de acontecer
-            r.evt.text = e.text;
-            r.evt.style.color = Color.Lerp(new Color(0.62f, 0.66f, 0.76f), new Color(1f, 0.93f, 0.62f), k);
-            r.row.style.backgroundColor = new Color(0.95f, 0.78f, 0.35f, 0.20f * k);
+            if (!_rowRefs.TryGetValue(u, out var r)) return;
+            float k = 0f;
+            if (_rowEvents.TryGetValue(u, out var e))
+            {
+                float age = Time.unscaledTime - e.time;
+                k = Mathf.Clamp01(1f - age / RowFlashSeconds);   // 1 = acabou de acontecer
+                r.label.text = k > 0f ? e.text : r.defaultText;
+            }
+            else r.label.text = r.defaultText;
+            // Destaque: o bloco clareia e ganha contorno dourado enquanto o evento é recente.
+            r.seg.style.backgroundColor = Color.Lerp(r.baseColor, Color.Lerp(r.baseColor, Color.white, 0.38f), k);
+            var gold = Color.Lerp(new Color(r.baseColor.r * 0.7f, r.baseColor.g * 0.7f, r.baseColor.b * 0.7f), new Color(1f, 0.9f, 0.5f), k);
+            r.seg.style.borderTopColor = r.seg.style.borderBottomColor = r.seg.style.borderLeftColor = r.seg.style.borderRightColor = gold;
         }
 
         private void FadeRowFlashes()

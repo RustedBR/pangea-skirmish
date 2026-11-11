@@ -128,7 +128,7 @@
 
 /* BARRA DE TICKS (GDD-016 §7) — track proporcional ao custo + chips da fila */
 .bh-ticks {
-  position: absolute; bottom: 12px; left: 0; right: 0; width: 700px;
+  position: absolute; bottom: 12px; left: 0; right: 0; width: 780px;
   margin-left: auto; margin-right: auto;
   flex-direction: column; align-items: stretch; display: none; padding: 6px 8px;
 }
