@@ -64,6 +64,7 @@ namespace PangeaSkirmish
             // Bloqueio (reação do alvo): reduz dano recebido
             if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
                 rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
+            rolled = SpellResolver.StoneSkin(target, rolled, physical: true);
             target.TakeDamage(rolled, res == HitResult.Critical);
             target.dodgeReactBonus = 0f; target.blockFlat = 0; // reação é de 1 uso
             ConsumeStrBuffOnHit(attacker);
@@ -115,9 +116,30 @@ namespace PangeaSkirmish
             bool bonus  = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
             int  dmg    = PowerDamage(attacker, bonus, aimDmg);
+            bool fury   = attacker.furyReady > 0f;
+            dmg = SpellResolver.ApplyFury(attacker, dmg, aimDmg);
+
+            // ---- Magia no caminho de ataques à distância (GDD-019 §3.2) ----
+            var field = SpellField.Current;
+            int gapToTarget = GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, target.anchor, target.stats.Footprint);
+            if (field != null && gapToTarget > 1)
+            {
+                var wall = field.BarrierOnLine(attacker.anchor, target.anchor);
+                if (wall != null)
+                {
+                    wall.Hp -= dmg;
+                    if (wall.Hp <= 0) field.Remove(wall);
+                    return $"<color=#888888>x</color> {attacker.unitName} acerta a {wall.Name} ({Mathf.Max(0, wall.Hp)} HP)";
+                }
+                if (field.SandstormOnLine(attacker.anchor, target.anchor) && BattleRng.Roll10000() < 5000)
+                    return $"<color=#888888>x</color> {attacker.unitName} errou {target.unitName} na tempestade de areia";
+            }
 
             // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
-            var res = attacker.stats.RollHit(attacker.EffectiveHitChance, target.stats.DodgeChance + target.dodgeReactBonus);
+            HitResult res;
+            bool trueAim = SpellResolver.TryTrueAim(attacker, target, out res);
+            if (!trueAim)
+                res = attacker.stats.RollHit(attacker.EffectiveHitChance, target.stats.DodgeChance + target.dodgeReactBonus);
             if (res == HitResult.Miss)
             {
                 ConsumeStrBuffOnHit(attacker);
@@ -130,6 +152,7 @@ namespace PangeaSkirmish
             // Bloqueio (reação): reduz dano recebido
             if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
                 rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
+            rolled = SpellResolver.StoneSkin(target, rolled, physical: true);
             target.TakeDamage(rolled, res == HitResult.Critical);
             ConsumeStrBuffOnHit(attacker);
 
@@ -138,7 +161,8 @@ namespace PangeaSkirmish
             string icon     = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
             string tag      = (bonus || res == HitResult.Critical) ? " <color=#ffd700>+INCR</color>" : "";
             string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}  ({hp})";
+            string magTag   = (fury ? " <color=#ffb060>FÚRIA</color>" : "") + (trueAim ? " <color=#55ccff>OLHO</color>" : "");
+            return $"{icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}{magTag}  ({hp})";
         }
 
         // ---- Tile (posicional, SEM rolagem de acerto) ----
@@ -185,6 +209,7 @@ namespace PangeaSkirmish
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
             // Dano SEM +STR extra (diferente do comportamento anterior)
             int  dmg   = PowerDamage(attacker, bonus, aimDmg);
+            dmg = SpellResolver.ApplyFury(attacker, dmg, aimDmg);
 
             // Sem rolagem de dodge — acerto garantido se o tile tem inimigo
             int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
@@ -194,6 +219,7 @@ namespace PangeaSkirmish
             // Bloqueio (reação): reduz dano recebido (ataques de Tile também)
             if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
                 rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
+            rolled = SpellResolver.StoneSkin(target, rolled, physical: true);
             target.TakeDamage(rolled, crit);
             ConsumeStrBuffOnHit(attacker);
 

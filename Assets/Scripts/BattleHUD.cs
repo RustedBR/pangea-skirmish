@@ -462,6 +462,7 @@ namespace PangeaSkirmish
                     $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
                     $"<b>MOV</b> {s.MoveStep}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
                     $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}{(u.IsDulled ? "  <color=#c080ff>embotado</color>" : "")}" +
+                    (string.IsNullOrEmpty(u.SpellStateSummary()) ? "" : $"\n<color=#c9b8ff>{u.SpellStateSummary()}</color>") +
                     (string.IsNullOrEmpty(buffs) ? "" : $"\n<color=#FFD700><b>BUFFS</b> {buffs}</color>");
         }
 
@@ -831,6 +832,10 @@ namespace PangeaSkirmish
                 }
             }
 
+            // Visão arcana (GDD-019 §3.1): com uma unidade sua sob o efeito, as filas inimigas aparecem até +2 ticks.
+            bool foresight = false;
+            foreach (var o in _tlUnits) if (o != null && !o.IsDead && _tlIsMine != null && _tlIsMine(o) && o.foresightTicks > 0) foresight = true;
+
             foreach (var u in _tlUnits)
             {
                 if (u == null || u.IsDead) continue;
@@ -911,8 +916,10 @@ namespace PangeaSkirmish
                         bool threat = false;
                         foreach (var th in threats) if (th.by == u && q.Type == ActionType.Attack && q.Attack.TargetUnit == th.target) threat = true;
                         SpellDef qSpell = q.Type == ActionType.Spell ? q.Spell.Def : null;
-                        string label = mine ? (qSpell != null ? SpellBlockText(u, qSpell) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0))
-                                     : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? "✦ conjurando" : "ocupada";
+                        bool seen = mine || (foresight && used <= 2);
+                        string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0))
+                                     : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? SpellGlyph + " conjurando" : "ocupada";
+                        if (seen && !mine) label = "👁 " + label;
                         var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.55f, 0.20f, 0.20f) : TlWait, label, mine || threat);
                         if (threat) ((Label)seg.ElementAt(0)).style.color = new Color(1f, 0.82f, 0.80f);
                         track.Add(seg);

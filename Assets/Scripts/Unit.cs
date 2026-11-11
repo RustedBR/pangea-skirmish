@@ -211,6 +211,38 @@ namespace PangeaSkirmish
 
         public int AvailableMana => currentMana - reservedMana;
 
+        // ---- Estado de magia (GDD-019). Por ticks, sobrevive entre pontos de decisão. ----
+        [System.NonSerialized] public float furyReady;      // Fúria: multiplicador do próximo ataque (0 = nada)
+        [System.NonSerialized] public float trueAimCrit;    // Olho certeiro: bônus de crítico do próximo ataque (0 = nada)
+        [System.NonSerialized] public int   stoneSkinTicks; // Pele de pedra
+        [System.NonSerialized] public float stoneSkinMult = 1f;
+        [System.NonSerialized] public int   burningTicks, burningDamage; // Queimando
+        [System.NonSerialized] public int   soakedTicks;    // Encharcado: −1 tile de andada
+        [System.NonSerialized] public int   foresightTicks; // Visão arcana
+
+        /// <summary>Andada com Lama (= 1) e Encharcado (−1). GDD-019 §3.</summary>
+        public int EffectiveMoveStep
+        {
+            get
+            {
+                if (SpellField.Current != null && SpellField.Current.InZone(this, SpellEffect.ZoneMud)) return 1;
+                return Mathf.Max(1, stats.MoveStep - (soakedTicks > 0 ? 1 : 0));
+            }
+        }
+
+        /// <summary>Texto curto dos estados de magia ativos, para a ficha da HUD.</summary>
+        public string SpellStateSummary()
+        {
+            var p = new System.Collections.Generic.List<string>();
+            if (furyReady > 0f) p.Add("Fúria");
+            if (trueAimCrit > 0f) p.Add("Olho certeiro");
+            if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}t");
+            if (burningTicks > 0) p.Add($"Queimando {burningTicks}t");
+            if (soakedTicks > 0) p.Add($"Encharcado {soakedTicks}t");
+            if (foresightTicks > 0) p.Add($"Visão arcana {foresightTicks}t");
+            return string.Join(" · ", p);
+        }
+
         /// <summary>Recupera Mana (regeneração por tick / Concentrar), até o máximo.</summary>
         public void GainMana(int amount) =>
             currentMana = Mathf.Clamp(currentMana + amount, 0, stats.MaxMana);
@@ -235,7 +267,8 @@ namespace PangeaSkirmish
 
         /// <summary>Chance de acerto com o embotamento aplicado.</summary>
         public float EffectiveHitChance =>
-            Mathf.Clamp01(stats.HitChance - (IsDulled ? Tuning.Get().dullHitPenalty : 0f));
+            Mathf.Clamp01(stats.HitChance - (IsDulled ? Tuning.Get().dullHitPenalty : 0f)
+                          - (SpellField.Current != null && SpellField.Current.InZone(this, SpellEffect.ZoneSteam) ? 0.20f : 0f));
 
         public Vector2Int FinalAnchor => hasPlannedBonus ? plannedBonusAnchor : plannedAnchor;
 
@@ -848,6 +881,16 @@ namespace PangeaSkirmish
             amount = StatusEffectSystem.ReduceIncomingDamage(statusEffects, amount);
             if (amount <= 0) return;
             currentHP = Mathf.Max(0, currentHP - amount);
+            // Conjuração Elemental em andamento: acumula dano; passou do limite → interrompida (GDD-019 §1).
+            if (queue.Count > 0 && queue[0].Type == ActionType.Spell)
+            {
+                var sd = queue[0].Spell.Def;
+                if (sd != null && !sd.IsPhysical)
+                {
+                    queue[0].DamageTaken += amount;
+                    if (queue[0].DamageTaken >= SpellResolver.InterruptThreshold(this)) queue[0].Interrupted = true;
+                }
+            }
             AudioManager.I?.Play(AudioManager.I.sfxHit);
             OnDamageTaken?.Invoke(this, amount, isCritical);
             StartCoroutine(FlashHit());

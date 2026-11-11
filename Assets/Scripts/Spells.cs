@@ -169,7 +169,7 @@ namespace PangeaSkirmish
             E("Rampart",    "Muralha",             new[]{ SpellElement.Earth, SpellElement.Magic }, 4, 2, 3, 3, SpellEffect.Barrier, 8, 2.0f, dur: 4,
               desc: "Barreira de 3 tiles por 4 ticks: bloqueia movimento e projéteis. HP = 8 + POT×2."),
             E("WindStep",   "Passo do vento",      new[]{ SpellElement.Air,   SpellElement.Magic }, 3, 1, 5, 0, SpellEffect.Teleport,
-              desc: "Teleporta um aliado (ou a si) até 5 tiles para um tile livre visível. Sem ataque de oportunidade."),
+              desc: "Teleporta o conjurador até 5 tiles para um tile livre. Sem ataque de oportunidade. (Mover um aliado fica para depois.)"),
         };
 
         public static SpellDef[] All()

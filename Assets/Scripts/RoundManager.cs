@@ -37,6 +37,8 @@ namespace PangeaSkirmish
         private Unit _playerUnit;
         private ScreenFlash _screenFlash;
         private TileEffectManager _tileFx;
+        /// <summary>Zonas de magia da batalha (GDD-019). Exposto em SpellField.Current para o AttackResolver.</summary>
+        private readonly SpellField _spellField = new SpellField();
 
         // ---- Lockstep MP (Fase 6) ----
         private bool _waitingLockstep; // true enquanto aguarda ExecuteRoundClientRpc
@@ -72,11 +74,19 @@ namespace PangeaSkirmish
 
         public RoundPhase Phase => _phase;
 
+        private void OnDestroy()
+        {
+            _spellField.Clear();
+            if (SpellField.Current == _spellField) SpellField.Current = null;
+        }
+
         public void Setup(GridManager grid, PlanningController planner, BattleHUD hud,
                           Camera cam, CameraController camCtrl, List<Unit> units, Unit playerUnit,
                           TileEffectManager tileFx = null)
         {
             _grid = grid;
+            _spellField.Clear();
+            SpellField.Current = _spellField;
             _planner = planner;
             _hud = hud;
             _cam = cam;
@@ -528,6 +538,7 @@ namespace PangeaSkirmish
                 // Avança a ação da frente de cada fila; coleta as que TERMINAM neste tick.
                 var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
+                var spellsThisSlot  = new List<(Unit u, PlannedSpell sp)>();
                 foreach (var u in _units)
                 {
                     if (u.IsDead || u.queue.Count == 0) continue;
@@ -547,27 +558,37 @@ namespace PangeaSkirmish
                             _hud.LogAction($"✦ {u.unitName} concentrou +{regen} Mana", u);
                             break;
                         case ActionType.Spell:
-                        {
-                            // Passo 5 do GDD-019 (resolução) ainda não existe: o recurso já foi
-                            // comprometido no BuildQueueFromPlan; aqui só registramos a conjuração.
-                            var def = u.queue == null ? null : head.Spell.Def;
-                            string nm = def != null ? def.displayName : head.Spell.SpellId;
-                            string mont = def != null ? def.MontageText() : "?";
-                            string tgt = head.Spell.TargetUnit != null ? $" em {head.Spell.TargetUnit.unitName}"
-                                       : (def != null && def.range >= 0) ? $" em ({head.Spell.TargetTile.x},{head.Spell.TargetTile.y})" : "";
-                            _hud.LogAction($"✦ {u.unitName} conjura <b>{nm}</b> [{mont}]{tgt} — efeito ainda não implementado", u);
+                            spellsThisSlot.Add((u, head.Spell));
                             break;
-                        }
                     }
                 }
 
                 // Cabeçalho do tick no histórico: cada ação fica sob o tick em que realmente acontece.
-                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) _hud.LogRound(_globalTick);
+                bool anyAction = movesThisSlot.Count > 0 || attacksThisSlot.Count > 0 || spellsThisSlot.Count > 0;
+                if (anyAction) _hud.LogRound(_globalTick);
+
+                // Muralha bloqueia movimento: quem terminaria dentro ou atravessaria fica parado (GDD-019 §3.2).
+                if (_spellField.Zones.Count > 0 && movesThisSlot.Count > 0)
+                    movesThisSlot.RemoveAll(m =>
+                    {
+                        bool blocked = false;
+                        foreach (var z in _spellField.Zones)
+                        {
+                            if (z.Kind != SpellEffect.Barrier) continue;
+                            foreach (var c in z.Cells)
+                                if (GridManager.FootprintsOverlap(m.dest, m.u.stats.Footprint, c, 1)) { blocked = true; break; }
+                            if (!blocked && _spellField.BarrierOnLine(m.u.anchor, m.dest) != null) blocked = true;
+                            if (blocked) break;
+                        }
+                        if (blocked) _hud.LogAction($"<color=#888888>x</color> {m.u.unitName}: a Muralha bloqueia o caminho", m.u);
+                        return blocked;
+                    });
 
                 // Um enquadramento por tick, cobrindo todos que agem.
-                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
+                if (anyAction)
                 {
                     var actors = new List<Vector3>();
+                    foreach (var sp in spellsThisSlot) actors.Add(sp.u.transform.position);
                     foreach (var m in movesThisSlot) { actors.Add(m.u.transform.position); actors.Add(_grid.AnchorToWorldCenter(m.dest, m.u.stats.Footprint)); }
                     foreach (var a in attacksThisSlot)
                     {
@@ -605,13 +626,36 @@ namespace PangeaSkirmish
                 if (attacksThisSlot.Count > 0)
                     yield return ResolveAttackSlot(attacksThisSlot);
 
+                // Magias que terminam neste tick (GDD-019). Ordem por unitId, como o resto do lockstep.
+                foreach (var (su, sp) in spellsThisSlot)
+                {
+                    if (su.IsDead) continue;
+                    foreach (var line in SpellResolver.Resolve(su, sp, _units, _grid, _spellField))
+                        _hud.LogAction(line, su);
+                }
+
                 yield return AdvanceGlobalTick();
+                foreach (var line in SpellResolver.TickEffects(_units, _spellField)) _hud.LogAction(line, null);
+
+                // Interrupção (GDD-019 §9.3): a conjuração Elemental sai da fila com o resto dela,
+                // a Mana já foi gasta, e a unidade decide no tick seguinte (fecha o segmento).
+                bool interrupted = false;
+                foreach (var u in _units)
+                {
+                    if (u.IsDead || u.queue.Count == 0 || !u.queue[0].Interrupted) continue;
+                    var q = u.queue[0];
+                    string nm = q.Spell.Def != null ? q.Spell.Def.displayName : q.Spell.SpellId;
+                    _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: <b>{nm}</b> interrompida ({q.DamageTaken} ≥ {SpellResolver.InterruptThreshold(u)}). Mana gasta.", u);
+                    u.queue.Clear();
+                    interrupted = true;
+                }
                 LogTimeline();
+                if (interrupted) break;
                 if (t < segment - 1) yield return IncrementWindow();
 
                 if (!CheckAnyFactionAlive()) break;
 
-                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
+                if (anyAction)
                     yield return new WaitForSeconds(slotPause);
             }
 
@@ -1075,7 +1119,7 @@ namespace PangeaSkirmish
                     from.y + Mathf.RoundToInt(dy * t));
 
                 if (!_grid.IsAnchorInBounds(candidate, fp)) break;
-                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveStep) break;
+                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.EffectiveMoveStep) break;
 
                 bool free = true;
                 foreach (var (oAnchor, ofp) in occupied)

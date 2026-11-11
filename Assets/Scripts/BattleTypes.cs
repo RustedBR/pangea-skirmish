@@ -275,6 +275,8 @@ namespace PangeaSkirmish
         public bool          IsAimed;
         public int           Duration;   // ticks totais
         public int           Elapsed;    // ticks já decorridos
+        public int           DamageTaken; // Spell Elemental: dano recebido durante a conjuração
+        public bool          Interrupted; // Spell Elemental: passou do limite (GDD-019 §1)
         public int Remaining => Mathf.Max(0, Duration - Elapsed);
     }
 

@@ -614,7 +614,7 @@ namespace PangeaSkirmish
             ClearRangeGhosts(); // esconde o overlay de range durante o picking de movimento
             var from     = _controlled.plannedAnchor;
             var blockers = BlockerUnits(_controlled);
-            _reachable   = _grid.GetReachableAnchors(from, _controlled.stats.MoveStep,
+            _reachable   = _grid.GetReachableAnchors(from, _controlled.EffectiveMoveStep,
                                _controlled.stats.Footprint, blockers);
             _reachable.Add(from);
 
@@ -978,7 +978,7 @@ namespace PangeaSkirmish
 
         private bool CanReachFrom(Vector2Int from, Vector2Int to)
         {
-            var reach = _grid.GetReachableAnchors(from, _controlled.stats.MoveStep, _controlled.stats.Footprint, BlockerUnits(_controlled));
+            var reach = _grid.GetReachableAnchors(from, _controlled.EffectiveMoveStep, _controlled.stats.Footprint, BlockerUnits(_controlled));
             return to == from || reach.Contains(to);
         }
 
@@ -992,14 +992,14 @@ namespace PangeaSkirmish
             var s = SpellCatalog.Get(spellId);
             if (s == null) return;
             if (!_controlled.CanFitSpell(s, out string why)) { _hud.ShowPlanNote($"{s.displayName}: {why}"); return; }
-            if (s.range < 0 || s.range == 0)
+            if (s.effect != SpellEffect.Leap && (s.range < 0 || s.range == 0))
             {
                 AppendSpell(s, null, _controlled.plannedAnchor);
                 return;
             }
             _pendingSpell = s;
             EnterSpellTilePicking(s);
-            _hud.ShowPlanNote($"{s.displayName}: escolha o alvo (alcance {s.range}{(s.area > 0 ? $", área {s.area}" : "")}). Esc cancela.");
+            _hud.ShowPlanNote($"{s.displayName}: escolha o {(s.effect == SpellEffect.Leap || s.effect == SpellEffect.Teleport ? "destino" : "alvo")} (alcance {SpellResolver.Reach(_controlled, s)}{(s.area > 0 ? $", área {s.area}" : "")}). Esc cancela.");
         }
 
         private void EnterSpellTilePicking(SpellDef s)
@@ -1008,7 +1008,7 @@ namespace PangeaSkirmish
             var from = _controlled.plannedAnchor;
             _attackable.Clear();
             int fp = _controlled.stats.Footprint;
-            int reach = _controlled.IsDulled ? Mathf.Max(1, s.range - Tuning.Get().dullRangePenalty) : s.range;
+            int reach = SpellResolver.Reach(_controlled, s);
             int budget = reach + fp;
             for (int dx = -budget; dx <= budget; dx++)
             for (int dy = -budget; dy <= budget; dy++)
@@ -1030,7 +1030,7 @@ namespace PangeaSkirmish
             if (s == null || !_attackable.Contains(anchor)) return;
             Unit target = null;
             foreach (var o in _allUnits)
-                if (o != null && !o.IsDead && GridManager.FootprintsOverlap(o.anchor, o.stats.Footprint, anchor, 1)) { target = o; break; }
+                if (o != null && !o.IsDead && GridManager.FootprintsOverlap(o.anchor, o.stats.Footprint, anchor, _controlled.stats.Footprint)) { target = o; break; }
             AppendSpell(s, target, anchor);
             _pendingSpell = null;
             HideCursorGhost();
@@ -1054,7 +1054,7 @@ namespace PangeaSkirmish
             if (c == from) return;
             if (!CanReachFrom(from, c))
             {
-                _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.stats.MoveStep} tiles");
+                _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.EffectiveMoveStep} tiles");
                 return;
             }
             _controlled.plannedPath.Add(c);
@@ -1110,7 +1110,7 @@ namespace PangeaSkirmish
             var a = _controlled.actionSequence[seqIdx];
             if (a.Type != ActionType.Move || a.Index >= _controlled.plannedPath.Count) return;
             if (!CanReachFrom(PositionBefore(seqIdx), c))
-            { _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.stats.MoveStep} tiles"); ShowIntentHint(); return; }
+            { _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.EffectiveMoveStep} tiles"); ShowIntentHint(); return; }
             _controlled.plannedPath[a.Index] = c;
             RecomputePlannedAnchor();
             ShowIntentHint();
