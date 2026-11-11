@@ -7,7 +7,7 @@ namespace PangeaSkirmish
     public enum Team { Player, Enemy }
 
     /// <summary>Fases do round no combate "semi-action".</summary>
-    public enum RoundPhase { Initiative, Planning, ActionMovement, ActionAttack, ActionSpell, Resolving, GameOver }
+    public enum RoundPhase { Initiative, Planning, ActionMovement, ActionAttack, Resolving, GameOver }
 
     /// <summary>Resultado de uma jogada de ataque.</summary>
     public enum HitResult { Miss, Hit, Critical }
@@ -51,6 +51,9 @@ namespace PangeaSkirmish
         [Header("Defesa / Mitigação")]
         public int armorBase     = 0;
         public int armorPerVIT   = 1;
+        [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT (substitui a armadura fixa: dano alto passa a ser reduzido na mesma proporção).")]
+        public float armorPctPerVIT = 0f;
+        public float armorPctMax    = 0.6f;
         public int magicResistBase  = 0;
         public int magicResistPerWIS = 1;
 
@@ -72,7 +75,7 @@ namespace PangeaSkirmish
 
         public AttributeStats ToAttributeStats() => new AttributeStats
         {
-            STR = STR, VIT = VIT, DEX = DEX, AGI = AGI, INT = INT, WIS = WIS,
+            STR = STR, VIT = VIT, DEX = DEX, AGI = Mathf.Min(AGI, CharacterConfig.AgiMax), INT = INT, WIS = WIS,
             Footprint = Footprint, AttackRange = AttackRange,
         };
     }
@@ -104,6 +107,45 @@ namespace PangeaSkirmish
         public int MagicDamage => Mathf.RoundToInt(INT * F.dmgPerINT);
         public int Initiative => Mathf.RoundToInt(AGI * F.iniPerAGI + DEX * F.iniPerDEX);
         public int MoveBudget => Footprint + Mathf.RoundToInt(AGI * F.movePerAGI);
+        /// <summary>
+        /// Tiles que UMA ação de andar cobre (GDD-016 §2): base + AGI, até maxTilesPerMove.
+        /// </summary>
+        public int MoveStep
+        {
+            get
+            {
+                var T = Tuning.Get();
+                int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
+                return Mathf.Clamp(tiles, 1, Mathf.Max(1, T.maxTilesPerMove));
+            }
+        }
+
+        /// <summary>
+        /// Ticks entre cada ponto de Instinto regenerado. A AGI acima de agiRegenFrom acelera:
+        /// a andada já está no teto, então o excedente vira fôlego (GDD-016 §13).
+        /// </summary>
+        public int InstinctRegenTicks
+        {
+            get
+            {
+                var T = Tuning.Get();
+                int bonus = Mathf.Max(0, Mathf.FloorToInt(AGI) - T.agiRegenFrom) / Mathf.Max(1, T.agiRegenStep);
+                return Mathf.Max(1, T.instinctRegenTicks - bonus);
+            }
+        }
+
+        /// <summary>Ticks base do ataque, pelo peso da arma equipada (GDD-016 §2.1).</summary>
+        public int AttackTicks = 2;
+
+        /// <summary>Instinto máximo: reserva do Corpo (GDD-016 §3).</summary>
+        public int MaxInstinct
+        {
+            get
+            {
+                var T = Tuning.Get();
+                return Mathf.Max(1, Mathf.RoundToInt(T.instinctBase + (STR + VIT) * T.instinctPerBodyPoint));
+            }
+        }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
         public int BonusActionPoints => Mathf.RoundToInt(DEX * F.bapPerDEX);
         public int BonusMoveBudget => Mathf.Max(1, F.bonusMoveBudget);
@@ -114,6 +156,8 @@ namespace PangeaSkirmish
         public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI);
         public float CritChance => Mathf.Clamp01(DEX * F.critPerDEX);
         public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT);
+        /// <summary>Redução percentual do dano físico pela VIT (0..armorPctMax).</summary>
+        public float PhysicalReduction => Mathf.Clamp(VIT * F.armorPctPerVIT, 0f, F.armorPctMax);
         public int MagicDefense => F.magicResistBase + Mathf.RoundToInt(WIS * F.magicResistPerWIS);
 
         public HitResult RollHit(float attackerHitChance, float targetDodgeChance)
@@ -143,6 +187,7 @@ namespace PangeaSkirmish
             // [−varInt, +varInt] determinístico
             int variance = varInt > 0 ? BattleRng.Next(-varInt, varInt + 1) : 0;
             int dmg = baseDamage + variance;
+            if (isPhysical) dmg = Mathf.RoundToInt(dmg * (1f - PhysicalReduction));
             dmg -= isPhysical ? PhysicalDefense : MagicDefense;
             return Mathf.Max(Tuning.Get().minDamageFloor, dmg);
         }
@@ -158,16 +203,18 @@ namespace PangeaSkirmish
         public string displayName; // ex "Machado"
         public int    damage = 3;  // dano base da arma
         public int    range  = 1;  // alcance (tiles)
+        [Tooltip("Peso da arma em ticks base do ataque: 1 leve, 2 média, 3 pesada. A DEX encurta.")]
+        public int    attackTicks = 2;
+        [Tooltip("Dureza: quanto dano FIXO o Bloquear absorve com esta arma/escudo (PF2e: Shield Block).")]
+        public int    blockHardness = 2;
 
         [Header("Magia (conduíte)")]
-        public float spellPowerMult = 1f;
-        public int   spellRangeBonus = 0;
         public SpellElement elementAffinity = SpellElement.None;
     }
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES
 
-    public enum ActionType { Move, Attack, Spell, Concentrate }
+    public enum ActionType { Move, Attack, Concentrate, Wait }
 
     /// <summary>
     /// Uma entrada na sequência de ações planejadas de uma unidade.
@@ -184,12 +231,74 @@ namespace PangeaSkirmish
         public Vector2Int BonusStep;   // destino do passo extra (Type==Move && IsBonus)
     }
 
+    /// <summary>
+    /// Ação já comprometida na fila de ticks da unidade (GDD-014). Autocontida: guarda
+    /// destino/ataque por valor, então sobrevive entre pontos de decisão (carry-over).
+    /// </summary>
+    [Serializable]
+    public class QueuedAction
+    {
+        public ActionType    Type;
+        public Vector2Int    Dest;       // Move
+        public PlannedAttack Attack;     // Attack
+        public bool          IsBonus;
+        public bool          IsAimed;
+        public int           Duration;   // ticks totais
+        public int           Elapsed;    // ticks já decorridos
+        public int Remaining => Mathf.Max(0, Duration - Elapsed);
+    }
+
+    /// <summary>Duração das ações em ticks (GDD-014 §2). Determinístico (só stats + tuning).</summary>
+    public static class TickRules
+    {
+        public static int BaseTicks(ActionType type, bool isBonus)
+        {
+            var T = Tuning.Get();
+            switch (type)
+            {
+                case ActionType.Move:        return T.ticksMove;
+                case ActionType.Attack:      return T.ticksUnarmed + (isBonus ? T.ticksPowerStrikeExtra : 0);
+                case ActionType.Concentrate: return T.ticksConcentrate;
+                default:                     return T.ticksWait;
+            }
+        }
+
+        /// <summary>
+        /// ticks = max(1, round(base × k / (k + DEX))). A DEX é a rapidez das ações (GDD-016);
+        /// Andar e Esperar não escalam (o alcance da andada é da AGI). A base do ataque é o
+        /// peso da arma da unidade.
+        /// </summary>
+        public static int Duration(Unit u, ActionType type, bool isBonus)
+        {
+            int b = BaseTicks(type, isBonus);
+            if (u == null) return Mathf.Max(1, b);
+            if (type == ActionType.Attack)
+                b = Mathf.Max(1, u.stats.AttackTicks) + (isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0);
+            if (type == ActionType.Wait || type == ActionType.Move) return Mathf.Max(1, b);
+            float k = Mathf.Max(1f, Tuning.Get().tickDexFactor);
+            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX))));
+        }
+
+        // ---- Custos em Instinto (GDD-016 §3) ----
+        public static int InstinctCost(ScheduledAction a)
+        {
+            var T = Tuning.Get();
+            int c = 0;
+            if (a.Type == ActionType.Attack && a.IsBonus) c += T.instinctPowerStrike;
+            if (a.Type == ActionType.Attack && a.IsAimed) c += T.instinctAim;
+            if (a.Type == ActionType.Move   && a.IsBonus) c += T.instinctQuickStep;
+            return c;
+        }
+
+        public static int Duration(Unit u, ScheduledAction a) => Duration(u, a.Type, a.IsBonus);
+    }
+
     // ------------------------------------------------------------------ ATAQUE
 
     public enum AttackMode { Auto, Unit, Tile }
 
     /// <summary>Reações do rework de Ações Bônus. Disparadas por trigger na fase de ação.</summary>
-    public enum ReactionKind { None, CounterAttack, Dodge, Block }
+    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step, Intercept }
 
     /// <summary>Ataque planejado pelo jogador (ou IA) com alvo específico ou posição.</summary>
     public struct PlannedAttack

@@ -23,6 +23,9 @@ namespace PangeaSkirmish
         // ver CameraController.Configure. Tentar tornar isso quadrado (pra
         // "consertar" a rotação com câmera tilted) causava incompatibilidade
         // geométrica entre a malha e o mesh do sprite (efeito de escada/moiré).
-        public float TileUnitsH => (float)tilePixelH / pixelsPerUnit;
+        // Mundo 3D (2026-11): o losango passou a ser um grid QUADRADO de verdade girado 45°
+        // (profundidade == largura). A proporção 2:1 na tela vem da inclinação real da
+        // câmera (World3D.CamPitch), não mais da malha.
+        public float TileUnitsH => TileUnitsW;
     }
 }

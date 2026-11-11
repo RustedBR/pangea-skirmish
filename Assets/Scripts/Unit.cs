@@ -26,6 +26,8 @@ namespace PangeaSkirmish
         public AttributeStats stats = new AttributeStats();
 
         public Vector2Int anchor;
+        /// <summary>Onde a unidade foi posicionada no início (volta para cá a cada camada do Coop).</summary>
+        public Vector2Int spawnAnchor;
         public Vector2Int plannedAnchor;
         public Vector2Int plannedBonusAnchor;
         public int plannedMoveCount;
@@ -36,8 +38,117 @@ namespace PangeaSkirmish
         public bool bonusDamageThisAttack;
         public bool aimBonusThisAttack;
         public bool hasPlannedBonus;
+        /// <summary>Ticks livres na fila deste ponto de decisão (GDD-014; antigo PA).</summary>
         public int remainingAP;
+        /// <summary>Instinto ainda livre NESTE plano (currentInstinct − custo planejado). Antigo PAB.</summary>
         public int remainingBAP;
+        /// <summary>Instinto atual: reserva do Corpo, paga ações bônus e reações (GDD-016 §3).</summary>
+        public int currentInstinct;
+
+        // ── Semi-turno por ticks (GDD-014) ──
+        /// <summary>Fila comprometida. Não vazia = unidade ocupada (não decide neste ponto).</summary>
+        public readonly List<QueuedAction> queue = new List<QueuedAction>();
+        public bool IsBusy => queue.Count > 0;
+        /// <summary>Inimigos em cujo alcance esta unidade ENTROU andando e ainda não atacou (gatilho de AoO ao sair).</summary>
+        public readonly HashSet<Unit> enteredReach = new HashSet<Unit>();
+        public int QueueTicksRemaining
+        {
+            get { int t = 0; foreach (var q in queue) t += q.Remaining; return t; }
+        }
+
+        /// <summary>Ticks que o plano atual (actionSequence) ocupa.</summary>
+        public int PlannedTicks()
+        {
+            int t = 0;
+            foreach (var a in actionSequence) t += TickRules.Duration(this, a);
+            return t;
+        }
+
+        /// <summary>Recalcula remainingAP = maxQueueTicks − ticks planejados.</summary>
+        public void RecomputeTickBudget()
+        {
+            remainingAP  = Tuning.Get().maxQueueTicks - PlannedTicks();
+            remainingBAP = currentInstinct - PlannedInstinctCost();
+        }
+
+        /// <summary>Instinto que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
+        public int PlannedInstinctCost()
+        {
+            int c = 0;
+            foreach (var a in actionSequence) c += TickRules.InstinctCost(a);
+            return c;
+        }
+
+        /// <summary>Recupera Instinto (regeneração por tick), até o máximo.</summary>
+        public void GainInstinct(int amount) =>
+            currentInstinct = Mathf.Clamp(currentInstinct + amount, 0, stats.MaxInstinct);
+
+        /// <summary>Cabe uma ação de 'type' no orçamento restante?</summary>
+        public bool CanFit(ActionType type, bool isBonus = false) =>
+            remainingAP >= TickRules.Duration(this, type, isBonus);
+
+        /// <summary>Converte o plano (actionSequence + listas) na fila de ticks. Plano vazio = Esperar.</summary>
+        public void BuildQueueFromPlan()
+        {
+            queue.Clear();
+            // Compromete o Instinto do plano (ações bônus). Feito aqui, a partir do plano,
+            // para valer igual em todas as máquinas do lockstep.
+            currentInstinct = Mathf.Max(0, currentInstinct - PlannedInstinctCost());
+            foreach (var a in actionSequence)
+            {
+                var q = new QueuedAction { Type = a.Type, IsBonus = a.IsBonus, IsAimed = a.IsAimed,
+                                           Duration = TickRules.Duration(this, a) };
+                if (a.Type == ActionType.Move)
+                {
+                    if (a.Index >= plannedPath.Count) continue;
+                    q.Dest = plannedPath[a.Index];
+                }
+                else if (a.Type == ActionType.Attack)
+                {
+                    if (a.Index >= plannedAttacks.Count) continue;
+                    q.Attack = plannedAttacks[a.Index];
+                }
+                queue.Add(q);
+            }
+            if (queue.Count == 0)
+                queue.Add(new QueuedAction { Type = ActionType.Wait, Duration = TickRules.Duration(this, ActionType.Wait, false) });
+        }
+
+        /// <summary>Custo em Instinto de um incremento: 0 = golpe poderoso, 1 = mirar.</summary>
+        public static int IncrementCost(int kind) =>
+            kind == 0 ? Tuning.Get().instinctPowerStrike : Tuning.Get().instinctAim;
+
+        /// <summary>
+        /// A próxima ação da fila (que ainda não começou) pode receber o incremento?
+        /// Só ataques; golpe poderoso uma vez, mirar uma vez; exige Instinto.
+        /// </summary>
+        public bool CanIncrementNext(int kind)
+        {
+            if (IsDead || queue.Count == 0) return false;
+            var q = queue[0];
+            if (q.Type != ActionType.Attack || q.Elapsed > 0) return false;
+            if (kind == 0 && q.IsBonus) return false;
+            if (kind == 1 && q.IsAimed) return false;
+            return currentInstinct >= IncrementCost(kind);
+        }
+
+        /// <summary>Aplica o incremento (golpe poderoso alonga o ataque em ticks). Determinístico.</summary>
+        public bool TryIncrementNext(int kind)
+        {
+            if (!CanIncrementNext(kind)) return false;
+            var q = queue[0];
+            if (kind == 0) { q.IsBonus = true; q.Duration = TickRules.Duration(this, ActionType.Attack, true); }
+            else q.IsAimed = true;
+            currentInstinct -= IncrementCost(kind);
+            return true;
+        }
+
+        /// <summary>Insere uma espera no início da fila (custo de reação).</summary>
+        public void DelayQueue(int ticks)
+        {
+            if (ticks <= 0) return;
+            queue.Insert(0, new QueuedAction { Type = ActionType.Wait, Duration = ticks });
+        }
 
         // ── Ações Bônus (rework): reações ──
         /// <summary>Reações disponíveis neste round (1/round, renova em StartRound).</summary>
@@ -45,26 +156,23 @@ namespace PangeaSkirmish
         /// <summary>Bônus de dodge temporário desta reação (somado ao DodgeChance no RollHit).</summary>
         public float dodgeReactBonus;
         /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
-        public float blockReduction;
+        public int blockFlat;
 
-        public bool CanReact() => remainingBAP >= 2 && remainingReactions > 0;
+        public bool CanReact() => currentInstinct >= Tuning.Get().instinctReaction && remainingReactions > 0;
         public void ConsumeReaction()
         {
-            remainingBAP      = Mathf.Max(0, remainingBAP - 2);
+            currentInstinct   = Mathf.Max(0, currentInstinct - Tuning.Get().instinctReaction);
             remainingReactions = Mathf.Max(0, remainingReactions - 1);
         }
         public void ResetReactionsForRound() => remainingReactions = 1;
 
         public bool hasPlannedMove   => plannedMoveCount   > 0;
         public bool hasPlannedAttack => plannedAttackCount > 0;
-        public bool hasPlannedSpell  => plannedSpells.Count > 0;
         public int currentHP;
         public int currentMana;
         public int reservedMana;
         public int rolledInitiative;
         public int plannedConcentrations;
-        public int plannedSpellBonusINT; // Mira Mágica (ação bônus de incremento): +INT na potência da magia
-        public readonly List<PlannedSpell>   plannedSpells = new List<PlannedSpell>();
         public readonly List<StatusEffect>   statusEffects = new List<StatusEffect>();
 
         public int AvailableMana => currentMana - reservedMana;
@@ -73,7 +181,7 @@ namespace PangeaSkirmish
 
         /// <summary>
         /// Atributo efetivo = base + bônus de buffs ativos (AttrBuff).
-        /// Usado por magias (SpellBook.AttributePair) e pode ser estendido p/ ataque físico.
+        /// Atributo efetivo (base + buffs de status).
         /// </summary>
         public int EffectiveStat(Attr attr)
         {
@@ -96,6 +204,7 @@ namespace PangeaSkirmish
         private GridManager _grid;
         private SpriteRenderer _sr;
         private WeaponOverlay _weapon;
+        private UnitModel3D _model;   // corpo 3D (mundo 3D); o sprite vira só estado
         private readonly Dictionary<string, Sprite> _frames = new Dictionary<string, Sprite>();
         private Color _baseTint = Color.white;
         private string _baseDir = "SE";  // NE ou SE
@@ -115,8 +224,8 @@ namespace PangeaSkirmish
             if (other == null) return false;
             if (!RuntimeMultiplayerSession.IsMultiplayer)
                 return team != other.team;
-            // gameMode 0 = TDM, 1 = FFA
-            if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0)
+            // Times (PvP Times e Coop) → por teamId; todos contra todos → por dono.
+            if (GameModes.IsTeamBased)
                 return teamId != other.teamId;
             return ownerId != other.ownerId;
         }
@@ -160,12 +269,14 @@ namespace PangeaSkirmish
         {
             _grid      = grid;
             anchor     = startAnchor;
+            spawnAnchor = startAnchor;
             plannedAnchor      = startAnchor;
             plannedBonusAnchor = startAnchor;
             currentHP    = stats.MaxHP;
             currentMana  = stats.MaxMana;
-            remainingAP  = stats.ActionPoints;
-            remainingBAP = stats.BonusActionPoints;
+            remainingAP  = Tuning.Get().maxQueueTicks;
+            currentInstinct = stats.MaxInstinct;
+            remainingBAP = currentInstinct;
 
             // A unidade vira filha do _gridRig (organização/pivot; ele não gira
             // mais fisicamente — ver GridManager _viewOrientation).
@@ -189,6 +300,9 @@ namespace PangeaSkirmish
             _baseTint = team == Team.Enemy ? Tuning.Get().enemyTint : Color.white;
 
             BuildVisual(resourcePath);
+            _model = UnitModel3D.Attach(this, _sr, _footprint, teamColor, resourcePath, _spriteH,
+                                        WeaponCatalog.Get(weaponId));
+            RefreshFacing();
             SnapToAnchor();
             StartIdleAnim();
         }
@@ -416,6 +530,7 @@ namespace PangeaSkirmish
             if (w != null)
             {
                 stats.WeaponDamage = w.damage;
+                stats.AttackTicks = Mathf.Max(1, w.attackTicks);
                 stats.AttackRange = baseRange + w.range;
                 stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
             }
@@ -423,6 +538,7 @@ namespace PangeaSkirmish
             {
                 // Sem arma: usar valores desarmados do GameTuning
                 stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
+                stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
                 stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
                 stats.strScalesDamage = true; // unarmed sempre escala com STR
             }
@@ -454,8 +570,11 @@ namespace PangeaSkirmish
             {
                 float dx = Mathf.Abs(x - 32) / 32f;
                 float dy = Mathf.Abs(y - 16) / 16f;
-                bool inside = (dx + dy) <= 0.95f;
-                tex.SetPixel(x, y, inside ? Color.white : Color.clear);
+                // Contorno nítido + preenchimento leve: lê como "placa" no chão, não como mancha.
+                float d = dx + dy;
+                Color px = Color.clear;
+                if (d <= 0.95f) px = new Color(1f, 1f, 1f, d >= 0.82f ? 1f : 0.16f);
+                tex.SetPixel(x, y, px);
             }
             tex.Apply();
             _sharedFootprint = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 32);
@@ -565,6 +684,7 @@ namespace PangeaSkirmish
             }
             ShowFrame(_currentState, _currentFrame);
             if (_weapon != null) _weapon.RefreshDirection(_baseDir, _flip);
+            if (_model != null) _model.SetScreenQuadrant(telaDir);
         }
 
         // Define o facing a partir do vetor de movimento.
@@ -680,6 +800,36 @@ namespace PangeaSkirmish
                 if (_targetMarker != null) _targetMarker.SetActive(false);
                 StartCoroutine(FadeOut());
             }
+        }
+
+        /// <summary>
+        /// Prepara a unidade para a próxima camada do Coop (GDD-015 §3.2): volta ao ponto de
+        /// partida, limpa fila e plano, e recupera só PARTE da vida e da Mana — descer tem peso.
+        /// Unidades caídas voltam de pé com <paramref name="reviveFraction"/> da vida.
+        /// </summary>
+        public void RestoreForNextLayer(float healFraction, float manaFraction, float reviveFraction)
+        {
+            bool wasDead = IsDead;
+            StopAllCoroutines();
+            gameObject.SetActive(true);
+
+            int maxHP = stats.MaxHP;
+            currentHP = wasDead
+                ? Mathf.Max(1, Mathf.RoundToInt(maxHP * reviveFraction))
+                : Mathf.Min(maxHP, currentHP + Mathf.RoundToInt(maxHP * healFraction));
+            currentMana = Mathf.Min(stats.MaxMana, currentMana + Mathf.RoundToInt(stats.MaxMana * manaFraction));
+
+            queue.Clear();
+            enteredReach.Clear();
+            statusEffects.Clear();
+            ResetPlan();
+            ResetReactionsForRound();
+            _attackMarked = false;
+            if (_sr != null) _sr.color = _baseTint;
+            if (_footprint != null) _footprint.color = _footprintBaseColor;
+            if (_barsRoot != null) _barsRoot.gameObject.SetActive(true);
+            TeleportTo(spawnAnchor);
+            StartIdleAnim();
         }
 
         private IEnumerator FlashHit()
@@ -829,6 +979,7 @@ namespace PangeaSkirmish
 
             float dur = Mathf.Max(0.05f, Tuning.Get().attackAnimDuration);
             if (_weapon != null) _weapon.PlayAttack(_baseDir, _flip, dur);
+            if (_model != null) _model.PlayAttack(dur);
 
             float t = 0f;
             while (t < dur)
@@ -843,58 +994,6 @@ namespace PangeaSkirmish
             StartIdleAnim();
         }
 
-        // ------------------------------------------------------------------ MAGIA
-
-        public IEnumerator PlayCastAnim(Vector3 targetPos)
-        {
-            StopIdleAnim();
-            SetDirectionFromDelta(targetPos - transform.position);
-
-            int nCharging = FrameCount("charging");
-            if (nCharging > 0)
-            {
-                float dur = Tuning.Get().spellCastAnimDuration;
-                float t = 0f;
-                while (t < dur)
-                {
-                    float p = Mathf.Clamp01(t / dur);
-                    int frame = Mathf.Min(nCharging - 1, Mathf.FloorToInt(p * nCharging));
-                    ShowFrame("charging", frame);
-                    t += Time.deltaTime;
-                    yield return null;
-                }
-            }
-            else
-            {
-                yield return PlayAttackAnim(targetPos);
-            }
-
-            StartIdleAnim();
-        }
-
-        public int ApplySpellDamage(int rawPotency, SpellElement element)
-        {
-            if (rawPotency <= 0) return 0;
-            bool isPhysical = element == SpellElement.Physical;
-
-            int dmg = rawPotency;
-            if (isPhysical)
-            {
-                int strBuff = StatusEffectSystem.AttrBonus(statusEffects, Attr.STR);
-                dmg = Mathf.Max(Tuning.Get().spellMinDamage,
-                    rawPotency + strBuff - stats.PhysicalDefense);
-            }
-            else
-            {
-                int resist = StatusEffectSystem.ElementResist(statusEffects, element);
-                dmg = Mathf.Max(Tuning.Get().spellMinDamage, rawPotency - stats.MagicDefense - resist);
-                dmg = StatusEffectSystem.AbsorbWithShield(statusEffects, dmg);
-            }
-
-            TakeDamage(dmg, false);
-            return dmg;
-        }
-
         // ------------------------------------------------------------------ PLANO
 
         public void ResetPlan()
@@ -904,18 +1003,16 @@ namespace PangeaSkirmish
             plannedMoveCount = 0;
             plannedPath.Clear();
             plannedAttacks.Clear();
-            plannedSpells.Clear();
             actionSequence.Clear();
             hasPlannedBonus       = false;
             bonusDamageThisAttack = false;
             aimBonusThisAttack    = false;
             plannedConcentrations = 0;
-            plannedSpellBonusINT = 0;
             reservedMana = 0;
-            remainingAP  = stats.ActionPoints;
-            remainingBAP = stats.BonusActionPoints;
+            remainingAP  = Tuning.Get().maxQueueTicks;
+            remainingBAP = currentInstinct;
             dodgeReactBonus = 0f;
-            blockReduction  = 0f;
+            blockFlat       = 0;
         }
 
         public void RebuildSequenceFromLists()
@@ -925,8 +1022,6 @@ namespace PangeaSkirmish
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
             for (int i = 0; i < plannedAttacks.Count; i++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
-            for (int i = 0; i < plannedSpells.Count; i++)
-                actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = i, IsBonus = false, BonusStep = Vector2Int.zero });
             for (int c = 0; c < plannedConcentrations; c++)
                 actionSequence.Add(new ScheduledAction { Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero });
         }

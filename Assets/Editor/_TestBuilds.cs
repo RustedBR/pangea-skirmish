@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -39,7 +40,7 @@ public static class _TestBuilds
 
     private static void BuildScenario(string name, WebGLExceptionSupport exc, ManagedStrippingLevel strip)
     {
-        PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
         PlayerSettings.SetManagedStrippingLevel(UnityEditor.Build.NamedBuildTarget.WebGL, strip);
         PlayerSettings.WebGL.exceptionSupport = exc;
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;

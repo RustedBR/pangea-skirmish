@@ -6,10 +6,11 @@ using UnityEngine.InputSystem;
 namespace PangeaSkirmish
 {
     /// <summary>
-    /// Máquina de estados do round (combate semi-action):
-    /// Iniciativa (rola 1d20 + AGI+DEX, com zoom em cada unidade) ->
-    /// Planning (timer 10s) -> ActionMovement -> ActionAttack -> vitória -> próximo round.
-    /// Movimentos resolvem simultaneamente; ataques resolvem em ordem da iniciativa rolada.
+    /// Semi-turno por TICKS (GDD-014). Cada "round" é um PONTO DE DECISÃO:
+    /// só as unidades livres (fila vazia) planejam; depois a simulação avança tick a tick
+    /// até a próxima unidade ficar livre. Ações resolvem no ÚLTIMO tick da sua duração;
+    /// tudo que termina no mesmo tick resolve junto (movimento, depois ataques).
+    /// Unidades ocupadas carregam a fila para o próximo ponto de decisão.
     /// </summary>
     public class RoundManager : MonoBehaviour
     {
@@ -44,6 +45,15 @@ namespace PangeaSkirmish
         private float _timer;
         private int _round;
         private bool _gracePeriodUsed;
+        private float _pauseUsed;   // segundos de relógio pausados neste ponto de decisão
+        /// <summary>Tick global da batalha (GDD-014). Status/tiles/reações renovam a cada ticksPerRound.</summary>
+        private int _globalTick;
+
+        // ---- Coop: Descida ao Inferno (GDD-015 §3) ----
+        /// <summary>Camada atual da descida (1 = superfície).</summary>
+        public int Layer { get; private set; } = 1;
+        private bool _awaitingDescent;   // camada vencida, esperando "descer ou recuar"
+        public const string DeepestLayerKey = "pangea.coop.deepestLayer";
 
         // pose-base da câmera (alvo do overview entre rounds)
         private float _camBaseSize;
@@ -76,6 +86,7 @@ namespace PangeaSkirmish
             _tileFx = tileFx;
             _camBaseSize = cam.orthographicSize;
             _planner.SetHUD(hud);
+            _planner.OnConfirmRequested = ConfirmPlan;
             _hud.BindConfirm(ConfirmPlan);
             // Registro idempotente: evita handler duplicado se Setup rodar 2x
             // (causaria rótulo de dano em duplicata no MP).
@@ -139,16 +150,31 @@ namespace PangeaSkirmish
         private IEnumerator StartRound()
         {
             _round++;
-            // Renova reações por round
-            foreach (var u in _units) if (!u.IsDead) u.ResetReactionsForRound();
+            // Reações renovam por "round de ticks" (ver AdvanceGlobalTick), não por ponto de decisão.
+            if (_round == 1) foreach (var u in _units) if (!u.IsDead) u.ResetReactionsForRound();
             AudioManager.I?.Play(AudioManager.I.sfxRound);
-            _hud.SetPhase($"Round {_round}");
+            _hud.SetPhase($"Tick {_globalTick} — Decisão");
             _hud.SetTimerVisible(false);
             _hud.SetConfirmVisible(false);
-            _hud.LogRound(_round);
+            LogTimeline();
             yield return new WaitForSeconds(Tuning.Get().roundBannerHold);
             EnterPlanning();
         }
+
+        /// <summary>
+        /// Linha do tempo no log (GDD-014 §7): suas unidades mostram a fila inteira;
+        /// as dos outros só "livre" ou "ocupada" (informação incompleta).
+        /// </summary>
+        private void LogTimeline()
+        {
+            ulong localId = RuntimeMultiplayerSession.IsMultiplayer && Unity.Netcode.NetworkManager.Singleton != null
+                ? Unity.Netcode.NetworkManager.Singleton.LocalClientId : 0;
+            _hud.UpdateTimeline(_globalTick, _units, u =>
+                RuntimeMultiplayerSession.IsMultiplayer ? u.ownerId == localId : u == _playerUnit);
+        }
+
+        private static string ActionShort(ActionType t) =>
+            t == ActionType.Move ? "Mov" : t == ActionType.Attack ? "Atq" : t == ActionType.Concentrate ? "Con" : "Esp";
 
         /// <summary>Foco automático suave: pede o alvo ao CameraController e espera assentar.</summary>
         private IEnumerator FocusCamera(Vector3 center, float size, float duration)
@@ -171,12 +197,15 @@ namespace PangeaSkirmish
 
             float minX = float.MaxValue, maxX = float.MinValue;
             float minY = float.MaxValue, maxY = float.MinValue;
+            // Extensão na TELA: profundidade (Z) aparece pela metade e altura (Y) quase inteira.
+            float sinP = Mathf.Sin(World3D.CamPitch * Mathf.Deg2Rad), cosP = Mathf.Cos(World3D.CamPitch * Mathf.Deg2Rad);
             foreach (var p in positions)
             {
+                float sy = p.z * sinP + p.y * cosP;
                 if (p.x < minX) minX = p.x;
                 if (p.x > maxX) maxX = p.x;
-                if (p.y < minY) minY = p.y;
-                if (p.y > maxY) maxY = p.y;
+                if (sy < minY) minY = sy;
+                if (sy > maxY) maxY = sy;
             }
 
             float width  = (maxX - minX) + padding * 2f;
@@ -212,19 +241,22 @@ namespace PangeaSkirmish
         {
             _phase = RoundPhase.Planning;
             _gracePeriodUsed = false;
+            _pauseUsed = 0f;
             _waitingLockstep = false;
 
+            // Só unidades LIVRES recebem plano novo; ocupadas mantêm fila e listas (carry-over).
             foreach (var u in _units)
-                if (!u.IsDead) u.ResetPlan();
+                if (!u.IsDead && !u.IsBusy) u.ResetPlan();
+            float decisionTime = Tuning.Get().decisionTime;
 
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
                 // MP: planningTime da config; ordenar unidades por unitId para determinismo
                 _units.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
                 float cfgTime = RuntimeMultiplayerSession.CurrentConfig.planningTime;
-                if (cfgTime > 0f) planningTime = cfgTime;
+                planningTime = cfgTime > 0f ? cfgTime : decisionTime;
 
-                _hud.SetPhase($"Round {_round} — Planejamento");
+                _hud.SetPhase($"Tick {_globalTick} — Decisão");
 
                 // Habilita controle apenas da unidade do jogador local.
                 // Usa o id direto do NGO (RuntimeMultiplayerSession pode ter sido capturado
@@ -238,7 +270,15 @@ namespace PangeaSkirmish
                     { controlled = u; break; }
                 Debug.Log($"[MP] Planejamento: localId={localId}, controlando '{(controlled != null ? controlled.unitName : "NENHUMA")}'");
 
-                if (controlled != null && !controlled.IsDead)
+                if (controlled != null && !controlled.IsDead && controlled.IsBusy)
+                {
+                    // Ocupada: não decide neste ponto — confirma sozinha (pequeno atraso para o
+                    // host já ter aberto a janela de coleta).
+                    _hud.SetTimerVisible(false);
+                    _hud.SetConfirmVisible(false);                    _timer = planningTime;
+                    StartCoroutine(AutoConfirmBusy());
+                }
+                else if (controlled != null && !controlled.IsDead)
                 {
                     _timer = planningTime;
                     _hud.SetTimerVisible(true);
@@ -270,9 +310,17 @@ namespace PangeaSkirmish
                 return;
             }
 
-            _hud.SetPhase($"Round {_round} — Planejamento");
+            _hud.SetPhase($"Tick {_globalTick} — Decisão");
+            planningTime = decisionTime;
 
-            // Se o jogador estiver morto, pula direto para a fase de ação
+            // Jogador morto ou ocupado: pula direto para a simulação de ticks
+            if (_playerUnit != null && !_playerUnit.IsDead && _playerUnit.IsBusy)
+            {
+                _hud.SetTimerVisible(false);
+                _hud.SetConfirmVisible(false);
+                StartCoroutine(ActionRoutine());
+                return;
+            }
             if (_playerUnit == null || _playerUnit.IsDead)
             {
                 _hud.SetTimerVisible(false);
@@ -295,6 +343,15 @@ namespace PangeaSkirmish
             HandleInspectClick();
 
             if (_phase != RoundPhase.Planning) return;
+            // Pausa o relógio enquanto o jogador monta a jogada, até o teto por ponto de decisão.
+            float pauseBudget = Tuning.Get().planningPauseBudget;
+            if (_planner != null && _planner.IsEngaged && _pauseUsed < pauseBudget && !_waitingLockstep)
+            {
+                _pauseUsed += Time.deltaTime;
+                _hud.SetTimer(Mathf.Max(0f, _timer));
+                _hud.SetTimerWarning(false);
+                return;
+            }
             _timer -= Time.deltaTime;
             _hud.SetTimer(Mathf.Max(0f, _timer));
 
@@ -335,12 +392,13 @@ namespace PangeaSkirmish
 
             var u = UnitUnderMouse();
             if (u != null) _hud.ShowUnitInfo(u);
+            else if (_hud != null) _hud.HideUnitInfo();
         }
 
         private bool PointerOverUI()
         {
-            var es = UnityEngine.EventSystems.EventSystem.current;
-            return es != null && es.IsPointerOverGameObject();
+            // UI Toolkit não é enxergado pelo EventSystem UGUI (fix 2026-11-10).
+            return _hud != null && _hud.IsPointerOverUI();
         }
 
         private Unit UnitUnderMouse()
@@ -350,6 +408,12 @@ namespace PangeaSkirmish
             var world = RaycastGround(screen);
             // Seleção por collider 3D (migração XY→XZ): raycast do mouse contra as unidades.
             return Unit.PickAtWorld(_cam, screen);
+        }
+
+        private IEnumerator AutoConfirmBusy()
+        {
+            yield return new WaitForSeconds(0.25f);
+            if (_phase == RoundPhase.Planning) ConfirmPlan();
         }
 
         public void ConfirmPlan()
@@ -364,7 +428,7 @@ namespace PangeaSkirmish
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
                 _waitingLockstep = true;
-                _hud.SetPhase($"Round {_round} — Aguardando jogadores...");
+                _hud.SetPhase($"Tick {_globalTick} — Aguardando jogadores...");
                 if (LockstepBattleSync.Instance != null)
                 {
                     LockstepBattleSync.Instance.OnPlanningComplete();
@@ -434,33 +498,72 @@ namespace PangeaSkirmish
 
         private IEnumerator ActionRoutine()
         {
-            // Descobre o maior número de ações planejadas entre todas as unidades vivas
-            int maxSlots = 0;
+            var T = Tuning.Get();
+            // Sai de Planning já aqui: enquanto a fase ficava em Planning até o primeiro
+            // movimento/ataque, o timer de decisão podia zerar e reenviar o plano.
+            _phase = RoundPhase.Resolving;
+
+            // 1) Unidades livres comprometem o plano na fila (plano vazio = Esperar).
+            //    Ordem por unitId: mesma em todas as máquinas (lockstep).
+            //    As feras (Coop) planejam aqui, em toda máquina, com o mesmo estado (GDD-015 §4).
             foreach (var u in _units)
-                if (!u.IsDead) maxSlots = Mathf.Max(maxSlots, u.actionSequence.Count);
+            {
+                if (u.IsDead || u.IsBusy) continue;
+                if (BeastAI.Controls(u)) BeastAI.Plan(u, _units, _grid);
+                u.BuildQueueFromPlan();
+            }
+
+            // 2) Próximo ponto de decisão = menor fila restante entre os vivos.
+            int segment = int.MaxValue;
+            foreach (var u in _units)
+                if (!u.IsDead) segment = Mathf.Min(segment, Mathf.Max(1, u.QueueTicksRemaining));
+            if (segment == int.MaxValue) segment = 1;
 
             var burstMoves = new Dictionary<Unit, int>();
 
-            for (int slot = 0; slot < maxSlots; slot++)
+            for (int t = 0; t < segment; t++)
             {
+                _hud.SetPhase($"Tick {_globalTick}");
+
+                // Avança a ação da frente de cada fila; coleta as que TERMINAM neste tick.
                 var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
-                var spellsThisSlot  = new List<(Unit u, PlannedSpell spell, bool incr)>();
-
                 foreach (var u in _units)
                 {
-                    if (u.IsDead || slot >= u.actionSequence.Count) continue;
-                    var act = u.actionSequence[slot];
-                    if (act.Type == ActionType.Move && act.Index < u.plannedPath.Count)
-                        movesThisSlot.Add((u, u.plannedPath[act.Index], act.IsBonus));
-                    else if (act.Type == ActionType.Attack && act.Index < u.plannedAttacks.Count)
-                        attacksThisSlot.Add((u, u.plannedAttacks[act.Index], act.IsBonus, act.IsAimed));
-                    else if (act.Type == ActionType.Spell && act.Index < u.plannedSpells.Count)
-                        spellsThisSlot.Add((u, u.plannedSpells[act.Index], act.IsBonus));
-                    // Concentrate: skip — resolved at end of round
+                    if (u.IsDead || u.queue.Count == 0) continue;
+                    var head = u.queue[0];
+                    head.Elapsed++;
+                    if (head.Elapsed < head.Duration) continue;
+                    u.queue.RemoveAt(0);
+                    switch (head.Type)
+                    {
+                        case ActionType.Move:   movesThisSlot.Add((u, head.Dest, head.IsBonus)); break;
+                        case ActionType.Attack: attacksThisSlot.Add((u, head.Attack, head.IsBonus, head.IsAimed)); break;
+                        case ActionType.Concentrate:
+                            int regen = u.stats.ManaRegen;
+                            u.currentMana = Mathf.Min(u.currentMana + regen, u.stats.MaxMana);
+                            if (u.plannedConcentrations > 0) u.plannedConcentrations--;
+                            _hud.LogAction($"✦ {u.unitName} concentrou +{regen} mana", u);
+                            break;
+                    }
                 }
 
-                // Guarda âncoras antes do movimento para detectar tiles efetivamente percorridos
+                // Cabeçalho do tick no histórico: cada ação fica sob o tick em que realmente acontece.
+                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) _hud.LogRound(_globalTick);
+
+                // Um enquadramento por tick, cobrindo todos que agem.
+                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
+                {
+                    var actors = new List<Vector3>();
+                    foreach (var m in movesThisSlot) { actors.Add(m.u.transform.position); actors.Add(_grid.AnchorToWorldCenter(m.dest, m.u.stats.Footprint)); }
+                    foreach (var a in attacksThisSlot)
+                    {
+                        actors.Add(a.u.transform.position);
+                        if (a.atk.TargetUnit != null && !a.atk.TargetUnit.IsDead) actors.Add(a.atk.TargetUnit.transform.position);
+                    }
+                    yield return FrameGroup(actors);
+                }
+
                 var beforeAnchor = new Dictionary<Unit, Vector2Int>();
                 if (movesThisSlot.Count > 0)
                 {
@@ -469,7 +572,6 @@ namespace PangeaSkirmish
                     yield return ResolveMovementSlot(movesThisSlot);
                 }
 
-                // Acumula tiles efetivamente percorridos neste slot
                 foreach (var (u, _, _) in movesThisSlot)
                 {
                     if (u.IsDead) continue;
@@ -479,31 +581,24 @@ namespace PangeaSkirmish
                     if (!burstMoves.ContainsKey(u)) burstMoves[u] = 0;
                     burstMoves[u] += moved;
                 }
-
-                // Finaliza bursts cujo próximo slot NÃO é movimento (interrupção ou fim)
+                // Fecha o log de avanço quando a próxima ação da fila não é movimento.
                 foreach (var u in new List<Unit>(burstMoves.Keys))
                 {
-                    int ns = slot + 1;
-                    bool willMoveNext = ns < maxSlots && ns < u.actionSequence.Count
-                                     && u.actionSequence[ns].Type == ActionType.Move
-                                     && u.actionSequence[ns].Index < u.plannedPath.Count;
-                    if (willMoveNext) continue;
-
-                    int tiles = burstMoves[u];
-                    _hud.LogAction($">> {u.unitName} avancou {tiles} tile{(tiles > 1 ? "s" : "")} -> {NearestUnitName(u)}", u);
-                    burstMoves.Remove(u);
+                    bool willMoveNext = u.queue.Count > 0 && u.queue[0].Type == ActionType.Move;
+                    if (willMoveNext && t < segment - 1) continue;
+                    int tiles = burstMoves[u];                    burstMoves.Remove(u);
                 }
 
                 if (attacksThisSlot.Count > 0)
                     yield return ResolveAttackSlot(attacksThisSlot);
 
-                if (spellsThisSlot.Count > 0)
-                    yield return ResolveSpellSlot(spellsThisSlot);
+                yield return AdvanceGlobalTick();
+                LogTimeline();
+                if (t < segment - 1) yield return IncrementWindow();
 
                 if (!CheckAnyFactionAlive()) break;
 
-                // pausa entre slots para o jogador acompanhar o encadeamento
-                if ((movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) && slot < maxSlots - 1)
+                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
                     yield return new WaitForSeconds(slotPause);
             }
 
@@ -527,25 +622,23 @@ namespace PangeaSkirmish
                 u.hasPlannedBonus = false;
             }
 
-            yield return FocusCamera(CamBaseCenter, _camBaseSize, camMoveDuration);
-
-            // ── FIM DE ROUND: concentração, status effects, tile effects ──
-            foreach (var u in _units)
-            {
-                if (u.IsDead || u.plannedConcentrations <= 0) continue;
-                int regen = u.stats.ManaRegen * u.plannedConcentrations;
-                u.currentMana = Mathf.Min(u.currentMana + regen, u.stats.MaxMana);
-                _hud.LogAction($"✦ {u.unitName} concentrou +{regen} mana", u);
-                u.plannedConcentrations = 0;
-            }
-            foreach (var u in _units)
-                if (!u.IsDead) StatusEffectSystem.TickEndOfRound(u.statusEffects);
-            yield return _tileFx.EndOfRoundTick(_units, null);
-
             // ---- Win condition (SP / MP-TDM / MP-FFA) ----
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
-                if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0) // TDM
+                if (GameModes.IsCoop)
+                {
+                    int alive = CountAliveTeams(out int survivingTeam);
+                    if (alive == 0)     { GameOver($"Derrota! Ninguém saiu vivo da camada {Layer}."); yield break; }
+                    if (alive == 1)
+                    {
+                        if (survivingTeam == BeastAI.TeamId)
+                            GameOver($"Derrota! As feras venceram na camada {Layer}.");
+                        else
+                            LayerCleared();
+                        yield break;
+                    }
+                }
+                else if (GameModes.IsTeamBased) // PvP Times
                 {
                     int alive = CountAliveTeams(out int survivingTeam);
                     if (alive == 0)     { GameOver("Empate! Todos eliminados."); yield break; }
@@ -583,11 +676,191 @@ namespace PangeaSkirmish
             yield return StartRound();
         }
 
+        // -------------------- COOP: DESCIDA --------------------
+
+        /// <summary>Camada vencida: registra a marca de profundidade e pede a decisão ao anfitrião.</summary>
+        private void LayerCleared()
+        {
+            _phase = RoundPhase.Resolving;
+            _awaitingDescent = true;
+            _hud.SetTimerVisible(false);
+            _hud.SetConfirmVisible(false);
+            AudioManager.I?.Play(AudioManager.I.sfxVictory);
+
+            if (Layer > PlayerPrefs.GetInt(DeepestLayerKey, 0))
+            {
+                PlayerPrefs.SetInt(DeepestLayerKey, Layer);
+                PlayerPrefs.Save();
+            }
+            _hud.SetPhase($"Camada {Layer} vencida");
+            _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
+
+            string text = $"Camada {Layer} vencida — descer para a camada {Layer + 1}?";
+            if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null)
+                _hud.ShowChoice(text,
+                    ("Descer", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                    ("Recuar", () => PlacementSync.Instance.HostRetreat(Layer)));
+            else
+                _hud.ShowChoice(text + "\nAguardando o anfitrião decidir...");
+        }
+
+        /// <summary>Todas as máquinas: a próxima camada começa (unidades já preparadas e feras criadas).</summary>
+        public void BeginNextLayer(int layer)
+        {
+            Layer = layer;
+            _awaitingDescent = false;
+            _hud.HideReactionMenu();
+            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto.");
+            StartCoroutine(StartRound());
+        }
+
+        /// <summary>Todas as máquinas: o grupo recuou; a descida termina em vitória.</summary>
+        public void EndDescent(int layersCleared)
+        {
+            _awaitingDescent = false;
+            _hud.HideReactionMenu();
+            GameOver($"Vitória! O grupo recuou depois de vencer {layersCleared} camada{(layersCleared > 1 ? "s" : "")}.");
+        }
+
+        // -------------------- JANELA DE INCREMENTO ENTRE TICKS --------------------
+        private int _windowSeq;                 // janelas que ESTA máquina já abriu
+        private int _windowClosedSeq;           // maior janela que o host já fechou
+        private readonly List<(int seq, uint unit, int kind)> _pendingIncrements = new List<(int, uint, int)>();
+
+        /// <summary>Há alguma unidade de jogador com a próxima ação elegível? (estado igual em toda máquina)</summary>
+        private bool AnyIncrementEligible()
+        {
+            foreach (var u in _units)
+            {
+                if (u.IsDead || BeastAI.Controls(u)) continue;
+                if (u.CanIncrementNext(0) || u.CanIncrementNext(1)) return true;
+            }
+            return false;
+        }
+
+        public void BufferIncrement(int seq, uint unitId, int kind) => _pendingIncrements.Add((seq, unitId, kind));
+
+        public void OnIncrementWindowClosed(int seq) { if (seq > _windowClosedSeq) _windowClosedSeq = seq; }
+
+        private bool IsLocalUnit(Unit u)
+        {
+            if (!RuntimeMultiplayerSession.IsMultiplayer) return u == _playerUnit;
+            ulong localId = Unity.Netcode.NetworkManager.Singleton != null
+                ? Unity.Netcode.NetworkManager.Singleton.LocalClientId : RuntimeMultiplayerSession.LocalClientId;
+            return u.ownerId == localId;
+        }
+
+        /// <summary>
+        /// Entre dois ticks, o dono pode incrementar a PRÓXIMA ação (1 = golpe poderoso, 2 = mirar).
+        /// O host fecha a janela para todos; os incrementos chegam em buffer e só são aplicados, na
+        /// mesma ordem, quando a janela fecha — assim nenhuma máquina muda a fila no meio de um tick.
+        /// </summary>
+        private IEnumerator IncrementWindow()
+        {
+            var sync = LockstepBattleSync.Instance;
+            if (sync == null || !AnyIncrementEligible()) yield break;
+
+            int seq = ++_windowSeq;
+            float seconds = Mathf.Max(0.5f, Tuning.Get().incrementWindowSeconds);
+            if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsServer)
+                sync.HostOpenIncrementWindow(seq, seconds);
+
+            // Quem tem unidade elegível vê o aviso.
+            Unit mine = null;
+            foreach (var u in _units) if (!u.IsDead && IsLocalUnit(u) && (u.CanIncrementNext(0) || u.CanIncrementNext(1))) { mine = u; break; }
+            float shown = 0f;
+            if (mine != null)
+                _hud.SetIncrementWindow(mine, k =>
+                {
+                    if (mine.CanIncrementNext(k))
+                    {
+                        sync.SubmitIncrementServerRpc(UnitRegistry.GetId(mine), k);
+                        _hud.LogAction($"◆ {mine.unitName}: {(k == 0 ? "golpe poderoso" : "mira")} pedido", mine);
+                    }
+                });
+            if (mine != null)
+                _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
+                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Instinto, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+
+            float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
+            while (_windowClosedSeq < seq && guard > 0f)
+            {
+                guard -= Time.deltaTime; shown += Time.deltaTime;
+                if (mine != null && Keyboard.current != null)
+                {
+                    int kind = Keyboard.current.digit1Key.wasPressedThisFrame ? 0
+                             : Keyboard.current.digit2Key.wasPressedThisFrame ? 1 : -1;
+                    if (kind >= 0 && mine.CanIncrementNext(kind))
+                    {
+                        sync.SubmitIncrementServerRpc(UnitRegistry.GetId(mine), kind);
+                        _hud.LogAction($"◆ {mine.unitName}: {(kind == 0 ? "golpe poderoso" : "mira")} pedido", mine);
+                    }
+                }
+                yield return null;
+            }
+            if (mine != null) { _hud.HideIntentBand(); _hud.SetIncrementWindow(null, null); }
+
+            // Aplica, na ordem de chegada (igual em todas as máquinas), o que valeu para esta janela.
+            for (int i = 0; i < _pendingIncrements.Count; i++)
+            {
+                var p = _pendingIncrements[i];
+                if (p.seq != seq) continue;
+                var u = UnitRegistry.Get(p.unit);
+                if (u != null && u.TryIncrementNext(p.kind))
+                    _hud.LogAction($"◆ {u.unitName}: {(p.kind == 0 ? "golpe poderoso" : "mira")}", u);
+            }
+            _pendingIncrements.RemoveAll(p => p.seq <= seq);
+            LogTimeline();
+        }
+
+        /// <summary>Avança o relógio global. A cada ticksPerRound: status, efeitos de tile e reações.</summary>
+        private IEnumerator AdvanceGlobalTick()
+        {
+            _globalTick++;
+            // Instinto volta aos poucos (GDD-016 §3).
+            foreach (var u in _units)
+                if (!u.IsDead && _globalTick % u.stats.InstinctRegenTicks == 0) u.GainInstinct(1);
+            int per = Mathf.Max(1, Tuning.Get().ticksPerRound);
+            if (_globalTick % per != 0) yield break;
+            foreach (var u in _units)
+                if (!u.IsDead)
+                {
+                    StatusEffectSystem.TickEndOfRound(u.statusEffects);
+                    u.ResetReactionsForRound();
+                }
+            if (_tileFx != null) yield return _tileFx.EndOfRoundTick(_units, null);
+        }
+
+        /// <summary>Enquadra um grupo de posições (respeita câmera Manual).</summary>
+        private IEnumerator FrameGroup(List<Vector3> positions)
+        {
+            if (_camCtrl == null || _camCtrl.Mode == CameraMode.Manual) yield break;
+            // Enquadra TODAS as unidades vivas (mais os destinos): a câmera fica estável de um
+            // tick para o outro e nada que acontece no combate sai de quadro. Antes enquadrava
+            // só quem agia no tick, com zoom apertado, e perdia o resto do grupo.
+            var all = new List<Vector3>(positions);
+            foreach (var u in _units) if (!u.IsDead) all.Add(u.transform.position);
+            if (all.Count == 0) yield break;
+            Vector3 c = Vector3.zero;
+            float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
+            foreach (var p in all)
+            {
+                minX = Mathf.Min(minX, p.x); maxX = Mathf.Max(maxX, p.x);
+                minZ = Mathf.Min(minZ, p.z); maxZ = Mathf.Max(maxZ, p.z);
+            }
+            c = new Vector3((minX + maxX) * 0.5f, 0f, (minZ + maxZ) * 0.5f);
+            float size = Mathf.Max(CalcZoomForPositions(all.ToArray(), 3.5f), Tuning.Get().tickFrameMinSize);
+            _camCtrl.FocusOnArea(c, size);
+            yield return _camCtrl.WaitUntilSettled(camMoveDuration);
+        }
+
         /// <summary>Chamado pelo LockstepBattleSync quando TODOS os clientes confirmaram o
         /// hash do round (ou o host decidiu resync) — só então o próximo round começa.</summary>
         public void ProceedToNextRoundMp()
         {
             if (!RuntimeMultiplayerSession.IsMultiplayer) return;
+            // Batalha encerrada ou camada vencida: quem decide o próximo passo é a descida.
+            if (_phase == RoundPhase.GameOver || _awaitingDescent) return;
             StartCoroutine(NextRoundAfterPause());
         }
 
@@ -602,7 +875,7 @@ namespace PangeaSkirmish
         private IEnumerator ResolveMovementSlot(List<(Unit u, Vector2Int dest, bool incr)> moves)
         {
             _phase = RoundPhase.ActionMovement;
-            _hud.SetPhase($"Round {_round} — Ação: Movimento");
+            _hud.SetPhase($"Tick {_globalTick} — Movimento");
 
             var startAnchors = new Dictionary<Unit, Vector2Int>();
             foreach (var (u, _, _) in moves)
@@ -715,25 +988,30 @@ namespace PangeaSkirmish
                 if (u.IsDead) continue;
                 int ufp = u.stats.Footprint;
 
-                // Todos os tiles por onde 'u' passou (path planejado + destino final)
-                var traversed = new List<Vector2Int>(u.plannedPath);
-                if (traversed.Count == 0 || traversed[traversed.Count - 1] != u.anchor)
-                    traversed.Add(u.anchor);
+                // Tiles percorridos NESTE tick (origem → destino). Com ticks, cada waypoint
+                // é um passo próprio; usar o plannedPath inteiro re-dispararia a cada tick.
+                var traversed = new List<Vector2Int>();
+                if (startAnchors.TryGetValue(u, out var fromA)) traversed.Add(fromA);
+                traversed.Add(u.anchor);
 
+                // Regra do Marcus, adaptada aos ticks: o gatilho é ENTRAR andando no alcance
+                // de um inimigo e depois SAIR sem tê-lo atacado. Como agora andar e atacar
+                // caem em pontos de decisão diferentes, a entrada fica lembrada em
+                // u.enteredReach e só a saída dispara — aproximar-se para atacar no
+                // ponto seguinte não é punido. "Já estava dentro (o inimigo veio até mim)
+                // e saí" continua sem gatilho, como antes.
+                bool hasFrom = traversed.Count == 2;
                 foreach (var e in _units)
                 {
                     if (e == u || e.IsDead || !e.IsHostileTo(u)) continue;
-                    if (!e.CanReact()) continue;
 
-                    // 'u' vai atacar 'e' neste round? Se sim, não há AoO (já é o alvo).
-                    bool willAttackE = u.plannedAttacks.Exists(a => a.TargetUnit == e);
-                    if (willAttackE) continue;
+                    bool wasIn = hasFrom && GridManager.FootprintGap(traversed[0], ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
+                    bool isIn  = GridManager.FootprintGap(u.anchor, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
 
-                    // Passou por dentro do alcance melee de 'e' em algum tile do trajeto?
-                    bool enteredReach = traversed.Exists(t =>
-                        GridManager.FootprintGap(t, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange);
+                    if (!wasIn && isIn) { u.enteredReach.Add(e); continue; }
+                    if (isIn || !u.enteredReach.Remove(e)) continue; // segue dentro, ou nunca entrou andando
 
-                    if (enteredReach)
+                    if (e.CanReact())
                     {
                         _hud.LogAction($"<color=#6aa9ff>↯</color> {e.unitName}: oportunidade contra {u.unitName}!", e);
                         yield return WaitReaction(e, new List<ReactionKind> { ReactionKind.CounterAttack }, u);
@@ -781,7 +1059,7 @@ namespace PangeaSkirmish
                     from.y + Mathf.RoundToInt(dy * t));
 
                 if (!_grid.IsAnchorInBounds(candidate, fp)) break;
-                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveBudget) break;
+                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveStep) break;
 
                 bool free = true;
                 foreach (var (oAnchor, ofp) in occupied)
@@ -817,51 +1095,15 @@ namespace PangeaSkirmish
         private IEnumerator ShowInitiativeContest(
             List<(Unit u, int d20, int agi, int dex, int total)> contestants, Unit winner, string context)
         {
-            if (contestants.Count < 2) yield break;
-
-            // Enquadra todos os disputantes
-            Vector3 center = Vector3.zero;
-            foreach (var c in contestants) center += c.u.transform.position;
-            center /= contestants.Count;
-
-            var Tini = Tuning.Get();
-            float radius = Tini.initiativeContestMinRadius;
-            foreach (var c in contestants)
-                radius = Mathf.Max(radius, Vector3.Distance(center, c.u.transform.position));
-
-            yield return FocusCamera(center, radius + Tini.initiativeContestZoomPadding, camMoveDuration);
-            yield return new WaitForSeconds(preActionPause);
-
-            // Fase 1: tag com a decomposição já rolada (NÃO re-rola — bate com o vencedor)
-            var tags = new List<InitiativeTag>();
-            foreach (var c in contestants)
-            {
-                var tag = InitiativeTag.Create(_cam, c.u, c.d20, c.agi, c.dex, c.total,
-                    c.u == winner, initiativeHold + postActionPause);
-                tags.Add(tag);
-            }
-
-            yield return new WaitForSeconds(initiativeHold);
-
-            // Fase 2: colapsa no resultado final (vencedor verde, perdedores cinza)
-            for (int i = 0; i < tags.Count; i++)
-                if (tags[i] != null)
-                    StartCoroutine(tags[i].ShowPhase2(contestants[i].total, contestants[i].u == winner, postActionPause));
-
-            _hud.LogAction(
-                $"<color=#aad4ff>INI {context}:</color> " +
-                string.Join(" vs ", contestants.ConvertAll(c => $"{c.u.unitName}({c.total})")) +
-                $" -> <color=#60ff70>{winner.unitName}</color> vence",
-                winner);
-
-            yield return new WaitForSeconds(postActionPause + Tini.initiativeCollapseExtraPause);
+            // GDD-014: só o resultado, sem animação de disputa nem pausas.
+            if (contestants.Count < 2 || winner == null) yield break;
         }
 
         /// <summary>Resolve um slot de ataque: rola iniciativa fresca, executa em ordem desc.</summary>
         private IEnumerator ResolveAttackSlot(List<(Unit u, PlannedAttack atk, bool incr, bool aimed)> attacks)
         {
             _phase = RoundPhase.ActionAttack;
-            _hud.SetPhase($"Round {_round} — Ação: Ataque");
+            _hud.SetPhase($"Tick {_globalTick} — Ataque");
 
             var rolls  = new Dictionary<Unit, int>();
             var decomp = new Dictionary<Unit, (int d20, int agi, int dex, int total)>();
@@ -883,176 +1125,127 @@ namespace PangeaSkirmish
             }
 
             var sorted = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>(attacks);
-            sorted.Sort((a, b) => rolls[b.u].CompareTo(rolls[a.u]));
+            // Empate desfeito por unitId: List.Sort é instável e o lockstep precisa da mesma ordem.
+            sorted.Sort((a, b) =>
+            {
+                int c = rolls[b.u].CompareTo(rolls[a.u]);
+                return c != 0 ? c : UnitRegistry.GetId(a.u).CompareTo(UnitRegistry.GetId(b.u));
+            });
 
+            // GDD-014: todas as animações do tick tocam JUNTAS; o dano resolve em seguida,
+            // em ordem de iniciativa (determinístico), com a reação sim/não de cada alvo.
+            var willHitMap = new Dictionary<Unit, bool>();
+            int animating = 0;
             foreach (var (u, atk, incr, aimed) in sorted)
             {
                 if (u.IsDead) continue;
-
                 bool willHit = WillAttackHit(u, atk);
+                willHitMap[u] = willHit;
+                if (atk.Mode == AttackMode.Unit && !willHit) continue;
+                Vector3 aimPos = AttackAimPos(u, atk);
+                BattleLabel.CreateAttack(_cam, u.HeadWorld, u.unitName);
+                animating++;
+                StartCoroutine(RunThen(u.PlayAttackAnim(aimPos), () => animating--));
+            }
+            while (animating > 0) yield return null;
 
-                yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
-                yield return new WaitForSeconds(preActionPause);
+            foreach (var (u, atk, incr, aimed) in sorted)
+            {
+                if (u.IsDead || !willHitMap.TryGetValue(u, out bool willHit)) continue;
 
-                // Ataque a UNIDADE sem alcance: PULA a ação (não toca a animação — não "ataca o
-                // chão"), só avisa. O PA já foi gasto; o PAB do Golpe Poderoso é devolvido.
+                // Ataque a UNIDADE sem alcance: perdido. O PAB do Golpe Poderoso/Mirar volta.
                 if (atk.Mode == AttackMode.Unit && !willHit)
                 {
                     string alvo = atk.TargetUnit != null ? atk.TargetUnit.unitName : "alvo";
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
-                    // Label animates and self-destructs
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
-                    if (incr) u.remainingBAP++;
-                    if (aimed) u.remainingBAP++;
+                    // Ataque perdido devolve o Instinto do golpe poderoso / mirar.
+                    if (incr) u.GainInstinct(Tuning.Get().instinctPowerStrike);
+                    if (aimed) u.GainInstinct(Tuning.Get().instinctAim);
                     _hud.RefreshUnitInfo();
-                    yield return new WaitForSeconds(slotPause);
                     continue;
                 }
 
-                // Golpe Poderoso: dano extra (só quando vai acertar)
-                if (incr && willHit)
-                {
-                    u.bonusDamageThisAttack = true;
-                }
-
-                // Mirar: dano DEX no próximo ataque (sempre aplica, mesmo que erre — ConsumeAim drena no resolver)
+                if (incr && willHit) u.bonusDamageThisAttack = true;
                 u.aimBonusThisAttack = aimed;
 
-                Vector3 aimPos;
-                if (atk.Mode == AttackMode.Tile)
-                    aimPos = _grid.AnchorToWorldCenter(atk.TargetTile);
-                else if (atk.TargetUnit != null && !atk.TargetUnit.IsDead)
-                    aimPos = atk.TargetUnit.transform.position;
-                else
-                {
-                    var nearest = AttackResolver.FindTargetInRange(u, _units);
-                    aimPos = nearest != null ? nearest.transform.position : u.transform.position;
-                }
-
-                var label = BattleLabel.CreateAttack(_cam, u.HeadWorld, u.unitName);
-                yield return new WaitForSeconds(Tuning.Get().attackLabelLeadPause);
-
-                // Transição de câmera: mostra atacante + alvo durante o ataque
                 Unit attackTarget = (atk.Mode == AttackMode.Unit && atk.TargetUnit != null && !atk.TargetUnit.IsDead)
                     ? atk.TargetUnit : null;
-                if (attackTarget != null)
-                    yield return FocusOnAttackArea(u, attackTarget, Tuning.Get().attackAreaFocusDuration);
-
-                yield return u.PlayAttackAnim(aimPos);
 
                 if (incr && willHit)
-                    AudioManager.I?.PlayAtPoint(AudioManager.I.sfxCritical, aimPos);
+                    AudioManager.I?.PlayAtPoint(AudioManager.I.sfxCritical, AttackAimPos(u, atk));
 
-                // Ações que erram/falham continuam executando (logam o miss)
-                // ── TRIGGER DE REAÇÃO: Esquiva / Bloqueio (alvo sob ataque) ──
-                // Para Tile, o alvo real é descoberto dentro do resolver; reagimos só em Unit.
-                if (atk.Mode == AttackMode.Unit && attackTarget != null && attackTarget.CanReact())
-                    yield return WaitReaction(attackTarget,
-                        new List<ReactionKind> { ReactionKind.Dodge, ReactionKind.Block }, null);
+                // ── Reação rápida sim/não (alvo sob ataque) ──
+                // Interceptar: um aliado adjacente recebe o golpe no lugar de um alvo em risco.
+                var atkEff = atk;
+                _reactionAttacker = u;
+                if (attackTarget != null)
+                {
+                    var guard = FindInterceptor(attackTarget, u);
+                    _interceptedBy = null;
+                    if (guard != null)
+                        yield return WaitReaction(guard, new List<ReactionKind> { ReactionKind.Intercept }, u);
+                    if (_interceptedBy != null)
+                    {
+                        var g = _interceptedBy; _interceptedBy = null;
+                        _hud.LogAction($"<color=#ffd700>🛡</color> {g.unitName}: Interceptou o golpe em {attackTarget.unitName}!", g);
+                        atkEff.TargetUnit = g; atkEff.Mode = AttackMode.Unit;
+                        attackTarget = g;
+                    }
+                }
+                if (attackTarget != null && attackTarget.CanReact())
+                    yield return WaitReaction(attackTarget, DefenseOptions(attackTarget, u), u);
 
-                string log = AttackResolver.ResolveAttack(u, atk, _units);
-                // Reação (Esquiva/Bloqueio) é de 1 uso: zera os bônus temporários após o ataque resolver
-                if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockReduction = 0f; }
-                // label auto-destroys via animation
+                string log = AttackResolver.ResolveAttack(u, atkEff, _units);
+                if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockFlat = 0; }
+                if (atk.TargetUnit != null) u.enteredReach.Remove(atk.TargetUnit); // engajou: sair depois não dá AoO
                 if (log != null)
                 {
                     _hud.LogAction(log, u);
-                    _hud.RefreshUnitInfo(); // atualiza HP sem trocar a unidade inspecionada
-
-                    // Screen shake: mais forte se crit, leve se acertou
+                    _hud.RefreshUnitInfo();
                     var Tfx = Tuning.Get();
                     if (incr && willHit)
                         _camCtrl?.Shake(Tfx.shakeDurationCrit, Tfx.shakeMagnitudeCrit);
                     else if (willHit)
                         _camCtrl?.Shake(Tfx.shakeDurationNormal, Tfx.shakeMagnitudeNormal);
-
-                    yield return new WaitForSeconds(postActionPause);
                 }
             }
+            yield return new WaitForSeconds(postActionPause);
         }
 
-        /// <summary>Resolve um slot de magia: foco no conjurador, resolve, coleta pushes, aplica após todas.</summary>
-        private IEnumerator ResolveSpellSlot(List<(Unit u, PlannedSpell spell, bool incr)> spells)
+        private Vector3 AttackAimPos(Unit u, PlannedAttack atk)
         {
-            _phase = RoundPhase.ActionSpell;
-            _hud.SetPhase($"Round {_round} — Ação: Magia");
+            if (atk.Mode == AttackMode.Tile)
+                return _grid.AnchorToWorldCenter(atk.TargetTile);
+            if (atk.TargetUnit != null && !atk.TargetUnit.IsDead)
+                return atk.TargetUnit.transform.position;
+            var nearest = AttackResolver.FindTargetInRange(u, _units);
+            return nearest != null ? nearest.transform.position : u.transform.position;
+        }
 
-            var pendingPushes = new List<(PendingPush push, Unit pusher)>();
+        private static IEnumerator RunThen(IEnumerator routine, System.Action onDone)
+        {
+            yield return routine;
+            onDone();
+        }
 
-            foreach (var (u, spell, _) in spells)
-            {
-                if (u.IsDead) continue;
+        /// <summary>Defesa preferida da unidade (postura por atributo): AGI ≥ VIT → Esquiva; senão Bloqueio.</summary>
+        private ReactionKind PickDefense(Unit u, Unit attacker)
+        {
+            // AGI muito acima da VIT e há tile para sair do alcance: Passo reativo; senão a postura por atributo.
+            if (u.stats.AGI >= u.stats.VIT + 4f && FindStepTile(u, attacker).HasValue) return ReactionKind.Step;
+            return u.stats.AGI >= u.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
+        }
+        private Unit _reactionAttacker;
+        private Unit _interceptedBy;
 
-                yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
-                yield return new WaitForSeconds(preActionPause);
-
-                bool willResolve = SpellResolver.WillResolve(u, spell, _units, _grid);
-                if (!willResolve)
-                {
-                    _hud.LogAction($"<color=#888888>x</color> {u.unitName}: magia falhou (fora de alcance/sem mana)", u);
-                    yield return new WaitForSeconds(slotPause);
-                    continue;
-                }
-
-                var (log, push) = SpellResolver.Resolve(u, spell, _units, _grid, _tileFx);
-
-                switch (spell.Target)
-                {
-                    case SpellTargetKind.Self:
-                        yield return SpellVfx.PlaySelfBuff(u, spell.Element, null);
-                        break;
-                    case SpellTargetKind.Unit when spell.TargetUnit != null:
-                        yield return SpellVfx.PlayProjectile(u, spell.TargetUnit, spell.Element, null);
-                        yield return SpellVfx.PlayImpact(spell.TargetUnit, spell.Element, null);
-                        break;
-                    case SpellTargetKind.Tile:
-                        yield return SpellVfx.PlayTileVfx(
-                            _grid.AnchorToWorldCenter(spell.TargetTile, u.stats.Footprint),
-                            spell.Element, null);
-                        break;
-                }
-
-                if (push.HasValue)
-                    pendingPushes.Add((push.Value, u));
-
-                if (log != null)
-                    _hud.LogAction(log, u);
-                _hud.RefreshUnitInfo();
-                yield return new WaitForSeconds(postActionPause);
-            }
-
-            // Aplica pushes DEPOIS de todas as magias do slot
-            if (pendingPushes.Count > 0)
-            {
-                yield return new WaitForSeconds(preActionPause);
-                foreach (var (push, pusher) in pendingPushes)
-                {
-                    var target = push.Target;
-                    if (target == null || target.IsDead) continue;
-
-                    Vector2Int fromAnchor = target.anchor;
-                    Vector2Int pushDest = fromAnchor + push.Direction * push.Tiles;
-                    int fp = target.stats.Footprint;
-
-                    if (_grid.IsAnchorInBounds(pushDest, fp) && !_grid.IsVoid(pushDest.x, pushDest.y))
-                    {
-                        target.anchor = pushDest;
-                        target.SnapToAnchor();
-                        if (_tileFx != null)
-                            yield return _tileFx.OnUnitMoved(target, fromAnchor, null);
-                        _hud.LogAction($"💨 {pusher.unitName} empurrou {target.unitName} para {pushDest}", pusher);
-                        _hud.RefreshUnitInfo();
-                    }
-                    else
-                    {
-                        target.TakeDamage(Tuning.Get().wallImpactDamage);
-                        _hud.LogAction($"💥 {target.unitName} bateu na parede!", target);
-                        _hud.RefreshUnitInfo();
-                    }
-                    yield return new WaitForSeconds(postActionPause * 0.5f);
-                }
-            }
+        /// <summary>Opções do menu de defesa: Esquiva e Bloquear sempre; Passo reativo se há tile para sair do alcance.</summary>
+        private List<ReactionKind> DefenseOptions(Unit u, Unit attacker)
+        {
+            var list = new List<ReactionKind> { ReactionKind.Dodge, ReactionKind.Block };
+            if (FindStepTile(u, attacker).HasValue) list.Add(ReactionKind.Step);
+            return list;
         }
 
         /// <summary>Prevê se o ataque vai causar dano (há alvo válido dentro do alcance).</summary>
@@ -1130,8 +1323,9 @@ namespace PangeaSkirmish
             bool isOwner = !RuntimeMultiplayerSession.IsMultiplayer
                 || reactor.ownerId == RuntimeMultiplayerSession.LocalClientId;
 
-            // IA (inimigo em SP) decide automaticamente
-            if (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy)
+            // IA decide automaticamente: inimigo em SP, ou fera do Coop (igual em toda máquina).
+            if (BeastAI.Controls(reactor)
+                || (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy))
             {
                 var aiChoice = AutoPickReaction(reactor, options);
                 ApplyReaction(reactor, aiChoice, triggerTarget);
@@ -1192,16 +1386,67 @@ namespace PangeaSkirmish
             {
                 if (final != ReactionKind.None)
                     ApplyReaction(reactor, final, triggerTarget);
-                else
-                    _hud.LogAction($"<color=#888888>~</color> {reactor.unitName}: reação não usada", reactor);
             }
         }
 
         /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>
+        /// <summary>Bloquear (PF2e Shield Block): redução FIXA = VIT × fator + dureza da arma.</summary>
+        public static int BlockAmount(Unit u)
+        {
+            var w = WeaponCatalog.Get(u.weaponId);
+            return Mathf.Max(1, Mathf.RoundToInt(u.stats.VIT * Tuning.Get().blockFlatPerVIT) + (w != null ? w.blockHardness : 0));
+        }
+
+        /// <summary>
+        /// Passo reativo: até 2 tiles para longe do atacante, parando fora do alcance dele. Sem
+        /// golpe reativo. Null se nenhum tile livre tira o alvo do alcance. Determinístico.
+        /// </summary>
+        private Vector2Int? FindStepTile(Unit u, Unit attacker)
+        {
+            if (u == null || attacker == null || _grid == null) return null;
+            int fp = u.stats.Footprint;
+            var blockers = new List<Unit>();
+            foreach (var o in _units) if (o != u && !o.IsDead) blockers.Add(o);
+            Vector2Int? best = null; int bestGap = GridManager.FootprintGap(u.anchor, fp, attacker.anchor, attacker.stats.Footprint);
+            foreach (var a in _grid.GetReachableAnchors(u.anchor, 2, fp, blockers))
+            {
+                int g = GridManager.FootprintGap(a, fp, attacker.anchor, attacker.stats.Footprint);
+                if (g <= attacker.stats.AttackRange) continue;           // precisa sair do alcance
+                if (g > bestGap || (g == bestGap && best.HasValue && (a.x < best.Value.x || (a.x == best.Value.x && a.y < best.Value.y))))
+                { bestGap = g; best = a; }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Instinto e
+        /// mais vida que ele, recebe o golpe no lugar quando o alvo estaria em risco (golpe fatal
+        /// ou vida abaixo de 40%). Escolhe o de mais vida; empate pelo menor id.
+        /// </summary>
+        private Unit FindInterceptor(Unit target, Unit attacker)
+        {
+            if (target == null || attacker == null) return null;
+            int expected = attacker.stats.PhysicalDamage;
+            bool atRisk = target.currentHP <= expected || target.currentHP < target.stats.MaxHP * 0.4f;
+            if (!atRisk) return null;
+            Unit best = null; uint bestId = uint.MaxValue;
+            foreach (var a in _units)
+            {
+                if (a == target || a == attacker || a.IsDead || a.IsHostileTo(target) || !a.CanReact()) continue;
+                if (a.currentHP <= target.currentHP) continue;
+                if (GridManager.FootprintGap(a.anchor, a.stats.Footprint, target.anchor, target.stats.Footprint) > 1) continue;
+                uint id = UnitRegistry.GetId(a);
+                if (best == null || a.currentHP > best.currentHP || (a.currentHP == best.currentHP && id < bestId)) { best = a; bestId = id; }
+            }
+            return best;
+        }
+
         private ReactionKind AutoPickReaction(Unit reactor, List<ReactionKind> options)
         {
             // AoO sempre prioritário se disponível
             if (options.Contains(ReactionKind.CounterAttack)) return ReactionKind.CounterAttack;
+            if (options.Contains(ReactionKind.Intercept)) return ReactionKind.Intercept;
+            if (options.Contains(ReactionKind.Step) && reactor.stats.AGI >= reactor.stats.VIT + 4f) return ReactionKind.Step;
             // Esquiva se AGI > VIT, senão Bloqueio
             if (options.Contains(ReactionKind.Dodge) && options.Contains(ReactionKind.Block))
                 return reactor.stats.AGI >= reactor.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
@@ -1215,6 +1460,8 @@ namespace PangeaSkirmish
             // Em MP o RPC pode chegar de volta ao dono (que já aplicou no clique) — ignora se já consumiu.
             if (reactor.remainingReactions <= 0) return;
             reactor.ConsumeReaction();
+            // GDD-014: reagir custa tempo — empurra a fila do reator.
+            reactor.DelayQueue(Tuning.Get().reactionTickCost);
 
             var T = Tuning.Get();
             switch (kind)
@@ -1232,11 +1479,23 @@ namespace PangeaSkirmish
                         Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
                     break;
                 case ReactionKind.Block:
-                    reactor.blockReduction = Mathf.Min(T.maxBlockReduction,
-                        reactor.stats.VIT * T.blockReductionPerVIT);
-                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (-" +
-                        Mathf.RoundToInt(reactor.blockReduction * 100) + "% dano)", reactor);
+                    reactor.blockFlat = BlockAmount(reactor);
+                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
                     break;
+                case ReactionKind.Intercept:
+                    _interceptedBy = reactor;    // o fluxo do ataque redireciona o golpe
+                    break;
+                case ReactionKind.Step:
+                    {
+                        var dest = FindStepTile(reactor, triggerTarget);
+                        if (dest.HasValue)
+                        {
+                            var from = reactor.anchor;
+                            reactor.anchor = dest.Value; reactor.plannedAnchor = dest.Value; reactor.SnapToAnchor();
+                            _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Passo reativo! saiu do alcance", reactor);
+                        }
+                        break;
+                    }
             }
         }
 
@@ -1247,7 +1506,7 @@ namespace PangeaSkirmish
             if (reactor == null) return;
             _pendingReactionChoice = (ReactionKind)kind;
             _reactionResolved = true;
-            ApplyReaction(reactor, (ReactionKind)kind, null);
+            ApplyReaction(reactor, (ReactionKind)kind, _reactionAttacker);
         }
 
         /// <summary>
@@ -1354,7 +1613,7 @@ namespace PangeaSkirmish
             sr.sprite = StepGhostSprite();
             sr.sortingOrder = 9000;
             float gs = fp * Tuning.Get().stepGhostScale; // mesma escala do footprint da unidade (alinha com o tile)
-            ghost.transform.localScale = new Vector3(gs, gs, 1f);
+            ghost.transform.localScale = new Vector3(gs, gs * World3D.GroundStretch, 1f);
             // Fix (2026-07-20): marcador de chão, deitado no XZ (câmera reto de cima).
             ghost.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             ghost.SetActive(false);
@@ -1480,7 +1739,7 @@ namespace PangeaSkirmish
         {
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
-                if (RuntimeMultiplayerSession.CurrentConfig.gameMode == 0)
+                if (GameModes.IsTeamBased)
                     return CountAliveTeams(out _) >= 2;
                 return CountAliveOwners(out _) >= 2;
             }

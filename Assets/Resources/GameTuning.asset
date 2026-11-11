@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b9eac3b2ba974e5c84233209a9372b4, type: 3}
   m_Name: GameTuning
   m_EditorClassIdentifier: Assembly-CSharp::PangeaSkirmish.GameTuning
-  planningTime: 200
-  planningGraceSeconds: 15
+  planningTime: 8
+  planningGraceSeconds: 2
   bonusConfirmSeconds: 6
-  bonusStepSeconds: 10
+  bonusStepSeconds: 3
   minActionPoints: 1
   minDamageFloor: 1
   unarmedDamage: 1
@@ -24,12 +24,12 @@ MonoBehaviour:
   strDamageMaxRange: 4
   aimDexMultiplier: 1
   statFormulas:
-    hpBase: 5
+    hpBase: 30
     hpPerVIT: 3
     manaBase: 5
     manaPerWIS: 3
     weaponBase: 1
-    dmgPerSTR: 2
+    dmgPerSTR: 3.5
     dmgPerINT: 2
     iniPerAGI: 1
     iniPerDEX: 1
@@ -37,16 +37,18 @@ MonoBehaviour:
     apPerAGI: 0.5
     bapPerDEX: 1
     bonusMoveBudget: 1
-    incrementAttackDamage: 3
+    incrementAttackDamage: 4
     incrementMoveTiles: 1
     baseHitChance: 0.9
     hitPerDEX: 0.03
-    dodgePerAGI: 0.02
+    dodgePerAGI: 0.05
     critPerDEX: 0.02
     critDamageMul: 1.5
     damageVariance: 0.15
     armorBase: 0
-    armorPerVIT: 1
+    armorPerVIT: 0
+    armorPctPerVIT: 0.08
+    armorPctMax: 0.6
     magicResistBase: 0
     magicResistPerWIS: 1
     manaRegenBase: 2
@@ -56,6 +58,8 @@ MonoBehaviour:
     displayName: Machado
     damage: 10
     range: 1
+    attackTicks: 1
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 1
@@ -63,6 +67,8 @@ MonoBehaviour:
     displayName: Machado de Ferro
     damage: 8
     range: 2
+    attackTicks: 3
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6
@@ -70,6 +76,8 @@ MonoBehaviour:
     displayName: Espada de Madeira
     damage: 6
     range: 3
+    attackTicks: 2
+    blockHardness: 3
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
@@ -77,6 +85,8 @@ MonoBehaviour:
     displayName: Espada de Ferro
     damage: 4
     range: 4
+    attackTicks: 2
+    blockHardness: 3
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
@@ -84,6 +94,8 @@ MonoBehaviour:
     displayName: Cajado
     damage: 3
     range: 7
+    attackTicks: 2
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 2
@@ -91,6 +103,8 @@ MonoBehaviour:
     displayName: Cetro
     damage: 3
     range: 6
+    attackTicks: 2
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
@@ -98,6 +112,8 @@ MonoBehaviour:
     displayName: Arco Curto
     damage: 2
     range: 8
+    attackTicks: 1
+    blockHardness: 0
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
@@ -105,6 +121,8 @@ MonoBehaviour:
     displayName: Arco Longo
     damage: 1
     range: 10
+    attackTicks: 3
+    blockHardness: 0
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
@@ -112,6 +130,8 @@ MonoBehaviour:
     displayName: Varinha
     damage: 2
     range: 5
+    attackTicks: 1
+    blockHardness: 1
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
@@ -119,18 +139,31 @@ MonoBehaviour:
     displayName: Cajado Arcano
     damage: 3
     range: 7
+    attackTicks: 2
+    blockHardness: 2
     spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6
   attributeMin: 1
   attributeMax: 20
+  agiMax: 20
+  moveTilesBase: 2
+  moveTilesPerAGI: 0.67
+  maxTilesPerMove: 6
+  instinctBase: 1
+  instinctPerBodyPoint: 0.25
+  instinctRegenTicks: 3
+  agiRegenFrom: 6
+  agiRegenStep: 3
+  powerStrikeMult: 1.5
+  ticksUnarmed: 2
   spriteScalePerFootprint: 1.4
   footprintScalePerFootprint: 0.95
   spriteFootOffsetRatio: -0.1
   headHeightRatio: 0.9
-  footprintAlpha: 0.411
-  playerFootprintColor: {r: 0.3, g: 0.6, b: 1, a: 0.8}
-  enemyFootprintColor: {r: 1, g: 0.38, b: 0.2, a: 0.8}
+  footprintAlpha: 0.9
+  playerFootprintColor: {r: 0.38, g: 0.62, b: 0.80, a: 1}
+  enemyFootprintColor: {r: 0.80, g: 0.44, b: 0.32, a: 1}
   enemyTint: {r: 0.55, g: 0.55, b: 0.65, a: 1}
   targetHoverColor: {r: 1, g: 0.92, b: 0.25, a: 0.95}
   attackMarkColor: {r: 0.2, g: 0.03, b: 0.03, a: 0.95}
@@ -175,7 +208,7 @@ MonoBehaviour:
   dragSpeed: 1
   camManualTimeout: 2
   camSettleThreshold: 0.05
-  camSettleTimeout: 1.2
+  camSettleTimeout: 0.5
   camSettleMinDuration: 1
   camSettleExtra: 1
   attackFocusSettleExtra: 1
@@ -184,15 +217,15 @@ MonoBehaviour:
   autoFrameZoomMax: 20
   initiativeContestMinRadius: 3
   initiativeContestZoomPadding: 3.5
-  camMoveDuration: 2
-  preActionPause: 0.8
-  postActionPause: 1
-  initiativeHold: 1.75
-  slotPause: 0.15
-  roundBannerHold: 0.4
-  roundEndPause: 0.5
-  initiativeCollapseExtraPause: 3
-  attackLabelLeadPause: 3
+  camMoveDuration: 0.25
+  preActionPause: 0.1
+  postActionPause: 0.25
+  initiativeHold: 0
+  slotPause: 0.1
+  roundBannerHold: 0.15
+  roundEndPause: 0.15
+  initiativeCollapseExtraPause: 0
+  attackLabelLeadPause: 0.1
   attackAreaFocusDuration: 5
   shakeDurationCrit: 0.25
   shakeMagnitudeCrit: 0.2
@@ -232,9 +265,9 @@ MonoBehaviour:
   seqLabelScale: 0.7
   floatingLabelFontSize: 80
   floatingLabelCharacterSize: 0.06
-  moveGhostColor: {r: 1, g: 1, b: 1, a: 0.3}
+  moveGhostColor: {r: 1, g: 1, b: 1, a: 0.22}
   unitTargetColor: {r: 0.8, g: 0.1, b: 0.1, a: 1}
-  tileTargetColor: {r: 0.35, g: 0.85, b: 0.95, a: 1}
+  tileTargetColor: {r: 0.50, g: 0.74, b: 0.84, a: 1}
   tileTargetGhostColor: {r: 0.35, g: 0.85, b: 0.95, a: 0.45}
   cursorGhostColor: {r: 1, g: 1, b: 0.6, a: 0.45}
   seqLabelMoveColor: {r: 0.1, g: 0.23, b: 0.36, a: 1}
@@ -242,9 +275,9 @@ MonoBehaviour:
   seqLabelBaseHeight: 0.7
   stepGhostColor: {r: 1, g: 0.9, b: 0.35, a: 0.55}
   stepGhostScale: 0.95
-  reachHighlightColor: {r: 0.35, g: 0.85, b: 0.45, a: 1}
-  bonusHighlightColor: {r: 0.9, g: 0.75, b: 0.3, a: 1}
-  gridLineColor: {r: 1, g: 1, b: 1, a: 0.25}
+  reachHighlightColor: {r: 0.52, g: 0.74, b: 0.55, a: 1}
+  bonusHighlightColor: {r: 0.86, g: 0.74, b: 0.46, a: 1}
+  gridLineColor: {r: 1, g: 1, b: 1, a: 0.10}
   sideFaceLeftColor: {r: 0.38, g: 0.25, b: 0.12, a: 1}
   sideFaceRightColor: {r: 0.5, g: 0.34, b: 0.2, a: 1}
   playerTeamColor: {r: 0.3, g: 0.5, b: 0.92, a: 1}
@@ -325,8 +358,8 @@ MonoBehaviour:
   elemAirColor: {r: 0.7, g: 0.9, b: 1, a: 1}
   elemEarthColor: {r: 0.5, g: 0.35, b: 0.15, a: 1}
   spellTargetHighlightColor: {r: 0.3, g: 0.8, b: 1, a: 0.7}
-  attackRangeColor: {r: 1, g: 0.82, b: 0.3, a: 0.35}
-  enemyRangeColor: {r: 1, g: 0.28, b: 0.22, a: 0.45}
+  attackRangeColor: {r: 0.86, g: 0.70, b: 0.40, a: 0.30}
+  enemyRangeColor: {r: 0.80, g: 0.40, b: 0.34, a: 0.34}
   seqChipSpellColor: {r: 0.6, g: 0.2, b: 0.8, a: 1}
   seqChipConcentrateColor: {r: 0.15, g: 0.55, b: 0.55, a: 1}
   manaTextColor: {r: 0.4, g: 0.6, b: 1, a: 1}
@@ -376,8 +409,9 @@ MonoBehaviour:
   uiButtonFrameFlipShading: 0
   worldBarPillRect: {x: 68, y: 68, z: 38, w: 8}
   worldBarPillBorder: {x: 8, y: 3, z: 8, w: 3}
-  reactionChoiceTime: 50
-  dodgeReactionPerAGI: 0.03
-  blockReductionPerVIT: 0.03
+  reactionChoiceTime: 3
+  dodgeReactionPerAGI: 0.09
+  blockReductionPerVIT: 0.02
+  blockFlatPerVIT: 0.25
   maxBlockReduction: 0.6
   aooDamageMult: 1

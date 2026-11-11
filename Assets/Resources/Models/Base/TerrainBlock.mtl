@@ -1,0 +1,21 @@
+newmtl top
+Kd 0.420 0.620 0.260
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl side
+Kd 0.520 0.380 0.240
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl side_dark
+Kd 0.380 0.280 0.190
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

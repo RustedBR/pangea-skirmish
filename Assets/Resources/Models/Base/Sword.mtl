@@ -1,0 +1,21 @@
+newmtl leather
+Kd 0.420 0.260 0.130
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl bone
+Kd 0.900 0.860 0.740
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl stone
+Kd 0.620 0.630 0.660
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

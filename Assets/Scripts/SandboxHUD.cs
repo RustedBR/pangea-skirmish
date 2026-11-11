@@ -247,10 +247,10 @@ namespace PangeaSkirmish
                 var w = WeaponCatalog.Get(p.weaponId);
                 var t = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
                 d.WeaponDamage = w != null ? w.damage : (t != null ? t.unarmedDamage : 1);
-                _derivedLabel.text = $"HP {d.MaxHP}   Mov {d.MoveBudget}   PA {d.ActionPoints}   PAB {d.BonusActionPoints}\n" +
+                _derivedLabel.text = $"HP {d.MaxHP}   Mov {d.MoveStep}   Instinto {d.MaxInstinct}\n" +
                                      $"ATQ {d.PhysicalDamage}   Ini {d.Initiative}\n" +
                                      $"Acierto {d.HitChance * 100:F0}%   Esquiva {d.DodgeChance * 100:F0}%   Crítico {d.CritChance * 100:F0}%\n" +
-                                     $"Def.Física {d.PhysicalDefense}   Def.Mágica {d.MagicDefense}";
+                                     $"Def.Física {Mathf.RoundToInt(d.PhysicalReduction * 100f)}%   Def.Mágica {d.MagicDefense}";
             }
         }
 

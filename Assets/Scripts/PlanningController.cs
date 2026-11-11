@@ -4,8 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace PangeaSkirmish
 {
-    public enum PlanMode { Idle, MovePicking, AttackUnitPicking, AttackTilePicking, QuickStepPicking,
-        SpellElementPicking, SpellTargetPicking, SpellManaPicking, SpellUnitPicking, SpellTilePicking }
+    public enum PlanMode { Idle, MovePicking, AttackUnitPicking, AttackTilePicking, QuickStepPicking }
 
     /// <summary>
     /// Controla o planejamento do jogador (fase de planning).
@@ -29,13 +28,6 @@ namespace PangeaSkirmish
         private PlanMode _mode  = PlanMode.Idle;
         private bool     _active;
         private Unit     _lastTargetedUnit = null; // rastreia unidade em destaque p/ limpar após sair do hover
-        private SpellElement _spellElement = SpellElement.None;
-        private SpellTargetKind _spellTargetKind = SpellTargetKind.Self;
-        // Duas pools de mana SEPARADAS (ver SpellTypes.PlannedSpell):
-        //  _spellManaRange = alcance (dano/tile) OU duração em rounds (Self). Só custa mana.
-        //  _spellManaPower = potência (multiplica dano/atributo). Cada ponto = +1 PA + mana.
-        private int _spellManaRange = 0;
-        private int _spellManaPower = 1;
 
         // Range preview (alcance destacado no grid). _baseRange é o range da unidade
         // controlada (mostrado em Idle e nos pickings de unidade); ao passar o mouse
@@ -48,6 +40,9 @@ namespace PangeaSkirmish
 
         /// <summary>True quando o clique do mouse está reservado para escolher destino/alvo.</summary>
         public bool IsPicking => _active && _mode != PlanMode.Idle;
+        /// <summary>Jogador no meio de montar a jogada (intenção armada ou prévia na tela): o relógio de decisão pausa.</summary>
+        public bool IsEngaged => _active && _controlled != null &&
+            (_armed != ArmedIntent.None || _controlled.actionSequence.Count > 0 || _mode != PlanMode.Idle);
 
         public void Setup(GridManager grid, Camera cam, List<Unit> allUnits)
         {
@@ -57,6 +52,26 @@ namespace PangeaSkirmish
         }
 
         public void SetHUD(BattleHUD hud) { _hud = hud; }
+
+        // ── Modo Intenção (GDD-016 §6) ──
+        private enum ArmedIntent { None, Charge, HitAndRun, Retreat }
+        private ArmedIntent _armed = ArmedIntent.None;
+        // ── Modo Livre: cada clique ACRESCENTA um passo (GDD-016 §6) ──
+        private bool _freeMode;
+        private int _retargetIdx = -1;      // índice (na sequência) do bloco de andar cujo destino será trocado
+        private float _lastEnemyClickTime; private Unit _lastEnemyClicked;
+        public bool FreeMode => _freeMode;
+
+        public void SetFreeMode(bool on)
+        {
+            _freeMode = on; _retargetIdx = -1; _armed = ArmedIntent.None;
+            _hud.SetFreeModeLabel(on);
+            ShowIntentHint();
+        }
+        private Unit _previewUnit;            // alvo da prévia atual (segundo clique nele confirma)
+        private Vector2Int? _previewCell;     // idem, para clique no chão
+        /// <summary>Pedido de confirmação do plano (Enter, Espaço ou segundo clique no mesmo alvo).</summary>
+        public System.Action OnConfirmRequested;
 
         private void OnEnable()  => GridManager.OnViewOrientationChanged += OnViewOrientationChanged;
         private void OnDisable() => GridManager.OnViewOrientationChanged -= OnViewOrientationChanged;
@@ -93,20 +108,21 @@ namespace PangeaSkirmish
             _hud.BindConcentrate(OnConcentrateClick);
             _hud.BindIncrement(OnIncrementClick);
             _hud.BindAim(OnAimClick);
-            _hud.BindMiraMagia(OnMiraMagiaClick);
-            _hud.BindMagicElement(OnMagicElementChosen);
-            _hud.BindSpellSelf(OnSpellTargetSelf);
-            _hud.BindSpellUnit(OnSpellTargetUnit);
-            _hud.BindSpellTile(OnSpellTargetTile);
-            _hud.BindManaRangeMinus(OnManaRangeMinus);
-            _hud.BindManaRangePlus(OnManaRangePlus);
-            _hud.BindManaPowerMinus(OnManaPowerMinus);
-            _hud.BindManaPowerPlus(OnManaPowerPlus);
-            _hud.BindManaCast(OnManaCast);
-            _hud.BindManaBack(OnManaBack);
             _hud.BindUndo(OnUndoClick);
             _hud.BindClear(OnClearClick);
             _hud.OnSeqChipToggled = OnSeqChipToggled;
+            _hud.OnIncrementPick = OnBlockAction;
+            _hud.OnFreeModeToggled = () => SetFreeMode(!_freeMode);
+            _hud.SetFreeModeLabel(_freeMode);
+            // Painel de INTENÇÕES (reformulação): botões 1-3 armam como as teclas 1/2/3.
+            _hud.OnIntentSelected = slot =>
+            {
+                if (slot == 0) Arm(ArmedIntent.Charge);
+                else if (slot == 1) Arm(ArmedIntent.HitAndRun);
+                else if (slot == 2) Arm(ArmedIntent.Retreat);
+            };
+            _armed = ArmedIntent.None; _previewUnit = null; _previewCell = null;
+            ShowIntentHint();
             SyncButtonStates();
             RefreshSequenceVisuals();
             ShowSelfAttackRange(); // range visível assim que a unidade é selecionada
@@ -116,6 +132,7 @@ namespace PangeaSkirmish
         {
             _active = false;
             _mode   = PlanMode.Idle;
+            if (_hud != null) _hud.HidePrompt();
             if (_controlled != null) _controlled.SetSelected(false);
             if (_lastTargetedUnit != null) _lastTargetedUnit.SetTargeted(false);
             _lastTargetedUnit = null;
@@ -142,7 +159,7 @@ namespace PangeaSkirmish
                 return;
             }
 
-            if (_controlled.remainingAP > 0)
+            if (_controlled.CanFit(ActionType.Move))
             {
                 EnterMovePicking();
                 return;
@@ -163,7 +180,7 @@ namespace PangeaSkirmish
                 return;
             }
 
-            if (_controlled.remainingAP > 0)
+            if (_controlled.CanFit(ActionType.Attack))
             {
                 EnterAttackUnitPicking();
                 return;
@@ -180,7 +197,7 @@ namespace PangeaSkirmish
                 return;
             }
 
-            if (_controlled.remainingAP > 0)
+            if (_controlled.CanFit(ActionType.Attack))
             {
                 EnterAttackTilePicking();
                 return;
@@ -215,16 +232,25 @@ namespace PangeaSkirmish
                     Type = action.Type,
                     Index = action.Index,
                     IsBonus = false,
+                    IsAimed = action.IsAimed,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP++;
             }
             else
             {
                 // Aplicar bônus: gasta PAB
-                if (_controlled.remainingBAP <= 0)
+                if (_controlled.remainingBAP < Tuning.Get().instinctPowerStrike)
                 {
-                    Debug.Log("PAB insuficiente para Golpe Poderoso");
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente para Golpe Poderoso", _controlled);
+                    _hud.ShowPlanNote("Instinto insuficiente para o Golpe poderoso");
+                    return;
+                }
+                int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
+                               - TickRules.Duration(_controlled, ActionType.Attack, false);
+                if (extraTicks > _controlled.remainingAP)
+                {
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para Golpe Poderoso", _controlled);
+                    _hud.ShowPlanNote("Sem tick livre para o Golpe poderoso (+1 tick): desfaça uma ação ou use Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction
@@ -232,12 +258,12 @@ namespace PangeaSkirmish
                     Type = action.Type,
                     Index = action.Index,
                     IsBonus = true,
+                    IsAimed = action.IsAimed,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP--;
             }
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -271,11 +297,10 @@ namespace PangeaSkirmish
             {
                 action.IsBonus = false;
                 _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP++;
                 _controlled.hasPlannedBonus = false;
                 RefreshSequenceVisuals();
                 SyncButtonStates();
-                _hud.UpdateAPDisplay(_controlled);
+                _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
                 return;
             }
 
@@ -294,9 +319,8 @@ namespace PangeaSkirmish
 
             action.IsBonus = true;
             _controlled.actionSequence[idx] = action;
-            _controlled.remainingBAP--;
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -336,37 +360,15 @@ namespace PangeaSkirmish
             var action = _controlled.actionSequence[_quickStepActionIndex];
             action.IsBonus = true;
             _controlled.actionSequence[_quickStepActionIndex] = action;
-            _controlled.remainingBAP--;
             _quickStepActionIndex = -1;
 
             HideCursorGhost();
             _hud.HidePrompt();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu();
-        }
-
-        // ------------------------------------------------------------------ MAGIA
-
-        private void OnMagicClick()
-        {
-            if (!_active || _controlled == null) return;
-
-            if (_controlled.remainingAP <= 0)
-            {
-                Debug.Log("PA insuficiente para conjurar");
-                return;
-            }
-
-            if (_controlled.currentMana <= 0)
-            {
-                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName} sem mana", _controlled);
-                return;
-            }
-
-            _hud.ShowSubMenu(_hud.MagicMenuPanel, "Magia");
         }
 
         private void OnConcentrateClick()
@@ -375,7 +377,12 @@ namespace PangeaSkirmish
 
             // Concentração agora é um CONTADOR: cada clique adiciona uma (gasta 1 PAB),
             // até acabar o PAB ou a mana projetada encher. Cancela via Desfazer/Limpar.
-            if (_controlled.remainingBAP <= 0) return;
+            // Concentrar é da Mente: custa tempo, não Instinto.
+            if (!_controlled.CanFit(ActionType.Concentrate))
+            {
+                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
+                return;
+            }
             int projectedMana = _controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen;
             if (projectedMana >= _controlled.stats.MaxMana)
             {
@@ -383,14 +390,13 @@ namespace PangeaSkirmish
                 return;
             }
             _controlled.plannedConcentrations++;
-            _controlled.remainingBAP--;
             _controlled.actionSequence.Add(new ScheduledAction
             {
                 Type = ActionType.Concentrate, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero
             });
             _hud.LogAction($"{_controlled.unitName} planejou concentrar ({_controlled.plannedConcentrations})", _controlled);
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -413,22 +419,21 @@ namespace PangeaSkirmish
                 // Remover bônus: devolve PAB
                 action.IsBonus = false;
                 _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP++;
             }
             else
             {
                 // Aplicar bônus: gasta PAB
-                if (_controlled.remainingBAP <= 0)
+                var probe = action; probe.IsBonus = true;
+                if (_controlled.remainingBAP < TickRules.InstinctCost(probe))
                 {
-                    Debug.Log("PAB insuficiente para incremento");
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente", _controlled);
                     return;
                 }
                 action.IsBonus = true;
                 _controlled.actionSequence[idx] = action;
-                _controlled.remainingBAP--;
             }
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
@@ -463,14 +468,13 @@ namespace PangeaSkirmish
                     IsAimed = false,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP++;
             }
             else
             {
                 // Aplicar mira: gasta PAB
-                if (_controlled.remainingBAP <= 0)
+                if (_controlled.remainingBAP < Tuning.Get().instinctAim)
                 {
-                    Debug.Log("PAB insuficiente para Mirar");
+                    _hud.ShowPlanNote("Instinto insuficiente para Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction
@@ -481,353 +485,12 @@ namespace PangeaSkirmish
                     IsAimed = true,
                     BonusStep = action.BonusStep
                 };
-                _controlled.remainingBAP--;
             }
 
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
             SyncButtonStates();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
-        }
-
-        /// <summary>
-        /// Mira Mágica: ação bônus de incremento que soma +INT ao bônus de potência da
-        /// PRÓXIMA magia conjurada neste turno (espelho de Golpe Poderoso, mas para magia).
-        /// Toggle: 1º clique gasta 1 PAB e adiciona +INT; 2º clique devolve o PAB e zera.
-        /// </summary>
-        private void OnMiraMagiaClick()
-        {
-            if (!_active || _controlled == null) return;
-
-            int intVal = Mathf.RoundToInt(_controlled.stats.INT);
-            if (intVal <= 0)
-            {
-                Debug.Log("INT insuficiente para Mira Mágica");
-                return;
-            }
-
-            if (_controlled.plannedSpellBonusINT > 0)
-            {
-                // Toggle off: devolve o PAB e zera o bônus
-                _controlled.plannedSpellBonusINT = 0;
-                _controlled.remainingBAP++;
-            }
-            else
-            {
-                if (_controlled.remainingBAP <= 0)
-                {
-                    Debug.Log("PAB insuficiente para Mira Mágica");
-                    return;
-                }
-                _controlled.plannedSpellBonusINT = intVal;
-                _controlled.remainingBAP--;
-            }
-
-            _hud.UpdateAPDisplay(_controlled);
-            SyncButtonStates();
-            _hud.ShowMainMenu();
-        }
-
-        // Handler para clique nos botões de elemento no menu de magia
-        private void OnMagicElementChosen(SpellElement element)
-        {
-            if (!_active || _controlled == null) return;
-
-            if (_controlled.remainingAP <= 0)
-            {
-                Debug.Log("PA insuficiente para conjurar");
-                return;
-            }
-
-            if (_controlled.currentMana <= 0)
-            {
-                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName} sem mana", _controlled);
-                return;
-            }
-
-            _spellElement = element;
-            Debug.Log($"[Magia] elemento escolhido: {SpellBook.ElementName(element)}");
-            _hud.LogAction($"<b>Magia:</b> {SpellBook.ElementName(_spellElement)}", _controlled);
-            // Abre o submenu de ALVO (botões clicáveis Self/Unidade/Tile); teclado S/U/T ainda funciona.
-            _hud.ShowSubMenu(_hud.SpellTypeMenuPanel, "Magia > Alvo");
-            SetMode(PlanMode.SpellTargetPicking);
-        }
-
-        // ── Alvo escolhido → abre o stepper de mana ──
-        private void OnSpellTargetSelf() { ChooseSpellTarget(SpellTargetKind.Self); }
-        private void OnSpellTargetUnit() { ChooseSpellTarget(SpellTargetKind.Unit); }
-        private void OnSpellTargetTile() { ChooseSpellTarget(SpellTargetKind.Tile); }
-
-        private void ChooseSpellTarget(SpellTargetKind kind)
-        {
-            if (!_active || _controlled == null) return;
-            if (_mode != PlanMode.SpellTargetPicking) return;
-            _spellTargetKind = kind;
-            OpenManaStepper();
-        }
-        /// <summary>Abre o stepper de mana (2 pools: alcance/duração + potência) com preview ao vivo.</summary>
-        private void OpenManaStepper()
-        {
-            if (_controlled.AvailableMana < 1)
-            {
-                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName} sem mana disponível", _controlled);
-                return;
-            }
-
-            // Self: Range = duração em rounds (mín 1), Power = atributo (mín 1).
-            // Unit/Tile: Range = alcance (mín 0), Power = potência (mín 1).
-            int defPower = (_spellTargetKind == SpellTargetKind.Self)
-                ? Mathf.Clamp(Tuning.Get().spellSelfManaCost, 1, _controlled.AvailableMana)
-                : 1;
-            int defRange = (_spellTargetKind == SpellTargetKind.Self)
-                ? Mathf.Clamp(Tuning.Get().spellSelfManaCost, 1, _controlled.AvailableMana)
-                : 0;
-
-            _spellManaPower = Mathf.Clamp(defPower, 1, _controlled.AvailableMana);
-            _spellManaRange = Mathf.Clamp(defRange, 0, _controlled.AvailableMana - _spellManaPower);
-
-            _hud.ShowSubMenu(_hud.ManaStepperPanel, $"Magia > {SpellBook.ElementName(_spellElement)} > Mana");
-            SetMode(PlanMode.SpellManaPicking);
-            RefreshManaPreview();
-            Debug.Log($"[Magia] stepper aberto: alvo={_spellTargetKind}, range={_spellManaRange}, power={_spellManaPower}/{_controlled.AvailableMana}");
-        }
-
-        private void RefreshManaPreview()
-        {
-            int range = SpellBook.SpellRange(_controlled, _spellManaRange);
-            // Previsão mostra o que o jogador VAI receber (buff) ou VAI causar (dano), não "potência" genérica.
-            int value = _spellTargetKind == SpellTargetKind.Self
-                ? SpellBook.BuffPotency(_controlled, _spellElement, _spellManaPower)
-                : SpellBook.DamagePotency(_controlled, _spellElement, _spellManaPower);
-            _hud.SetManaPreview(_spellManaRange, _spellManaPower, _controlled.AvailableMana, value, range, _spellTargetKind == SpellTargetKind.Self);
-        }
-
-        private void OnManaRangeMinus()
-        {
-            if (_mode != PlanMode.SpellManaPicking) return;
-            if (_spellManaRange <= 0) return;
-            _spellManaRange--;
-            RefreshManaPreview();
-        }
-
-        private void OnManaRangePlus()
-        {
-            if (_mode != PlanMode.SpellManaPicking) return;
-            if (_spellManaRange + _spellManaPower >= _controlled.AvailableMana) return;
-            _spellManaRange++;
-            RefreshManaPreview();
-        }
-
-        private void OnManaPowerMinus()
-        {
-            if (_mode != PlanMode.SpellManaPicking) return;
-            if (_spellManaPower <= 1) return;
-            _spellManaPower--;
-            RefreshManaPreview();
-        }
-
-        private void OnManaPowerPlus()
-        {
-            if (_mode != PlanMode.SpellManaPicking) return;
-            // Limite de potência atrelado a QUANTAS AÇÕES CABEM: manaPower não pode exceder PA disponível - 1 (1 PA do cast).
-            int maxPower = Mathf.Min(_controlled.AvailableMana - _spellManaRange, _controlled.remainingAP - 1);
-            if (_spellManaRange + _spellManaPower >= _controlled.AvailableMana) return;
-            if (_spellManaPower >= maxPower) return;
-            _spellManaPower++;
-            RefreshManaPreview();
-        }
-
-        private void OnManaCast()
-        {
-            if (_mode != PlanMode.SpellManaPicking) return;
-            int previewValue = _spellTargetKind == SpellTargetKind.Self
-                ? SpellBook.BuffPotency(_controlled, _spellElement, _spellManaPower)
-                : SpellBook.DamagePotency(_controlled, _spellElement, _spellManaPower);
-            Debug.Log($"[Magia] conjurar {SpellBook.ElementName(_spellElement)} alvo={_spellTargetKind} range={_spellManaRange} power={_spellManaPower} alcance={SpellBook.SpellRange(_controlled, _spellManaRange)} {( _spellTargetKind == SpellTargetKind.Self ? "buff=+" : "dano=" )}{previewValue}");
-            switch (_spellTargetKind)
-            {
-                case SpellTargetKind.Self: CommitSpellSelf(); break;
-                case SpellTargetKind.Unit: EnterSpellUnitPicking(); break; // pick no grid usa range/power
-                case SpellTargetKind.Tile: EnterSpellTilePicking(); break;
-            }
-        }
-
-        private void OnManaBack()
-        {
-            if (_mode != PlanMode.SpellManaPicking) return;
-            _hud.GoBack(); // volta ao submenu de alvo
-            SetMode(PlanMode.SpellTargetPicking);
-        }
-
-        private void EnterSpellUnitPicking()
-        {
-            _targetableEnemies.Clear();
-            foreach (var u in _allUnits)
-                if (!u.IsDead && u.team != _controlled.team)
-                    _targetableEnemies.Add(u);
-            SetMode(PlanMode.SpellUnitPicking);
-            // Range de magia (pode ser maior que o de ataque, via conduíte).
-            int fp = _controlled.stats.Footprint;
-            SetBaseRange(RangeAnchors(_controlled.plannedAnchor, fp, SpellBook.SpellRange(_controlled, _spellManaRange)),
-                         Tuning.Get().spellTargetHighlightColor);
-        }
-
-        private void EnterSpellTilePicking()
-        {
-            ClearRangeGhosts();
-            var from = _controlled.plannedAnchor;
-            _attackable.Clear();
-            int fp = _controlled.stats.Footprint;
-            int range = SpellBook.SpellRange(_controlled, _spellManaRange);
-            int budget = range + fp;
-            for (int dx = -budget; dx <= budget; dx++)
-            for (int dy = -budget; dy <= budget; dy++)
-            {
-                var a = new Vector2Int(from.x + dx, from.y + dy);
-                if (a == from || !_grid.IsAnchorInBounds(a, fp)) continue;
-                if (GridManager.FootprintGap(from, fp, a, fp) <= range)
-                    _attackable.Add(a);
-            }
-            _grid.HighlightAnchors(_attackable, Tuning.Get().spellTargetHighlightColor);
-            EnsureCursorGhost();
-            SetCursorGhostColor(Tuning.Get().spellTargetHighlightColor);
-            SetMode(PlanMode.SpellTilePicking);
-        }
-
-        private void CommitSpellSelf()
-        {
-            int manaRange = Mathf.Clamp(_spellManaRange, 1, _controlled.AvailableMana);
-            // BUG FIX (Marcus 2026-07-10): limite de potência atrelado ao PA disponível, não só mana.
-            int maxPower = Mathf.Min(_controlled.AvailableMana - manaRange, _controlled.remainingAP - 1);
-            int manaPower = Mathf.Clamp(_spellManaPower, 1, maxPower);
-            if (manaPower < 1) return;   // sem PA/mana suficiente → nem agenda
-            if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
-            _controlled.reservedMana += manaRange + manaPower;
-
-            var spell = new PlannedSpell
-            {
-                Element = _spellElement,
-                Target = SpellTargetKind.Self,
-                TargetUnit = null,
-                TargetTile = Vector2Int.zero,
-                ManaRange = manaRange,
-                ManaPower = manaPower,
-                Direction = Vector2Int.right,
-            };
-            _controlled.plannedSpells.Add(spell);
-            _controlled.actionSequence.Add(new ScheduledAction
-            {
-                Type = ActionType.Spell,
-                Index = _controlled.plannedSpells.Count - 1,
-                IsBonus = false,
-                BonusStep = Vector2Int.zero
-            });
-            // Self: Range = duração (só mana), Power = atributo (cada ponto = +1 PA).
-            _controlled.remainingAP -= (1 + manaPower);
-
-            var ghostColor = SpellBook.ElementColor(_spellElement);
-            _pathGhosts.Add(CreateGhostAt(_controlled.anchor, ghostColor));
-
-            _hud.HidePrompt();
-            SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
-            SyncButtonStates();
-            RefreshSequenceVisuals();
-            _hud.ShowMainMenu(); // magia confirmada → volta ao menu (dá acesso a Desfazer/Limpar)
-        }
-
-        private void CommitSpellUnit(Unit target)
-        {
-            if (target == null || target.IsDead) return;
-
-            int manaRange = Mathf.Clamp(_spellManaRange, 0, _controlled.AvailableMana);
-            int maxPower = Mathf.Min(_controlled.AvailableMana - manaRange, _controlled.remainingAP - 1);
-            int manaPower = Mathf.Clamp(_spellManaPower, 1, maxPower);
-            if (manaPower < 1) return;
-            if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
-            _controlled.reservedMana += manaRange + manaPower;
-
-            Vector2Int dir = target.anchor - _controlled.anchor;
-            if (dir.x == 0 && dir.y == 0) dir = Vector2Int.right;
-
-            var spell = new PlannedSpell
-            {
-                Element = _spellElement,
-                Target = SpellTargetKind.Unit,
-                TargetUnit = target,
-                TargetTile = Vector2Int.zero,
-                ManaRange = manaRange,
-                ManaPower = manaPower,
-                Direction = dir,
-            };
-            _controlled.plannedSpells.Add(spell);
-            _controlled.actionSequence.Add(new ScheduledAction
-            {
-                Type = ActionType.Spell,
-                Index = _controlled.plannedSpells.Count - 1,
-                IsBonus = false,
-                BonusStep = Vector2Int.zero
-            });
-            _controlled.remainingAP -= (1 + manaPower);
-
-            target.SetAttackMarked(true);
-            var marker = new GameObject("SpellMarker");
-            // Fix (2026-07-29): preso à célula do alvo em vez da posição de mundo
-            // dele, para acompanhar a rotação de vista (e o próprio alvo, se andar).
-            GridAnchored.Attach(marker, target.anchor, target.stats.Footprint);
-            _pathGhosts.Add(marker);
-
-            _hud.HidePrompt();
-            SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
-            SyncButtonStates();
-            RefreshSequenceVisuals();
-            _hud.ShowMainMenu(); // magia confirmada → volta ao menu (dá acesso a Desfazer/Limpar)
-        }
-
-        private void CommitSpellTile(Vector2Int anchor)
-        {
-            if (!_attackable.Contains(anchor)) return;
-
-            int manaRange = Mathf.Clamp(_spellManaRange, 0, _controlled.AvailableMana);
-            int maxPower = Mathf.Min(_controlled.AvailableMana - manaRange, _controlled.remainingAP - 1);
-            int manaPower = Mathf.Clamp(_spellManaPower, 1, maxPower);
-            if (manaPower < 1) return;
-            if (manaRange + manaPower <= 0 || manaRange + manaPower > _controlled.AvailableMana) return;
-            _controlled.reservedMana += manaRange + manaPower;
-
-            Vector2Int dir = anchor - _controlled.anchor;
-            if (dir.x == 0 && dir.y == 0) dir = Vector2Int.right;
-
-            var spell = new PlannedSpell
-            {
-                Element = _spellElement,
-                Target = SpellTargetKind.Tile,
-                TargetUnit = null,
-                TargetTile = anchor,
-                ManaRange = manaRange,
-                ManaPower = manaPower,
-                Direction = dir,
-            };
-            _controlled.plannedSpells.Add(spell);
-            _controlled.actionSequence.Add(new ScheduledAction
-            {
-                Type = ActionType.Spell,
-                Index = _controlled.plannedSpells.Count - 1,
-                IsBonus = false,
-                BonusStep = Vector2Int.zero
-            });
-            _controlled.remainingAP -= (1 + manaPower);
-
-            var ghostColor = SpellBook.ElementColor(_spellElement);
-            _pathGhosts.Add(CreateGhostAt(anchor, ghostColor));
-
-            _hud.HidePrompt();
-            SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
-            SyncButtonStates();
-            RefreshSequenceVisuals();
-            _hud.ShowMainMenu(); // magia confirmada → volta ao menu (dá acesso a Desfazer/Limpar)
         }
 
         // ------------------------------------------------------------------ PICKING: MOVIMENTO
@@ -900,7 +563,7 @@ namespace PangeaSkirmish
             sr.sprite = GhostSprite();
             sr.color = color;
             sr.sortingOrder = 4000; // acima dos tiles, abaixo dos ghosts de waypoint (5000)
-            g.transform.localScale = Vector3.one; // 1 tile
+            g.transform.localScale = new Vector3(1f, World3D.GroundStretch, 1f); // 1 tile, deitado
             // Fix (2026-07-20): marcador de chão, deitado no XZ como os tiles
             // (câmera reto de cima) — sem isso ficava de canto/invisível.
             g.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
@@ -949,7 +612,7 @@ namespace PangeaSkirmish
             ClearRangeGhosts(); // esconde o overlay de range durante o picking de movimento
             var from     = _controlled.plannedAnchor;
             var blockers = BlockerUnits(_controlled);
-            _reachable   = _grid.GetReachableAnchors(from, _controlled.stats.MoveBudget,
+            _reachable   = _grid.GetReachableAnchors(from, _controlled.stats.MoveStep,
                                _controlled.stats.Footprint, blockers);
             _reachable.Add(from);
 
@@ -965,7 +628,6 @@ namespace PangeaSkirmish
             _controlled.actionSequence.Add(new ScheduledAction
                 { Type = ActionType.Move, Index = _controlled.plannedMoveCount, IsBonus = false, BonusStep = Vector2Int.zero });
             _controlled.plannedMoveCount++;
-            _controlled.remainingAP--;
 
             // ghost permanente no waypoint confirmado
             var pg = CreateGhostAt(dest, Tuning.Get().moveGhostColor);
@@ -973,21 +635,19 @@ namespace PangeaSkirmish
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
         }
 
         private void CancelAllMoves()
         {
-            _controlled.remainingAP      += _controlled.plannedMoveCount;
             _controlled.plannedMoveCount  = 0;
             _controlled.plannedAnchor     = _controlled.anchor;
             _controlled.plannedPath.Clear();
             // Devolve PAB dos movimentos bônus (Passo Rápido)
             foreach (var a in _controlled.actionSequence)
                 if (a.Type == ActionType.Move && a.IsBonus)
-                    _controlled.remainingBAP++;
             _controlled.actionSequence.RemoveAll(a => a.Type == ActionType.Move);
             _controlled.hasPlannedBonus = false;
 
@@ -995,7 +655,7 @@ namespace PangeaSkirmish
             HideCursorGhost();
             _grid.ClearHighlight();
             SyncButtonStates();
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             RefreshSequenceVisuals();
         }
 
@@ -1031,7 +691,6 @@ namespace PangeaSkirmish
                 BonusStep = Vector2Int.zero
             });
 
-            _controlled.remainingAP--;
 
             // Marca a UNIDADE como alvo (footprint + sprite vermelhos), em vez de um losango no tile.
             // Um marcador invisível sobre a unidade ancora o número da ordem (mantém o 1:1 com a sequência).
@@ -1042,7 +701,7 @@ namespace PangeaSkirmish
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
         }
@@ -1089,13 +748,12 @@ namespace PangeaSkirmish
                 BonusStep = Vector2Int.zero
             });
 
-            _controlled.remainingAP--;
             var ghostColor = Tuning.Get().tileTargetGhostColor; // ciano
             _pathGhosts.Add(CreateGhostAt(anchor, ghostColor));
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
         }
@@ -1119,10 +777,8 @@ namespace PangeaSkirmish
                 _controlled.plannedAnchor = _controlled.plannedMoveCount > 0
                     ? _controlled.plannedPath[_controlled.plannedPath.Count - 1]
                     : _controlled.anchor;
-                _controlled.remainingAP++;
                 if (last.IsBonus)
                 {
-                    _controlled.remainingBAP++;
                     // Desfez o movimento com Passo Rápido — limpa o destino escolhido em
                     // EnterQuickStepPicking/CommitQuickStep (senão hasPlannedBonus ficaria
                     // true residual, vazando para o próximo round mesmo sem plano novo).
@@ -1132,30 +788,6 @@ namespace PangeaSkirmish
             else if (last.Type == ActionType.Attack)
             {
                 _controlled.plannedAttacks.RemoveAt(_controlled.plannedAttacks.Count - 1);
-                _controlled.remainingAP++;
-                if (last.IsBonus) _controlled.remainingBAP++;
-                if (last.IsAimed) _controlled.remainingBAP++;
-
-                if (_pathGhosts.Count > 0)
-                {
-                    var lastGhost = _pathGhosts[_pathGhosts.Count - 1];
-                    if (lastGhost != null) Destroy(lastGhost);
-                    _pathGhosts.RemoveAt(_pathGhosts.Count - 1);
-                }
-            }
-            else if (last.Type == ActionType.Spell)
-            {
-                int li = _controlled.plannedSpells.Count - 1;
-                if (li >= 0)
-                {
-                    // Devolve a mana reservada (ManaRange + ManaPower) para a conjuração desfeita.
-                    var undoneSpell = _controlled.plannedSpells[li];
-                    _controlled.reservedMana = Mathf.Max(0, _controlled.reservedMana - (undoneSpell.ManaRange + undoneSpell.ManaPower));
-                    if (undoneSpell.Target == SpellTargetKind.Unit && undoneSpell.TargetUnit != null)
-                        undoneSpell.TargetUnit.SetAttackMarked(false);
-                    _controlled.plannedSpells.RemoveAt(li);
-                }
-                _controlled.remainingAP++;
 
                 if (_pathGhosts.Count > 0)
                 {
@@ -1167,13 +799,12 @@ namespace PangeaSkirmish
             else if (last.Type == ActionType.Concentrate)
             {
                 if (_controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
-                _controlled.remainingBAP++;
             }
 
             _controlled.actionSequence.RemoveAt(_controlled.actionSequence.Count - 1);
 
             if (_mode == PlanMode.MovePicking) SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             ClearGhostLabels();
             RefreshSequenceVisuals();
@@ -1183,16 +814,12 @@ namespace PangeaSkirmish
         private void OnClearClick()
         {
             if (!_active || _controlled == null) return;
-            if (_controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0
-                && _controlled.plannedSpells.Count == 0 && _controlled.plannedConcentrations == 0) return;
+            if (_controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0 && _controlled.plannedConcentrations == 0) return;
 
-            _controlled.remainingAP = _controlled.stats.ActionPoints;
-            _controlled.remainingBAP = _controlled.stats.BonusActionPoints;
             _controlled.plannedMoveCount = 0;
             _controlled.plannedAnchor = _controlled.anchor;
             _controlled.plannedPath.Clear();
             _controlled.plannedAttacks.Clear();
-            _controlled.plannedSpells.Clear();
             _controlled.reservedMana = 0;
             _controlled.plannedConcentrations = 0;
             _controlled.actionSequence.Clear();
@@ -1203,7 +830,7 @@ namespace PangeaSkirmish
             HideCursorGhost();
             _grid.ClearHighlight();
             if (_mode != PlanMode.Idle) SetMode(PlanMode.Idle);
-            _hud.UpdateAPDisplay(_controlled);
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             SyncButtonStates();
             RefreshSequenceVisuals();
             ShowSelfAttackRange(); // recomputa o range para a posição resetada
@@ -1223,9 +850,295 @@ namespace PangeaSkirmish
                 OnPowerStrikeClick();
             else if (action.Type == ActionType.Move)
                 OnQuickStepClick();
-            // Spells não têm toggle de BAP por enquanto
 
             _hud.OnSeqChipToggled = OnSeqChipToggled;
+        }
+
+        // ------------------------------------------------------------------ MODO INTENÇÃO
+
+        private static string IntentName(ArmedIntent i) =>
+            i == ArmedIntent.Charge ? "Investir" : i == ArmedIntent.HitAndRun ? "Golpear e recuar"
+            : i == ArmedIntent.Retreat ? "Recuar" : "Automática";
+
+        private void ShowIntentHint()
+        {
+            // Banda própria no topo (reformulação): a dica de intenção NÃO usa mais o
+            // prompt de canto, que cobria o botão Confirmar (bug antigo de confirmação).
+            if (_freeMode)
+                _hud.ShowIntentBand("✎ MODO LIVRE",
+                                    "clique no chão = andar  •  no inimigo = atacar (2x = até acabar o tempo)  •  clique num bloco p/ editar  •  Backspace desfaz  •  Tab volta às intenções");
+            else
+                _hud.ShowIntentBand($"⚡ INTENÇÃO: <b>{IntentName(_armed)}</b>",
+                                    "clique no inimigo p/ montar a fila  •  Tab = modo livre  •  Enter/2º clique confirma");
+            _hud.SetIntentArmed(IntentSlot(_armed));
+        }
+        private static int IntentSlot(ArmedIntent i) => i switch
+        {
+            ArmedIntent.Charge    => 0,
+            ArmedIntent.HitAndRun => 1,
+            ArmedIntent.Retreat   => 2,
+            _ => -1
+        };
+
+        private void Arm(ArmedIntent intent)
+        {
+            _armed = _armed == intent ? ArmedIntent.None : intent; // apertar de novo desarma
+            ShowIntentHint();
+        }
+
+        private bool PointerOverUI()
+        {
+            // O EventSystem UGUI não enxerga UI Toolkit. Usa o picking real do painel
+            // do BattleHUD (fix 2026-11-10: clique em botões da HUD vazava pro grid,
+            // impedindo confirmar intenções pelo botão).
+            return _hud != null && _hud.IsPointerOverUI();
+        }
+
+        /// <summary>Teclas e cliques do Modo Intenção. Devolve true se consumiu o input do frame.</summary>
+        private bool HandleIntentInput()
+        {
+            var kb = Keyboard.current;
+            if (kb != null)
+            {
+                if (kb.tabKey.wasPressedThisFrame) { SetFreeMode(!_freeMode); return true; }
+                if (kb.backspaceKey.wasPressedThisFrame && _controlled.actionSequence.Count > 0) { OnUndoClick(); return true; }
+                if (kb.digit1Key.wasPressedThisFrame) { Arm(ArmedIntent.Charge); return true; }
+                if (kb.digit2Key.wasPressedThisFrame) { Arm(ArmedIntent.HitAndRun); return true; }
+                if (kb.digit3Key.wasPressedThisFrame)
+                {
+                    _armed = ArmedIntent.Retreat; ShowIntentHint();
+                    ApplyIntent(() => IntentBuilder.Retreat(_controlled, _allUnits, _grid), null, null);
+                    return true;
+                }
+                bool confirmKey = kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame
+                               || kb.spaceKey.wasPressedThisFrame;
+                if (confirmKey && _controlled.actionSequence.Count > 0) { OnConfirmRequested?.Invoke(); return true; }
+            }
+
+            // Só o botão esquerdo: o direito já é o arrasto da câmera.
+            bool left = Mouse.current.leftButton.wasPressedThisFrame;
+            if (!left || PointerOverUI()) return false;
+
+            bool shift = kb != null && kb.shiftKey.isPressed;
+            bool ctrl  = kb != null && kb.ctrlKey.isPressed;
+
+            var unit = HitUnitWithCollider();
+            if (_freeMode) return FreeClick(unit, shift, ctrl);
+            if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
+            {
+                // Segundo clique no mesmo alvo confirma a prévia.
+                if (_previewUnit == unit && !shift && !ctrl && _controlled.actionSequence.Count > 0)
+                { OnConfirmRequested?.Invoke(); return true; }
+
+                if (ctrl || (_armed == ArmedIntent.HitAndRun && !shift))
+                    ApplyIntent(() => IntentBuilder.HitAndRun(_controlled, unit, _allUnits, _grid), unit, null);
+                else if (shift)
+                    ApplyIntent(() => IntentBuilder.Charge(_controlled, unit, _allUnits, _grid, maxAttacks: 1), unit, null);
+                else
+                    ApplyIntent(() => IntentBuilder.Charge(_controlled, unit, _allUnits, _grid), unit, null);
+                return true;
+            }
+
+            var cell = HitAnchor();
+            if (cell.HasValue && _grid.IsAnchorInBounds(cell.Value, _controlled.stats.Footprint) && (unit == null || unit == _controlled))
+            {
+                var c = cell.Value;
+                if (_previewCell == c && _controlled.actionSequence.Count > 0)
+                { OnConfirmRequested?.Invoke(); return true; }
+
+                if (_armed == ArmedIntent.Retreat)
+                    ApplyIntent(() => IntentBuilder.Retreat(_controlled, _allUnits, _grid, c), null, c);
+                else
+                    ApplyIntent(() => IntentBuilder.MoveTo(_controlled, c, _allUnits, _grid), null, c);
+                return true;
+            }
+            return false;
+        }
+
+        // ------------------------------------------------------------------ MODO LIVRE
+
+        private bool FreeClick(Unit unit, bool shift, bool ctrl)
+        {
+            if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
+            {
+                bool dbl = _lastEnemyClicked == unit && Time.unscaledTime - _lastEnemyClickTime < 0.4f;
+                _lastEnemyClicked = unit; _lastEnemyClickTime = Time.unscaledTime;
+                FreeAppendAttack(unit, fill: dbl && !shift);
+                return true;
+            }
+            var cell = HitAnchor();
+            if (!cell.HasValue || !_grid.IsAnchorInBounds(cell.Value, _controlled.stats.Footprint)) return false;
+            if (unit != null && unit != _controlled) return false;
+            if (_retargetIdx >= 0) { RetargetMove(_retargetIdx, cell.Value); return true; }
+            FreeAppendMove(cell.Value);
+            return true;
+        }
+
+        private bool CanReachFrom(Vector2Int from, Vector2Int to)
+        {
+            var reach = _grid.GetReachableAnchors(from, _controlled.stats.MoveStep, _controlled.stats.Footprint, BlockerUnits(_controlled));
+            return to == from || reach.Contains(to);
+        }
+
+        private void FreeAppendMove(Vector2Int c)
+        {
+            if (!_controlled.CanFit(ActionType.Move)) { _hud.ShowPlanNote("Sem tick livre para andar"); return; }
+            var from = _controlled.plannedAnchor;
+            if (c == from) return;
+            if (!CanReachFrom(from, c))
+            {
+                _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.stats.MoveStep} tiles");
+                return;
+            }
+            _controlled.plannedPath.Add(c);
+            _controlled.plannedAnchor = c;
+            _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = _controlled.plannedMoveCount });
+            _controlled.plannedMoveCount++;
+            _previewUnit = null; _previewCell = c;
+            RebuildPlanVisuals();
+        }
+
+        private void FreeAppendAttack(Unit target, bool fill)
+        {
+            int added = 0;
+            while (_controlled.CanFit(ActionType.Attack))
+            {
+                _controlled.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = target, TargetTile = target.anchor });
+                _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = _controlled.plannedAttacks.Count - 1 });
+                _controlled.RecomputeTickBudget();
+                added++;
+                if (!fill) break;
+            }
+            if (added == 0) { _hud.ShowPlanNote("Sem tick livre para atacar"); return; }
+            int gap = GridManager.FootprintGap(_controlled.plannedAnchor, _controlled.stats.Footprint, target.anchor, target.stats.Footprint);
+            if (gap > _controlled.stats.AttackRange)
+                _hud.ShowPlanNote("Atenção: daquela posição o alvo está fora de alcance — ande antes");
+            _previewUnit = target; _previewCell = null;
+            RebuildPlanVisuals();
+        }
+
+        private void RecomputePlannedAnchor()
+        {
+            var pos = _controlled.anchor;
+            foreach (var a in _controlled.actionSequence)
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) pos = _controlled.plannedPath[a.Index];
+            _controlled.plannedAnchor = pos;
+        }
+
+        private Vector2Int PositionBefore(int seqIdx)
+        {
+            var pos = _controlled.anchor;
+            for (int i = 0; i < seqIdx && i < _controlled.actionSequence.Count; i++)
+            {
+                var a = _controlled.actionSequence[i];
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) pos = _controlled.plannedPath[a.Index];
+            }
+            return pos;
+        }
+
+        private void RetargetMove(int seqIdx, Vector2Int c)
+        {
+            _retargetIdx = -1;
+            if (seqIdx < 0 || seqIdx >= _controlled.actionSequence.Count) return;
+            var a = _controlled.actionSequence[seqIdx];
+            if (a.Type != ActionType.Move || a.Index >= _controlled.plannedPath.Count) return;
+            if (!CanReachFrom(PositionBefore(seqIdx), c))
+            { _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.stats.MoveStep} tiles"); ShowIntentHint(); return; }
+            _controlled.plannedPath[a.Index] = c;
+            RecomputePlannedAnchor();
+            ShowIntentHint();
+            RebuildPlanVisuals();
+        }
+
+        private void RemoveAction(int seqIdx)
+        {
+            if (seqIdx < 0 || seqIdx >= _controlled.actionSequence.Count) return;
+            var a = _controlled.actionSequence[seqIdx];
+            _controlled.actionSequence.RemoveAt(seqIdx);
+            if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count)
+            {
+                _controlled.plannedPath.RemoveAt(a.Index); _controlled.plannedMoveCount--;
+                for (int i = 0; i < _controlled.actionSequence.Count; i++)
+                    if (_controlled.actionSequence[i].Type == ActionType.Move && _controlled.actionSequence[i].Index > a.Index)
+                    { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
+                _controlled.hasPlannedBonus = false;
+            }
+            else if (a.Type == ActionType.Attack && a.Index < _controlled.plannedAttacks.Count)
+            {
+                _controlled.plannedAttacks.RemoveAt(a.Index);
+                for (int i = 0; i < _controlled.actionSequence.Count; i++)
+                    if (_controlled.actionSequence[i].Type == ActionType.Attack && _controlled.actionSequence[i].Index > a.Index)
+                    { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
+            }
+            else if (a.Type == ActionType.Concentrate && _controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
+            RecomputePlannedAnchor();
+            _hud.SelectSeqIndex(-1);
+            RebuildPlanVisuals();
+        }
+
+        private void SwapAction(int i, int j)
+        {
+            if (i < 0 || j < 0 || i >= _controlled.actionSequence.Count || j >= _controlled.actionSequence.Count) return;
+            var t = _controlled.actionSequence[i];
+            _controlled.actionSequence[i] = _controlled.actionSequence[j];
+            _controlled.actionSequence[j] = t;
+            RecomputePlannedAnchor();
+            RebuildPlanVisuals();
+        }
+
+        /// <summary>Ações do menu de um bloco do plano (códigos em BattleHUD.BlockKind).</summary>
+        private void OnBlockAction(int idx, int kind)
+        {
+            if (!_active || _controlled == null || idx < 0 || idx >= _controlled.actionSequence.Count) return;
+            switch (kind)
+            {
+                case 0: _hud.SelectSeqIndex(idx); OnPowerStrikeClick(); break;
+                case 1: _hud.SelectSeqIndex(idx); OnAimClick(); break;
+                case 10: SwapAction(idx, idx - 1); break;
+                case 11: SwapAction(idx, idx + 1); break;
+                case 12: RemoveAction(idx); break;
+                case 13:
+                    _retargetIdx = idx;
+                    _hud.ShowPlanNote("Clique no tile do novo destino (Esc cancela)");
+                    break;
+            }
+        }
+
+        /// <summary>Roda o montador, guarda o alvo da prévia e redesenha fantasmas, marcas e barra de ticks.</summary>
+        private void ApplyIntent(System.Func<bool> build, Unit targetUnit, Vector2Int? targetCell)
+        {
+            bool ok = build();
+            _previewUnit = ok ? targetUnit : null;
+            _previewCell = ok ? targetCell : null;
+            if (!ok)
+                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: nada a fazer com essa intenção daqui", _controlled);
+            RebuildPlanVisuals();
+        }
+
+        /// <summary>Recria os fantasmas e marcas a partir do plano atual da unidade (1 por ação da fila).</summary>
+        private void RebuildPlanVisuals()
+        {
+            ClearPathGhosts();
+            foreach (var u in _allUnits) if (u != null) u.SetAttackMarked(false);
+            foreach (var a in _controlled.actionSequence)
+            {
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count)
+                    _pathGhosts.Add(CreateGhostAt(_controlled.plannedPath[a.Index], Tuning.Get().moveGhostColor));
+                else if (a.Type == ActionType.Attack && a.Index < _controlled.plannedAttacks.Count)
+                {
+                    var t = _controlled.plannedAttacks[a.Index].TargetUnit;
+                    if (t != null) t.SetAttackMarked(true);
+                    var marker = new GameObject("UnitAttackMarker");
+                    marker.transform.position = t != null ? t.HeadWorld : _controlled.HeadWorld;
+                    _pathGhosts.Add(marker);
+                }
+            }
+            HideCursorGhost();
+            _grid.ClearHighlight();
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
+            SyncButtonStates();
+            RefreshSequenceVisuals();
+            ShowSelfAttackRange();
         }
 
         /// <summary>Toggle BAP clicando no ghost tile (movimento) ou unidade marcada (ataque).</summary>
@@ -1267,14 +1180,6 @@ namespace PangeaSkirmish
                                 && _controlled.plannedAttacks[atkIdx].TargetUnit == hoveredUnit)
                             { clickedIdx = i; break; }
                         }
-                        if (_controlled.actionSequence[i].Type == ActionType.Spell)
-                        {
-                            int splIdx = _controlled.actionSequence[i].Index;
-                            if (splIdx < _controlled.plannedSpells.Count
-                                && _controlled.plannedSpells[splIdx].Target == SpellTargetKind.Unit
-                                && _controlled.plannedSpells[splIdx].TargetUnit == hoveredUnit)
-                            { clickedIdx = i; break; }
-                        }
                     }
                 }
             }
@@ -1289,7 +1194,7 @@ namespace PangeaSkirmish
         {
             // Ao sair da mira de unidade (cancelar, confirmar ou trocar de modo),
             // limpa o realce vermelho da unidade que estava sob o cursor.
-            if ((mode != PlanMode.AttackUnitPicking && mode != PlanMode.SpellUnitPicking) && _lastTargetedUnit != null)
+            if (mode != PlanMode.AttackUnitPicking && _lastTargetedUnit != null)
             {
                 _lastTargetedUnit.SetTargeted(false);
                 _lastTargetedUnit = null;
@@ -1309,7 +1214,9 @@ namespace PangeaSkirmish
         {
             if (!_active || Mouse.current == null) return;
 
-            // ESC: voltar no menu cascata (quando não está em nenhum modo de picking)
+            // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)
+            if (_retargetIdx >= 0 && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            { _retargetIdx = -1; ShowIntentHint(); return; }
             if (_mode == PlanMode.Idle && Keyboard.current != null
                 && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
@@ -1317,56 +1224,12 @@ namespace PangeaSkirmish
                 return;
             }
 
-            // Clique em idle: toggle BAP em ghost tile (movimento) ou unidade marcada (ataque)
-            if (_mode == PlanMode.Idle && Mouse.current.leftButton.wasPressedThisFrame)
-                HandleBapClickOnTile();
+            // Modo Intenção: um clique monta a fila inteira (GDD-016 §6).
+            if (_mode == PlanMode.Idle && HandleIntentInput()) return;
 
             // Em idle, hover em inimigo revela o range dele (vermelho); sair restaura o meu.
             if (_mode == PlanMode.Idle)
                 UpdateEnemyRangeHover();
-
-            // Teclas de elemento na mira de magia
-            if (_mode == PlanMode.SpellElementPicking)
-            {
-                if (Keyboard.current != null)
-                {
-                    if (Keyboard.current.digit1Key.wasPressedThisFrame) { _spellElement = SpellElement.Physical; OnSpellElementChosen(); return; }
-                    if (Keyboard.current.digit2Key.wasPressedThisFrame) { _spellElement = SpellElement.Magic; OnSpellElementChosen(); return; }
-                    if (Keyboard.current.digit3Key.wasPressedThisFrame) { _spellElement = SpellElement.Fire; OnSpellElementChosen(); return; }
-                    if (Keyboard.current.digit4Key.wasPressedThisFrame) { _spellElement = SpellElement.Water; OnSpellElementChosen(); return; }
-                    if (Keyboard.current.digit5Key.wasPressedThisFrame) { _spellElement = SpellElement.Air; OnSpellElementChosen(); return; }
-                    if (Keyboard.current.digit6Key.wasPressedThisFrame) { _spellElement = SpellElement.Earth; OnSpellElementChosen(); return; }
-                    if (Keyboard.current.escapeKey.wasPressedThisFrame) { SetMode(PlanMode.Idle); _hud.HidePrompt(); }
-                }
-                return;
-            }
-
-            // Teclas de alvo na mira de magia (após escolher elemento) — atalho dos botões
-            if (_mode == PlanMode.SpellTargetPicking)
-            {
-                if (Keyboard.current != null)
-                {
-                    if (Keyboard.current.sKey.wasPressedThisFrame) { OnSpellTargetSelf(); return; }
-                    if (Keyboard.current.uKey.wasPressedThisFrame) { OnSpellTargetUnit(); return; }
-                    if (Keyboard.current.tKey.wasPressedThisFrame) { OnSpellTargetTile(); return; }
-                    if (Keyboard.current.escapeKey.wasPressedThisFrame) { SetMode(PlanMode.Idle); }
-                }
-                return;
-            }
-
-            // Stepper de mana: +/- ajustam, Enter conjura, Esc volta ao alvo
-            if (_mode == PlanMode.SpellManaPicking)
-            {
-                if (Keyboard.current != null)
-                {
-                    var kb = Keyboard.current;
-                    if (kb.numpadPlusKey.wasPressedThisFrame || kb.equalsKey.wasPressedThisFrame) { OnManaPowerPlus(); return; }
-                    if (kb.numpadMinusKey.wasPressedThisFrame || kb.minusKey.wasPressedThisFrame) { OnManaPowerMinus(); return; }
-                    if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame) { OnManaCast(); return; }
-                    if (kb.escapeKey.wasPressedThisFrame) { OnManaBack(); return; }
-                }
-                return;
-            }
 
             if (_mode == PlanMode.MovePicking)
             {
@@ -1382,7 +1245,7 @@ namespace PangeaSkirmish
                         CommitMove(clicked.Value);
                 }
             }
-            else if (_mode == PlanMode.AttackUnitPicking || _mode == PlanMode.SpellUnitPicking)
+            else if (_mode == PlanMode.AttackUnitPicking)
             {
                 UpdateEnemyRangeHover(); // range do inimigo sob o cursor em vermelho
                 var hoveredUnit = HitUnitWithCollider();
@@ -1396,10 +1259,7 @@ namespace PangeaSkirmish
                     }
                     if (Mouse.current.leftButton.wasPressedThisFrame)
                     {
-                        if (_mode == PlanMode.SpellUnitPicking)
-                            CommitSpellUnit(hoveredUnit);
-                        else
-                            CommitAttackUnit(hoveredUnit);
+                        CommitAttackUnit(hoveredUnit);
                     }
                 }
                 else
@@ -1409,7 +1269,7 @@ namespace PangeaSkirmish
                     HideCursorGhost();
                 }
             }
-            else if (_mode == PlanMode.AttackTilePicking || _mode == PlanMode.SpellTilePicking)
+            else if (_mode == PlanMode.AttackTilePicking)
             {
                 var hovered = HitAnchor();
                 bool valid = hovered.HasValue && _attackable.Contains(hovered.Value);
@@ -1418,10 +1278,7 @@ namespace PangeaSkirmish
                     PlaceGhost(_cursorGhost, hovered.Value);
                     if (Mouse.current.leftButton.wasPressedThisFrame)
                     {
-                        if (_mode == PlanMode.SpellTilePicking)
-                            CommitSpellTile(hovered.Value);
-                        else
-                            CommitAttackTile(hovered.Value);
+                        CommitAttackTile(hovered.Value);
                     }
                 }
                 else
@@ -1442,38 +1299,27 @@ namespace PangeaSkirmish
             }
         }
 
-        private void OnSpellElementChosen()
-        {
-            _hud.HidePrompt();
-            _hud.LogAction($"<b>Magia:</b> {SpellBook.ElementName(_spellElement)}", _controlled);
-            _hud.ShowSubMenu(_hud.SpellTypeMenuPanel, "Magia > Alvo");
-            SetMode(PlanMode.SpellTargetPicking);
-        }
-
         // ------------------------------------------------------------------ SYNC UI
 
         private void SyncButtonStates()
         {
             if (_controlled == null) return;
-            bool hasMana = _controlled.currentMana > 0;
+            _controlled.RecomputeTickBudget();
             bool hasSequence = _controlled.actionSequence.Count > 0;
             _hud.SetMoveState(
-                canAdd:    _controlled.remainingAP > 0,
+                canAdd:    _controlled.CanFit(ActionType.Move),
                 count:     _controlled.plannedMoveCount,
                 isPicking: _mode == PlanMode.MovePicking);
             _hud.SetAttackUnitState(
-                canAdd:    _controlled.remainingAP > 0,
+                canAdd:    _controlled.CanFit(ActionType.Attack),
                 count:     _controlled.plannedAttacks.Count,
                 isPicking: _mode == PlanMode.AttackUnitPicking);
             _hud.SetAttackTileState(
-                canAdd:    _controlled.remainingAP > 0,
+                canAdd:    _controlled.CanFit(ActionType.Attack),
                 count:     _controlled.plannedAttacks.Count,
                 isPicking: _mode == PlanMode.AttackTilePicking);
-            _hud.SetMagicState(
-                canAdd:    _controlled.remainingAP > 0 && hasMana,
-                isPicking: _mode == PlanMode.SpellElementPicking);
             _hud.SetConcentrateState(
-                canAdd:    _controlled.remainingBAP > 0
+                canAdd:    _controlled.CanFit(ActionType.Concentrate)
                            && (_controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen) < _controlled.stats.MaxMana,
                 isPicking: false);
             _hud.SetIncrementState(
@@ -1525,7 +1371,7 @@ namespace PangeaSkirmish
             sr.color = color;
             sr.sortingOrder = 5000;
             int fp = _controlled != null ? _controlled.stats.Footprint : AttributeStats.DefaultFootprint;
-            g.transform.localScale = new Vector3(fp, fp, 1f);
+            g.transform.localScale = new Vector3(fp, fp * World3D.GroundStretch, 1f);
             // Fix (2026-07-20): marcador de chão, deitado no XZ (ver CreateCellGhost).
             g.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             g.SetActive(false);
@@ -1558,7 +1404,6 @@ namespace PangeaSkirmish
         private static Color SeqLabelMove => Tuning.Get().seqLabelMoveColor;
         private static Color SeqLabelAtk  => Tuning.Get().seqLabelAttackColor;
 
-        private static Color SeqLabelSpell => Tuning.Get().seqChipSpellColor;
 
         private void ClearGhostLabels()
         {
@@ -1587,10 +1432,9 @@ namespace PangeaSkirmish
             for (int i = 0; i < _pathGhosts.Count; i++)
             {
                 bool isAtk = seq != null && i < seq.Count && seq[i].Type == ActionType.Attack;
-                bool isSpell = seq != null && i < seq.Count && seq[i].Type == ActionType.Spell;
                 Vector3 ghostPos = _pathGhosts[i].transform.position;
                 string num = (i + 1).ToString();
-                Color col = isSpell ? SeqLabelSpell : isAtk ? SeqLabelAtk : SeqLabelMove;
+                Color col = isAtk ? SeqLabelAtk : SeqLabelMove;
 
                 // Quantiza a posição do ghost pra agrupar tiles próximos
                 var key = new Vector2Int(Mathf.RoundToInt(ghostPos.x * 10), Mathf.RoundToInt(ghostPos.z * 10));

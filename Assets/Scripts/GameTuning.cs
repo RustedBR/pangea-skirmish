@@ -16,6 +16,58 @@ namespace PangeaSkirmish
         [Header("═══ COMBATE & REGRAS ═══")]
         [Tooltip("Segundos da fase de Planejamento por round. Menor = jogo mais frenético; maior = mais tempo para pensar.")]
         public float planningTime = 15f;
+
+        [Header("═══ SEMI-TURNO POR TICKS (GDD-014) ═══")]
+        [Tooltip("Segundos para decidir num ponto de decisão (SP). Em MP vale o planningTime da sala.")]
+        public float decisionTime = 15f;
+        [Tooltip("O relógio de decisão PARA enquanto há intenção armada ou prévia na tela, por no máximo este tempo total por ponto de decisão. Em rede, o host espera esse teto a mais.")]
+        public float planningPauseBudget = 12f;
+        [Tooltip("Janela entre ticks (segundos) para incrementar a próxima ação (golpe poderoso, mirar).")]
+        public float incrementWindowSeconds = 1.8f;
+        [Tooltip("Zoom mínimo (tamanho ortográfico) ao enquadrar o grupo durante os ticks. Maior = mais longe.")]
+        public float tickFrameMinSize = 8f;
+        [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]
+        public int maxQueueTicks = 6;
+        [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
+        public float moveTilesBase = 2f;
+        public float moveTilesPerAGI = 0.67f;
+        [Tooltip("Teto de tiles que uma ação de andar cobre.")]
+        public int maxTilesPerMove = 6;
+
+        [Header("═══ INSTINTO (GDD-016) ═══")]
+        [Tooltip("Instinto máximo = instinctBase + (STR + VIT) × instinctPerBodyPoint.")]
+        public float instinctBase = 1f;
+        public float instinctPerBodyPoint = 0.25f;
+        [Tooltip("Recupera 1 de Instinto a cada N ticks.")]
+        public int instinctRegenTicks = 3;
+        [Tooltip("AGI acima deste valor acelera a regeneração de Instinto (o excedente que a andada já não aproveita).")]
+        public int agiRegenFrom = 6;
+        [Tooltip("A cada N pontos de AGI acima de agiRegenFrom, o Instinto volta 1 tick mais cedo.")]
+        public int agiRegenStep = 3;
+        [Tooltip("Golpe poderoso multiplica o dano base por este valor (e custa +1 tick e Instinto).")]
+        public float powerStrikeMult = 1.5f;
+        public int instinctPowerStrike = 2;
+        public int instinctAim = 1;
+        public int instinctQuickStep = 1;
+        public int instinctReaction = 2;
+        [Tooltip("Ticks base: andar (1 waypoint).")]
+        public int ticksMove = 1;
+        [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]
+        public int ticksUnarmed = 2;
+        [Tooltip("Ticks somados à base da arma num golpe poderoso.")]
+        public int ticksPowerStrikeExtra = 1;
+        [Tooltip("Ticks base: concentrar.")]
+        public int ticksConcentrate = 2;
+        [Tooltip("Ticks de Esperar (timeout sem ação). Não escala com AGI.")]
+        public int ticksWait = 1;
+        [Tooltip("k da fórmula de rapidez: ticks = base × k / (k + DEX). Maior = DEX pesa menos.")]
+        public float tickDexFactor = 10f;
+        [Tooltip("A cada N ticks globais: status, efeitos de tile e reações renovam (equivale ao antigo round).")]
+        public int ticksPerRound = 4;
+        [Tooltip("Ticks adicionados à fila de quem reage.")]
+        public int reactionTickCost = 1;
+        [Tooltip("Segundos de resolução visual por tick (orçamento de animação).")]
+        public float tickResolveTime = 0.4f;
         [Tooltip("Segundos extras de tolerância quando o tempo acaba com PA sobrando. 0 = corte seco no fim do timer.")]
         public float planningGraceSeconds = 2f;
         [Tooltip("Segundos do prompt de confirmação de ação bônus. Menor = decisão mais apressada.")]
@@ -46,22 +98,24 @@ namespace PangeaSkirmish
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2 },
-            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2 },
-            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3 },
-            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3 },
-            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3 },
-            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5 },
-            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5 },
+            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2, attackTicks=1, blockHardness=2 },
+            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2, attackTicks=3, blockHardness=2 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2, attackTicks=2, blockHardness=3 },
+            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2, attackTicks=2, blockHardness=3 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3, attackTicks=2, blockHardness=2 },
+            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3, attackTicks=2, blockHardness=2 },
+            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3, attackTicks=1, blockHardness=0 },
+            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5, attackTicks=3, blockHardness=0 },
+            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3, attackTicks=1, blockHardness=1 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5, attackTicks=2, blockHardness=2 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]
         public int attributeMin = 1;
         [Tooltip("Valor máximo por atributo no editor de personagem do menu.")]
         public int attributeMax = 20;
+        [Tooltip("Teto da AGI na criação. A andada tem teto próprio (maxTilesPerMove); acima dele a AGI vira esquiva e fôlego.")]
+        public int agiMax = 20;
 
 
         // ═════════════════════════ UNIDADES ═════════════════════════
@@ -455,25 +509,10 @@ namespace PangeaSkirmish
         [Range(0f, 1f)] public float sfxVolume = 1f;
         [Range(0f, 1f)] public float musicVolume = 1f;
 
-        // ═════════════════════════ MAGIA ═════════════════════════
+        // ═════════════════════════ ELEMENTOS & TILES ═════════════════════════
+        // Sistema de conjuração removido (refazer a partir do GDD-013). Mantidos: efeitos de tile e cores.
 
-        [Header("═══ MAGIA: CUSTO & ALCANCE ═══")]
-        [Tooltip("Mana gasta por magia Self (buff).")]
-        public int spellSelfManaCost = 2;
-        [Tooltip("Tiles de alcance por mana gasta. Alcance = mana × spellRangePerMana + bônus do conduíte.")]
-        public int spellRangePerMana = 1;
-        [Tooltip("Bônus multiplicativo de afinidade quando o elemento da magia coincide com a afinidade do conduíte. 0.25 = +25% de dano.")]
-        public float conduitAffinityBonus = 0.25f;
-        [Tooltip("Dano mínimo de magia após todos os multiplicadores (não mitigável).")]
-        public int spellMinDamage = 1;
-        [Tooltip("Base de POTÊNCIA DE DANO: P = manaPower × base × (atributos do elemento). Decisão Marcus 2026-07-10 (sem teto).")]
-        public float spellPotencyBaseDamage = 0.075f;
-        [Tooltip("Base de POTÊNCIA DE BUFF (Self): mesmo cálculo de dano, base mais alta. Decisão Marcus 2026-07-10 (sem teto).")]
-        public float spellPotencyBaseBuff = 0.375f;
-
-        [Header("═══ MAGIA: SELF (BUFFS) ═══")]
-
-        [Header("═══ MAGIA: TILE (TERRENO) ═══")]
+        [Header("═══ EFEITOS DE TILE ═══")]
         [Tooltip("Fator de dano de fogo em tile: potência do fogo × fator = dano por tique. 1.0 = dano igual à magia direta (Decisão Marcus 2026-07-11, após potência base pela metade).")]
         public float fireTileDamageFactor = 1.0f;
         [Tooltip("Duração (rounds) do fogo em tile antes de apagar.")]
@@ -489,20 +528,9 @@ namespace PangeaSkirmish
         [Tooltip("Quantidade de altura adicionada ao tile de Pedra por Terra-Tile.")]
         public int earthRaiseAmount = 1;
 
-        [Header("═══ MAGIA: PROJÉTIL & RITMO ═══")]
-        [Tooltip("Nº de tiles que um projétil de Ar empurra o alvo ao acertar.")]
-        public int airProjectilePushTiles = 1;
-        [Tooltip("Velocidade do projétil (unidades/s). Maior = bala mais rápida.")]
-        public float spellProjectileSpeed = 14f;
-        [Tooltip("Dano de impacto contra parede quando empurrado e não há tile livre.")]
-        public int wallImpactDamage = 2;
-        [Tooltip("Arco parabólico do projétil (0 = reto, 1 = arco alto).")]
-        public float spellProjectileArc = 0.6f;
-        [Tooltip("Duração (s) da animação de conjuração (charging frames).")]
-        public float spellCastAnimDuration = 0.5f;
         [Range(0f, 1f)] public float tileEffectOverlayAlpha = 0.65f;
 
-        [Header("═══ MAGIA: CORES ═══")]
+        [Header("═══ CORES (ELEMENTOS & GRID) ═══")]
         [Tooltip("Cor do elemento Físico.")]
         public Color elemPhysicalColor = new Color(0.80f, 0.60f, 0.30f);
         [Tooltip("Cor do elemento Mágico.")]
@@ -515,60 +543,14 @@ namespace PangeaSkirmish
         public Color elemAirColor = new Color(0.70f, 0.90f, 1.00f);
         [Tooltip("Cor do elemento Terra.")]
         public Color elemEarthColor = new Color(0.50f, 0.35f, 0.15f);
-        [Tooltip("Cor do highlight de tiles alvo de magia.")]
-        public Color spellTargetHighlightColor = new Color(0.30f, 0.80f, 1.00f, 0.70f);
         [Tooltip("Cor do range de ataque destacado ao selecionar a unidade e ao mirar unidade.")]
         public Color attackRangeColor = new Color(1.00f, 0.82f, 0.30f, 0.35f);
         [Tooltip("Cor do range do inimigo ao passar o mouse sobre ele.")]
         public Color enemyRangeColor = new Color(1.00f, 0.28f, 0.22f, 0.45f);
-        [Tooltip("Cor do chip de magia na sequência de ações.")]
-        public Color seqChipSpellColor = new Color(0.60f, 0.20f, 0.80f);
         [Tooltip("Cor do chip de Concentração na barra de sequência de ações.")]
         public Color seqChipConcentrateColor = new Color(0.15f, 0.55f, 0.55f);
         [Tooltip("Cor do texto de mana na HUD.")]
         public Color manaTextColor = new Color(0.40f, 0.60f, 1.00f);
-
-        [Header("═══ MAGIA: SPRITES ═══")]
-        [Tooltip("Path do spritesheet de projétil Físico (Resources relative, sem extensão).")]
-        public string projectileSheetPhysical = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 1A";
-        [Tooltip("Path do spritesheet de projétil Mágico.")]
-        public string projectileSheetMagic = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 2A";
-        [Tooltip("Path do spritesheet de projétil Fogo.")]
-        public string projectileSheetFire = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 3A";
-        [Tooltip("Path do spritesheet de projétil Água.")]
-        public string projectileSheetWater = "Sprites/BDragon1727/Bullets/Bullet 24x24 Free Part 4A";
-        [Tooltip("Path do spritesheet de projétil Ar.")]
-        public string projectileSheetAir = "Sprites/BDragon1727/Bullets/Bullet 24x24 Part 5A Free";
-        [Tooltip("Path do spritesheet de projétil Terra.")]
-        public string projectileSheetEarth = "Sprites/BDragon1727/Bullets/Bullet 24x24 Part 6A Free";
-        [Tooltip("Path do spritesheet de impacto (explosão) — Effects.")]
-        public string impactSheetPath = "Sprites/BDragon1727/Effects/113";
-        [Tooltip("Índice do primeiro frame do sheet de IMPACTO a animar (atlas grande: janela)")]
-        public int impactFrameStart = 0;
-        [Tooltip("Quantos frames animar no IMPACTO a partir do início (0 = todos os frames do sheet)")]
-        public int impactFrameCount = 0;
-        [Tooltip("Path do spritesheet de aura de buff Self — RPGEffects.")]
-        public string auraSheetPath = "Sprites/BDragon1727/RPGEffects/1010";
-        [Tooltip("Índice do primeiro frame do sheet de AURA (Self) a animar")]
-        public int auraFrameStart = 0;
-        [Tooltip("Quantos frames animar na AURA a partir do início (0 = todos os frames do sheet)")]
-        public int auraFrameCount = 0;
-        [Tooltip("Escala do sprite de projétil no mundo.")]
-        public float spellProjectileScale = 1.5f;
-        [Tooltip("Escala do sprite de impacto/aura/tile-VFX no mundo.")]
-        public float spellVfxScale = 2f;
-        [Tooltip("FPS da animação de projétil/impacto/aura.")]
-        public float spellVfxFps = 12f;
-        [Tooltip("Ligar logs de debug de VFX de magia no Console (útil para testar).")]
-        public bool spellVfxDebugLogs = true;
-        [Tooltip("Índice do frame do sheet de projétil (os sheets têm variantes de COR; um frame fixo evita o projétil 'piscar' entre cores). -1 = animar por todos os frames.")]
-        public int spellProjectileFrame = 0;
-
-        [Header("═══ MAGIA: IA ═══")]
-        [Tooltip("Ligado = IA usa magia quando tem mana e alvo.")]
-        public bool aiUseSpells = true;
-        [Tooltip("Threshold de mana para IA considerar Concentração. 0 = sempre tenta concentrar quando sem mana.")]
-        public int aiConcentrationThreshold = 0;
 
         [Header("═══ BARRAS NO MUNDO (HP/MP) ═══")]
         [Tooltip("Mostrar barras de HP/MP flutuando sobre as unidades no campo.")]
@@ -634,11 +616,13 @@ namespace PangeaSkirmish
         // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
-        public float reactionChoiceTime   = 50f;
+        public float reactionChoiceTime   = 3f;
         [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
-        public float dodgeReactionPerAGI  = 0.03f;
+        public float dodgeReactionPerAGI  = 0.09f;
         [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
-        public float blockReductionPerVIT = 0.03f;
+        public float blockReductionPerVIT = 0.04f;   // legado (percentual): o Bloquear agora é FIXO
+        [Tooltip("Bloquear: redução fixa = VIT × este valor + dureza da arma (GDD-017).")]
+        public float blockFlatPerVIT = 0.25f;
         [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]

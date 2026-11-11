@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| **Status** | Implemented |
+| **Status** | Removido (2026-11-10) — histórico. O novo sistema parte do GDD-013 (lore). |
 | **Systems** | SpellTypes, SpellResolver, SpellVfx, TileEffects |
 | **Priority** | Core |
 

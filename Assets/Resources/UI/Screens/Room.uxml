@@ -64,8 +64,9 @@
                 <ui:VisualElement name="host-controls" class="pg-panel room__host-panel">
                     <ui:Label text="Modo" class="room__col-title" />
                     <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-tdm" text="TDM" class="pg-button room__mode-btn" />
-                        <ui:Button name="btn-ffa" text="FFA" class="pg-button room__mode-btn" />
+                        <ui:Button name="btn-tdm" text="PvP Times" class="pg-button room__mode-btn" />
+                        <ui:Button name="btn-ffa" text="PvP Todos" class="pg-button room__mode-btn" />
+                        <ui:Button name="btn-coop" text="Coop" class="pg-button room__mode-btn" />
                     </ui:VisualElement>
 
                     <ui:Label text="Nome da sala" class="pg-label--dim room__ctrl-label" />
@@ -101,8 +102,8 @@
 
                     <ui:VisualElement class="opt-row">
                         <ui:VisualElement class="opt-text">
-                            <ui:Label text="Tempo de planejamento" class="opt-label" />
-                            <ui:Label text="Segundos por turno de planejamento" class="opt-desc" />
+                            <ui:Label text="Tempo de decisão" class="opt-label" />
+                            <ui:Label text="Segundos para decidir em cada ponto de decisão" class="opt-desc" />
                         </ui:VisualElement>
                         <ui:VisualElement class="stepper">
                             <ui:Image name="room-plan-icon-minus" class="room__icon room__icon--arrow" />

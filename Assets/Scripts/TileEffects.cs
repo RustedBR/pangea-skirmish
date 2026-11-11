@@ -104,6 +104,7 @@ namespace PangeaSkirmish
             go.transform.SetParent(_overlayRoot);
             // Migração XY→XZ (2026-07-20): overlay de tile é topo → deita no XZ.
             go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            go.transform.localScale = new Vector3(1f, World3D.GroundStretch, 1f);
             // Fix (2026-07-29): _overlayRoot não é filho do grid, então o overlay
             // não seguia a reindexação da rotação de vista — fogo/água/vento
             // ficavam no slot físico errado após qualquer Q/E. Attach já posiciona.

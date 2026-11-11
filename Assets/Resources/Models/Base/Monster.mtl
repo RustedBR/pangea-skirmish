@@ -1,0 +1,42 @@
+newmtl fur
+Kd 0.500 0.360 0.240
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl belly
+Kd 0.720 0.600 0.440
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl fur_dark
+Kd 0.300 0.210 0.150
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl eye
+Kd 0.060 0.050 0.050
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl eye_glow
+Kd 0.950 0.750 0.150
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl bone
+Kd 0.900 0.860 0.740
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

@@ -1,12 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
   <Style src="../Theme/PangeaTheme.uss" />
   <Style src="BattleHUD.uss" />
-  <ui:VisualElement name="root" class="pg-theme bh-root">
+  <ui:VisualElement name="root" class="pg-theme bh-root" picking-mode="Ignore">
 
-    <!-- TOPO: fase + timer -->
+    <!-- TOPO: fase + timer (texto centralizado) -->
     <ui:VisualElement name="topbar" class="bh-window bh-topbar">
       <ui:Label name="phase-text" text="Phase" class="bh-phase" />
       <ui:Label name="timer-text" text="Timer" class="bh-timer" />
+    </ui:VisualElement>
+
+    <!-- BANDA DE INTENÇÃO (GDD-016): faixa central no topo, NÃO cobre mais o botão Confirmar.
+         Substitui a dica de intenção que antes usava o prompt-panel de canto. -->
+    <ui:VisualElement name="intent-band" class="bh-window bh-intentband">
+      <ui:Label name="intent-tag" text="" class="bh-intent-tag" />
+      <ui:Label name="intent-hint" text="" class="bh-intent-hint" />
+      <ui:VisualElement class="bh-intent-keys">
+        <ui:Label text="1" class="bh-intent-key" />
+        <ui:Label text="2" class="bh-intent-key" />
+        <ui:Label text="3" class="bh-intent-key" />
+      </ui:VisualElement>
     </ui:VisualElement>
 
     <!-- INDICADOR DE MODO CÂMERA -->
@@ -14,10 +26,7 @@
       <ui:Label name="camera-mode-text" text="Auto" class="bh-camera-label" />
     </ui:VisualElement>
 
-    <!-- COMPASSO: mostra para onde aponta o norte do mapa na orientação de vista
-         atual (Q/E). A rosa inteira gira via `rotate` no USS, com transition, então
-         N/L/S/O acompanham e o giro é suave mesmo com a troca do mapa instantânea.
-         picking-mode Ignore para não roubar zoom/pan do jogo. -->
+    <!-- COMPASSO -->
     <ui:VisualElement name="compass" class="bh-window bh-compass" picking-mode="Ignore">
       <ui:VisualElement name="compass-rose" class="bh-compass-rose" picking-mode="Ignore">
         <ui:VisualElement name="compass-needle" class="bh-compass-needle" picking-mode="Ignore" />
@@ -28,130 +37,60 @@
       </ui:VisualElement>
     </ui:VisualElement>
 
-    <!-- ESQUERDA: histórico de batalha -->
-    <ui:VisualElement name="battle-log" class="bh-window bh-log">
-      <ui:Label text="HISTÓRICO DE BATALHA" class="bh-title" />
-      <ui:ScrollView name="log-scroll" class="bh-log-scroll">
-        <ui:VisualElement name="log-content" class="bh-log-content" />
-      </ui:ScrollView>
+    <!-- MINI-LOG TEMPORÁRIO (reformulação): histórico compacto que aparece junto com a
+         inspeção da unidade selecionada — some quando não há seleção. Substitui o
+         histórico fixo de batalha da esquerda. -->
+    <ui:VisualElement name="mini-log" class="bh-window bh-minilog">
+      <ui:Label text="HISTÓRICO" class="bh-title" />
+      <ui:VisualElement name="mini-log-content" class="bh-minilog-content" />
     </ui:VisualElement>
 
-    <!-- Tooltip do log -->
-    <ui:VisualElement name="log-tooltip" class="bh-window bh-tooltip" picking-mode="Ignore">
-      <ui:Label name="tooltip-txt" text="" class="bh-tooltip-txt" picking-mode="Ignore" />
-    </ui:VisualElement>
-
-    <!-- INFERIOR ESQ: status do personagem -->
-    <ui:VisualElement name="status-panel" class="bh-window bh-status">
-      <ui:Label text="UNIDADE" class="bh-title" />
-      <ui:VisualElement name="status-content" class="bh-status-content">
-        <ui:VisualElement name="portrait" class="bh-portrait">
-          <ui:Image name="portrait-img" class="bh-portrait-img" />
+    <!-- INSPEÇÃO DA UNIDADE (reformulação): bolha compacta sob demanda — aparece quando
+         o jogador clica numa unidade e some ao clicar fora. Substitui o painel de status fixo. -->
+    <ui:VisualElement name="inspect-panel" class="bh-window bh-inspect">
+      <ui:VisualElement name="inspect-content" class="bh-inspect-content">
+        <ui:VisualElement class="bh-inspect-head">
+          <ui:VisualElement name="portrait" class="bh-portrait">
+            <ui:Image name="portrait-img" class="bh-portrait-img" />
+          </ui:VisualElement>
+          <ui:VisualElement class="bh-inspect-info">
+            <ui:Label name="unit-name" text="" class="bh-unit-name" />
+            <ui:VisualElement name="hp-bg" class="bh-hp-bg">
+              <ui:VisualElement name="hp-fill" class="bh-hp-fill" />
+            </ui:VisualElement>
+            <ui:Label name="hp-text" text="" class="bh-hp-text" />
+            <ui:Label name="ap-text" text="" class="bh-ap-text" />
+          </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Label name="unit-name" text="" class="bh-unit-name" />
-        <ui:VisualElement name="hp-bg" class="bh-hp-bg">
-          <ui:VisualElement name="hp-fill" class="bh-hp-fill" />
-        </ui:VisualElement>
-        <ui:Label name="hp-text" text="" class="bh-hp-text" />
-        <ui:Label name="ap-text" text="" class="bh-ap-text" />
         <ui:Label name="stats-text" text="" class="bh-stats-text" />
-        <ui:Label name="hint-text" text="Clique numa unidade para inspecionar" class="bh-hint-text" />
       </ui:VisualElement>
     </ui:VisualElement>
 
-    <!-- CENTRO INF: fila de ações -->
-    <ui:VisualElement name="seq-bar" class="bh-window bh-seq">
-      <ui:Label text="Ordem das ações" class="bh-seq-label" />
-      <ui:VisualElement name="seq-content" class="bh-seq-content" />
+    <!-- BARRA DE TICKS (GDD-016 §7): track proporcional ao custo + chips da fila.
+         Substitui o seq-bar de chips fixos de 90px. -->
+    <ui:VisualElement name="ticks-bar" class="bh-window bh-ticks">
+      <ui:Label name="ticks-label" text="FILA — TEMPO" class="bh-ticks-label" />
+      <ui:VisualElement name="ticks-track" class="bh-ticks-track" />
+      <ui:VisualElement name="ticks-queue" class="bh-ticks-queue" />
     </ui:VisualElement>
 
-    <!-- INFERIOR DIR: menu de comandos (cascata) -->
-    <ui:VisualElement name="command-menu" class="bh-window bh-commands">
-      <ui:Label name="breadcrumb" text="" class="bh-breadcrumb" />
-      <!-- MAIN -->
-      <ui:VisualElement name="main-menu" class="bh-subpanel">
-        <ui:Label text="COMANDOS" class="bh-title" />
-        <ui:Button name="btn-actions"  text="1 - Ações"   class="bh-menu-btn" />
-        <ui:Button name="btn-bonus"   text="2 - Bônus"   class="bh-menu-btn" />
-        <ui:Button name="btn-magic"   text="3 - Magia"   class="bh-menu-btn" />
-        <ui:Button name="btn-confirm" text="Confirmar plano" class="bh-confirm-btn" />
-        <ui:Button name="btn-undo"    text="Desfazer" class="bh-inline-btn" />
-        <ui:Button name="btn-clear"   text="Limpar"   class="bh-inline-btn" />
-      </ui:VisualElement>
-      <!-- ACTIONS -->
-      <ui:VisualElement name="actions-menu" class="bh-subpanel">
-        <ui:Label text="AÇÕES" class="bh-title" />
-        <ui:Button name="btn-move"     text="1 - Mover"        class="bh-menu-btn" />
-        <ui:Button name="btn-attack"   text="2 - Atacar"       class="bh-menu-btn" />
-      </ui:VisualElement>
-      <!-- ATTACK -->
-      <ui:VisualElement name="attack-menu" class="bh-subpanel">
-        <ui:Label text="ATACAR" class="bh-title" />
-        <ui:Button name="btn-attack-unit" text="1 - Atacar Unidade" class="bh-menu-btn" />
-        <ui:Button name="btn-attack-tile" text="2 - Atacar Tile"   class="bh-menu-btn" />
-      </ui:VisualElement>
-      <!-- MAGIC -->
-      <ui:VisualElement name="magic-menu" class="bh-subpanel">
-        <ui:Label text="MAGIA" class="bh-title" />
-        <ui:Button name="btn-elem-physical" text="1 - Físico" class="bh-menu-btn" />
-        <ui:Button name="btn-elem-magic"    text="2 - Mágico" class="bh-menu-btn" />
-        <ui:Button name="btn-elem-fire"     text="3 - Fogo"   class="bh-menu-btn" />
-        <ui:Button name="btn-elem-water"    text="4 - Água"   class="bh-menu-btn" />
-        <ui:Button name="btn-elem-air"      text="5 - Ar"     class="bh-menu-btn" />
-        <ui:Button name="btn-elem-earth"    text="6 - Terra"  class="bh-menu-btn" />
-      </ui:VisualElement>
-      <!-- SPELL TYPE -->
-      <ui:VisualElement name="spelltype-menu" class="bh-subpanel">
-        <ui:Label text="ALVO DA MAGIA" class="bh-title" />
-        <ui:Button name="btn-spell-self"  text="1 - Self"   class="bh-menu-btn" />
-        <ui:Button name="btn-spell-unit"  text="2 - Unidade" class="bh-menu-btn" />
-        <ui:Button name="btn-spell-tile"  text="3 - Tile"    class="bh-menu-btn" />
-      </ui:VisualElement>
-      <!-- MANA STEPPER (2 pools: alcance/duração + potência/atributo) -->
-      <ui:VisualElement name="mana-menu" class="bh-subpanel bh-mana-compact">
-        <ui:Label text="MAGIA — MANA" class="bh-title" />
-        <ui:Label name="mana-value" text="0 MP" class="bh-mana-value" />
-        <!-- Pool ALCANCE / DURAÇÃO (só mana) -->
-        <ui:VisualElement class="opt-row bh-mana-opt">
-          <ui:VisualElement class="opt-text">
-            <ui:Label name="mana-range-label" text="Alcance / Duração" class="opt-label" />
-            <ui:Label text="Tiles de distância do alvo. Define duração de self-buff." class="opt-desc" />
-          </ui:VisualElement>
-          <ui:VisualElement class="stepper">
-            <ui:Button name="mana-range-minus" text="−" class="bh-step-btn" />
-            <ui:Label name="mana-range-value" text="0" class="step-value" />
-            <ui:Button name="mana-range-plus"  text="+" class="bh-step-btn" />
-          </ui:VisualElement>
-        </ui:VisualElement>
-        <!-- Pool POTÊNCIA / ATRIBUTO (mana + 1 PA por ponto) -->
-        <ui:VisualElement class="opt-row bh-mana-opt">
-          <ui:VisualElement class="opt-text">
-            <ui:Label name="mana-power-label" text="Potência / Atributo" class="opt-label" />
-            <ui:Label text="Quanto maior, mais dano/buff. Custa 1 PA por ponto." class="opt-desc" />
-          </ui:VisualElement>
-          <ui:VisualElement class="stepper">
-            <ui:Button name="mana-power-minus" text="−" class="bh-step-btn" />
-            <ui:Label name="mana-power-value" text="1" class="step-value" />
-            <ui:Button name="mana-power-plus"  text="+" class="bh-step-btn" />
-          </ui:VisualElement>
-        </ui:VisualElement>
-        <ui:Label name="mana-potency" text="Alcance: 0  •  Potência: 0" class="bh-mana-potency" />
-        <ui:VisualElement class="bh-mana-actions">
-          <ui:Button name="mana-cast"  text="Conjurar" class="bh-confirm-btn bh-btn-sm" />
-          <ui:Button name="mana-back"  text="Voltar"   class="bh-menu-btn bh-btn-sm" />
-        </ui:VisualElement>
-      </ui:VisualElement>
-      <!-- BONUS -->
-      <ui:VisualElement name="bonus-menu" class="bh-subpanel">
-        <ui:Label text="AÇÕES BÔNUS" class="bh-title" />
-        <ui:Button name="btn-concentrate" text="1 - Concentrar" class="bh-menu-btn" />
-        <ui:Button name="btn-increment"  text="2 - Incremento" class="bh-menu-btn" />
-        <ui:Button name="btn-aim"        text="3 - Mirar"       class="bh-menu-btn" />
-        <ui:Button name="btn-mira-magia" text="4 - Mira Mágica" class="bh-menu-btn" />
+    <!-- PAINEL DE INTENÇÕES (reformulação): substitui o menu cascata de comandos.
+         1-3 armam intenção (mesmas teclas), 4-5 reservadas (dim). -->
+    <ui:VisualElement name="intents-panel" class="bh-window bh-intents">
+      <ui:Label text="INTENÇÕES" class="bh-title" />
+      <ui:Button name="btn-intent-1" text="1 · Investir" class="bh-intent-btn" />
+      <ui:Button name="btn-intent-2" text="2 · Golpear e recuar" class="bh-intent-btn" />
+      <ui:Button name="btn-intent-3" text="3 · Recuar" class="bh-intent-btn" />
+      <ui:Button name="btn-intent-4" text="4 · Manter distância" class="bh-intent-btn bh-intent-dim" />
+      <ui:Button name="btn-intent-5" text="5 · Proteger" class="bh-intent-btn bh-intent-dim" />
+      <ui:VisualElement name="intents-actions" class="bh-intents-actions">
+        <ui:Button name="btn-confirm" text="Confirmar" class="bh-actbtn bh-act-confirm" />
+        <ui:Button name="btn-undo" text="Desfazer" class="bh-actbtn" />
+        <ui:Button name="btn-clear" text="Limpar" class="bh-actbtn bh-act-clear" />
       </ui:VisualElement>
     </ui:VisualElement>
 
-    <!-- REACTION MENU (Ações Bônus rework) — fora do command-menu p/ aparecer na fase de ação -->
+    <!-- REACTION MENU (modal central — não colide com mais nada) -->
     <ui:VisualElement name="reaction-menu" class="bh-window bh-reaction">
       <ui:Label name="reaction-title" text="REAGIR" class="bh-title" />
       <ui:Label name="reaction-timer" text="" class="bh-bonus-timer" />
@@ -159,7 +98,7 @@
       <ui:VisualElement name="reaction-buttons" class="bh-reaction-buttons" />
     </ui:VisualElement>
 
-    <!-- PROMPT DE BÔNUS -->
+    <!-- PROMPT DE BÔNUS (mantido p/ passos extras do GDD) -->
     <ui:VisualElement name="prompt-panel" class="bh-window bh-prompt">
       <ui:Label text="COMANDOS" class="bh-title" />
       <ui:Label name="bonus-timer" text="" class="bh-bonus-timer" />

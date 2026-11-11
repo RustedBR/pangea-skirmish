@@ -31,7 +31,8 @@ namespace PangeaSkirmish
         private readonly Dictionary<ulong, byte[]> _receivedPlans = new Dictionary<ulong, byte[]>();
         private bool _collectingPlans;
         private float _collectionTimer;
-        private const float HostExtraTimeout = 5f;
+        // Cobre o teto de pausa do relógio de planejamento (planningPauseBudget = 12s) mais folga de rede.
+        private const float HostExtraTimeout = 16f;
         private int _expectedCount;
         // Corrotina de timeout do round ATUAL — precisa ser cancelada quando a coleta fecha
         // cedo (AllSlotsHaveSubmitted). Sem isto, a corrotina antiga continua viva em segundo
@@ -126,15 +127,15 @@ namespace PangeaSkirmish
             // Serializa o plano das unidades do jogador local e envia
             var wire = new RoundPlansWire();
             bool hasAnyAction = false;
-            int nMoves = 0, nAtks = 0, nSpells = 0;
+            int nMoves = 0, nAtks = 0;
             foreach (var u in _units)
             {
                 if (u.ownerId != LocalId) continue;
                 wire.plans.Add(UnitPlanWire.FromUnit(u));
-                if (u.actionSequence.Count > 0) hasAnyAction = true;
-                nMoves += u.plannedMoveCount; nAtks += u.plannedAttacks.Count; nSpells += u.plannedSpells.Count;
+                if (u.actionSequence.Count > 0 || u.IsBusy) hasAnyAction = true; // ocupada não é AFK
+                nMoves += u.plannedMoveCount; nAtks += u.plannedAttacks.Count;
             }
-            Debug.Log($"[Lockstep] enviando plano (clientId={LocalId}): unidades={wire.plans.Count} moves={nMoves} atks={nAtks} spells={nSpells}");
+            Debug.Log($"[Lockstep] enviando plano (clientId={LocalId}): unidades={wire.plans.Count} moves={nMoves} atks={nAtks}");
 
             // Track AFK
             ulong myId = LocalId;
@@ -207,7 +208,7 @@ namespace PangeaSkirmish
             var alive = new HashSet<ulong>();
             if (_units != null)
                 foreach (var u in _units)
-                    if (!u.IsDead) alive.Add(u.ownerId);
+                    if (!u.IsDead && !BeastAI.Controls(u)) alive.Add(u.ownerId); // feras não enviam plano
             return alive;
         }
 
@@ -285,8 +286,8 @@ namespace PangeaSkirmish
                     {
                         envelope.plans.AddRange(partial.plans);
                         int m = 0, a = 0, s = 0;
-                        foreach (var p in partial.plans) { m += p.plannedMoveCount; a += p.attacks.Count; s += p.spells.Count; }
-                        Debug.Log($"[Lockstep] plano de clientId={kv.Key}: unidades={partial.plans.Count} moves={m} atks={a} spells={s}");
+                        foreach (var p in partial.plans) { m += p.plannedMoveCount; a += p.attacks.Count; }
+                        Debug.Log($"[Lockstep] plano de clientId={kv.Key}: unidades={partial.plans.Count} moves={m} atks={a}");
                     }
                 }
                 catch (Exception e)
@@ -612,6 +613,47 @@ namespace PangeaSkirmish
             ulong sender = rpcParams.Receive.SenderClientId;
             if (reactor == null || reactor.ownerId != sender) return;
             ApplyReactionClientRpc(reactorId, kind);
+        }
+
+        // ---- Janela de incremento entre ticks (GDD-016): o host ordena, todos aplicam igual ----
+        private int _openWindowSeq;      // janela aberta no host (0 = fechada)
+
+        /// <summary>Host: abre a janela <paramref name="seq"/> e a fecha para todos após <paramref name="seconds"/>.</summary>
+        public void HostOpenIncrementWindow(int seq, float seconds)
+        {
+            if (!IsServer) return;
+            _openWindowSeq = seq;
+            StartCoroutine(CloseWindowAfter(seq, seconds));
+        }
+
+        private IEnumerator CloseWindowAfter(int seq, float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            if (_openWindowSeq == seq) _openWindowSeq = 0;
+            CloseIncrementWindowClientRpc(seq);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void SubmitIncrementServerRpc(uint unitId, int kind, ServerRpcParams rpcParams = default)
+        {
+            var u = UnitRegistry.Get(unitId);
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (u == null || u.ownerId != sender || _openWindowSeq == 0) return; // só o dono, e só com a janela aberta
+            ApplyIncrementClientRpc(_openWindowSeq, unitId, kind);
+        }
+
+        [ClientRpc]
+        private void ApplyIncrementClientRpc(int seq, uint unitId, int kind)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.BufferIncrement(seq, unitId, kind);
+        }
+
+        [ClientRpc]
+        private void CloseIncrementWindowClientRpc(int seq)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.OnIncrementWindowClosed(seq);
         }
 
         [ClientRpc]

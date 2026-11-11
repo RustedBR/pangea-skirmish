@@ -294,7 +294,13 @@ namespace PangeaSkirmish
                 _objectNames[x, y] = "";
                 DestroyObjectAt(x, y);
                 var tileSr = _tiles != null ? _tiles[x, y] : null;
-                if (tileSr != null) { DestroyGO(tileSr.gameObject); _tiles[x, y] = null; }
+                if (tileSr != null)
+                {
+                    // Destrói o CONTAINER (Top + bloco 3D), não só o Top.
+                    var container = tileSr.transform.parent != null ? tileSr.transform.parent.gameObject : tileSr.gameObject;
+                    DestroyGO(container);
+                    _tiles[x, y] = null;
+                }
                 if (_collision != null) _collision.SetWalkable(x, y, false);
                 return;
             }
@@ -332,10 +338,7 @@ namespace PangeaSkirmish
                 // de terra/água ou pintura de altura no Sandbox).
                 var container = sr.transform.parent != null ? sr.transform.parent : sr.transform;
                 container.position = CellToWorld(new Vector2Int(x, y)) + positionOffset;
-                var sprite = tileDatabase != null ? tileDatabase.GetTile(_terrainNames[x, y]) : null;
-                sr.sprite = sprite ?? _blockSprite;
-                if (cellHeight != oldHeight)
-                    UpdateSideFaces(x, y, cellHeight);
+                RefreshBlock(x, y); // altura e/ou terreno mudaram
             }
 
             // (Re)construir objeto overlay
@@ -369,6 +372,7 @@ namespace PangeaSkirmish
             var top = CellToWorld(new Vector2Int(x, y)) + positionOffset;
             go.transform.position = top;
             go.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
+            go.transform.rotation = World3D.CamRotation; // sprite em pé (billboard fixo)
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = tileDatabase.GetTile(name) ?? _blockSprite;
             sr.sortingOrder = (x + y) * 4 + 2; // acima do terreno
@@ -390,65 +394,72 @@ namespace PangeaSkirmish
         /// </summary>
         private void UpdateSideFaces(int x, int y, int height)
         {
-            var tileGo = _tiles[x, y]?.gameObject;
-            if (tileGo == null) return;
-
-            for (int i = tileGo.transform.childCount - 1; i >= 0; i--)
-            {
-                var child = tileGo.transform.GetChild(i).gameObject;
-                if (child.name.StartsWith("SideFace"))
-                    DestroyGO(child);
-            }
-
-            if (height <= 0) return;
-
-            float sideH = height * _heightStep;               // altura total (world)
-            int levels = Mathf.Max(1, Mathf.RoundToInt(sideH / 0.5f)); // cópias de 0.5
-            float levelH = sideH / levels;
-
-            Sprite sideSprite = (tileDatabase != null) ? tileDatabase.GetSideFace(_terrainNames[x, y]) : null;
-            if (sideSprite == null) sideSprite = _blockSprite;
-
-            // Altura world natural do sprite de face (PPU 16)
-            float sideSpriteWorldH = sideSprite.rect.height / TileDatabase.BLOCK_PPU;
-            int order = _tiles[x, y].sortingOrder - 10;
-
-            // Duas faces (esquerda escura + direita média), estilo iso, empilhadas.
-            for (int k = 0; k < levels; k++)
-            {
-                float yc = -levelH * (k + 0.5f);          // centro vertical do nível k
-                float sy = levelH / sideSpriteWorldH;      // escala Y p/ caber em levelH
-
-                // Face esquerda (mais escura)
-                var goL = new GameObject($"SideFace_L{k}");
-                goL.transform.SetParent(tileGo.transform, false);
-                // ATENÇÃO (nota corrigida em 2026-07-29): estas faces são filhas do
-                // "Top" (UpdateSideFaces usa _tiles[x,y].gameObject), que está
-                // rotacionado Euler(90,0,0). Logo este localPosition.y NÃO é altura
-                // do mundo — a rotação o mapeia para world −Z, que sob a câmera
-                // reto de cima aparece como "para baixo na tela". É exatamente o
-                // que queremos, mas por um caminho diferente do que dizia o
-                // comentário antigo. Não troque para world Y: com câmera
-                // ortográfica top-down, deslocamento em Y é a direção de visão e as
-                // faces sumiriam da tela.
-                goL.transform.localPosition = new Vector3(-_halfW * 0.5f, yc, 0f);
-                goL.transform.localScale = new Vector3(_halfW * 2f, sy, 1f); // largura = 1 tile iso
-                var srL = goL.AddComponent<SpriteRenderer>();
-                srL.sprite = sideSprite;
-                srL.color = new Color(0.55f, 0.45f, 0.35f);  // terra escura
-                srL.sortingOrder = order + k;
-
-                // Face direita (média)
-                var goR = new GameObject($"SideFace_R{k}");
-                goR.transform.SetParent(tileGo.transform, false);
-                goR.transform.localPosition = new Vector3(_halfW * 0.5f, yc, 0f);
-                goR.transform.localScale = new Vector3(_halfW * 2f, sy, 1f);
-                var srR = goR.AddComponent<SpriteRenderer>();
-                srR.sprite = sideSprite;
-                srR.color = new Color(0.75f, 0.6f, 0.45f);   // terra média
-                srR.sortingOrder = order + k;
-            }
+            // Mundo 3D: as laterais são a própria malha do bloco.
+            RefreshBlock(x, y);
         }
+
+        // ------------------------------------------------------------------ MUNDO 3D
+
+        private static Sprite _tileFillSprite;
+        /// <summary>Losango cheio (mesma geometria do contorno da grade) usado como camada de destaque.</summary>
+        private static Sprite GetTileFillSprite()
+        {
+            if (_tileFillSprite != null) return _tileFillSprite;
+            const int S = 32;
+            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false)
+            { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            for (int py = 0; py < S; py++)
+            for (int px = 0; px < S; px++)
+            {
+                float dx = Mathf.Abs(px + 0.5f - 16f) / 16f;
+                float dy = Mathf.Abs(py + 0.5f - 24f) / 8f;
+                tex.SetPixel(px, py, dx + dy <= 1f ? Color.white : Color.clear);
+            }
+            tex.Apply();
+            _tileFillSprite = Sprite.Create(tex, new Rect(0, 0, S, S), new Vector2(0.5f, 0.75f), 16);
+            _tileFillSprite.name = "TileFill";
+            return _tileFillSprite;
+        }
+
+        /// <summary>
+        /// Converte o "Top" recém-criado em camada de destaque (losango transparente, deitado
+        /// e esticado para virar o quadrado do tile) e cria o bloco 3D do terreno.
+        /// </summary>
+        private void FinishTile3D(GameObject topGo, SpriteRenderer sr, int x, int y)
+        {
+            topGo.transform.localScale = new Vector3(spriteScale, spriteScale * World3D.GroundStretch, 1f);
+            sr.sprite = GetTileFillSprite();
+            sr.color = Color.clear;
+            _tiles[x, y] = sr;
+            _baseColors[x, y] = Color.clear;
+            RefreshBlock(x, y);
+        }
+
+        /// <summary>Cria/atualiza o bloco 3D da célula: tamanho pela altura, cor pelo terreno.</summary>
+        private void RefreshBlock(int x, int y)
+        {
+            var sr = _tiles != null ? _tiles[x, y] : null;
+            if (sr == null || sr.transform.parent == null) return;
+            var tileGo = sr.transform.parent;
+
+            var block = tileGo.Find("Block");
+            if (block == null)
+            {
+                var go = World3D.Spawn("TerrainBlock", tileGo);
+                if (go == null) return;
+                go.name = "Block";
+                block = go.transform;
+                block.localRotation = Quaternion.Euler(0f, 45f, 0f);
+            }
+            float side  = _halfW * Mathf.Sqrt(2f);                       // lado do quadrado do tile
+            float depth = HeightAt(x, y) * _heightStep + BlockBaseDepth; // o modelo tem 1 de altura
+            block.localPosition = new Vector3(0f, -World3D.BlockSink, 0f);
+            block.localScale = new Vector3(side, depth, side);
+            World3D.Paint(block, World3D.TerrainColors(_terrainNames[x, y]), Color.white);
+        }
+
+        /// <summary>Quanto o bloco desce abaixo do nível 0 (base visível nas bordas do mapa).</summary>
+        private const float BlockBaseDepth = 1.5f;
 
         private void BuildSingleTile(int x, int y)
         {
@@ -493,9 +504,7 @@ namespace PangeaSkirmish
 
             sr.sprite = tileSprite;
             sr.sortingOrder = (x + y) * 4;
-            sr.color = Color.white;
-            _tiles[x, y] = sr;
-            _baseColors[x, y] = Color.white;
+            FinishTile3D(topGo, sr, x, y);
 
             if (showGridLines)
             {
@@ -690,9 +699,7 @@ namespace PangeaSkirmish
 
                 sr.sprite = tileSprite;
                 sr.sortingOrder = (x + y) * 4;
-                sr.color = Color.white;
-                _tiles[x, y] = sr;
-                _baseColors[x, y] = Color.white;
+                FinishTile3D(topGo, sr, x, y);
 
                 if (gridLineSprite != null)
                 {
@@ -792,9 +799,7 @@ namespace PangeaSkirmish
 
                 sr.sprite = tileSprite;
                 sr.sortingOrder = (x + y) * 4;
-                sr.color = Color.white;
-                _tiles[x, y] = sr;
-                _baseColors[x, y] = Color.white;
+                FinishTile3D(topGo, sr, x, y);
 
                 // Grid lines overlay
                 if (gridLineSprite != null)
@@ -837,6 +842,8 @@ namespace PangeaSkirmish
         // ---- Cliff: faces de penhasco nas bordas do platô elevado ----
         private void PlaceCliffFaces(Transform parent)
         {
+            return; // Mundo 3D: o desnível é a lateral do próprio bloco.
+#pragma warning disable CS0162
             if (tileDatabase == null) return;
             var cliffSW = tileDatabase.GetTile("grass_cliff_SO"); // BL — borda sul
             var cliffSE = tileDatabase.GetTile("grass_cliff_SE"); // BR — borda leste
@@ -984,6 +991,8 @@ namespace PangeaSkirmish
 
         private void ApplyDebugSprites()
         {
+            return; // Mundo 3D: o Top é só camada de destaque; não recebe arte do atlas.
+#pragma warning disable CS0162
             if (_tiles == null) return;
 
             Sprite debugSprite = null;
@@ -1206,6 +1215,25 @@ namespace PangeaSkirmish
             if (cc != null && cc.IsViewSpinning) return false;
 
             Ray ray = cam.ScreenPointToRay(screen);
+
+            // Mundo 3D: com a câmera inclinada, um tile elevado cobre na tela os tiles
+            // atrás dele. Testa os planos do mais alto para o mais baixo e aceita o
+            // primeiro cujo tile realmente está naquela altura.
+            if (_heights != null)
+            {
+                int maxH = 0;
+                foreach (int h in _heights) if (h > maxH) maxH = h;
+                for (int h = maxH; h >= 1; h--)
+                {
+                    var plane = new Plane(Vector3.up, new Vector3(0f, h * _heightStep, 0f));
+                    if (!plane.Raycast(ray, out float d)) continue;
+                    Vector3 p = ray.GetPoint(d);
+                    var c = WorldToCellBase(p, false);
+                    if (c.x < 0 || c.y < 0 || c.x >= width || c.y >= height) continue;
+                    if (HeightAt(c.x, c.y) == h) { worldPoint = p; return true; }
+                }
+            }
+
             if (GroundPlane.Raycast(ray, out float dist))
             {
                 worldPoint = ray.GetPoint(dist);
@@ -1466,8 +1494,10 @@ namespace PangeaSkirmish
 
         private void SetTileColor(Vector2Int cell, Color c)
         {
-            if (_tiles != null && _tiles[cell.x, cell.y] != null)
-                _tiles[cell.x, cell.y].color = c;
+            if (_tiles == null || _tiles[cell.x, cell.y] == null) return;
+            // Mundo 3D: o Top é uma camada sobre o bloco — destaque translúcido.
+            if (c.a > 0.01f) c.a = Mathf.Min(c.a, 0.34f);
+            _tiles[cell.x, cell.y].color = c;
         }
     }
 }

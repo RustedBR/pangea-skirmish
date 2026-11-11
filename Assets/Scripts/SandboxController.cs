@@ -386,7 +386,7 @@ namespace PangeaSkirmish
                 var topGo = new GameObject("Top");
                 topGo.transform.SetParent(go.transform, false);
                 topGo.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                topGo.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
+                topGo.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale * World3D.GroundStretch, 1f);
 
                 var sr = topGo.AddComponent<SpriteRenderer>();
 
@@ -687,7 +687,7 @@ namespace PangeaSkirmish
             var go = new GameObject("HoverCursor");
             // Migração XY→XZ (2026-07-20): cursor de tile é topo → deita no XZ.
             go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale, 1f);
+            go.transform.localScale = new Vector3(_grid.spriteScale, _grid.spriteScale * World3D.GroundStretch, 1f);
             _hoverCursor = go.AddComponent<SpriteRenderer>();
             _hoverCursor.sprite = BuildCursorSprite();
             _hoverCursor.sortingOrder = 9000;
@@ -927,7 +927,7 @@ namespace PangeaSkirmish
                 case "STR": p.stats.STR = Mathf.Clamp(p.stats.STR + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
                 case "VIT": p.stats.VIT = Mathf.Clamp(p.stats.VIT + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
                 case "DEX": p.stats.DEX = Mathf.Clamp(p.stats.DEX + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
-                case "AGI": p.stats.AGI = Mathf.Clamp(p.stats.AGI + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
+                case "AGI": p.stats.AGI = Mathf.Clamp(p.stats.AGI + delta, CharacterConfig.AttrMin, CharacterConfig.AgiMax); break;
                 case "INT": p.stats.INT = Mathf.Clamp(p.stats.INT + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
                 case "WIS": p.stats.WIS = Mathf.Clamp(p.stats.WIS + delta, CharacterConfig.AttrMin, CharacterConfig.AttrMax); break;
             }

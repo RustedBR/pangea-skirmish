@@ -55,7 +55,6 @@ namespace PangeaSkirmish.Editor
             Debug.Log($"[AttackTester] Golpe {label} em '{unit.unitName}' (arma: {unit.weaponId})");
         }
 
-        /// <summary>Unidade selecionada na Hierarchy; sem seleção, a primeira unidade viva do Player.</summary>
         private static Unit PickUnit()
         {
             if (Selection.activeGameObject != null)
@@ -63,9 +62,9 @@ namespace PangeaSkirmish.Editor
                 var sel = Selection.activeGameObject.GetComponentInParent<Unit>();
                 if (sel != null && !sel.IsDead) return sel;
             }
-            foreach (var u in Object.FindObjectsByType<Unit>())
+            foreach (var u in Object.FindObjectsByType<Unit>(FindObjectsSortMode.None))
                 if (u.team == Team.Player && !u.IsDead) return u;
-            foreach (var u in Object.FindObjectsByType<Unit>())
+            foreach (var u in Object.FindObjectsByType<Unit>(FindObjectsSortMode.None))
                 if (!u.IsDead) return u;
             return null;
         }

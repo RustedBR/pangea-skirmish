@@ -46,9 +46,7 @@ namespace PangeaSkirmish
 
             bool bonus = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            int  dmg   = BaseDamage(attacker)
-                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
-                       + aimDmg;
+            int  dmg   = PowerDamage(attacker, bonus, aimDmg);
 
             var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
             if (res == HitResult.Miss)
@@ -64,10 +62,10 @@ namespace PangeaSkirmish
             else
                 rolled = Mathf.RoundToInt(rolled * Tuning.Get().aooDamageMult);
             // Bloqueio (reação do alvo): reduz dano recebido
-            if (target.blockReduction > 0f)
-                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
+                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
             target.TakeDamage(rolled, res == HitResult.Critical);
-            target.dodgeReactBonus = 0f; target.blockReduction = 0f; // reação é de 1 uso
+            target.dodgeReactBonus = 0f; target.blockFlat = 0; // reação é de 1 uso
             ConsumeStrBuffOnHit(attacker);
 
             string deathTag = "<color=#ff6666>MORTO</color>";
@@ -116,7 +114,7 @@ namespace PangeaSkirmish
 
             bool bonus  = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            int  dmg    = BaseDamage(attacker) + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0) + aimDmg;
+            int  dmg    = PowerDamage(attacker, bonus, aimDmg);
 
             // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
             var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
@@ -130,8 +128,8 @@ namespace PangeaSkirmish
             if (res == HitResult.Critical)
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             // Bloqueio (reação): reduz dano recebido
-            if (target.blockReduction > 0f)
-                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
+                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
             target.TakeDamage(rolled, res == HitResult.Critical);
             ConsumeStrBuffOnHit(attacker);
 
@@ -186,9 +184,7 @@ namespace PangeaSkirmish
             bool bonus = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
             // Dano SEM +STR extra (diferente do comportamento anterior)
-            int  dmg   = BaseDamage(attacker)
-                       + (bonus ? AttributeStats.Formulas.incrementAttackDamage : 0)
-                       + aimDmg;
+            int  dmg   = PowerDamage(attacker, bonus, aimDmg);
 
             // Sem rolagem de dodge — acerto garantido se o tile tem inimigo
             int rolled = attacker.stats.RollDamage(dmg, isPhysical: true);
@@ -196,8 +192,8 @@ namespace PangeaSkirmish
                 rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
             bool crit = attacker.stats.RollCritLast;
             // Bloqueio (reação): reduz dano recebido (ataques de Tile também)
-            if (target.blockReduction > 0f)
-                rolled = Mathf.RoundToInt(rolled * (1f - target.blockReduction));
+            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
+                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
             target.TakeDamage(rolled, crit);
             ConsumeStrBuffOnHit(attacker);
 
@@ -235,6 +231,10 @@ namespace PangeaSkirmish
 
         // ---- Helpers ----
         private static int BaseDamage(Unit u) => u.stats.PhysicalDamage;
+
+        /// <summary>Dano do golpe: base (× powerStrikeMult no golpe poderoso) + dano da mira.</summary>
+        public static int PowerDamage(Unit u, bool power, int aimDmg) =>
+            Mathf.RoundToInt(BaseDamage(u) * (power ? Tuning.Get().powerStrikeMult : 1f)) + aimDmg;
 
         private static bool ConsumeBonus(Unit u)
         {

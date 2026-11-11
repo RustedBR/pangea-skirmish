@@ -10,14 +10,29 @@ namespace PangeaSkirmish
     [Serializable]
     public class RoomConfigData
     {
-        /// <summary>0 = TDM, 1 = FFA</summary>
+        /// <summary>0 = PvP Times, 1 = PvP Todos contra todos, 2 = Coop (ver GameModes).</summary>
         public int gameMode = 0;
         public int attributeBudget = 30;
-        public float planningTime = 15f;
+        public float planningTime = 15f; // GDD-014: tempo de um ponto de decisão
         public int maxPlayers = 8;
         /// <summary>Snapshot do GameTuning (JSON) enviado ao servidor quando a sala entra em CharCreation.
         /// Clientes aplicam em RuntimeTuning.Active. Vazio = usa GameTuning.asset default.</summary>
         public string tuningJson = "";
+    }
+
+    /// <summary>Modos de jogo (GDD-015). O valor é o gameMode da sala.</summary>
+    public static class GameModes
+    {
+        public const int PvpTeams = 0, PvpFreeForAll = 1, Coop = 2;
+
+        public static int Current =>
+            RuntimeMultiplayerSession.CurrentConfig != null ? RuntimeMultiplayerSession.CurrentConfig.gameMode : PvpTeams;
+        public static bool IsCoop => RuntimeMultiplayerSession.IsMultiplayer && Current == Coop;
+        /// <summary>Hostilidade por time (PvP Times e Coop) em vez de por dono.</summary>
+        public static bool IsTeamBased => Current != PvpFreeForAll;
+
+        public static string Name(int mode) =>
+            mode == Coop ? "Coop" : mode == PvpFreeForAll ? "PvP — Todos contra todos" : "PvP — Times";
     }
 
     public static class RuntimeMultiplayerSession

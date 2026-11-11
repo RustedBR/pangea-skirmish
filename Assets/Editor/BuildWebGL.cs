@@ -4,6 +4,7 @@
 // Gera em Build/WebGL/ (index.html + Build/ + StreamingAssets/).
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -38,7 +39,7 @@ public static class BuildWebGL
         // arquivo como fonte da verdade reintroduz o abort em sala — foi o que
         // aconteceu ao publicar o build de 31/07.
         // =====================================================================
-        PlayerSettings.SetScriptingBackend(BuildTargetGroup.WebGL, ScriptingImplementation.IL2CPP);
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
         // Medium, não Disabled e não High. HIGH é que é perigoso: o UnityLinker remove
         // o código de Multiplayer (NetBootstrap/RoomHUD/Relay) porque a referência é
         // AddComponent<RoomHUD>() reflexivo em runtime, e link.xml (preserve=all) não
