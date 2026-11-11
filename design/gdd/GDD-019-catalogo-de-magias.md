@@ -83,10 +83,10 @@ Cada magia mostra **de que foi montada** (os elementos), para abrir combinação
 | Item | Valor atual no código | Proposta |
 |---|---|---|
 | Mana máxima | `5 + WIS × 1` | `6 + WIS × 1,5` |
-| Regen por tick | `manaRegenBase + WIS × manaRegenPerWIS` (por round) | **1 a cada 2 ticks**, +1 tick mais cedo a cada 4 WIS |
-| Concentrar | existe (2 ticks) | 2 ticks, regenera **+3 Mana** imediatos, além da regen normal |
+| Regen por tick | `manaRegenBase + WIS × manaRegenPerWIS` (por round) | **1 a cada 2 ticks**, +1 tick mais cedo a cada 4 WIS — **implementado** (`manaRegenTicks`, `wisRegenStep`) |
+| Concentrar | existe (2 ticks) | 2 ticks, regenera **+3 Mana** imediatos, além da regen normal — **implementado** (`concentrateMana`) |
 
-**Embotamento dos sentidos (GDD-013):** com Mana abaixo de **25%** do máximo, a unidade recebe **−1 tile de alcance** em ataques à distância e magias e **−10% de acerto**, até voltar acima de 25%. Só afeta a unidade, não a tela do jogador.
+**Embotamento dos sentidos (GDD-013):** com Mana abaixo de **25%** do máximo, a unidade recebe **−1 tile de alcance** em ataques à distância e magias e **−10% de acerto**, até voltar acima de 25%. Só afeta a unidade, não a tela do jogador. **Implementado:** `Unit.IsDulled`, `EffectiveAttackRange` (corpo a corpo nunca cai abaixo de 1), `EffectiveHitChance`; tuning `dullManaFraction`, `dullRangePenalty`, `dullHitPenalty`. A HUD marca "embotado" na linha de status.
 
 ---
 

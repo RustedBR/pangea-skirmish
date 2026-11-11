@@ -26,8 +26,8 @@ MonoBehaviour:
   statFormulas:
     hpBase: 30
     hpPerVIT: 3
-    manaBase: 5
-    manaPerWIS: 3
+    manaBase: 6
+    manaPerWIS: 1.5
     weaponBase: 1
     dmgPerSTR: 3.5
     dmgPerINT: 2

@@ -360,7 +360,7 @@ namespace PangeaSkirmish
                 _unitStatsText.text =
                     $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
                     $"<b>MOV</b> {s.MoveStep}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
-                    $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}" +
+                    $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}{(u.IsDulled ? "  <color=#c080ff>embotado</color>" : "")}" +
                     (string.IsNullOrEmpty(buffs) ? "" : $"\n<color=#FFD700><b>BUFFS</b> {buffs}</color>");
         }
 
@@ -917,7 +917,7 @@ namespace PangeaSkirmish
             string hit = "";
             if (a.TargetUnit != null)
             {
-                float h = Mathf.Clamp01(u.stats.HitChance - a.TargetUnit.stats.DodgeChance);
+                float h = Mathf.Clamp01(u.EffectiveHitChance - a.TargetUnit.stats.DodgeChance);
                 hit = $" • {Mathf.RoundToInt(h * 100f)}% de acerto";
             }
             _previewLine.text = $"Plano: {n} ataque{(n > 1 ? "s" : "")} em {who} • ~{total} de dano no total{hit}";

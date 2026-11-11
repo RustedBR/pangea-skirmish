@@ -383,7 +383,7 @@ namespace PangeaSkirmish
                 _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
                 return;
             }
-            int projectedMana = _controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen;
+            int projectedMana = _controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ConcentrateMana;
             if (projectedMana >= _controlled.stats.MaxMana)
             {
                 _hud.LogAction($"{_controlled.unitName} mana ja cheia", _controlled);
@@ -579,7 +579,7 @@ namespace PangeaSkirmish
         {
             if (_controlled == null) return;
             int fp = _controlled.stats.Footprint;
-            var ring = RangeAnchors(_controlled.plannedAnchor, fp, _controlled.stats.AttackRange);
+            var ring = RangeAnchors(_controlled.plannedAnchor, fp, _controlled.EffectiveAttackRange);
             SetBaseRange(ring, Tuning.Get().attackRangeColor);
         }
 
@@ -595,7 +595,7 @@ namespace PangeaSkirmish
                 {
                     _rangeHoverUnit = hovered;
                     int fp = hovered.stats.Footprint;
-                    var ring = RangeAnchors(hovered.anchor, fp, hovered.stats.AttackRange);
+                    var ring = RangeAnchors(hovered.anchor, fp, hovered.EffectiveAttackRange);
                     ShowRangeGhosts(ring, Tuning.Get().enemyRangeColor);
                     Debug.Log($"[Range] hover inimigo {hovered.unitName}: alcance {hovered.stats.AttackRange} ({ring.Count} tiles)");
                 }
@@ -717,13 +717,13 @@ namespace PangeaSkirmish
             _attackable.Clear();
 
             int fp     = _controlled.stats.Footprint;
-            int budget = _controlled.stats.AttackRange + fp;
+            int budget = _controlled.EffectiveAttackRange + fp;
             for (int dx = -budget; dx <= budget; dx++)
             for (int dy = -budget; dy <= budget; dy++)
             {
                 var a = new Vector2Int(from.x + dx, from.y + dy);
                 if (a == from || !_grid.IsAnchorInBounds(a, fp)) continue;
-                if (GridManager.FootprintGap(from, fp, a, fp) <= _controlled.stats.AttackRange)
+                if (GridManager.FootprintGap(from, fp, a, fp) <= _controlled.EffectiveAttackRange)
                     _attackable.Add(a);
             }
 
@@ -1320,7 +1320,7 @@ namespace PangeaSkirmish
                 isPicking: _mode == PlanMode.AttackTilePicking);
             _hud.SetConcentrateState(
                 canAdd:    _controlled.CanFit(ActionType.Concentrate)
-                           && (_controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ManaRegen) < _controlled.stats.MaxMana,
+                           && (_controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ConcentrateMana) < _controlled.stats.MaxMana,
                 isPicking: false);
             _hud.SetIncrementState(
                 canAdd:    _controlled.remainingBAP > 0 && hasSequence,

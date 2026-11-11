@@ -20,7 +20,7 @@ namespace PangeaSkirmish
                 if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
                 int gap = GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint,
                                                    u.anchor, u.stats.Footprint);
-                if (gap <= attacker.stats.AttackRange && gap < bestGap)
+                if (gap <= attacker.EffectiveAttackRange && gap < bestGap)
                 {
                     best    = u;
                     bestGap = gap;
@@ -41,14 +41,14 @@ namespace PangeaSkirmish
             // mas aqui o alvo JÁ está fora por definição do trigger — então força alcance).
             int afp = attacker.stats.Footprint;
             if (GridManager.FootprintGap(attacker.anchor, afp, target.anchor, target.stats.Footprint)
-                > attacker.stats.AttackRange)
+                > attacker.EffectiveAttackRange)
                 return null; // segurança: já não estaria em alcance
 
             bool bonus = ConsumeBonus(attacker);
             int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
             int  dmg   = PowerDamage(attacker, bonus, aimDmg);
 
-            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
+            var res = attacker.stats.RollHit(attacker.EffectiveHitChance, target.stats.DodgeChance + target.dodgeReactBonus);
             if (res == HitResult.Miss)
             {
                 ConsumeStrBuffOnHit(attacker);
@@ -99,7 +99,7 @@ namespace PangeaSkirmish
             bool outOfRange = target == null || target.IsDead ||
                 GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint,
                                          target.anchor,   target.stats.Footprint)
-                    > attacker.stats.AttackRange;
+                    > attacker.EffectiveAttackRange;
 
             if (outOfRange)
             {
@@ -117,7 +117,7 @@ namespace PangeaSkirmish
             int  dmg    = PowerDamage(attacker, bonus, aimDmg);
 
             // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
-            var res = attacker.stats.RollHit(attacker.stats.HitChance, target.stats.DodgeChance + target.dodgeReactBonus);
+            var res = attacker.stats.RollHit(attacker.EffectiveHitChance, target.stats.DodgeChance + target.dodgeReactBonus);
             if (res == HitResult.Miss)
             {
                 ConsumeStrBuffOnHit(attacker);
@@ -148,7 +148,7 @@ namespace PangeaSkirmish
         private static string ResolveTileAttack(Unit attacker, Vector2Int tile, IEnumerable<Unit> all)
         {
             int afp = attacker.stats.Footprint;
-            int range = attacker.stats.AttackRange;
+            int range = attacker.EffectiveAttackRange;
             if (GridManager.FootprintGap(attacker.anchor, afp, tile, afp) > range)
                 return $"<color=#888888>x</color> {attacker.unitName} fora de alcance";
 

@@ -41,8 +41,8 @@ public class AttributeStatsTests
         int maxMana = stats.MaxMana;
 
         // Assert
-        // baseMana (5) + WIS (4) × manaPerWIS (1) = 9
-        Assert.AreEqual(9, maxMana);
+        // manaBase (6) + WIS (4) × manaPerWIS (1,5) = 12  (GDD-019 §4)
+        Assert.AreEqual(12, maxMana);
     }
 
     [Test]
@@ -130,17 +130,13 @@ public class AttributeStatsTests
     }
 
     [Test]
-    public void ManaRegen_CalculatedFromWIS()
+    public void ManaRegenTicks_WisSpeedsUp()
     {
-        // Arrange
-        var stats = new AttributeStats { WIS = 6f };
-
-        // Act
-        int regen = stats.ManaRegen;
-
-        // Assert
-        // manaRegenBase (2) + WIS (6) × manaRegenPerWIS (0.5) = 5
-        Assert.AreEqual(5, regen);
+        var t = Tuning.Get();
+        var low  = new AttributeStats { WIS = 0f };
+        var high = new AttributeStats { WIS = t.wisRegenStep * 1f };
+        Assert.AreEqual(t.manaRegenTicks, low.ManaRegenTicks);
+        Assert.AreEqual(System.Math.Max(1, t.manaRegenTicks - 1), high.ManaRegenTicks, "WIS = 1 passo: 1 tick mais cedo");
     }
 
     [Test]

@@ -18,8 +18,8 @@ namespace PangeaSkirmish
         [Header("HP / Mana")]
         public float hpBase    = 10f;
         public float hpPerVIT  = 2f;
-        public float manaBase  = 5f;
-        public float manaPerWIS = 1f;
+        public float manaBase  = 6f;
+        public float manaPerWIS = 1.5f;
 
         [Header("Dano")]
         public float weaponBase = 2f;
@@ -58,6 +58,7 @@ namespace PangeaSkirmish
         public int magicResistPerWIS = 1;
 
         [Header("Magia")]
+        [Tooltip("Legado: regen por round. A Mana agora volta por tick (GameTuning.manaRegenTicks) e Concentrar dá GameTuning.concentrateMana.")]
         public float manaRegenBase = 2f;
         public float manaRegenPerWIS = 0.5f;
     }
@@ -150,6 +151,24 @@ namespace PangeaSkirmish
         public int BonusActionPoints => Mathf.RoundToInt(DEX * F.bapPerDEX);
         public int BonusMoveBudget => Mathf.Max(1, F.bonusMoveBudget);
 
+        /// <summary>
+        /// Ticks entre cada ponto de Mana regenerado (GDD-019 §4). A WIS acelera:
+        /// a cada wisRegenStep pontos, a Mana volta 1 tick mais cedo.
+        /// </summary>
+        public int ManaRegenTicks
+        {
+            get
+            {
+                var T = Tuning.Get();
+                int bonus = Mathf.FloorToInt(WIS) / Mathf.Max(1, T.wisRegenStep);
+                return Mathf.Max(1, T.manaRegenTicks - bonus);
+            }
+        }
+
+        /// <summary>Mana imediata que a ação Concentrar dá, além da regeneração normal (GDD-019 §4).</summary>
+        public int ConcentrateMana => Mathf.Max(0, Tuning.Get().concentrateMana);
+
+        /// <summary>Legado (regen por round). Mantido só para leitura; o jogo usa ManaRegenTicks + ConcentrateMana.</summary>
         public int ManaRegen => Mathf.RoundToInt(F.manaRegenBase + WIS * F.manaRegenPerWIS);
 
         public float HitChance => Mathf.Clamp01(F.baseHitChance + DEX * F.hitPerDEX);

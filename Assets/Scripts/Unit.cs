@@ -177,6 +177,32 @@ namespace PangeaSkirmish
 
         public int AvailableMana => currentMana - reservedMana;
 
+        /// <summary>Recupera Mana (regeneração por tick / Concentrar), até o máximo.</summary>
+        public void GainMana(int amount) =>
+            currentMana = Mathf.Clamp(currentMana + amount, 0, stats.MaxMana);
+
+        /// <summary>
+        /// Embotamento dos sentidos (GDD-013 §3, GDD-019 §4): com Mana abaixo de dullManaFraction do máximo,
+        /// a mente — onde ficam os sentidos — perde alcance e acerto. Só afeta a unidade, não a tela.
+        /// </summary>
+        public bool IsDulled
+        {
+            get
+            {
+                int max = stats.MaxMana;
+                if (max <= 0) return false;
+                return currentMana < Mathf.CeilToInt(max * Tuning.Get().dullManaFraction);
+            }
+        }
+
+        /// <summary>Alcance de ataque com o embotamento aplicado. Corpo a corpo (1) nunca cai.</summary>
+        public int EffectiveAttackRange =>
+            IsDulled ? Mathf.Max(1, stats.AttackRange - Tuning.Get().dullRangePenalty) : stats.AttackRange;
+
+        /// <summary>Chance de acerto com o embotamento aplicado.</summary>
+        public float EffectiveHitChance =>
+            Mathf.Clamp01(stats.HitChance - (IsDulled ? Tuning.Get().dullHitPenalty : 0f));
+
         public Vector2Int FinalAnchor => hasPlannedBonus ? plannedBonusAnchor : plannedAnchor;
 
         /// <summary>

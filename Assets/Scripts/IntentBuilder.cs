@@ -143,7 +143,7 @@ namespace PangeaSkirmish
         private static bool TryAttack(Unit self, Unit target)
         {
             if (!self.CanFit(ActionType.Attack)) return false;
-            if (Gap(self.plannedAnchor, self.stats.Footprint, target) > self.stats.AttackRange) return false;
+            if (Gap(self.plannedAnchor, self.stats.Footprint, target) > self.EffectiveAttackRange) return false;
             self.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = target, TargetTile = target.anchor });
             self.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = self.plannedAttacks.Count - 1 });
             self.RecomputeTickBudget();
@@ -159,7 +159,7 @@ namespace PangeaSkirmish
             {
                 Vector2Int pos = self.plannedAnchor;
                 int here = Gap(pos, fp, target);
-                if (here <= self.stats.AttackRange) break;
+                if (here <= self.EffectiveAttackRange) break;
                 Vector2Int best = pos; int bestGap = here;
                 foreach (var a in grid.GetReachableAnchors(pos, self.stats.MoveStep, fp, blockers))
                 {

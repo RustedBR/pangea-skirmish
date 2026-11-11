@@ -50,6 +50,20 @@ namespace PangeaSkirmish
         public int staminaAim = 1;
         public int staminaQuickStep = 1;
         public int staminaReaction = 2;
+
+        [Header("═══ MANA (GDD-019 §4) ═══")]
+        [Tooltip("Recupera 1 de Mana a cada N ticks.")]
+        public int manaRegenTicks = 2;
+        [Tooltip("A cada N pontos de WIS, a Mana volta 1 tick mais cedo.")]
+        public int wisRegenStep = 4;
+        [Tooltip("Mana imediata que Concentrar dá (além da regeneração normal).")]
+        public int concentrateMana = 3;
+        [Tooltip("Embotamento dos sentidos: abaixo desta fração da Mana máxima, a unidade perde alcance e acerto.")]
+        [Range(0f, 1f)] public float dullManaFraction = 0.25f;
+        [Tooltip("Tiles de alcance perdidos no embotamento (só ataques/magias à distância; corpo a corpo não cai abaixo de 1).")]
+        public int dullRangePenalty = 1;
+        [Tooltip("Acerto perdido no embotamento (0.10 = −10%).")]
+        [Range(0f, 1f)] public float dullHitPenalty = 0.10f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
         [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]

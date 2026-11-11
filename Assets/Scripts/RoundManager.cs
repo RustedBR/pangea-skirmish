@@ -540,10 +540,11 @@ namespace PangeaSkirmish
                         case ActionType.Move:   movesThisSlot.Add((u, head.Dest, head.IsBonus)); break;
                         case ActionType.Attack: attacksThisSlot.Add((u, head.Attack, head.IsBonus, head.IsAimed)); break;
                         case ActionType.Concentrate:
-                            int regen = u.stats.ManaRegen;
-                            u.currentMana = Mathf.Min(u.currentMana + regen, u.stats.MaxMana);
+                            // Concentrar dá Mana imediata, além da regeneração por tick (GDD-019 §4).
+                            int regen = u.stats.ConcentrateMana;
+                            u.GainMana(regen);
                             if (u.plannedConcentrations > 0) u.plannedConcentrations--;
-                            _hud.LogAction($"✦ {u.unitName} concentrou +{regen} mana", u);
+                            _hud.LogAction($"✦ {u.unitName} concentrou +{regen} Mana", u);
                             break;
                     }
                 }
@@ -820,6 +821,9 @@ namespace PangeaSkirmish
             // Estâmina volta aos poucos (GDD-016 §3).
             foreach (var u in _units)
                 if (!u.IsDead && _globalTick % u.stats.StaminaRegenTicks == 0) u.GainStamina(1);
+            // Mana volta por tick; a WIS acelera (GDD-019 §4).
+            foreach (var u in _units)
+                if (!u.IsDead && u.stats.MaxMana > 0 && _globalTick % u.stats.ManaRegenTicks == 0) u.GainMana(1);
             int per = Mathf.Max(1, Tuning.Get().ticksPerRound);
             if (_globalTick % per != 0) yield break;
             foreach (var u in _units)
