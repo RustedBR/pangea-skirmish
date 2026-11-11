@@ -114,6 +114,35 @@ namespace PangeaSkirmish
                 queue.Add(new QueuedAction { Type = ActionType.Wait, Duration = TickRules.Duration(this, ActionType.Wait, false) });
         }
 
+        /// <summary>Custo em Instinto de um incremento: 0 = golpe poderoso, 1 = mirar.</summary>
+        public static int IncrementCost(int kind) =>
+            kind == 0 ? Tuning.Get().instinctPowerStrike : Tuning.Get().instinctAim;
+
+        /// <summary>
+        /// A próxima ação da fila (que ainda não começou) pode receber o incremento?
+        /// Só ataques; golpe poderoso uma vez, mirar uma vez; exige Instinto.
+        /// </summary>
+        public bool CanIncrementNext(int kind)
+        {
+            if (IsDead || queue.Count == 0) return false;
+            var q = queue[0];
+            if (q.Type != ActionType.Attack || q.Elapsed > 0) return false;
+            if (kind == 0 && q.IsBonus) return false;
+            if (kind == 1 && q.IsAimed) return false;
+            return currentInstinct >= IncrementCost(kind);
+        }
+
+        /// <summary>Aplica o incremento (golpe poderoso alonga o ataque em ticks). Determinístico.</summary>
+        public bool TryIncrementNext(int kind)
+        {
+            if (!CanIncrementNext(kind)) return false;
+            var q = queue[0];
+            if (kind == 0) { q.IsBonus = true; q.Duration = TickRules.Duration(this, ActionType.Attack, true); }
+            else q.IsAimed = true;
+            currentInstinct -= IncrementCost(kind);
+            return true;
+        }
+
         /// <summary>Insere uma espera no início da fila (custo de reação).</summary>
         public void DelayQueue(int ticks)
         {

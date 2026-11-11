@@ -18,6 +18,7 @@ public class TickRulesTests
         _go = new GameObject("TickUnit");
         _u = _go.AddComponent<Unit>();
         _u.stats = new AttributeStats { AGI = 0f, DEX = 0f };
+        _u.currentHP = 10; // viva (IsDead = HP <= 0)
     }
 
     [TearDown]
@@ -124,5 +125,47 @@ public class TickRulesTests
         _u.DelayQueue(1);
         Assert.AreEqual(before + 1, _u.QueueTicksRemaining);
         Assert.AreEqual(ActionType.Wait, _u.queue[0].Type);
+    }
+
+    [Test]
+    public void Increment_NextAttack_SpendsInstinctAndLengthensIt()
+    {
+        _u.stats.STR = 4f; _u.stats.VIT = 4f; _u.stats.AttackTicks = 2;
+        _u.currentInstinct = _u.stats.MaxInstinct;
+        int before = _u.currentInstinct;
+        _u.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Tile });
+        _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = 0 });
+        _u.BuildQueueFromPlan();
+        int dur = _u.queue[0].Duration;
+
+        Assert.IsTrue(_u.TryIncrementNext(0), "golpe poderoso na próxima ação");
+        Assert.AreEqual(before - _t.instinctPowerStrike, _u.currentInstinct);
+        Assert.AreEqual(dur + _t.ticksPowerStrikeExtra, _u.queue[0].Duration);
+        Assert.IsFalse(_u.TryIncrementNext(0), "não duplica o golpe poderoso");
+
+        Assert.IsTrue(_u.TryIncrementNext(1), "mirar ainda pode");
+        Assert.IsTrue(_u.queue[0].IsAimed);
+        Assert.AreEqual(before - _t.instinctPowerStrike - _t.instinctAim, _u.currentInstinct);
+    }
+
+    [Test]
+    public void Increment_Refused_WhenStartedWalkingOrBroke()
+    {
+        _u.stats.STR = 4f; _u.stats.VIT = 4f;
+        _u.currentInstinct = _u.stats.MaxInstinct;
+        _u.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Tile });
+        _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = 0 });
+        _u.BuildQueueFromPlan();
+        _u.queue[0].Elapsed = 1;
+        Assert.IsFalse(_u.TryIncrementNext(0), "ação já começou");
+
+        _u.queue[0].Elapsed = 0;
+        _u.currentInstinct = 0;
+        Assert.IsFalse(_u.TryIncrementNext(1), "sem Instinto");
+
+        _u.queue.Clear();
+        _u.queue.Add(new QueuedAction { Type = ActionType.Move, Duration = 1 });
+        _u.currentInstinct = 99;
+        Assert.IsFalse(_u.TryIncrementNext(0), "só ataques");
     }
 }

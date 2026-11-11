@@ -19,7 +19,11 @@ namespace PangeaSkirmish
 
         [Header("═══ SEMI-TURNO POR TICKS (GDD-014) ═══")]
         [Tooltip("Segundos para decidir num ponto de decisão (SP). Em MP vale o planningTime da sala.")]
-        public float decisionTime = 8f;
+        public float decisionTime = 15f;
+        [Tooltip("O relógio de decisão PARA enquanto há intenção armada ou prévia na tela, por no máximo este tempo total por ponto de decisão. Em rede, o host espera esse teto a mais.")]
+        public float planningPauseBudget = 12f;
+        [Tooltip("Janela entre ticks (segundos) para incrementar a próxima ação (golpe poderoso, mirar).")]
+        public float incrementWindowSeconds = 1.8f;
         [Tooltip("Zoom mínimo (tamanho ortográfico) ao enquadrar o grupo durante os ticks. Maior = mais longe.")]
         public float tickFrameMinSize = 8f;
         [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]

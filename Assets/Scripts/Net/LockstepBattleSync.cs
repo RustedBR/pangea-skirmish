@@ -31,7 +31,8 @@ namespace PangeaSkirmish
         private readonly Dictionary<ulong, byte[]> _receivedPlans = new Dictionary<ulong, byte[]>();
         private bool _collectingPlans;
         private float _collectionTimer;
-        private const float HostExtraTimeout = 5f;
+        // Cobre o teto de pausa do relógio de planejamento (planningPauseBudget = 12s) mais folga de rede.
+        private const float HostExtraTimeout = 16f;
         private int _expectedCount;
         // Corrotina de timeout do round ATUAL — precisa ser cancelada quando a coleta fecha
         // cedo (AllSlotsHaveSubmitted). Sem isto, a corrotina antiga continua viva em segundo
@@ -612,6 +613,47 @@ namespace PangeaSkirmish
             ulong sender = rpcParams.Receive.SenderClientId;
             if (reactor == null || reactor.ownerId != sender) return;
             ApplyReactionClientRpc(reactorId, kind);
+        }
+
+        // ---- Janela de incremento entre ticks (GDD-016): o host ordena, todos aplicam igual ----
+        private int _openWindowSeq;      // janela aberta no host (0 = fechada)
+
+        /// <summary>Host: abre a janela <paramref name="seq"/> e a fecha para todos após <paramref name="seconds"/>.</summary>
+        public void HostOpenIncrementWindow(int seq, float seconds)
+        {
+            if (!IsServer) return;
+            _openWindowSeq = seq;
+            StartCoroutine(CloseWindowAfter(seq, seconds));
+        }
+
+        private IEnumerator CloseWindowAfter(int seq, float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            if (_openWindowSeq == seq) _openWindowSeq = 0;
+            CloseIncrementWindowClientRpc(seq);
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void SubmitIncrementServerRpc(uint unitId, int kind, ServerRpcParams rpcParams = default)
+        {
+            var u = UnitRegistry.Get(unitId);
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (u == null || u.ownerId != sender || _openWindowSeq == 0) return; // só o dono, e só com a janela aberta
+            ApplyIncrementClientRpc(_openWindowSeq, unitId, kind);
+        }
+
+        [ClientRpc]
+        private void ApplyIncrementClientRpc(int seq, uint unitId, int kind)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.BufferIncrement(seq, unitId, kind);
+        }
+
+        [ClientRpc]
+        private void CloseIncrementWindowClientRpc(int seq)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.OnIncrementWindowClosed(seq);
         }
 
         [ClientRpc]

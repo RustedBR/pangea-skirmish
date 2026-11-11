@@ -45,6 +45,7 @@ namespace PangeaSkirmish
         private float _timer;
         private int _round;
         private bool _gracePeriodUsed;
+        private float _pauseUsed;   // segundos de relógio pausados neste ponto de decisão
         /// <summary>Tick global da batalha (GDD-014). Status/tiles/reações renovam a cada ticksPerRound.</summary>
         private int _globalTick;
 
@@ -241,6 +242,7 @@ namespace PangeaSkirmish
         {
             _phase = RoundPhase.Planning;
             _gracePeriodUsed = false;
+            _pauseUsed = 0f;
             _waitingLockstep = false;
 
             // Só unidades LIVRES recebem plano novo; ocupadas mantêm fila e listas (carry-over).
@@ -342,6 +344,15 @@ namespace PangeaSkirmish
             HandleInspectClick();
 
             if (_phase != RoundPhase.Planning) return;
+            // Pausa o relógio enquanto o jogador monta a jogada, até o teto por ponto de decisão.
+            float pauseBudget = Tuning.Get().planningPauseBudget;
+            if (_planner != null && _planner.IsEngaged && _pauseUsed < pauseBudget && !_waitingLockstep)
+            {
+                _pauseUsed += Time.deltaTime;
+                _hud.SetTimer(Mathf.Max(0f, _timer));
+                _hud.SetTimerWarning(false);
+                return;
+            }
             _timer -= Time.deltaTime;
             _hud.SetTimer(Mathf.Max(0f, _timer));
 
@@ -581,6 +592,7 @@ namespace PangeaSkirmish
 
                 yield return AdvanceGlobalTick();
                 LogTimeline();
+                if (t < segment - 1) yield return IncrementWindow();
 
                 if (!CheckAnyFactionAlive()) break;
 
@@ -706,6 +718,88 @@ namespace PangeaSkirmish
             _awaitingDescent = false;
             _hud.HideReactionMenu();
             GameOver($"Vitória! O grupo recuou depois de vencer {layersCleared} camada{(layersCleared > 1 ? "s" : "")}.");
+        }
+
+        // -------------------- JANELA DE INCREMENTO ENTRE TICKS --------------------
+        private int _windowSeq;                 // janelas que ESTA máquina já abriu
+        private int _windowClosedSeq;           // maior janela que o host já fechou
+        private readonly List<(int seq, uint unit, int kind)> _pendingIncrements = new List<(int, uint, int)>();
+
+        /// <summary>Há alguma unidade de jogador com a próxima ação elegível? (estado igual em toda máquina)</summary>
+        private bool AnyIncrementEligible()
+        {
+            foreach (var u in _units)
+            {
+                if (u.IsDead || BeastAI.Controls(u)) continue;
+                if (u.CanIncrementNext(0) || u.CanIncrementNext(1)) return true;
+            }
+            return false;
+        }
+
+        public void BufferIncrement(int seq, uint unitId, int kind) => _pendingIncrements.Add((seq, unitId, kind));
+
+        public void OnIncrementWindowClosed(int seq) { if (seq > _windowClosedSeq) _windowClosedSeq = seq; }
+
+        private bool IsLocalUnit(Unit u)
+        {
+            if (!RuntimeMultiplayerSession.IsMultiplayer) return u == _playerUnit;
+            ulong localId = Unity.Netcode.NetworkManager.Singleton != null
+                ? Unity.Netcode.NetworkManager.Singleton.LocalClientId : RuntimeMultiplayerSession.LocalClientId;
+            return u.ownerId == localId;
+        }
+
+        /// <summary>
+        /// Entre dois ticks, o dono pode incrementar a PRÓXIMA ação (1 = golpe poderoso, 2 = mirar).
+        /// O host fecha a janela para todos; os incrementos chegam em buffer e só são aplicados, na
+        /// mesma ordem, quando a janela fecha — assim nenhuma máquina muda a fila no meio de um tick.
+        /// </summary>
+        private IEnumerator IncrementWindow()
+        {
+            var sync = LockstepBattleSync.Instance;
+            if (sync == null || !AnyIncrementEligible()) yield break;
+
+            int seq = ++_windowSeq;
+            float seconds = Mathf.Max(0.5f, Tuning.Get().incrementWindowSeconds);
+            if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsServer)
+                sync.HostOpenIncrementWindow(seq, seconds);
+
+            // Quem tem unidade elegível vê o aviso.
+            Unit mine = null;
+            foreach (var u in _units) if (!u.IsDead && IsLocalUnit(u) && (u.CanIncrementNext(0) || u.CanIncrementNext(1))) { mine = u; break; }
+            float shown = 0f;
+            if (mine != null)
+                _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
+                    $"[1] Golpe poderoso (−{Unit.IncrementCost(0)} Instinto, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+
+            float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
+            while (_windowClosedSeq < seq && guard > 0f)
+            {
+                guard -= Time.deltaTime; shown += Time.deltaTime;
+                if (mine != null && Keyboard.current != null)
+                {
+                    int kind = Keyboard.current.digit1Key.wasPressedThisFrame ? 0
+                             : Keyboard.current.digit2Key.wasPressedThisFrame ? 1 : -1;
+                    if (kind >= 0 && mine.CanIncrementNext(kind))
+                    {
+                        sync.SubmitIncrementServerRpc(UnitRegistry.GetId(mine), kind);
+                        _hud.LogAction($"◆ {mine.unitName}: {(kind == 0 ? "golpe poderoso" : "mira")} pedido", mine);
+                    }
+                }
+                yield return null;
+            }
+            if (mine != null) _hud.HideIntentBand();
+
+            // Aplica, na ordem de chegada (igual em todas as máquinas), o que valeu para esta janela.
+            for (int i = 0; i < _pendingIncrements.Count; i++)
+            {
+                var p = _pendingIncrements[i];
+                if (p.seq != seq) continue;
+                var u = UnitRegistry.Get(p.unit);
+                if (u != null && u.TryIncrementNext(p.kind))
+                    _hud.LogAction($"◆ {u.unitName}: {(p.kind == 0 ? "golpe poderoso" : "mira")}", u);
+            }
+            _pendingIncrements.RemoveAll(p => p.seq <= seq);
+            LogTimeline();
         }
 
         /// <summary>Avança o relógio global. A cada ticksPerRound: status, efeitos de tile e reações.</summary>

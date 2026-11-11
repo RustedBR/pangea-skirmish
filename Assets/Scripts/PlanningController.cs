@@ -40,6 +40,9 @@ namespace PangeaSkirmish
 
         /// <summary>True quando o clique do mouse está reservado para escolher destino/alvo.</summary>
         public bool IsPicking => _active && _mode != PlanMode.Idle;
+        /// <summary>Jogador no meio de montar a jogada (intenção armada ou prévia na tela): o relógio de decisão pausa.</summary>
+        public bool IsEngaged => _active && _controlled != null &&
+            (_armed != ArmedIntent.None || _controlled.actionSequence.Count > 0 || _mode != PlanMode.Idle);
 
         public void Setup(GridManager grid, Camera cam, List<Unit> allUnits)
         {

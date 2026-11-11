@@ -194,3 +194,10 @@ Feito (passos 1 a 4 da seção 9):
 - Os menus antigos (Ações > Mover/Atacar) continuam funcionando como controle manual até o Modo Livre existir.
 
 Ainda não feito (passos 5 a 7): posturas automáticas com opção de confirmar, Afastar-se e Interpor, Proteger e Manter distância, Modo Livre, arrastar a partir do inimigo, e os botões de intenção na tela (hoje só teclado e uma linha de dica).
+
+## 12. Incrementar durante os ticks e planejamento mais longo (2026-11-11)
+
+- **Planejamento:** o padrão sobe de 8s para **15s** (na sala, de 5 a 60s). O relógio **pausa** enquanto há intenção armada ou prévia na tela, por no máximo `planningPauseBudget` (12s) por ponto de decisão. O host espera esse teto a mais antes de fechar a coleta.
+- **Janela de incremento:** entre dois ticks, se algum jogador tem a **próxima ação** (que ainda não começou) como ataque e Instinto suficiente, abre uma janela de `incrementWindowSeconds` (1,8s). Teclas `1` Golpe poderoso (−2 Instinto, +1 tick) e `2` Mirar (−1 Instinto).
+- **Rede:** o host abre e fecha a janela para todos. Os pedidos viajam como RPC e ficam em buffer; só são aplicados, na mesma ordem, quando a janela fecha. Nenhuma máquina muda a fila no meio de um tick. Pedido fora da janela, ou de quem não é dono da unidade, é ignorado.
+- **Fora desta etapa:** passo rápido durante os ticks (precisa de destino) e botões clicáveis na janela (hoje só teclado).

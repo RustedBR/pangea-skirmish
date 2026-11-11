@@ -13,7 +13,7 @@ namespace PangeaSkirmish
         /// <summary>0 = PvP Times, 1 = PvP Todos contra todos, 2 = Coop (ver GameModes).</summary>
         public int gameMode = 0;
         public int attributeBudget = 30;
-        public float planningTime = 8f; // GDD-014: tempo de um ponto de decisão
+        public float planningTime = 15f; // GDD-014: tempo de um ponto de decisão
         public int maxPlayers = 8;
         /// <summary>Snapshot do GameTuning (JSON) enviado ao servidor quando a sala entra em CharCreation.
         /// Clientes aplicam em RuntimeTuning.Active. Vazio = usa GameTuning.asset default.</summary>
