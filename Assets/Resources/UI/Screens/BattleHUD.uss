@@ -1,5 +1,8 @@
-/* BattleHUD — estilo FFT (janelas azuis com moldura clara), padrão UI Toolkit.
-   Replica o visual de BattleHUD.cs (BuildFFTSprite / StyleFFTWindow) via classes bh-*. */
+/* BattleHUD — HUD reformulada (2026-11-10, mockup v4.1 aprovado).
+   Tema FFT azul constante (PangeaTheme), texto dos botões centralizado.
+   Layout novo: topbar + banda de intenção (topo), câmera/compasso (direita),
+   mini-log + inspeção (sob demanda), barra de ticks (centro inf),
+   painel de INTENÇÕES (direita), reação (modal central). */
 
 .bh-root { flex-grow: 1; position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
 
@@ -14,7 +17,7 @@
   font-size: 11px;
   color: rgb(189, 217, 255);
   -unity-font-style: bold;
-  text-align: center;
+  -unity-text-align: middle-center;
   background-color: rgb(41, 61, 117);
   border-radius: 4px;
   padding: 2px 4px;
@@ -28,8 +31,25 @@
   flex-direction: row; align-items: center; justify-content: space-between;
   padding: 0 14px;
 }
-.bh-phase { font-size: 15px; color: white; -unity-font-style: bold; flex-grow: 1; }
-.bh-timer { font-size: 17px; color: rgb(180, 230, 180); -unity-font-style: bold; }
+.bh-phase { font-size: 15px; color: white; -unity-font-style: bold; flex-grow: 1; -unity-text-align: middle-center; }
+.bh-timer { font-size: 17px; color: rgb(180, 230, 180); -unity-font-style: bold; -unity-text-align: middle-center; }
+
+/* BANDA DE INTENÇÃO — faixa central no topo (NÃO cobre o botão Confirmar) */
+.bh-intentband {
+  position: absolute; top: 66px; left: 0; right: 0; width: 640px; height: 34px;
+  margin-left: auto; margin-right: auto;
+  flex-direction: row; align-items: center; justify-content: center; gap: 8px;
+  padding: 0 10px; border-radius: 17px;
+  display: none;
+}
+.bh-intent-tag  { font-size: 12px; color: rgb(106, 169, 255); -unity-font-style: bold; -unity-text-align: middle-center; }
+.bh-intent-hint { font-size: 12px; color: rgb(159, 176, 208); flex-grow: 1; -unity-text-align: middle-center; }
+.bh-intent-keys { flex-direction: row; gap: 4px; }
+.bh-intent-key  {
+  font-size: 11px; color: rgb(238, 242, 255); background-color: rgb(18, 26, 56);
+  border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid;
+  border-radius: 4px; padding: 1px 5px; -unity-text-align: middle-center; min-width: 16px;
+}
 
 /* CAMERA MODE */
 .bh-camera {
@@ -44,10 +64,6 @@
   position: absolute; top: 44px; right: 10px; width: 76px; height: 76px;
   align-items: center; justify-content: center; padding: 0;
 }
-/* A rosa inteira gira: `rotate` é escrito por BattleHUD.SetCompassOrientation e a
-   transition faz o giro ser suave, mesmo com a troca do mapa sendo instantânea.
-   Nota: USS não tem `transform` — as propriedades certas no Unity 6 são
-   rotate/translate/scale (foi esse o erro que deixou o CompassHUD antigo inerte). */
 .bh-compass-rose {
   position: relative; width: 60px; height: 60px;
   rotate: 0deg;
@@ -55,9 +71,6 @@
   transition-duration: 0.29s;
   transition-timing-function: ease-out;
 }
-/* Os rótulos são contra-rotacionados por C# para ficarem sempre em pé enquanto a
-   rosa gira (senão "N" apareceria deitado em 90°/270°). A transition tem de estar
-   aqui também, para o texto acompanhar o giro da rosa em vez de saltar. */
 .bh-compass-dir {
   position: absolute; left: 50%; top: 50%; width: 18px; height: 16px;
   margin-left: -9px; margin-top: -8px;
@@ -71,20 +84,81 @@
 .bh-compass-s { translate: 0 24px; }
 .bh-compass-e { translate: 24px 0; }
 .bh-compass-w { translate: -24px 0; }
-/* Curta o bastante para não encostar no "N". */
 .bh-compass-needle {
   position: absolute; left: 50%; top: 50%;
   width: 2px; height: 14px; margin-left: -1px; margin-top: -14px;
   background-color: rgb(255, 120, 110);
 }
 
-/* LOG */
-.bh-log {
-  position: absolute; left: 12px; top: 82px; bottom: 250px; width: 300px;
-  flex-direction: column;
+/* MINI-LOG TEMPORÁRIO — histórico compacto, só com unidade selecionada */
+.bh-minilog {
+  position: absolute; left: 12px; bottom: 150px; width: 250px;
+  flex-direction: column; display: none;
 }
-.bh-log-scroll { flex-grow: 1; margin-top: 2px; }
-.bh-log-content { flex-direction: column; }
+.bh-minilog-content { flex-direction: column; gap: 3px; }
+.bh-minilog-content .bh-log-line { background-color: rgba(18, 26, 56, 0.5); border-radius: 4px; padding: 2px 5px; }
+.bh-minilog-content .bh-log-line-text { font-size: 11px; -unity-text-align: middle-center; }
+.bh-minilog-content .bh-round-hdr {
+  background-color: rgb(26, 41, 87); border-radius: 4px; text-align: center;
+  font-size: 10px; color: rgb(189, 217, 255); padding: 2px 4px; margin-top: 2px;
+}
+.bh-minilog-content .bh-round-hdr-text { font-size: 10px; color: rgb(189, 217, 255); -unity-text-align: middle-center; -unity-font-style: bold; }
+
+/* INSPEÇÃO DA UNIDADE — bolha compacta sob demanda (some ao clicar fora) */
+.bh-inspect {
+  position: absolute; left: 300px; top: 250px; width: 290px;
+  padding: 10px; border-radius: 10px; border-color: rgb(106, 134, 200);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  display: none;
+}
+.bh-inspect-head { flex-direction: row; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bh-inspect-info { flex-grow: 1; }
+.bh-portrait {
+  width: 46px; height: 56px; background-color: rgb(10, 18, 41);
+  border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid; border-radius: 4px;
+  flex-shrink: 0;
+}
+.bh-portrait-img { width: 100%; height: 100%; }
+.bh-unit-name { font-size: 14px; color: white; -unity-font-style: bold; -unity-text-align: middle-center; }
+.bh-hp-bg { width: 100%; height: 10px; background-color: rgb(10, 18, 41); border-radius: 4px; margin-top: 3px; }
+.bh-hp-fill { width: 100%; height: 100%; background-color: rgb(90, 220, 120); border-radius: 4px; }
+.bh-hp-text { font-size: 10px; color: rgb(205, 217, 235); -unity-text-align: middle-center; margin-top: 2px; }
+.bh-ap-text { font-size: 11px; color: rgb(255, 230, 140); -unity-text-align: middle-center; }
+.bh-stats-text { font-size: 10px; color: rgb(217, 224, 242); white-space: normal; -unity-text-align: middle-center; margin-top: 4px; line-height: 1.5; }
+
+/* BARRA DE TICKS (GDD-016 §7) — track proporcional ao custo + chips da fila */
+.bh-ticks {
+  position: absolute; bottom: 12px; left: 0; right: 0; width: 700px;
+  margin-left: auto; margin-right: auto;
+  flex-direction: column; align-items: stretch; display: none;
+}
+.bh-ticks-label { font-size: 11px; color: rgb(189, 217, 255); -unity-font-style: bold; -unity-text-align: middle-center; margin-bottom: 4px; }
+.bh-ticks-track { flex-direction: row; gap: 3px; align-items: stretch; height: 34px; }
+.bh-tick {
+  flex-grow: 1; border-radius: 4px; background-color: rgba(18, 26, 56, 0.85);
+  border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid;
+  font-size: 11px; color: rgb(159, 176, 208); -unity-text-align: middle-center;
+}
+.bh-tick.used-move { background-color: rgb(74, 144, 226); border-color: rgb(74, 144, 226); color: #08103a; -unity-font-style: bold; }
+.bh-tick.used-atk  { background-color: rgb(226, 87, 74); border-color: rgb(226, 87, 74); color: #fff; -unity-font-style: bold; }
+.bh-tick.used-bonus{ background-color: rgb(255, 204, 85); border-color: rgb(255, 204, 85); color: #08103a; -unity-font-style: bold; }
+.bh-tick.used-conc { background-color: rgb(150, 120, 255); border-color: rgb(150, 120, 255); color: #fff; -unity-font-style: bold; }
+.bh-ticks-queue { flex-direction: row; gap: 4px; margin-top: 6px; justify-content: center; }
+.bh-qact {
+  flex-direction: row; align-items: center; justify-content: center; gap: 4px;
+  padding: 4px 8px; border-radius: 5px;
+  background-color: rgb(18, 26, 56); border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid;
+  font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center;
+}
+.bh-qact-n {
+  width: 15px; height: 15px; border-radius: 3px; background-color: rgb(10, 16, 40);
+  color: rgb(238, 242, 255); font-size: 10px; -unity-text-align: middle-center;
+}
+.bh-qact.move  { color: rgb(210, 228, 255); } .bh-qact.move .bh-qact-n  { background-color: rgb(74, 144, 226); color: #08103a; }
+.bh-qact.atk   { color: #ffe1de; }           .bh-qact.atk .bh-qact-n   { background-color: rgb(226, 87, 74); color: #fff; }
+.bh-qact.bonus { color: #fff3cf; }           .bh-qact.bonus .bh-qact-n { background-color: rgb(255, 204, 85); color: #08103a; }
+.bh-qact.conc  { color: #ece5ff; }           .bh-qact.conc .bh-qact-n  { background-color: rgb(150, 120, 255); color: #fff; }
+.bh-qact-cost { font-size: 10px; color: rgb(159, 176, 208); }
 
 /* Tooltip */
 .bh-tooltip {
@@ -93,108 +167,51 @@
 }
 .bh-tooltip-txt { font-size: 12px; color: rgb(235, 240, 255); white-space: normal; }
 
-/* STATUS */
-.bh-status {
-  position: absolute; left: 12px; bottom: 12px; width: 360px; min-height: 220px;
-  flex-direction: column;
+/* PAINEL DE INTENÇÕES — direita, substitui o menu cascata */
+.bh-intents {
+  position: absolute; right: 12px; bottom: 12px; width: 240px;
+  flex-direction: column; gap: 5px;
 }
-.bh-status-content { flex-grow: 1; margin-top: 28px; padding: 4px; }
-.bh-portrait {
-  width: 70px; height: 86px; background-color: rgb(10, 18, 41);
-  border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid; border-radius: 4px; margin-right: 8px;
+.bh-intent-btn {
+  height: 34px; border-radius: 6px; cursor: pointer;
+  background-color: rgb(18, 26, 56);
+  border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid; border-top-color: rgb(106, 134, 200);
+  color: rgb(238, 242, 255); font-size: 13px;
+  -unity-text-align: middle-center;
 }
-.bh-portrait-img { width: 100%; height: 100%; }
-.bh-unit-name { font-size: 17px; color: white; -unity-font-style: bold; }
-.bh-hp-bg { width: 248px; height: 14px; background-color: rgb(10, 18, 41); border-radius: 4px; margin-top: 2px; }
-.bh-hp-fill { width: 100%; height: 100%; background-color: rgb(90, 220, 120); }
-.bh-hp-text { font-size: 11px; color: rgb(205, 217, 235); }
-.bh-ap-text { font-size: 13px; color: rgb(255, 230, 140); }
-.bh-stats-text { font-size: 11px; color: rgb(217, 224, 242); white-space: normal; }
-.bh-hint-text { font-size: 13px; color: rgb(128, 148, 189); -unity-font-style: italic; text-align: center; }
+.bh-intent-btn:hover { background-color: rgb(106, 169, 255); color: #08103a; }
+.bh-intent-btn.armed { background-color: rgb(106, 169, 255); border-color: rgb(106, 169, 255); color: #08103a; -unity-font-style: bold; }
+.bh-intent-dim { opacity: 0.45; }
+.bh-intents-actions { flex-direction: row; gap: 5px; margin-top: 2px; }
+.bh-actbtn {
+  flex-grow: 1; height: 32px; border-radius: 6px; border-width: 1px;
+  border-color: rgb(42, 58, 106); border-style: solid;
+  font-size: 12px; -unity-font-style: bold; cursor: pointer; -unity-text-align: middle-center;
+}
+.bh-act-confirm { background-color: rgb(106, 169, 255); border-color: rgb(106, 169, 255); color: #08103a; }
+.bh-act-clear   { color: rgb(255, 90, 90); border-color: rgb(255, 90, 90); background-color: rgb(18, 26, 56); }
 
-/* SEQ */
-.bh-seq {
-  position: absolute; bottom: 12px; left: 0; right: 0; margin-left: auto; margin-right: auto;
-  width: 470px; height: 60px; flex-direction: column;
+/* REACTION MENU — modal central (aprovado no mockup v4.1) */
+.bh-reaction {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+  width: 300px; min-height: 140px;
+  flex-direction: column; align-items: center; gap: 6px; padding: 14px;
+  background-color: rgba(8, 12, 30, 0.97); border-color: rgb(106, 134, 200);
+  display: none; z-index: 20;
 }
-.bh-seq-label { font-size: 12px; color: rgb(189, 217, 255); }
-.bh-seq-content { flex-direction: row; flex-grow: 1; margin-top: 2px; }
+.bh-reaction-buttons { flex-direction: column; gap: 6px; align-self: stretch; }
+.bh-reaction .pg-button { height: 44px; font-size: 13px; -unity-text-align: middle-center; }
+.bh-bonus-timer { font-size: 15px; color: rgb(255, 140, 140); -unity-text-align: middle-center; }
+.bh-prompt-text { font-size: 14px; color: rgb(255, 235, 153); white-space: normal; -unity-text-align: middle-center; flex-grow: 1; }
 
-/* COMMAND MENU */
-.bh-commands {
-  position: absolute; right: 12px; bottom: 37px; width: 232px;
-  flex-direction: column; padding: 4px;
-}
-.bh-breadcrumb {
-  font-size: 11px; color: rgb(189, 217, 255); text-align: center;
-  background-color: rgb(41, 61, 117); border-radius: 4px; padding: 2px;
-  display: none; margin-bottom: 4px;
-}
-.bh-subpanel { flex-direction: column; gap: 4px; }
-.bh-menu-btn {
-  height: 38px; background-color: rgb(54, 78, 130); color: white;
-  border-radius: 6px; border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid; font-size: 15px;
-}
-.bh-confirm-btn {
-  height: 42px; background-color: rgb(36, 107, 56); color: white;
-  border-radius: 6px; border-width: 1px; border-color: rgb(140, 217, 158); border-style: solid; font-size: 15px;
-}
-.bh-inline-btn {
-  height: 34px; background-color: rgb(128, 92, 31); color: white;
-  border-radius: 6px; font-size: 13px;
-}
-.bh-inline-btn:hover { background-color: rgb(160, 115, 40); }
-
-/* MANA COMPACTA — steppers menores + botões Conjurar/Voltar lado a lado */
-.bh-stepper-compact { gap: 6px; align-items: center; }
-.bh-stepper-compact .bh-stepper-label { font-size: 12px; flex-grow: 1; min-width: 90px; }
-.bh-stepper-compact .bh-stepper-value { font-size: 14px; min-width: 22px; text-align: center; }
-.bh-step-btn {
-  width: 26px; height: 26px; font-size: 15px; flex-shrink: 0;
-  background-color: rgb(128, 92, 31); color: white; border-radius: 5px;
-}
-.bh-step-btn:hover { background-color: rgb(160, 115, 40); }
-.bh-mana-actions { flex-direction: row; gap: 6px; margin-top: 2px; }
-.bh-btn-sm { height: 30px; font-size: 13px; flex-grow: 1; }
-.bh-mana-compact { gap: 3px; }
-
-/* MANA — ancorado SÓ ao mana-menu (sem vazar pros outros menus).
-   Usa seletor descendente #mana-menu para vencer as classes globais
-   acima SÓ dentro do sub-painel de conjuração. */
-#mana-menu .bh-step-btn {
-  width: 24px; height: 24px; font-size: 14px;
-}
-#mana-menu .bh-stepper-compact { gap: 4px; }
-#mana-menu .bh-stepper-label { font-size: 11px; min-width: 84px; color: rgb(217, 224, 242); }
-#mana-menu .bh-stepper-value { font-size: 13px; min-width: 20px; }
-#mana-menu .bh-mana-value { font-size: 16px; color: rgb(255, 230, 140); }
-#mana-menu .bh-mana-potency { font-size: 12px; color: rgb(200, 210, 235); }
-#mana-menu .bh-btn-sm { height: 28px; font-size: 12px; }
-#mana-menu .bh-mana-actions { margin-top: 4px; }
-
-/* MANA */
-.bh-mana-value { font-size: 18px; color: rgb(255, 230, 140); text-align: center; }
-.bh-mana-potency { font-size: 13px; color: rgb(217, 224, 242); text-align: center; }
-
-/* PROMPT */
+/* PROMPT DE BÔNUS (passos extras do GDD) */
 .bh-prompt {
   position: absolute; right: 12px; bottom: 12px; width: 230px; height: 188px;
   flex-direction: column; align-items: center;
 }
-.bh-bonus-timer { font-size: 15px; color: rgb(255, 140, 140); }
-.bh-prompt-text { font-size: 14px; color: rgb(255, 235, 153); white-space: normal; text-align: center; flex-grow: 1; }
-.bh-prompt-btn { height: 40px; width: 96px; border-radius: 6px; color: white; font-size: 16px; }
+.bh-prompt-btn { height: 40px; width: 96px; border-radius: 6px; color: white; font-size: 16px; -unity-text-align: middle-center; margin: 4px; }
 .bh-sim { background-color: rgb(41, 128, 56); }
 .bh-nao { background-color: rgb(133, 41, 41); }
-
-/* REACTION MENU (Ações Bônus rework) — à direita, visível na fase de ação */
-.bh-reaction {
-  position: absolute; right: 12px; bottom: 12px; width: 232px;
-  flex-direction: column; align-items: stretch; gap: 6px;
-  display: none;
-}
-.bh-reaction-buttons { flex-direction: column; gap: 6px; }
-.bh-reaction .pg-button { height: 44px; font-size: 16px; }
 
 /* END */
 .bh-end-panel {
@@ -203,7 +220,12 @@
   display: none;
 }
 .bh-end-win { width: 820px; height: 240px; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
-.bh-end-text { font-size: 40px; color: white; text-align: center; }
+.bh-end-text { font-size: 40px; color: white; -unity-text-align: middle-center; }
+.bh-confirm-btn {
+  height: 42px; background-color: rgb(36, 107, 56); color: white;
+  border-radius: 6px; border-width: 1px; border-color: rgb(140, 217, 158); border-style: solid;
+  font-size: 15px; -unity-text-align: middle-center; padding: 0 18px;
+}
 
 /* MP WAITING */
 .bh-mp-waiting {
@@ -211,50 +233,4 @@
   width: 500px; height: 50px; align-items: center; justify-content: center;
   background-color: rgba(10,13,20,0.88); border-radius: 6px; display: none;
 }
-.bh-mp-waiting-text { font-size: 20px; color: rgb(235, 204, 89); text-align: center; }
-
-/* ---- MANA-MENU: layout horizontal canônico (stepper + label) — APROVADO 2026-07-12 ----
-   ESCOPADO ao #mana-menu (não vaza pro main-menu/COMANDOS).
-   Reestrutura cada pool (Alcance, Potência) em LINHA HORIZONTAL:
-   label+desc à esquerda, stepper [−] valor [+] à direita. */
-#mana-menu .opt-row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    background-color: rgba(20, 40, 61, 0.6);
-    border-width: 1px; border-color: rgb(46, 109, 164); border-style: solid;
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 10px;
-}
-#mana-menu .opt-text { flex-grow: 1; margin-right: 10px; }
-#mana-menu .opt-label {
-    color: rgb(207, 230, 255);
-    font-size: 15px;
-    -unity-font-style: bold;
-}
-#mana-menu .opt-desc {
-    color: rgb(127, 155, 181);
-    font-size: 12px;
-    margin-top: 2px;
-    white-space: normal;
-}
-#mana-menu .stepper { flex-direction: row; align-items: center; }
-#mana-menu .step-value {
-    min-width: 46px;
-    height: 34px;
-    -unity-text-align: middle-center;
-    color: rgb(126, 200, 255);
-    font-size: 16px;
-    -unity-font-style: bold;
-    background-color: rgb(13, 27, 42);
-    border-top-width: 1px;
-    border-top-color: rgb(46, 109, 164);
-    border-top-style: solid;
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(46, 109, 164);
-    border-bottom-style: solid;
-}
-/* herdado de .bh-step-btn (width/height dos botões −/+) já vem do global;
-   se quiser sobrescrever o tamanho SÓ aqui: */
-#mana-menu .bh-step-btn { width: 34px; height: 34px; font-size: 18px; }
+.bh-mp-waiting-text { font-size: 20px; color: rgb(235, 204, 89); -unity-text-align: middle-center; }

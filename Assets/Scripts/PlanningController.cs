@@ -96,6 +96,13 @@ namespace PangeaSkirmish
             _hud.BindUndo(OnUndoClick);
             _hud.BindClear(OnClearClick);
             _hud.OnSeqChipToggled = OnSeqChipToggled;
+            // Painel de INTENÇÕES (reformulação): botões 1-3 armam como as teclas 1/2/3.
+            _hud.OnIntentSelected = slot =>
+            {
+                if (slot == 0) Arm(ArmedIntent.Charge);
+                else if (slot == 1) Arm(ArmedIntent.HitAndRun);
+                else if (slot == 2) Arm(ArmedIntent.Retreat);
+            };
             _armed = ArmedIntent.None; _previewUnit = null; _previewCell = null;
             ShowIntentHint();
             SyncButtonStates();
@@ -835,9 +842,19 @@ namespace PangeaSkirmish
 
         private void ShowIntentHint()
         {
-            _hud.ShowPrompt($"Intenção: <b>{IntentName(_armed)}</b>  •  [1] Investir  [2] Golpear e recuar  [3] Recuar\n" +
-                            "Clique no inimigo ou no chão  •  Enter / 2º clique confirma");
+            // Banda própria no topo (reformulação): a dica de intenção NÃO usa mais o
+            // prompt de canto, que cobria o botão Confirmar (bug antigo de confirmação).
+            _hud.ShowIntentBand($"⚡ INTENÇÃO: <b>{IntentName(_armed)}</b>",
+                                "clique no inimigo p/ montar a fila  •  Enter/2º clique confirma");
+            _hud.SetIntentArmed(IntentSlot(_armed));
         }
+        private static int IntentSlot(ArmedIntent i) => i switch
+        {
+            ArmedIntent.Charge    => 0,
+            ArmedIntent.HitAndRun => 1,
+            ArmedIntent.Retreat   => 2,
+            _ => -1
+        };
 
         private void Arm(ArmedIntent intent)
         {
@@ -847,8 +864,10 @@ namespace PangeaSkirmish
 
         private bool PointerOverUI()
         {
-            var es = UnityEngine.EventSystems.EventSystem.current;
-            return es != null && es.IsPointerOverGameObject();
+            // O EventSystem UGUI não enxerga UI Toolkit. Usa o picking real do painel
+            // do BattleHUD (fix 2026-11-10: clique em botões da HUD vazava pro grid,
+            // impedindo confirmar intenções pelo botão).
+            return _hud != null && _hud.IsPointerOverUI();
         }
 
         /// <summary>Teclas e cliques do Modo Intenção. Devolve true se consumiu o input do frame.</summary>

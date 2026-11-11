@@ -394,12 +394,13 @@ namespace PangeaSkirmish
 
             var u = UnitUnderMouse();
             if (u != null) _hud.ShowUnitInfo(u);
+            else if (_hud != null) _hud.HideUnitInfo();
         }
 
         private bool PointerOverUI()
         {
-            var es = UnityEngine.EventSystems.EventSystem.current;
-            return es != null && es.IsPointerOverGameObject();
+            // UI Toolkit não é enxergado pelo EventSystem UGUI (fix 2026-11-10).
+            return _hud != null && _hud.IsPointerOverUI();
         }
 
         private Unit UnitUnderMouse()
