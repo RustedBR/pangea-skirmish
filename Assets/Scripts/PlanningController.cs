@@ -99,6 +99,11 @@ namespace PangeaSkirmish
             _hud.BindUndo(OnUndoClick);
             _hud.BindClear(OnClearClick);
             _hud.OnSeqChipToggled = OnSeqChipToggled;
+            _hud.OnIncrementPick = (idx, kind) =>
+            {
+                _hud.SelectSeqIndex(idx);
+                if (kind == 0) OnPowerStrikeClick(); else OnAimClick();
+            };
             // Painel de INTENÇÕES (reformulação): botões 1-3 armam como as teclas 1/2/3.
             _hud.OnIntentSelected = slot =>
             {
@@ -227,6 +232,7 @@ namespace PangeaSkirmish
                 if (_controlled.remainingBAP < Tuning.Get().instinctPowerStrike)
                 {
                     _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Instinto insuficiente para Golpe Poderoso", _controlled);
+                    _hud.ShowPlanNote("Instinto insuficiente para o Golpe poderoso");
                     return;
                 }
                 int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
@@ -234,6 +240,7 @@ namespace PangeaSkirmish
                 if (extraTicks > _controlled.remainingAP)
                 {
                     _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para Golpe Poderoso", _controlled);
+                    _hud.ShowPlanNote("Sem tick livre para o Golpe poderoso (+1 tick): desfaça uma ação ou use Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction
@@ -455,9 +462,9 @@ namespace PangeaSkirmish
             else
             {
                 // Aplicar mira: gasta PAB
-                if (_controlled.remainingBAP <= 0)
+                if (_controlled.remainingBAP < Tuning.Get().instinctAim)
                 {
-                    Debug.Log("PAB insuficiente para Mirar");
+                    _hud.ShowPlanNote("Instinto insuficiente para Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction

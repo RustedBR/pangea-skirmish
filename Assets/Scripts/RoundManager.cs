@@ -768,8 +768,17 @@ namespace PangeaSkirmish
             foreach (var u in _units) if (!u.IsDead && IsLocalUnit(u) && (u.CanIncrementNext(0) || u.CanIncrementNext(1))) { mine = u; break; }
             float shown = 0f;
             if (mine != null)
+                _hud.SetIncrementWindow(mine, k =>
+                {
+                    if (mine.CanIncrementNext(k))
+                    {
+                        sync.SubmitIncrementServerRpc(UnitRegistry.GetId(mine), k);
+                        _hud.LogAction($"◆ {mine.unitName}: {(k == 0 ? "golpe poderoso" : "mira")} pedido", mine);
+                    }
+                });
+            if (mine != null)
                 _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
-                    $"[1] Golpe poderoso (−{Unit.IncrementCost(0)} Instinto, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Instinto, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
             while (_windowClosedSeq < seq && guard > 0f)
@@ -787,7 +796,7 @@ namespace PangeaSkirmish
                 }
                 yield return null;
             }
-            if (mine != null) _hud.HideIntentBand();
+            if (mine != null) { _hud.HideIntentBand(); _hud.SetIncrementWindow(null, null); }
 
             // Aplica, na ordem de chegada (igual em todas as máquinas), o que valeu para esta janela.
             for (int i = 0; i < _pendingIncrements.Count; i++)

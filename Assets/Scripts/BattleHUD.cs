@@ -475,6 +475,85 @@ namespace PangeaSkirmish
         private static readonly System.Text.RegularExpressions.Regex RichTag =
             new System.Text.RegularExpressions.Regex("<[^>]+>");
 
+        private string _headBase, _headCosts, _planNote; private float _planNoteUntil;
+        private void RefreshHeader()
+        {
+            if (_ticksRowsHeader == null) return;
+            string t = _headBase ?? "";
+            if (!string.IsNullOrEmpty(_headCosts)) t += "\n" + _headCosts;
+            bool note = !string.IsNullOrEmpty(_planNote) && Time.unscaledTime < _planNoteUntil;
+            if (note) t += "\n" + _planNote;
+            _ticksRowsHeader.text = t;
+            _ticksRowsHeader.style.color = note ? new Color(1f, 0.82f, 0.45f) : new Color(0.74f, 0.85f, 1f);
+        }
+
+        /// <summary>Aviso curto no cabeçalho da barra (ex.: sem tick livre para o incremento).</summary>
+        public void ShowPlanNote(string text)
+        {
+            _planNote = text; _planNoteUntil = Time.unscaledTime + 3f;
+            RefreshHeader();
+        }
+
+        // ── Incremento clicando nos blocos de ataque (plano e janela entre ticks) ──
+        public Action<int, int> OnIncrementPick;           // (índice no plano, tipo: 0 golpe poderoso, 1 mirar)
+        private Unit _windowUnit; private Action<int> _windowPick;
+        private VisualElement _incPopup;
+
+        /// <summary>Abre/fecha o modo "janela entre ticks": o bloco do ataque seguinte vira clicável.</summary>
+        public void SetIncrementWindow(Unit u, Action<int> onPick)
+        {
+            _windowUnit = u; _windowPick = onPick;
+            CloseIncrementPopup();
+            RebuildTickRows();
+        }
+
+        private void CloseIncrementPopup()
+        {
+            if (_incPopup != null) { _incPopup.RemoveFromHierarchy(); _incPopup = null; }
+        }
+
+        private void OpenIncrementPopup(VisualElement anchor, string title, bool powerOn, bool aimOn,
+                                        bool powerEnabled, bool aimEnabled, Action<int> pick)
+        {
+            CloseIncrementPopup();
+            if (_ticksBar == null) return;
+            var pop = new VisualElement();
+            var ps = pop.style;
+            ps.position = Position.Absolute;
+            ps.backgroundColor = new Color(0.07f, 0.10f, 0.22f, 0.98f);
+            ps.paddingLeft = ps.paddingRight = 8; ps.paddingTop = ps.paddingBottom = 6;
+            ps.borderTopLeftRadius = ps.borderTopRightRadius = ps.borderBottomLeftRadius = ps.borderBottomRightRadius = 6;
+            ps.borderTopWidth = ps.borderBottomWidth = ps.borderLeftWidth = ps.borderRightWidth = 1;
+            var bc = new Color(0.42f, 0.58f, 1f);
+            ps.borderTopColor = ps.borderBottomColor = ps.borderLeftColor = ps.borderRightColor = bc;
+            var head = new Label(title); head.style.fontSize = 11; head.style.color = new Color(0.74f, 0.85f, 1f);
+            head.style.unityFontStyleAndWeight = FontStyle.Bold; head.style.marginBottom = 4;
+            pop.Add(head);
+
+            VisualElement Opt(int kind, string text, bool on, bool enabled)
+            {
+                var b = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); CloseIncrementPopup(); pick?.Invoke(kind); }) { text = text };
+                b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 26;
+                b.style.fontSize = 11; b.style.unityTextAlign = TextAnchor.MiddleLeft;
+                b.style.backgroundColor = on ? new Color(1f, 0.80f, 0.33f) : new Color(0.10f, 0.14f, 0.30f);
+                b.style.color = on ? new Color(0.06f, 0.08f, 0.16f) : new Color(0.93f, 0.95f, 1f);
+                b.SetEnabled(enabled);
+                return b;
+            }
+            pop.Add(Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().instinctPowerStrike} Instinto, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, powerEnabled));
+            pop.Add(Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().instinctAim} Instinto)", aimOn, aimEnabled));
+            var close = new Button(CloseIncrementPopup) { text = "Fechar" };
+            close.style.marginLeft = close.style.marginRight = 0; close.style.height = 22; close.style.fontSize = 10;
+            pop.Add(close);
+
+            _ticksBar.Add(pop);
+            // Acima da barra, alinhado ao bloco clicado.
+            var ab = anchor.worldBound; var bb = _ticksBar.worldBound;
+            ps.left = Mathf.Max(0f, ab.x - bb.x);
+            ps.bottom = bb.height + 4;
+            _incPopup = pop;
+        }
+
         public void UpdateTimeline(int tick, List<Unit> units, System.Func<Unit, bool> isMine)
         {
             _tlTick = tick; _tlUnits = units; _tlIsMine = isMine;
@@ -511,14 +590,39 @@ namespace PangeaSkirmish
             Unit planUnit = _lastUnit;
             bool planning = _planSeq != null && _planSeq.Count > 0 && planUnit != null;
             int planTotal = 0;
-            string head = $"TICK {_tlTick}";
             if (planning)
             {
                 for (int i = 0; i < _planSeq.Count; i++)
                     planTotal += TickRules.Duration(planUnit, _planSeq[i], _planSched != null && i < _planSched.Count && _planSched[i].IsBonus);
-                head += $"  •  PLANO {Mathf.Min(planTotal, maxTicks)}/{maxTicks} ticks";
             }
-            _ticksRowsHeader.text = head;
+            _headBase = $"TICK {_tlTick}";
+            if (planning)
+            {
+                int free = Mathf.Max(0, maxTicks - planTotal);
+                _headBase += $"  •  PLANO {Mathf.Min(planTotal, maxTicks)}/{maxTicks} ticks  ({free} livre{(free == 1 ? "" : "s")})" +
+                             $"  •  Instinto {planUnit.remainingBAP}/{planUnit.stats.MaxInstinct}";
+                _headCosts = $"Custo: Andar {TickRules.Duration(planUnit, ActionType.Move, false)} tick  •  " +
+                             $"Atacar {TickRules.Duration(planUnit, ActionType.Attack, false)}  •  Golpe poderoso {TickRules.Duration(planUnit, ActionType.Attack, true)}";
+            }
+            else _headCosts = null;
+            RefreshHeader();
+            // Régua de ticks: mostra a capacidade da fila (1..N) alinhada com as faixas.
+            var ruler = new VisualElement { pickingMode = PickingMode.Ignore };
+            ruler.style.flexDirection = FlexDirection.Row; ruler.style.marginBottom = 2;
+            var rpad = new VisualElement { pickingMode = PickingMode.Ignore }; rpad.style.width = 78; ruler.Add(rpad);
+            var rtrack = new VisualElement { pickingMode = PickingMode.Ignore };
+            rtrack.style.flexDirection = FlexDirection.Row; rtrack.style.flexGrow = 1;
+            for (int k = 1; k <= maxTicks; k++)
+            {
+                var rl = new Label(k.ToString()) { pickingMode = PickingMode.Ignore };
+                rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 9; rl.style.height = 11;
+                rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 2;
+                rl.style.color = new Color(0.55f, 0.62f, 0.80f);
+                rl.style.borderBottomWidth = 1; rl.style.borderBottomColor = new Color(0.30f, 0.38f, 0.60f);
+                rtrack.Add(rl);
+            }
+            ruler.Add(rtrack);
+            _ticksRows.Add(ruler);
 
             foreach (var u in _tlUnits)
             {
@@ -553,7 +657,19 @@ namespace PangeaSkirmish
                         var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus),
                                               $"{idx + 1} {(bonus ? "◆ " : "")}{ActionName(_planSeq[i], bonus)}", true);
                         seg.pickingMode = PickingMode.Position;
-                        seg.RegisterCallback<ClickEvent>(_ => OnSeqChipClicked(idx));
+                        if (_planSeq[i] == ActionType.Attack)
+                        {
+                            bool aimOn = _planSched != null && i < _planSched.Count && _planSched[i].IsAimed;
+                            bool pw = bonus, am = aimOn;
+                            var segRef = seg;
+                            seg.RegisterCallback<ClickEvent>(_ =>
+                            {
+                                if (_incPopup != null) { CloseIncrementPopup(); return; }
+                                _selectedSeqIndex = idx;
+                                OpenIncrementPopup(segRef, $"Ataque {idx + 1}", pw, am, true, true, k => OnIncrementPick?.Invoke(idx, k));
+                            });
+                        }
+                        else seg.RegisterCallback<ClickEvent>(_ => OnSeqChipClicked(idx));
                         seg.style.opacity = idx == _selectedSeqIndex ? 1f : 0.82f;
                         track.Add(seg); _seqChips.Add(seg);
                         used += d;
@@ -568,6 +684,20 @@ namespace PangeaSkirmish
                         string label = mine ? ActionName(q.Type, q.IsBonus) : "ocupada";
                         var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus) : TlWait, label, mine);
                         track.Add(seg);
+                        if (firstSeg && mine && u == _windowUnit && q.Type == ActionType.Attack)
+                        {
+                            seg.pickingMode = PickingMode.Position;
+                            var segRef = seg; var wu = u;
+                            seg.style.borderTopColor = seg.style.borderBottomColor = seg.style.borderLeftColor = seg.style.borderRightColor = new Color(1f, 0.9f, 0.5f);
+                            ((Label)seg.ElementAt(0)).text = label + "  ▾";
+                            seg.RegisterCallback<ClickEvent>(_ =>
+                            {
+                                if (_incPopup != null) { CloseIncrementPopup(); return; }
+                                OpenIncrementPopup(segRef, "Incrementar o próximo ataque", wu.queue.Count > 0 && wu.queue[0].IsBonus,
+                                    wu.queue.Count > 0 && wu.queue[0].IsAimed, wu.CanIncrementNext(0), wu.CanIncrementNext(1),
+                                    k => _windowPick?.Invoke(k));
+                            });
+                        }
                         if (firstSeg)
                         {
                             _rowRefs[u] = new RowRef { seg = seg, label = (Label)seg.ElementAt(0), defaultText = label,
@@ -580,7 +710,10 @@ namespace PangeaSkirmish
 
                 if (used < maxTicks)
                 {
-                    var rest = MakeSegment(maxTicks - used, TlEmpty, (!u.IsBusy && !isPlanRow) ? "decide agora" : "", false);
+                    string restText = (!u.IsBusy && !isPlanRow) ? "decide agora"
+                                    : isPlanRow ? $"+ {maxTicks - used} livre{(maxTicks - used == 1 ? "" : "s")}" : "";
+                    var rest = MakeSegment(maxTicks - used, TlEmpty, restText, false);
+                    if (isPlanRow) ((Label)rest.ElementAt(0)).style.color = new Color(0.55f, 0.62f, 0.80f);
                     if (!u.IsBusy && !isPlanRow)
                     {
                         var l = (Label)rest.ElementAt(0);
@@ -656,6 +789,7 @@ namespace PangeaSkirmish
         private void FadeRowFlashes()
         {
             foreach (var kv in _rowRefs) ApplyRowEvent(kv.Key);
+            if (!string.IsNullOrEmpty(_planNote)) RefreshHeader();
         }
 
         private static string ActionLetter(ActionType t) =>

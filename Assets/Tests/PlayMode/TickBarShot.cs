@@ -6,6 +6,7 @@ using PangeaSkirmish;
 using PangeaSkirmish.UI;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 /// <summary>Renderiza a HUD de batalha com uma fila e eventos e salva Temp/tickbar.png.</summary>
 public class TickBarShot
@@ -58,7 +59,14 @@ public class TickBarShot
                 new ScheduledAction { Type = ActionType.Move }, new ScheduledAction { Type = ActionType.Move },
                 new ScheduledAction { Type = ActionType.Attack }, new ScheduledAction { Type = ActionType.Attack, IsBonus = true } });
         hud.LogAction("> Fera 1 -> Jogador: 6  (11/32 HP)", beast);
-        for (int i = 0; i < 10; i++) yield return null;
+        for (int i = 0; i < 5; i++) yield return null;
+        // Clica no bloco "3 Atacar" do plano: deve abrir o menu de incremento.
+        var root = hud.GetComponent<UIDocument>().rootVisualElement;
+        VisualElement atk = null;
+        root.Query<Label>().ForEach(l => { if (atk == null && l.text.Contains("Atacar") && l.text.StartsWith("3")) atk = l.parent; });
+        Assert.IsNotNull(atk, "bloco de ataque do plano não encontrado");
+        using (var e = ClickEvent.GetPooled()) { e.target = atk; atk.SendEvent(e); }
+        for (int i = 0; i < 5; i++) yield return null;
         yield return new WaitForEndOfFrame();
 
         var tex = ScreenCapture.CaptureScreenshotAsTexture();
