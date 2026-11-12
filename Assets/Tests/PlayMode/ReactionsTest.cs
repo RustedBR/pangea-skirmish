@@ -67,7 +67,7 @@ public class ReactionsTest
         var guard = Make("Guarda", Team.Player, new Vector2Int(8, 6), "IronSword");
         var foe = Make("Inimigo", Team.Enemy, new Vector2Int(12, 6), "IronSword", str: 6);
         hurt.currentHP = 3;                       // golpe fatal
-        guard.currentInstinct = guard.stats.MaxInstinct; guard.remainingReactions = 1;
+        guard.currentStamina = guard.stats.MaxStamina; guard.remainingReactions = 1;
 
         var picked = (Unit)Call("FindInterceptor", hurt, foe);
         Assert.AreSame(guard, picked, "o aliado adjacente com mais vida intercepta");
@@ -77,13 +77,13 @@ public class ReactionsTest
     }
 
     [UnityTest]
-    public IEnumerator Intercept_NeedsAdjacencyAndInstinct()
+    public IEnumerator Intercept_NeedsAdjacencyAndStamina()
     {
         yield return Setup();
         var hurt = Make("Ferido", Team.Player, new Vector2Int(2, 6), "IronSword");
         var far = Make("Longe", Team.Player, new Vector2Int(14, 6), "IronSword");
         var foe = Make("Inimigo", Team.Enemy, new Vector2Int(12, 12), "IronSword");
-        hurt.currentHP = 3; far.currentInstinct = far.stats.MaxInstinct; far.remainingReactions = 1;
+        hurt.currentHP = 3; far.currentStamina = far.stats.MaxStamina; far.remainingReactions = 1;
         Assert.IsNull(Call("FindInterceptor", hurt, foe), "longe demais não intercepta");
     }
 

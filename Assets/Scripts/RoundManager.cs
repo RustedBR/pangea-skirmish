@@ -37,6 +37,8 @@ namespace PangeaSkirmish
         private Unit _playerUnit;
         private ScreenFlash _screenFlash;
         private TileEffectManager _tileFx;
+        /// <summary>Zonas de magia da batalha (GDD-019). Exposto em SpellField.Current para o AttackResolver.</summary>
+        private readonly SpellField _spellField = new SpellField();
 
         // ---- Lockstep MP (Fase 6) ----
         private bool _waitingLockstep; // true enquanto aguarda ExecuteRoundClientRpc
@@ -72,11 +74,20 @@ namespace PangeaSkirmish
 
         public RoundPhase Phase => _phase;
 
+        private void OnDestroy()
+        {
+            _spellField.Clear();
+            if (SpellField.Current == _spellField) SpellField.Current = null;
+        }
+
         public void Setup(GridManager grid, PlanningController planner, BattleHUD hud,
                           Camera cam, CameraController camCtrl, List<Unit> units, Unit playerUnit,
                           TileEffectManager tileFx = null)
         {
             _grid = grid;
+            _spellField.Clear();
+            SpellField.Current = _spellField;
+            BattleFeedback.Cam = cam;
             _planner = planner;
             _hud = hud;
             _cam = cam;
@@ -174,7 +185,7 @@ namespace PangeaSkirmish
         }
 
         private static string ActionShort(ActionType t) =>
-            t == ActionType.Move ? "Mov" : t == ActionType.Attack ? "Atq" : t == ActionType.Concentrate ? "Con" : "Esp";
+            t == ActionType.Move ? "Mov" : t == ActionType.Attack ? "Atq" : t == ActionType.Concentrate ? "Con" : t == ActionType.Spell ? "Mag" : "Esp";
 
         /// <summary>Foco automático suave: pede o alvo ao CameraController e espera assentar.</summary>
         private IEnumerator FocusCamera(Vector3 center, float size, float duration)
@@ -528,6 +539,7 @@ namespace PangeaSkirmish
                 // Avança a ação da frente de cada fila; coleta as que TERMINAM neste tick.
                 var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
+                var spellsThisSlot  = new List<(Unit u, PlannedSpell sp)>();
                 foreach (var u in _units)
                 {
                     if (u.IsDead || u.queue.Count == 0) continue;
@@ -540,21 +552,44 @@ namespace PangeaSkirmish
                         case ActionType.Move:   movesThisSlot.Add((u, head.Dest, head.IsBonus)); break;
                         case ActionType.Attack: attacksThisSlot.Add((u, head.Attack, head.IsBonus, head.IsAimed)); break;
                         case ActionType.Concentrate:
-                            int regen = u.stats.ManaRegen;
-                            u.currentMana = Mathf.Min(u.currentMana + regen, u.stats.MaxMana);
+                            // Concentrar dá Mana imediata, além da regeneração por tick (GDD-019 §4).
+                            int regen = u.stats.ConcentrateMana;
+                            u.GainMana(regen);
                             if (u.plannedConcentrations > 0) u.plannedConcentrations--;
-                            _hud.LogAction($"✦ {u.unitName} concentrou +{regen} mana", u);
+                            _hud.LogAction($"✦ {u.unitName} concentrou +{regen} Mana", u);
+                            break;
+                        case ActionType.Spell:
+                            spellsThisSlot.Add((u, head.Spell));
                             break;
                     }
                 }
 
                 // Cabeçalho do tick no histórico: cada ação fica sob o tick em que realmente acontece.
-                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0) _hud.LogRound(_globalTick);
+                bool anyAction = movesThisSlot.Count > 0 || attacksThisSlot.Count > 0 || spellsThisSlot.Count > 0;
+                if (anyAction) _hud.LogRound(_globalTick);
+
+                // Muralha bloqueia movimento: quem terminaria dentro ou atravessaria fica parado (GDD-019 §3.2).
+                if (_spellField.Zones.Count > 0 && movesThisSlot.Count > 0)
+                    movesThisSlot.RemoveAll(m =>
+                    {
+                        bool blocked = false;
+                        foreach (var z in _spellField.Zones)
+                        {
+                            if (z.Kind != SpellEffect.Barrier) continue;
+                            foreach (var c in z.Cells)
+                                if (GridManager.FootprintsOverlap(m.dest, m.u.stats.Footprint, c, 1)) { blocked = true; break; }
+                            if (!blocked && _spellField.BarrierOnLine(m.u.anchor, m.dest) != null) blocked = true;
+                            if (blocked) break;
+                        }
+                        if (blocked) _hud.LogAction($"<color=#888888>x</color> {m.u.unitName}: a Muralha bloqueia o caminho", m.u);
+                        return blocked;
+                    });
 
                 // Um enquadramento por tick, cobrindo todos que agem.
-                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
+                if (anyAction)
                 {
                     var actors = new List<Vector3>();
+                    foreach (var sp in spellsThisSlot) actors.Add(sp.u.transform.position);
                     foreach (var m in movesThisSlot) { actors.Add(m.u.transform.position); actors.Add(_grid.AnchorToWorldCenter(m.dest, m.u.stats.Footprint)); }
                     foreach (var a in attacksThisSlot)
                     {
@@ -592,13 +627,48 @@ namespace PangeaSkirmish
                 if (attacksThisSlot.Count > 0)
                     yield return ResolveAttackSlot(attacksThisSlot);
 
+                // Magias que terminam neste tick (GDD-019). Ordem por unitId, como o resto do lockstep.
+                bool anySpellFx = false;
+                foreach (var (su, sp) in spellsThisSlot)
+                {
+                    if (su.IsDead) continue;
+                    // Visual primeiro (lê posições de antes do efeito); o Salto anima de onde saiu.
+                    var castFrom = su.transform.position;
+                    ActionFx.MarkSpell(_grid, su, sp);
+                    ActionFx.PlaySpell(su, sp, _grid);
+                    foreach (var line in SpellResolver.Resolve(su, sp, _units, _grid, _spellField))
+                        _hud.LogAction(line, su);
+                    var sdef = sp.Def;
+                    if (sdef != null && (sdef.effect == SpellEffect.Leap || sdef.effect == SpellEffect.Teleport) && su.Model3D != null
+                        && su.transform.position != castFrom && sdef.effect == SpellEffect.Leap)
+                        su.Model3D.PlayLeap(castFrom, 0.5f);
+                    anySpellFx = true;
+                }
+                if (anySpellFx) yield return new WaitForSeconds(Tuning.Get().spellFxPause);
+
                 yield return AdvanceGlobalTick();
+                foreach (var line in SpellResolver.TickEffects(_units, _spellField)) _hud.LogAction(line, null);
+
+                // Interrupção (GDD-019 §9.3): a conjuração Elemental sai da fila com o resto dela,
+                // a Mana já foi gasta, e a unidade decide no tick seguinte (fecha o segmento).
+                bool interrupted = false;
+                foreach (var u in _units)
+                {
+                    if (u.IsDead || u.queue.Count == 0 || !u.queue[0].Interrupted) continue;
+                    var q = u.queue[0];
+                    string nm = q.Spell.Def != null ? q.Spell.Def.displayName : q.Spell.SpellId;
+                    _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: <b>{nm}</b> interrompida ({q.DamageTaken} ≥ {SpellResolver.InterruptThreshold(u)}). Mana gasta.", u);
+                    BattleFeedback.Interrupted(u, q.DamageTaken, SpellResolver.InterruptThreshold(u));
+                    u.queue.Clear();
+                    interrupted = true;
+                }
                 LogTimeline();
+                if (interrupted) break;
                 if (t < segment - 1) yield return IncrementWindow();
 
                 if (!CheckAnyFactionAlive()) break;
 
-                if (movesThisSlot.Count > 0 || attacksThisSlot.Count > 0)
+                if (anyAction)
                     yield return new WaitForSeconds(slotPause);
             }
 
@@ -780,7 +850,7 @@ namespace PangeaSkirmish
                 });
             if (mine != null)
                 _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
-                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Instinto, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Estâmina, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
             while (_windowClosedSeq < seq && guard > 0f)
@@ -817,9 +887,12 @@ namespace PangeaSkirmish
         private IEnumerator AdvanceGlobalTick()
         {
             _globalTick++;
-            // Instinto volta aos poucos (GDD-016 §3).
+            // Estâmina volta aos poucos (GDD-016 §3).
             foreach (var u in _units)
-                if (!u.IsDead && _globalTick % u.stats.InstinctRegenTicks == 0) u.GainInstinct(1);
+                if (!u.IsDead && _globalTick % u.stats.StaminaRegenTicks == 0) u.GainStamina(1);
+            // Mana volta por tick; a WIS acelera (GDD-019 §4).
+            foreach (var u in _units)
+                if (!u.IsDead && u.stats.MaxMana > 0 && _globalTick % u.stats.ManaRegenTicks == 0) u.GainMana(1);
             int per = Mathf.Max(1, Tuning.Get().ticksPerRound);
             if (_globalTick % per != 0) yield break;
             foreach (var u in _units)
@@ -1059,7 +1132,7 @@ namespace PangeaSkirmish
                     from.y + Mathf.RoundToInt(dy * t));
 
                 if (!_grid.IsAnchorInBounds(candidate, fp)) break;
-                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.stats.MoveStep) break;
+                if (GridManager.FootprintGap(from, fp, candidate, fp) > u.EffectiveMoveStep) break;
 
                 bool free = true;
                 foreach (var (oAnchor, ofp) in occupied)
@@ -1145,7 +1218,8 @@ namespace PangeaSkirmish
                 Vector3 aimPos = AttackAimPos(u, atk);
                 BattleLabel.CreateAttack(_cam, u.HeadWorld, u.unitName);
                 animating++;
-                StartCoroutine(RunThen(u.PlayAttackAnim(aimPos), () => animating--));
+                ActionFx.MarkAttack(_grid, u, atk);      // onde na grade o golpe acontece
+                StartCoroutine(RunThen(u.PlayAttackAnim(aimPos, incr), () => animating--));
             }
             while (animating > 0) yield return null;
 
@@ -1160,9 +1234,9 @@ namespace PangeaSkirmish
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
-                    // Ataque perdido devolve o Instinto do golpe poderoso / mirar.
-                    if (incr) u.GainInstinct(Tuning.Get().instinctPowerStrike);
-                    if (aimed) u.GainInstinct(Tuning.Get().instinctAim);
+                    // Ataque perdido devolve a Estâmina do golpe poderoso / mirar.
+                    if (incr) u.GainStamina(Tuning.Get().staminaPowerStrike);
+                    if (aimed) u.GainStamina(Tuning.Get().staminaAim);
                     _hud.RefreshUnitInfo();
                     continue;
                 }
@@ -1419,7 +1493,7 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
-        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Instinto e
+        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Estâmina e
         /// mais vida que ele, recebe o golpe no lugar quando o alvo estaria em risco (golpe fatal
         /// ou vida abaixo de 40%). Escolhe o de mais vida; empate pelo menor id.
         /// </summary>
@@ -1475,15 +1549,21 @@ namespace PangeaSkirmish
                     break;
                 case ReactionKind.Dodge:
                     reactor.dodgeReactBonus = Mathf.Clamp01(reactor.stats.AGI * T.dodgeReactionPerAGI);
+                    reactor.PlayReactionAnim(ReactionKind.Dodge);
+                    BattleFeedback.Status(reactor, "Esquiva ágil", new Color(0.55f, 0.85f, 1f));
                     _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquiva! (+" +
                         Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
+                    reactor.PlayReactionAnim(ReactionKind.Block);
+                    BattleFeedback.Status(reactor, $"Escudo erguido (−{reactor.blockFlat})", new Color(1f, 0.86f, 0.40f));
                     _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
                     break;
                 case ReactionKind.Intercept:
                     _interceptedBy = reactor;    // o fluxo do ataque redireciona o golpe
+                    reactor.PlayReactionAnim(ReactionKind.Intercept);
+                    BattleFeedback.Status(reactor, "Interceptou!", new Color(1f, 0.86f, 0.40f));
                     break;
                 case ReactionKind.Step:
                     {
@@ -1491,7 +1571,9 @@ namespace PangeaSkirmish
                         if (dest.HasValue)
                         {
                             var from = reactor.anchor;
+                            var stepFrom = reactor.transform.position;
                             reactor.anchor = dest.Value; reactor.plannedAnchor = dest.Value; reactor.SnapToAnchor();
+                            if (reactor.Model3D != null) reactor.Model3D.PlayLeap(stepFrom, 0.25f);
                             _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Passo reativo! saiu do alcance", reactor);
                         }
                         break;

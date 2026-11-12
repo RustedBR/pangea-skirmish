@@ -90,6 +90,33 @@ namespace PangeaSkirmish
             _sfxSource.PlayOneShot(clip, GameSettings.SfxVolume);
         }
 
+        private readonly System.Collections.Generic.Dictionary<string, AudioClip> _named =
+            new System.Collections.Generic.Dictionary<string, AudioClip>();
+
+        /// <summary>Clip de Resources/Audio pelo nome do arquivo (ex.: "sfx_slash"), com cache. Null se não existir.</summary>
+        public AudioClip Named(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+            if (!_named.TryGetValue(name, out var clip))
+            {
+                clip = Resources.Load<AudioClip>("Audio/" + name);
+                _named[name] = clip;
+            }
+            return clip;
+        }
+
+        /// <summary>Toca um som pelo nome; se o arquivo não existir, toca <paramref name="fallback"/> (pode ser null).</summary>
+        public void PlayNamed(string name, AudioClip fallback = null, float volume = 1f)
+        {
+            var clip = Named(name) ?? fallback;
+            if (clip == null || _sfxSource == null) return;
+            LastNamed = name;
+            _sfxSource.PlayOneShot(clip, GameSettings.SfxVolume * volume);
+        }
+
+        /// <summary>Último som pedido por nome (testes).</summary>
+        public static string LastNamed;
+
         public void PlayAtPoint(AudioClip clip, Vector3 pos)
         {
             if (clip == null) return;

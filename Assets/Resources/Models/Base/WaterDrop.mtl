@@ -1,0 +1,14 @@
+newmtl water
+Kd 0.250 0.580 0.950
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl water_light
+Kd 0.750 0.900 1.000
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

@@ -34,22 +34,48 @@ namespace PangeaSkirmish
         [Tooltip("Teto de tiles que uma ação de andar cobre.")]
         public int maxTilesPerMove = 6;
 
-        [Header("═══ INSTINTO (GDD-016) ═══")]
-        [Tooltip("Instinto máximo = instinctBase + (STR + VIT) × instinctPerBodyPoint.")]
-        public float instinctBase = 1f;
-        public float instinctPerBodyPoint = 0.25f;
-        [Tooltip("Recupera 1 de Instinto a cada N ticks.")]
-        public int instinctRegenTicks = 3;
-        [Tooltip("AGI acima deste valor acelera a regeneração de Instinto (o excedente que a andada já não aproveita).")]
+        [Header("═══ ESTÂMINA (GDD-016) ═══")]
+        [Tooltip("Estâmina máxima = staminaBase + (STR + VIT) × staminaPerBodyPoint.")]
+        public float staminaBase = 1f;
+        public float staminaPerBodyPoint = 0.25f;
+        [Tooltip("Recupera 1 de Estâmina a cada N ticks.")]
+        public int staminaRegenTicks = 3;
+        [Tooltip("AGI acima deste valor acelera a regeneração de Estâmina (o excedente que a andada já não aproveita).")]
         public int agiRegenFrom = 6;
-        [Tooltip("A cada N pontos de AGI acima de agiRegenFrom, o Instinto volta 1 tick mais cedo.")]
+        [Tooltip("A cada N pontos de AGI acima de agiRegenFrom, a Estâmina volta 1 tick mais cedo.")]
         public int agiRegenStep = 3;
-        [Tooltip("Golpe poderoso multiplica o dano base por este valor (e custa +1 tick e Instinto).")]
+        [Tooltip("Golpe poderoso multiplica o dano base por este valor (e custa +1 tick e Estâmina).")]
         public float powerStrikeMult = 1.5f;
-        public int instinctPowerStrike = 2;
-        public int instinctAim = 1;
-        public int instinctQuickStep = 1;
-        public int instinctReaction = 2;
+        public int staminaPowerStrike = 2;
+        public int staminaAim = 1;
+        public int staminaQuickStep = 1;
+        public int staminaReaction = 2;
+
+        [Header("═══ MANA (GDD-019 §4) ═══")]
+        [Tooltip("Recupera 1 de Mana a cada N ticks.")]
+        public int manaRegenTicks = 2;
+        [Tooltip("A cada N pontos de WIS, a Mana volta 1 tick mais cedo.")]
+        public int wisRegenStep = 4;
+        [Tooltip("Mana imediata que Concentrar dá (além da regeneração normal).")]
+        public int concentrateMana = 3;
+        [Tooltip("Embotamento dos sentidos: abaixo desta fração da Mana máxima, a unidade perde alcance e acerto.")]
+        [Range(0f, 1f)] public float dullManaFraction = 0.25f;
+        [Tooltip("Tiles de alcance perdidos no embotamento (só ataques/magias à distância; corpo a corpo não cai abaixo de 1).")]
+        public int dullRangePenalty = 1;
+        [Tooltip("Acerto perdido no embotamento (0.10 = −10%).")]
+        [Range(0f, 1f)] public float dullHitPenalty = 0.10f;
+
+        [Header("═══ MAGIAS (GDD-019) ═══")]
+        [Tooltip("Catálogo de magias. Vazio = usa SpellCatalog (4 Físicas + 15 Elementais) do código.")]
+        public SpellDef[] spells = System.Array.Empty<SpellDef>();
+        [Tooltip("Conjuração Elemental é interrompida se o conjurador tomar ≥ esta fração do HP máximo durante a duração.")]
+        [Range(0f, 1f)] public float spellInterruptHpFraction = 0.25f;
+        [Tooltip("Conduíte: desconto de Mana nas magias que usam o elemento do conduíte.")]
+        public int conduitManaDiscount = 1;
+        [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
+        public float conduitPotBonus = 0.25f;
+        [Tooltip("Pausa (s) depois que as magias de um tick resolvem, para o projétil e o impacto serem vistos.")]
+        public float spellFxPause = 0.45f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
         [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]

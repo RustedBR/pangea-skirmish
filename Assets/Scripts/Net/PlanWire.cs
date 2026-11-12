@@ -21,6 +21,15 @@ namespace PangeaSkirmish
     }
 
     [Serializable]
+    public class SpellWire
+    {
+        public string spellId;
+        public uint   targetUnitId;
+        public int    targetTileX;
+        public int    targetTileY;
+    }
+
+    [Serializable]
     public class ScheduledWire
     {
         /// <summary>ActionType cast para int.</summary>
@@ -50,6 +59,7 @@ namespace PangeaSkirmish
         public List<int> pathY = new List<int>();
 
         public List<AttackWire>    attacks  = new List<AttackWire>();
+        public List<SpellWire>     spells   = new List<SpellWire>();
         public List<ScheduledWire> sequence = new List<ScheduledWire>();
 
         // ---- Conversores -------------------------------------------------------
@@ -84,6 +94,17 @@ namespace PangeaSkirmish
                     targetUnitId = atk.TargetUnit != null ? UnitRegistry.GetId(atk.TargetUnit) : 0u,
                     targetTileX  = atk.TargetTile.x,
                     targetTileY  = atk.TargetTile.y,
+                });
+            }
+
+            foreach (var sp in u.plannedSpells)
+            {
+                w.spells.Add(new SpellWire
+                {
+                    spellId      = sp.SpellId,
+                    targetUnitId = sp.TargetUnit != null ? UnitRegistry.GetId(sp.TargetUnit) : 0u,
+                    targetTileX  = sp.TargetTile.x,
+                    targetTileY  = sp.TargetTile.y,
                 });
             }
 
@@ -134,6 +155,16 @@ namespace PangeaSkirmish
                     TargetTile = new Vector2Int(aw.targetTileX, aw.targetTileY),
                 });
             }
+
+            u.plannedSpells.Clear();
+            if (w.spells != null)
+                foreach (var sw in w.spells)
+                    u.plannedSpells.Add(new PlannedSpell
+                    {
+                        SpellId    = sw.spellId,
+                        TargetUnit = sw.targetUnitId != 0 ? UnitRegistry.Get(sw.targetUnitId) : null,
+                        TargetTile = new Vector2Int(sw.targetTileX, sw.targetTileY),
+                    });
 
             u.actionSequence.Clear();
             foreach (var seq in w.sequence)

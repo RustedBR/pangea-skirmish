@@ -1,0 +1,49 @@
+newmtl team
+Kd 0.750 0.220 0.180
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl leather
+Kd 0.420 0.260 0.130
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl bone
+Kd 0.900 0.860 0.740
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl skin
+Kd 0.800 0.580 0.420
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl eye
+Kd 0.060 0.050 0.050
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl hood
+Kd 0.270 0.350 0.220
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl pants
+Kd 0.360 0.270 0.180
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

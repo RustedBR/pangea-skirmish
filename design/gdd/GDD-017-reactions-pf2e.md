@@ -3,16 +3,16 @@
 | Campo | Valor |
 |-------|-------|
 | **Status** | Implementado em parte (2026-11-11) — aguarda partida de teste |
-| **Depende de** | GDD-014 (ticks), GDD-016 (Instinto) |
+| **Depende de** | GDD-014 (ticks), GDD-016 (Estâmina) |
 | **Referência** | Archives of Nethys: Shield Block, Reactive Strike, Nimble Dodge, Intercept Attack |
 
 > **[CANON]** = decidido pelo Marcus. **[PROPOSTA]** = sugestão a confirmar.
 
 ## 1. Regras gerais **[CANON]**
 
-- Reação **automática**, paga em **Instinto** (2) e em **1 tick** na fila de quem reage. Como hoje.
+- Reação **automática**, paga em **Estâmina** (2) e em **1 tick** na fila de quem reage. Como hoje.
 - No PF2e há **uma reação por rodada**; aqui, **uma a cada `ticksPerRound` (4) ticks**.
-- O Instinto continua pagando golpe poderoso, mirar, passo rápido e as reações.
+- A Estâmina continua pagando golpe poderoso, mirar, passo rápido e as reações.
 
 ## 2. As reações
 
@@ -36,4 +36,4 @@ Bloqueio fixo faz quem bloqueia (VIT > AGI) dominar e o Ágil perder. Para compe
 ## 5. Ainda não feito
 - **Interceptar** e **Passo reativo** não têm botão de confirmação: disparam sozinhos pelas regras acima.
 - Ideias do PF2e que ficaram de fora: **Erguer escudo** como ação, **penalidade de múltiplos ataques**, **Auxiliar** (Aid) e o desgaste do escudo.
-- A reformulação dos **golpe poderoso / mirar / passo rápido** (os outros usos do Instinto) não foi feita: pela sua escolha, o Instinto continua como está.
+- A reformulação dos **golpe poderoso / mirar / passo rápido** (os outros usos da Estâmina) não foi feita: pela sua escolha, a Estâmina continua como está.

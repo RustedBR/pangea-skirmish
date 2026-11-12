@@ -1,0 +1,42 @@
+newmtl hide
+Kd 0.280 0.270 0.300
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl hide_belly
+Kd 0.420 0.380 0.400
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl hide_dark
+Kd 0.160 0.150 0.180
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl bone
+Kd 0.900 0.860 0.740
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl eye
+Kd 0.060 0.050 0.050
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+
+newmtl eye_red
+Kd 0.980 0.220 0.140
+Ka 0 0 0
+Ks 0 0 0
+d 1
+illum 1
+

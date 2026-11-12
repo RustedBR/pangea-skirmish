@@ -80,7 +80,7 @@ namespace PangeaSkirmish
                 int here = NearestHostileGap(self, pos, units);
                 if (here == int.MaxValue) break; // sem inimigos: nada de que fugir
                 Vector2Int best = pos; int bestGap = here;
-                foreach (var a in grid.GetReachableAnchors(pos, self.stats.MoveStep, fp, blockers))
+                foreach (var a in grid.GetReachableAnchors(pos, self.EffectiveMoveStep, fp, blockers))
                 {
                     int g = NearestHostileGap(self, a, units);
                     if (g > bestGap || (g == bestGap && best != pos && Before(a, best))) { bestGap = g; best = a; }
@@ -143,7 +143,7 @@ namespace PangeaSkirmish
         private static bool TryAttack(Unit self, Unit target)
         {
             if (!self.CanFit(ActionType.Attack)) return false;
-            if (Gap(self.plannedAnchor, self.stats.Footprint, target) > self.stats.AttackRange) return false;
+            if (Gap(self.plannedAnchor, self.stats.Footprint, target) > self.EffectiveAttackRange) return false;
             self.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = target, TargetTile = target.anchor });
             self.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = self.plannedAttacks.Count - 1 });
             self.RecomputeTickBudget();
@@ -159,9 +159,9 @@ namespace PangeaSkirmish
             {
                 Vector2Int pos = self.plannedAnchor;
                 int here = Gap(pos, fp, target);
-                if (here <= self.stats.AttackRange) break;
+                if (here <= self.EffectiveAttackRange) break;
                 Vector2Int best = pos; int bestGap = here;
-                foreach (var a in grid.GetReachableAnchors(pos, self.stats.MoveStep, fp, blockers))
+                foreach (var a in grid.GetReachableAnchors(pos, self.EffectiveMoveStep, fp, blockers))
                 {
                     int g = Gap(a, fp, target);
                     if (g < bestGap || (g == bestGap && best != pos && Before(a, best))) { bestGap = g; best = a; }
@@ -182,7 +182,7 @@ namespace PangeaSkirmish
                 int here = Dist(pos, dest);
                 if (here == 0) break;
                 Vector2Int best = pos; int bestD = here;
-                foreach (var a in grid.GetReachableAnchors(pos, self.stats.MoveStep, fp, blockers))
+                foreach (var a in grid.GetReachableAnchors(pos, self.EffectiveMoveStep, fp, blockers))
                 {
                     int d = Dist(a, dest);
                     if (d < bestD || (d == bestD && best != pos && Before(a, best))) { bestD = d; best = a; }

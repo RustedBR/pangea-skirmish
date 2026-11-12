@@ -4,7 +4,7 @@
 |-------|-------|
 | **Status** | Aprovado (2026-11-10) — em implementação |
 | **Substitui** | Fórmulas de atributo do GDD-002; menus de planejamento (Ações > Mover/Atacar) do GDD-008 |
-| **Depende de** | GDD-013 (Corpo/Mente, Instinto/Mana), GDD-014 (ticks) |
+| **Depende de** | GDD-013 (Corpo/Mente, Estâmina/Mana), GDD-014 (ticks) |
 
 > **[CANON]** = decidido pelo Marcus. **[PROPOSTA]** = regra ou número sugerido, a confirmar.
 
@@ -14,23 +14,24 @@
 
 ## 1. Estrutura **[CANON]**
 
-Três atributos do **Corpo**, que alimentam o **Instinto**, e três da **Mente**, que alimentam a **Mana**.
+Três atributos do **Corpo**, que alimentam o **Estâmina**, e três da **Mente**, que alimentam a **Mana**.
 
-| Corpo (Instinto) | Mente (Mana) |
+| Corpo (Estâmina) | Mente (Mana) |
 |---|---|
-| **STR** — força do golpe | **DEX** — precisão e rapidez das ações |
-| **VIT** — vida e resistência | **INT** — potência da magia |
-| **AGI** — esquiva, alcance da andada, iniciativa | **WIS** — reserva e defesa mental |
+| **STR** — força do golpe | **INT** — potência da magia |
+| **VIT** — vida e resistência | **WIS** — reserva e defesa mental |
+| **AGI** — esquiva, alcance da andada, iniciativa | |
+| **DEX** — precisão e rapidez das ações (inclusive conjurar) | |
 
 ## 2. O que cada atributo faz
 
 | Atributo | Efeito | Origem |
 |---|---|---|
 | **STR** | Dano físico: +2 por ponto | como hoje |
-| **STR** | Instinto máximo: +0,5 por ponto | **[PROPOSTA]** |
+| **STR** | Estâmina máxima: +0,5 por ponto | **[PROPOSTA]** |
 | **VIT** | Vida: +3 por ponto. Armadura: −1 de dano por ponto | como hoje |
 | **VIT** | Força do Bloqueio: 3% por ponto, até 60% | como hoje |
-| **VIT** | Instinto máximo: +0,5 por ponto | **[PROPOSTA]** |
+| **VIT** | Estâmina máxima: +0,5 por ponto | **[PROPOSTA]** |
 | **AGI** | Esquiva: +2% por ponto. Força da reação de Esquivar: +3% por ponto | **[CANON]** fica com a AGI |
 | **AGI** | Tiles por andada: `2 + AGI/2`, até 6 | **[CANON]** fica com a AGI; fórmula é **[PROPOSTA]** |
 | **AGI** | Iniciativa: d20 + AGI + DEX | **[CANON]** como hoje |
@@ -43,7 +44,7 @@ Três atributos do **Corpo**, que alimentam o **Instinto**, e três da **Mente**
 **O que muda em relação a hoje:**
 
 - A rapidez das ações **passa da AGI para a DEX**. Um mago com DEX alta conjura mais rápido que um sem. **[CANON]**
-- A DEX **deixa de dar pontos de ação bônus** (o Instinto assume esse papel).
+- A DEX **deixa de dar pontos de ação bônus** (a Estâmina assume esse papel).
 - O teto fixo de 4 tiles por andada vira a fórmula da AGI.
 
 ### 2.1 Duração das ações **[CANON + PROPOSTA]**
@@ -64,9 +65,9 @@ Três atributos do **Corpo**, que alimentam o **Instinto**, e três da **Mente**
 
 Arma leve bate mais vezes, pesada bate mais forte, e a DEX aproxima as pesadas das leves.
 
-## 3. Instinto **[CANON + PROPOSTA]**
+## 3. Estâmina **[CANON + PROPOSTA]**
 
-**[CANON]** O Instinto é a reserva do Corpo, como a Mana é a da Mente. Ele **substitui os pontos de ação bônus (PAB)** e paga ações bônus e reações.
+**[CANON]** A Estâmina é a reserva do Corpo, como a Mana é a da Mente. Ele **substitui os pontos de ação bônus (PAB)** e paga ações bônus e reações.
 
 **[PROPOSTA]** Números:
 
@@ -74,15 +75,15 @@ Arma leve bate mais vezes, pesada bate mais forte, e a DEX aproxima as pesadas d
 - **Regeneração:** 1 a cada 2 ticks.
 - **Custos:**
 
-| Uso | Instinto |
+| Uso | Estâmina |
 |---|---|
 | Golpe poderoso | 2 |
 | Mirar | 1 |
 | Passo rápido | 1 |
 | Reação (Esquivar, Bloquear, Afastar-se, Contra-atacar, Interpor) | 2 |
 
-- A unidade começa a batalha com o Instinto cheio.
-- No Coop, descer uma camada **não recupera Instinto** (o peso de descer, GDD-015 §3.2).
+- A unidade começa a batalha com a Estâmina cheia.
+- No Coop, descer uma camada **não recupera Estâmina** (o peso de descer, GDD-015 §3.2).
 
 ---
 
@@ -162,7 +163,7 @@ Cada clique **acrescenta** um passo à fila.
 | **Contra-atacar** | Um inimigo que entrou andando no alcance sai sem atacá-la | Golpe de oportunidade (regra atual) |
 | **Interpor** | Um aliado protegido vai ser atacado e ela está adjacente | Recebe o golpe no lugar do aliado |
 
-- Toda reação custa **2 de Instinto** e **1 tick** na fila de quem reage. Sem Instinto, não reage.
+- Toda reação custa **2 de Estâmina** e **1 tick** na fila de quem reage. Sem Estâmina, não reage.
 - Uma reação por unidade a cada 4 ticks, como hoje.
 - **Manter distância** = ficar parada com a postura Afastar-se. **Proteger** = posicionar-se e usar a postura Interpor.
 - As feras do Coop usam a postura pelo atributo, como hoje (AGI ≥ VIT esquiva, senão bloqueia).
@@ -170,7 +171,7 @@ Cada clique **acrescenta** um passo à fila.
 ## 9. Ordem de implementação **[PROPOSTA]**
 
 1. **Atributos:** fórmulas novas, rapidez pela DEX, duração por peso da arma.
-2. **Instinto:** reserva, regeneração e custos; remover os PAB.
+2. **Estâmina:** reserva, regeneração e custos; remover os PAB.
 3. **Montador de intenções:** funções que geram a fila para Investir, Golpear e recuar e Recuar (as feras passam a usar o mesmo montador).
 4. **Modo Intenção:** clique por contexto, intenção armada, prévia com barra de ticks e confirmação.
 5. **Posturas:** reação automática com opção de confirmar; Afastar-se e Interpor.
@@ -186,7 +187,7 @@ Cada clique **acrescenta** um passo à fila.
 
 Feito (passos 1 a 4 da seção 9):
 
-- **Atributos e Instinto:** como especificado. O custo de Instinto do plano é calculado a partir da fila e descontado quando a fila é comprometida, então vale igual em todas as máquinas.
+- **Atributos e Estâmina:** como especificado. O custo de Estâmina do plano é calculado a partir da fila e descontado quando a fila é comprometida, então vale igual em todas as máquinas.
 - **Montador (`IntentBuilder`):** Investir, Golpear e recuar, Andar até e Recuar. As feras usam o mesmo montador (Investir com 1 andada + 1 ataque).
 - **Golpear e recuar já no alcance:** se a unidade não precisou andar para bater, ela se afasta dos inimigos depois do golpe, em vez de "voltar" para onde já está.
 - **Modo Intenção:** clique no inimigo = Investir; clique no chão = andar; teclas `1` Investir, `2` Golpear e recuar, `3` Recuar (monta a fuga na hora; um clique no chão escolhe o destino). `Shift`+clique ataca uma vez, `Ctrl`+clique golpeia e recua. `Enter`, `Espaço` ou um segundo clique no mesmo alvo confirma.
@@ -198,13 +199,13 @@ Ainda não feito (passos 5 a 7): posturas automáticas com opção de confirmar,
 ## 12. Incrementar durante os ticks e planejamento mais longo (2026-11-11)
 
 - **Planejamento:** o padrão sobe de 8s para **15s** (na sala, de 5 a 60s). O relógio **pausa** enquanto há intenção armada ou prévia na tela, por no máximo `planningPauseBudget` (12s) por ponto de decisão. O host espera esse teto a mais antes de fechar a coleta.
-- **Janela de incremento:** entre dois ticks, se algum jogador tem a **próxima ação** (que ainda não começou) como ataque e Instinto suficiente, abre uma janela de `incrementWindowSeconds` (1,8s). Teclas `1` Golpe poderoso (−2 Instinto, +1 tick) e `2` Mirar (−1 Instinto).
+- **Janela de incremento:** entre dois ticks, se algum jogador tem a **próxima ação** (que ainda não começou) como ataque e Estâmina suficiente, abre uma janela de `incrementWindowSeconds` (1,8s). Teclas `1` Golpe poderoso (−2 Estâmina, +1 tick) e `2` Mirar (−1 Estâmina).
 - **Rede:** o host abre e fecha a janela para todos. Os pedidos viajam como RPC e ficam em buffer; só são aplicados, na mesma ordem, quando a janela fecha. Nenhuma máquina muda a fila no meio de um tick. Pedido fora da janela, ou de quem não é dono da unidade, é ignorado.
 - **Fora desta etapa:** passo rápido durante os ticks (precisa de destino) e botões clicáveis na janela (hoje só teclado).
 
 ## 13. Revisão do Corpo após testes (2026-11-11)
 
-Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase não defende no bloqueio; AGI acima de 6 não serve para nada; Instinto sobrava.
+Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase não defende no bloqueio; AGI acima de 6 não serve para nada; Estâmina sobrava.
 
 **Diagnóstico por simulação** (`scripts/balance_sim.py`, 1x1 corpo a corpo, 20 pontos de corpo): com as fórmulas antigas o Tanque extremo vencia 92% em média, o Bruto extremo só 37% e o Ágil extremo 26%; as lutas duravam 2 a 7 ticks.
 
@@ -217,18 +218,18 @@ Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase n
 | Esquiva (AGI) | 2% por ponto; reação +3% | **5% por ponto; reação +5%** |
 | Andada (AGI) | 2 + AGI/2, teto 6 | **2 + 0,67·AGI, teto 6**: AGI 6 já chega ao máximo |
 | Teto da AGI | 20 | **6** (acima não rende) |
-| Instinto máximo | 3 + 0,5·(STR+VIT) | **1 + 0,25·(STR+VIT)** |
-| Regeneração de Instinto | 1 a cada 2 ticks | **1 a cada 3 ticks** |
+| Estâmina máxima | 3 + 0,5·(STR+VIT) | **1 + 0,25·(STR+VIT)** |
+| Regeneração de Estâmina | 1 a cada 2 ticks | **1 a cada 3 ticks** |
 
-**Resultado na simulação:** os quatro arquétipos principais ficam entre 45% e 57%, o Ágil extremo (AGI 14) cai para 16% e a duração média da luta sobe para ~11 ticks. O Instinto cai de 10 para 5 no mesmo build, ou seja, cerca de 4 buffs ou reações por luta.
+**Resultado na simulação:** os quatro arquétipos principais ficam entre 45% e 57%, o Ágil extremo (AGI 14) cai para 16% e a duração média da luta sobe para ~11 ticks. A Estâmina cai de 10 para 5 no mesmo build, ou seja, cerca de 4 buffs ou reações por luta.
 
 **Limites da simulação:** não considera andar, alcance, fuga nem intenções. AGI e DEX valem mais no jogo real do que ali, então vale reavaliar depois de jogar.
 
 ### 13.1 Correção (2026-11-11): AGI acima de 6 e simulador
 
-- **AGI acima de 6 não é mais limitada.** A andada mantém o teto de 6 tiles, e o excedente vira **fôlego**: a cada 3 pontos de AGI acima de 6, o Instinto volta 1 tick mais cedo (AGI 6 = a cada 3 ticks, AGI 9 = a cada 2, AGI 12 = a cada tick). A esquiva continua crescendo.
-- **Erro no simulador:** a regeneração de Instinto estava sob um `if` extra e rendia metade do que dizia, então os números da seção 13 foram calibrados com Instinto mais escasso que o jogo. Corrigido em `scripts/balance_sim.py` e a busca foi refeita.
-- **Valores finais** (substituem a tabela da seção 13 onde diferem): dano de STR **4** por ponto (era 2,5), bloqueio **4%** por ponto de VIT, reação de esquiva **4%** por ponto de AGI. Vida 20 + 4·VIT, esquiva 5%/AGI, golpe poderoso +4 e Instinto 1 + 0,25·(STR+VIT) não mudam.
+- **AGI acima de 6 não é mais limitada.** A andada mantém o teto de 6 tiles, e o excedente vira **fôlego**: a cada 3 pontos de AGI acima de 6, a Estâmina volta 1 tick mais cedo (AGI 6 = a cada 3 ticks, AGI 9 = a cada 2, AGI 12 = a cada tick). A esquiva continua crescendo.
+- **Erro no simulador:** a regeneração de Estâmina estava sob um `if` extra e rendia metade do que dizia, então os números da seção 13 foram calibrados com Estâmina mais escasso que o jogo. Corrigido em `scripts/balance_sim.py` e a busca foi refeita.
+- **Valores finais** (substituem a tabela da seção 13 onde diferem): dano de STR **4** por ponto (era 2,5), bloqueio **4%** por ponto de VIT, reação de esquiva **4%** por ponto de AGI. Vida 20 + 4·VIT, esquiva 5%/AGI, golpe poderoso +4 e Estâmina 1 + 0,25·(STR+VIT) não mudam.
 - **Simulação (corrigida):** os cinco arquétipos principais, incluindo um Ágil com AGI 12, ficam entre 44% e 56%; os extremos (14/3/3, 3/14/3, 3/3/14) entre 41% e 43%. Lutas de cerca de 8,6 ticks.
 
 ### 13.2 Armadura percentual e cadência das feras (2026-11-11)

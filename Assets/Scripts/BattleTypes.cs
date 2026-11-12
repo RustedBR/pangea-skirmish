@@ -18,8 +18,8 @@ namespace PangeaSkirmish
         [Header("HP / Mana")]
         public float hpBase    = 10f;
         public float hpPerVIT  = 2f;
-        public float manaBase  = 5f;
-        public float manaPerWIS = 1f;
+        public float manaBase  = 6f;
+        public float manaPerWIS = 1.5f;
 
         [Header("Dano")]
         public float weaponBase = 2f;
@@ -58,6 +58,7 @@ namespace PangeaSkirmish
         public int magicResistPerWIS = 1;
 
         [Header("Magia")]
+        [Tooltip("Legado: regen por round. A Mana agora volta por tick (GameTuning.manaRegenTicks) e Concentrar dá GameTuning.concentrateMana.")]
         public float manaRegenBase = 2f;
         public float manaRegenPerWIS = 0.5f;
     }
@@ -121,35 +122,53 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
-        /// Ticks entre cada ponto de Instinto regenerado. A AGI acima de agiRegenFrom acelera:
+        /// Ticks entre cada ponto de Estâmina regenerado. A AGI acima de agiRegenFrom acelera:
         /// a andada já está no teto, então o excedente vira fôlego (GDD-016 §13).
         /// </summary>
-        public int InstinctRegenTicks
+        public int StaminaRegenTicks
         {
             get
             {
                 var T = Tuning.Get();
                 int bonus = Mathf.Max(0, Mathf.FloorToInt(AGI) - T.agiRegenFrom) / Mathf.Max(1, T.agiRegenStep);
-                return Mathf.Max(1, T.instinctRegenTicks - bonus);
+                return Mathf.Max(1, T.staminaRegenTicks - bonus);
             }
         }
 
         /// <summary>Ticks base do ataque, pelo peso da arma equipada (GDD-016 §2.1).</summary>
         public int AttackTicks = 2;
 
-        /// <summary>Instinto máximo: reserva do Corpo (GDD-016 §3).</summary>
-        public int MaxInstinct
+        /// <summary>Estâmina máxima: reserva do Corpo (GDD-016 §3).</summary>
+        public int MaxStamina
         {
             get
             {
                 var T = Tuning.Get();
-                return Mathf.Max(1, Mathf.RoundToInt(T.instinctBase + (STR + VIT) * T.instinctPerBodyPoint));
+                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + (STR + VIT) * T.staminaPerBodyPoint));
             }
         }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
         public int BonusActionPoints => Mathf.RoundToInt(DEX * F.bapPerDEX);
         public int BonusMoveBudget => Mathf.Max(1, F.bonusMoveBudget);
 
+        /// <summary>
+        /// Ticks entre cada ponto de Mana regenerado (GDD-019 §4). A WIS acelera:
+        /// a cada wisRegenStep pontos, a Mana volta 1 tick mais cedo.
+        /// </summary>
+        public int ManaRegenTicks
+        {
+            get
+            {
+                var T = Tuning.Get();
+                int bonus = Mathf.FloorToInt(WIS) / Mathf.Max(1, T.wisRegenStep);
+                return Mathf.Max(1, T.manaRegenTicks - bonus);
+            }
+        }
+
+        /// <summary>Mana imediata que a ação Concentrar dá, além da regeneração normal (GDD-019 §4).</summary>
+        public int ConcentrateMana => Mathf.Max(0, Tuning.Get().concentrateMana);
+
+        /// <summary>Legado (regen por round). Mantido só para leitura; o jogo usa ManaRegenTicks + ConcentrateMana.</summary>
         public int ManaRegen => Mathf.RoundToInt(F.manaRegenBase + WIS * F.manaRegenPerWIS);
 
         public float HitChance => Mathf.Clamp01(F.baseHitChance + DEX * F.hitPerDEX);
@@ -180,15 +199,22 @@ namespace PangeaSkirmish
             return _rollCritLast;
         }
 
-        public int RollDamage(int baseDamage, bool isPhysical)
+        /// <summary>
+        /// Rola o dano de um golpe destas stats (atacante) contra <paramref name="defender"/>.
+        /// A variância é do atacante; armadura % (VIT), defesa flat e defesa mágica são do DEFENSOR.
+        /// Antes de 2026-11-11 a redução usava as stats do próprio atacante (VIT alta batia mais
+        /// fraco e não protegia). Sem defensor, usa estas stats (compatibilidade de testes antigos).
+        /// </summary>
+        public int RollDamage(int baseDamage, bool isPhysical, AttributeStats defender = null)
         {
+            var d = defender ?? this;
             float halfRange = baseDamage * F.damageVariance;
             int varInt = Mathf.RoundToInt(halfRange);
             // [−varInt, +varInt] determinístico
             int variance = varInt > 0 ? BattleRng.Next(-varInt, varInt + 1) : 0;
             int dmg = baseDamage + variance;
-            if (isPhysical) dmg = Mathf.RoundToInt(dmg * (1f - PhysicalReduction));
-            dmg -= isPhysical ? PhysicalDefense : MagicDefense;
+            if (isPhysical) dmg = Mathf.RoundToInt(dmg * (1f - d.PhysicalReduction));
+            dmg -= isPhysical ? d.PhysicalDefense : d.MagicDefense;
             return Mathf.Max(Tuning.Get().minDamageFloor, dmg);
         }
     }
@@ -214,7 +240,17 @@ namespace PangeaSkirmish
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES
 
-    public enum ActionType { Move, Attack, Concentrate, Wait }
+    /// <summary>Spell fica por último para manter os casts inteiros do PlanWire (0..3) estáveis.</summary>
+    public enum ActionType { Move, Attack, Concentrate, Wait, Spell }
+
+    /// <summary>Magia planejada (GDD-019): id do catálogo + alvo (unidade ou tile; alcance −1 = sem alvo).</summary>
+    public struct PlannedSpell
+    {
+        public string     SpellId;
+        public Unit       TargetUnit;
+        public Vector2Int TargetTile;
+        public SpellDef   Def => SpellCatalog.Get(SpellId);
+    }
 
     /// <summary>
     /// Uma entrada na sequência de ações planejadas de uma unidade.
@@ -241,10 +277,13 @@ namespace PangeaSkirmish
         public ActionType    Type;
         public Vector2Int    Dest;       // Move
         public PlannedAttack Attack;     // Attack
+        public PlannedSpell  Spell;      // Spell
         public bool          IsBonus;
         public bool          IsAimed;
         public int           Duration;   // ticks totais
         public int           Elapsed;    // ticks já decorridos
+        public int           DamageTaken; // Spell Elemental: dano recebido durante a conjuração
+        public bool          Interrupted; // Spell Elemental: passou do limite (GDD-019 §1)
         public int Remaining => Mathf.Max(0, Duration - Elapsed);
     }
 
@@ -259,6 +298,7 @@ namespace PangeaSkirmish
                 case ActionType.Move:        return T.ticksMove;
                 case ActionType.Attack:      return T.ticksUnarmed + (isBonus ? T.ticksPowerStrikeExtra : 0);
                 case ActionType.Concentrate: return T.ticksConcentrate;
+                case ActionType.Spell:       return T.ticksConcentrate; // sem SpellDef: usa Duration(u, type, bonus, spell)
                 default:                     return T.ticksWait;
             }
         }
@@ -268,9 +308,13 @@ namespace PangeaSkirmish
         /// Andar e Esperar não escalam (o alcance da andada é da AGI). A base do ataque é o
         /// peso da arma da unidade.
         /// </summary>
-        public static int Duration(Unit u, ActionType type, bool isBonus)
+        public static int Duration(Unit u, ActionType type, bool isBonus) => Duration(u, type, isBonus, null);
+
+        /// <summary>Magias usam spell.ticksBase como base; a DEX encurta como qualquer ação (GDD-018).</summary>
+        public static int Duration(Unit u, ActionType type, bool isBonus, SpellDef spell)
         {
             int b = BaseTicks(type, isBonus);
+            if (type == ActionType.Spell && spell != null) b = Mathf.Max(1, spell.ticksBase);
             if (u == null) return Mathf.Max(1, b);
             if (type == ActionType.Attack)
                 b = Mathf.Max(1, u.stats.AttackTicks) + (isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0);
@@ -279,18 +323,42 @@ namespace PangeaSkirmish
             return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX))));
         }
 
-        // ---- Custos em Instinto (GDD-016 §3) ----
-        public static int InstinctCost(ScheduledAction a)
+        // ---- Custos em Estâmina (GDD-016 §3) ----
+        public static int StaminaCost(ScheduledAction a)
         {
             var T = Tuning.Get();
             int c = 0;
-            if (a.Type == ActionType.Attack && a.IsBonus) c += T.instinctPowerStrike;
-            if (a.Type == ActionType.Attack && a.IsAimed) c += T.instinctAim;
-            if (a.Type == ActionType.Move   && a.IsBonus) c += T.instinctQuickStep;
+            if (a.Type == ActionType.Attack && a.IsBonus) c += T.staminaPowerStrike;
+            if (a.Type == ActionType.Attack && a.IsAimed) c += T.staminaAim;
+            if (a.Type == ActionType.Move   && a.IsBonus) c += T.staminaQuickStep;
             return c;
         }
 
-        public static int Duration(Unit u, ScheduledAction a) => Duration(u, a.Type, a.IsBonus);
+        public static int Duration(Unit u, ScheduledAction a) =>
+            Duration(u, a.Type, a.IsBonus, a.Type == ActionType.Spell ? SpellOf(u, a) : null);
+
+        /// <summary>SpellDef de uma ação Spell do plano (ou null).</summary>
+        public static SpellDef SpellOf(Unit u, ScheduledAction a)
+        {
+            if (u == null || a.Type != ActionType.Spell || a.Index < 0 || a.Index >= u.plannedSpells.Count) return null;
+            return u.plannedSpells[a.Index].Def;
+        }
+
+        /// <summary>Estâmina do plano incluindo magia Física (GDD-019 §2).</summary>
+        public static int StaminaCost(Unit u, ScheduledAction a)
+        {
+            int c = StaminaCost(a);
+            var s = SpellOf(u, a);
+            if (s != null && s.IsPhysical) c += s.cost;
+            return c;
+        }
+
+        /// <summary>Mana do plano: só magia Elemental (GDD-018: sem mistura).</summary>
+        public static int ManaCost(Unit u, ScheduledAction a)
+        {
+            var s = SpellOf(u, a);
+            return (s != null && !s.IsPhysical) ? s.cost : 0;
+        }
     }
 
     // ------------------------------------------------------------------ ATAQUE
