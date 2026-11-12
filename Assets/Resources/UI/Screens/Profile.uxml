@@ -1,0 +1,38 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="../Theme/PangeaTheme.uss" />
+    <Style src="Profile.uss" />
+    <ui:VisualElement name="root" class="pg-theme pf-root">
+        <ui:VisualElement name="panel" class="pg-panel pf-panel">
+            <ui:Label text="PERFIL" class="pg-title" />
+            <ui:Label name="notice" text="" class="pf-notice" />
+
+            <ui:VisualElement class="pf-body">
+                <ui:VisualElement class="pf-left">
+                    <ui:Label text="Nome do jogador" class="pg-section" />
+                    <ui:TextField name="name-input" max-length="20" class="pg-input pf-name" />
+                    <ui:Label text="É como os outros jogadores veem você na sala." class="pf-hint" />
+
+                    <ui:Label text="Personagens" class="pg-section pf-section-gap" />
+                    <ui:ScrollView name="char-list" class="pg-list pf-list" />
+                    <ui:VisualElement class="pf-list-buttons">
+                        <ui:Button name="btn-new" text="+ Novo" class="pg-button pg-button--primary pf-list-btn" />
+                        <ui:Button name="btn-edit" text="Editar" class="pg-button pf-list-btn" />
+                        <ui:Button name="btn-delete" text="Apagar" class="pg-button pg-button--danger pf-list-btn" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="pf-right">
+                    <ui:Label text="Em uso" class="pg-section" />
+                    <ui:VisualElement name="preview" class="pf-preview" />
+                    <ui:Label name="sel-name" text="" class="pf-sel-name" />
+                    <ui:Label name="sel-info" text="" class="pf-sel-info" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="pf-footer">
+                <ui:Button name="btn-back" text="← Voltar" class="pg-button pf-footer-btn" />
+                <ui:Button name="btn-continue" text="Jogar" class="pg-button pg-button--primary pf-footer-btn" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

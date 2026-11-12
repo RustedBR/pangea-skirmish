@@ -1,10 +1,18 @@
-/* Estilos específicos da tela MainMenu (o visual base vem de PangeaTheme.uss). */
-.main-menu__panel {
-    min-width: 380px;
-    align-items: stretch;
+/* Menu principal (o visual base vem de PangeaTheme.uss, o mesmo da HUD de batalha). */
+.main-menu__root { flex-grow: 1; align-items: center; justify-content: center; }
+.main-menu__column { width: 380px; max-width: 94%; align-items: stretch; }
+.main-menu__logo {
+    color: rgb(238, 242, 255);
+    font-size: 34px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    letter-spacing: 4px;
+    margin-bottom: 2px;
 }
-
-.main-menu__btn {
-    margin-top: 6px;
-    margin-bottom: 6px;
-}
+.main-menu__panel { align-items: stretch; margin-top: 10px; }
+.main-menu__profile { margin-bottom: 10px; }
+.main-menu__profile-name { color: rgb(238, 242, 255); font-size: 16px; -unity-font-style: bold; }
+.main-menu__profile-char { color: rgb(159, 176, 208); font-size: 12px; white-space: normal; margin-top: 2px; }
+.main-menu__profile-char--missing { color: rgb(255, 204, 85); }
+.main-menu__btn { margin-top: 4px; margin-bottom: 4px; }
+.main-menu__btn--play { font-size: 17px; padding-top: 10px; padding-bottom: 10px; }

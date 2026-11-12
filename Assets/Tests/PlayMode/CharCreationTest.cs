@@ -24,8 +24,7 @@ public class CharCreationTest
         yield return null;
         var tuning = Resources.Load<GameTuning>("GameTuning");
         RuntimeTuning.Active = tuning; AttributeStats.Formulas = tuning.statFormulas;
-        RuntimeMultiplayerSession.CurrentConfig = new RoomConfigData { gameMode = GameModes.Coop, attributeBudget = 30 };
-        RuntimeMultiplayerSession.PlayerName = "Tester";
+        PlayerProfile.ResetForTests(true);
         if (Camera.main == null) new GameObject("Main Camera") { tag = "MainCamera" }.AddComponent<Camera>();
 
         var hud = PangeaScreen.Spawn<CharCreationHUD>("CharCreationHUD");
@@ -78,8 +77,24 @@ public class CharCreationTest
         int before = hud.CurrentStats().PhysicalDamage;
         for (int i = 0; i < 12; i++) { Click(weaponNext); yield return null; if (preview.WeaponModel == "IronSword") break; }
         before = hud.CurrentStats().PhysicalDamage;
+        Click(root.Q<Button>("attr-minus-5")); yield return null;      // o orçamento começa todo gasto: libera 1 ponto
         Click(root.Q<Button>("attr-plus-0")); yield return null;
         Assert.Greater(hud.CurrentStats().PhysicalDamage, before, "STR sobe o dano da espada");
+
+        // Personagem novo já nasce válido (orçamento exato) e não há mais controle de orçamento.
+        Assert.AreEqual(PlayerProfile.AttributeBudget, PlayerProfile.Points(hud.Editing), "orçamento fixo todo gasto");
+        Assert.IsNull(root.Q<VisualElement>("budget-stepper"), "sem seletor de orçamento");
+        Assert.IsTrue(confirm.enabledSelf, "Salvar habilitado com o orçamento exato");
+        StringAssert.Contains("Estâmina", hud.AttrHelp(2), "DEX explica que dá Estâmina");
+
+        // Confirmar devolve o personagem com a aparência e a arma escolhidas.
+        CharacterPreset saved = null;
+        hud.OnConfirmed = p => saved = p;
+        Click(confirm); yield return null;
+        Assert.IsNotNull(saved, "OnConfirmed chamado");
+        Assert.AreEqual("Tank", saved.modelId, "aparência escolhida vai no personagem");
+        Assert.AreEqual("IronSword", saved.weaponId);
+        Assert.IsTrue(PlayerProfile.IsValid(saved));
 
         for (int i = 0; i < 4; i++) yield return null;
         yield return new WaitForEndOfFrame();

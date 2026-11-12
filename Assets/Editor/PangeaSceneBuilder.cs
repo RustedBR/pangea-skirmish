@@ -12,10 +12,9 @@ namespace PangeaSkirmish.Editor
         {
             CreateMainMenuScene();
             CreateBattleScene();
-            CreateSandboxScene();
             SetupBuildSettings();
             EditorSceneManager.OpenScene("Assets/Scenes/MainMenu.unity");   // menu = cena aberta/principal
-            Debug.Log("[Pangea] Setup completo: MainMenu (0) → Battle (1) → Sandbox (2)");
+            Debug.Log("[Pangea] Setup completo: MainMenu (0) → Battle (1)");
         }
 
         private static void CreateMainMenuScene()
@@ -38,23 +37,12 @@ namespace PangeaSkirmish.Editor
             Debug.Log("[Pangea] Battle.unity criado em " + path);
         }
 
-        private static void CreateSandboxScene()
-        {
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var go = new GameObject("Sandbox");
-            go.AddComponent<SandboxController>();
-            const string path = "Assets/Scenes/Sandbox.unity";
-            EditorSceneManager.SaveScene(scene, path);
-            Debug.Log("[Pangea] Sandbox.unity criado em " + path);
-        }
-
         private static void SetupBuildSettings()
         {
             EditorBuildSettings.scenes = new[]
             {
                 new EditorBuildSettingsScene("Assets/Scenes/MainMenu.unity", true), // 0 — principal
                 new EditorBuildSettingsScene("Assets/Scenes/Battle.unity",   true), // 1
-                new EditorBuildSettingsScene("Assets/Scenes/Sandbox.unity",  true), // 2
             };
         }
     }

@@ -208,7 +208,6 @@ namespace PangeaSkirmish
             // "[Deferred OnSpawn] NetworkObject not received" no cliente. Registrar em ambos
             // (host e cliente) ANTES de StartHost/StartClient.
             RegisterNetPrefab(nm, "Net/RoomManagerNet");
-            RegisterNetPrefab(nm, "Net/CollabMapSyncNet");
             RegisterNetPrefab(nm, "Net/PlacementSyncNet");
             RegisterNetPrefab(nm, "Net/LockstepBattleSyncNet");
 
@@ -318,7 +317,6 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = true;
             RuntimeMultiplayerSession.LocalClientId = _networkManager.LocalClientId;
-            MpPhaseDirector.EnsureExists();
             SpawnRoomManager();
             return RuntimeMultiplayerSession.JoinCode;
         }
@@ -336,7 +334,6 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = false;
             RuntimeMultiplayerSession.JoinCode = joinCode;
-            MpPhaseDirector.EnsureExists();
             // LocalClientId será atualizado após OnClientConnected
         }
 
@@ -352,7 +349,6 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsHost = true;
             RuntimeMultiplayerSession.JoinCode = "LOOPBACK";
             RuntimeMultiplayerSession.LocalClientId = _networkManager.LocalClientId;
-            MpPhaseDirector.EnsureExists();
             SpawnRoomManager();
         }
 
@@ -364,7 +360,6 @@ namespace PangeaSkirmish
             RuntimeMultiplayerSession.IsMultiplayer = true;
             RuntimeMultiplayerSession.IsHost = false;
             RuntimeMultiplayerSession.JoinCode = "LOOPBACK";
-            MpPhaseDirector.EnsureExists();
         }
 
         // -------------------------------------------------------------------------
@@ -377,7 +372,6 @@ namespace PangeaSkirmish
             // Instancia os PREFABS registrados (ver RegisterNetPrefab). Assim o cliente
             // consegue instanciar o objeto replicado a partir do hash do prefab.
             SpawnNetManager("Net/RoomManagerNet");
-            SpawnNetManager("Net/CollabMapSyncNet");
             SpawnNetManager("Net/PlacementSyncNet");
         }
 

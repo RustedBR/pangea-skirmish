@@ -17,6 +17,9 @@ namespace PangeaSkirmish
         [HideInInspector] public PlanningController MpPlanner;
         [HideInInspector] public RoundManager MpRoundManager;
 
+        /// <summary>Lado, em células, do mapa padrão da batalha.</summary>
+        public const int DefaultMapSize = 30;
+
         private void Start()
         {
             // Volume na metade por padrao (web/build) — ajustavel num menu de opcoes futuro.
@@ -35,8 +38,9 @@ namespace PangeaSkirmish
             if (isoConfig == null)
                 isoConfig = ScriptableObject.CreateInstance<IsoConfig>();
 
-            int gridW = 20;
-            int gridH = 20;
+            // Mapa padrão: 30×30 células (era 20×20; +50% de lado). O editor de mapas saiu do jogo.
+            int gridW = DefaultMapSize;
+            int gridH = DefaultMapSize;
             float halfW = isoConfig.TileUnitsW * 0.5f;
             float halfH = isoConfig.TileUnitsH * 0.5f;
             // Migração XY→XZ (2026-07-20): centro do grid em coordenadas XZ (chão).
@@ -65,10 +69,8 @@ namespace PangeaSkirmish
             camCtrl.edgePanSpeed = tuning.edgePanSpeed;
             camCtrl.dragSpeed    = tuning.dragSpeed;
 
-            // Em MP: usar o mapa colaborativo se disponível
+            // Mapa pronto (testes e ferramentas); null = mapa padrão.
             var mapForBattle = RuntimeMap.Selected;
-            if (RuntimeMultiplayerSession.IsMultiplayer && RuntimeMultiplayerSession.CollabMap != null)
-                mapForBattle = RuntimeMultiplayerSession.CollabMap;
 
             var gridGo = new GameObject("GridManager");
             var grid = gridGo.AddComponent<GridManager>();

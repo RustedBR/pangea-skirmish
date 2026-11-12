@@ -4,7 +4,10 @@
 
 /* ---- Lobby ---- */
 .room__center { flex-grow: 1; align-items: center; justify-content: center; }
-.room__lobby { min-width: 440px; align-items: stretch; }
+.room__lobby { width: 460px; max-width: 94%; max-height: 96%; align-items: stretch; }
+.room__profile-summary { color: rgb(205, 217, 235); font-size: 13px; -unity-text-align: middle-center; margin-bottom: 10px; white-space: normal; }
+.room__section-gap { margin-top: 12px; }
+.room__half-btn { flex-grow: 1; flex-basis: 0; }
 .room__field { margin-top: 6px; margin-bottom: 6px; }
 .room__field-label { margin-bottom: 2px; }
 .room__or { -unity-text-align: middle-center; margin-top: 8px; margin-bottom: 6px; }
@@ -25,25 +28,39 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 10px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    flex-shrink: 0;
 }
-.room__header-title { font-size: 24px; -unity-font-style: bold; color: var(--pg-text, rgb(238, 242, 255)); }
+.room__header-left { flex-direction: row; align-items: center; }
+.room__header-right { flex-direction: row; align-items: center; }
+.room__header-title { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--pg-text, rgb(238, 242, 255)); margin-right: 12px; }
 .room__code-row { flex-direction: row; align-items: center; }
 .room__code {
-    font-size: 22px;
+    font-size: 18px;
     -unity-font-style: bold;
     color: var(--pg-ok, rgb(90, 209, 138));
     margin-left: 8px;
     margin-right: 8px;
 }
 .room__copy-btn { padding-top: 4px; padding-bottom: 4px; padding-left: 10px; padding-right: 10px; }
-.room__phase { color: rgb(180, 190, 230); }
+.room__phase { color: rgb(159, 176, 208); font-size: 13px; }
 
 .room__body { flex-grow: 1; flex-direction: row; }
-.room__col { margin: 6px; }
+.room__col { margin: 4px; }
 /* Era 260px fixos: nome + "(host)" + time + botão Troca não cabiam e eram cortados. */
-.room__col--players { width: 36%; min-width: 320px; max-width: 520px; flex-shrink: 0; }
+.room__col--players { width: 32%; min-width: 300px; max-width: 460px; flex-shrink: 0; }
+.room__col--rules { width: 300px; flex-shrink: 0; }
+.room__spacer { flex-grow: 1; }
+.room__start-hint { color: rgb(90, 209, 138); font-size: 12px; -unity-text-align: middle-center; white-space: normal; margin-bottom: 4px; }
+.room__start-hint--missing { color: rgb(255, 204, 85); }
+.room__char { flex-shrink: 0; }
+.room__char-row { flex-direction: row; align-items: center; }
+.room__char-step { width: 34px; padding-left: 0; padding-right: 0; flex-shrink: 0; }
+.room__char-name { flex-grow: 1; color: rgb(238, 242, 255); font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room__char-info { color: rgb(159, 176, 208); font-size: 11px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
+.room__player-char { color: rgb(159, 176, 208); font-size: 12px; flex-shrink: 1; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
+.room__player-char--missing { color: rgb(255, 204, 85); -unity-font-style: italic; }
 .room__col--chat { flex-grow: 1; flex-shrink: 1; min-width: 0; }
 .room__col--host { width: 250px; }
 .room__col-title {
@@ -57,14 +74,13 @@
 .room__chat-input { flex-grow: 1; margin-right: 4px; }
 
 .room__row { flex-direction: row; align-items: center; justify-content: center; }
-.room__mode-btn { flex-grow: 1; }
+.room__mode-btn { flex-grow: 1; flex-basis: 0; padding-left: 4px; padding-right: 4px; font-size: 13px; margin-left: 2px; margin-right: 2px; }
 .room__mode-btn--active { background-color: var(--pg-ok, rgb(90, 209, 138)); color: rgb(8, 20, 12); }
 .room__step-btn { width: 40px; }
 .room__step-value { width: 60px; -unity-text-align: middle-center; color: var(--pg-text, rgb(238, 242, 255)); }
-.room__ctrl-label { margin-top: 10px; }
-.room__advance { margin-top: 14px; font-size: 14px; white-space: normal; }
+.room__ctrl-label { margin-top: 8px; margin-bottom: 2px; font-size: 12px; }
+.room__advance { font-size: 16px; padding-top: 10px; padding-bottom: 10px; }
 
-.room__leave { align-self: center; margin-top: 10px; width: 200px; }
 
 /* linha de jogador (criada em código) */
 .room__player-row {
@@ -128,8 +144,8 @@
     justify-content: center;
 }
 .room__overlay-label {
-    font-size: 30px;
-    color: var(--pg-gold, rgb(255, 204, 85));
+    font-size: 22px;
+    color: var(--pg-text, rgb(238, 242, 255));
     -unity-text-align: middle-center;
     white-space: normal;
 }
@@ -140,7 +156,7 @@
     margin-bottom: 8px;
     justify-content: flex-start;
 }
-.room__tab-btn { flex-grow: 1; margin-right: 4px; }
+.room__tab-btn { margin-left: 4px; padding-top: 5px; padding-bottom: 5px; }
 .room__tabpanel {
     flex-grow: 1;
     flex-direction: row;
@@ -202,19 +218,19 @@
     justify-content: space-between;
     background-color: var(--pg-panel-bg-2, rgb(18, 26, 56));
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: var(--pg-accent, rgb(106, 169, 255));
-    border-right-color: var(--pg-accent, rgb(106, 169, 255));
-    border-top-color: var(--pg-accent, rgb(106, 169, 255));
-    border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 12px;
+    border-left-color: rgb(42, 58, 106);
+    border-right-color: rgb(42, 58, 106);
+    border-top-color: rgb(42, 58, 106);
+    border-bottom-color: rgb(42, 58, 106);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 8px;
 }
 .opt-text { flex-grow: 1; margin-right: 12px; }
 .opt-label {
     color: var(--pg-text, rgb(238, 242, 255));
-    font-size: 15px;
-    -unity-font-style: bold;
+    font-size: 13px;
+    flex-grow: 1;
 }
 .opt-desc {
     color: var(--pg-text-dim, rgb(159, 176, 208));
@@ -226,17 +242,18 @@
 /* Stepper horizontal: [−] valor [+] */
 .stepper { flex-direction: row; align-items: center; }
 .step-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 20px;
+    width: 30px;
+    height: 28px;
+    padding: 0;
+    font-size: 16px;
     -unity-font-style: bold;
 }
 .step-value {
-    min-width: 54px;
-    height: 38px;
+    min-width: 48px;
+    height: 28px;
     -unity-text-align: middle-center;
     color: var(--pg-accent, rgb(106, 169, 255));
-    font-size: 18px;
+    font-size: 15px;
     -unity-font-style: bold;
     background-color: var(--pg-panel, rgb(10, 16, 38));
     border-top-width: 1px; border-top-color: var(--pg-accent, rgb(106, 169, 255));
