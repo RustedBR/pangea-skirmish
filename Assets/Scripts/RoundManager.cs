@@ -109,24 +109,6 @@ namespace PangeaSkirmish
             Unit.OnDamageTaken += SpawnDamageLabel;
             _screenFlash = ScreenFlash.Create(hud.Document);
 
-            // Fallback loopback: em modo local (criação de conteúdo offline), o
-            // LockstepBattleSync não é spawnado pela rede (CheckAllPlaced só roda em MP
-            // real). Sem isto, Instance fica null → timeout 8s → plano perdido → trava.
-            // Criamos o prefab localmente (sem Spawn de rede) para o lockstep funcionar solo.
-            if (RuntimeMultiplayerSession.IsLocalContentSession && LockstepBattleSync.Instance == null)
-            {
-                var prefab = Resources.Load<GameObject>("Net/LockstepBattleSyncNet");
-                if (prefab != null)
-                {
-                    var go = Instantiate(prefab);
-                    DontDestroyOnLoad(go);
-                    var lbs = go.GetComponent<LockstepBattleSync>();
-                    if (lbs != null) lbs.Init(this, units);
-                    Debug.Log("[RoundManager] LockstepBattleSync criado localmente (fallback loopback).");
-                }
-                else Debug.LogError("[RoundManager] prefab Net/LockstepBattleSyncNet não encontrado para fallback loopback!");
-            }
-
             // Indicador de modo câmera
             if (_camCtrl != null)
             {

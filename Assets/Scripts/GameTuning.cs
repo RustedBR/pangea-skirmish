@@ -35,7 +35,7 @@ namespace PangeaSkirmish
         public int maxTilesPerMove = 6;
 
         [Header("═══ ESTÂMINA (GDD-016) ═══")]
-        [Tooltip("Estâmina máxima = staminaBase + (STR + VIT) × staminaPerBodyPoint.")]
+        [Tooltip("Estâmina máxima = staminaBase + (STR + VIT + DEX) × staminaPerBodyPoint.")]
         public float staminaBase = 1f;
         public float staminaPerBodyPoint = 0.25f;
         [Tooltip("Recupera 1 de Estâmina a cada N ticks.")]

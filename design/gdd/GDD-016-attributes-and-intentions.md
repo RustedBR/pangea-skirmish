@@ -38,6 +38,7 @@ Três atributos do **Corpo**, que alimentam o **Estâmina**, e três da **Mente*
 | **DEX** | Acerto: +3% por ponto. Crítico: +2% por ponto. Dano extra do Mirar | como hoje |
 | **DEX** | **Rapidez das ações:** quanto mais DEX, menos ticks cada ação leva (ataque, conjuração, concentrar) | **[CANON]** |
 | **DEX** | Iniciativa (junto com a AGI) | **[CANON]** como hoje |
+| **DEX** | Estâmina máxima: mesmo ganho por ponto de STR e VIT (é atributo do Corpo) | **[CANON]** 2026-11-12 |
 | **INT** | Potência da magia | **[CANON]** espera a magia nova |
 | **WIS** | Mana máxima, regeneração de Mana, resistência mágica | **[CANON]** espera a magia nova |
 

@@ -8,10 +8,12 @@
 
 .pg-theme {
     /* superfícies / painel estilo FFT (azul escuro translúcido) */
-    --pg-panel-bg: rgba(10, 16, 40, 0.92);
-    --pg-panel-bg-2: rgba(18, 26, 56, 0.96);
-    --pg-panel-border: rgb(42, 58, 106);
-    --pg-panel-highlight: rgb(106, 134, 200);
+    /* mesmas superfícies da HUD de batalha (.bh-window / .bh-title) */
+    --pg-panel-bg: rgb(22, 34, 66);
+    --pg-panel-bg-2: rgb(26, 41, 87);
+    --pg-panel-border: rgb(74, 104, 170);
+    --pg-panel-highlight: rgb(120, 160, 220);
+    --pg-chip-bg: rgb(41, 61, 117);
 
     /* texto */
     --pg-text: rgb(238, 242, 255);
@@ -37,41 +39,75 @@
 
 /* ---- Painel -------------------------------------------------------------- */
 .pg-panel {
-    background-color: var(--pg-panel-bg, rgba(10, 16, 40, 0.92));
-    border-left-width: 2px;
-    border-right-width: 2px;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-top-color: var(--pg-panel-highlight, rgb(106, 134, 200));
-    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    background-color: var(--pg-panel-bg, rgb(22, 34, 66));
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: var(--pg-panel-highlight, rgb(120, 160, 220));
+    border-right-color: var(--pg-panel-highlight, rgb(120, 160, 220));
+    border-top-color: var(--pg-panel-highlight, rgb(120, 160, 220));
+    border-bottom-color: var(--pg-panel-highlight, rgb(120, 160, 220));
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    padding: 16px;
+    padding: 14px;
+}
+
+/* Faixa de título de seção, igual ao .bh-title da HUD de batalha. */
+.pg-section {
+    font-size: 12px;
+    color: rgb(189, 217, 255);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    background-color: var(--pg-chip-bg, rgb(41, 61, 117));
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    padding: 3px 6px;
+    margin-bottom: 8px;
+}
+
+/* Cartão interno (linha de lista, resumo) */
+.pg-card {
+    background-color: rgba(10, 18, 41, 0.75);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgb(42, 58, 106);
+    border-right-color: rgb(42, 58, 106);
+    border-top-color: rgb(42, 58, 106);
+    border-bottom-color: rgb(42, 58, 106);
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    padding: 8px 10px;
 }
 
 /* ---- Texto --------------------------------------------------------------- */
 .pg-title {
     color: var(--pg-text, rgb(238, 242, 255));
-    font-size: 30px;
+    font-size: 22px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
-    margin-bottom: 12px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
 }
 
 .pg-subtitle {
     color: var(--pg-text-dim, rgb(159, 176, 208));
-    font-size: 16px;
+    font-size: 13px;
     -unity-text-align: middle-center;
     margin-bottom: 8px;
 }
 
 .pg-label {
     color: var(--pg-text, rgb(238, 242, 255));
-    font-size: 15px;
+    font-size: 13px;
 }
 
 .pg-label--dim {
@@ -80,34 +116,38 @@
 
 /* ---- Botão --------------------------------------------------------------- */
 .pg-button {
-    background-color: var(--pg-panel-bg-2, rgba(18, 26, 56, 0.96));
+    background-color: var(--pg-panel-bg-2, rgb(26, 41, 87));
     color: var(--pg-text, rgb(238, 242, 255));
-    font-size: 16px;
+    font-size: 14px;
     -unity-font-style: bold;
-    border-left-width: 2px;
-    border-right-width: 2px;
-    border-top-width: 2px;
-    border-bottom-width: 2px;
-    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-top-color: var(--pg-panel-highlight, rgb(106, 134, 200));
-    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    -unity-text-align: middle-center;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: var(--pg-panel-border, rgb(74, 104, 170));
+    border-right-color: var(--pg-panel-border, rgb(74, 104, 170));
+    border-top-color: var(--pg-panel-border, rgb(74, 104, 170));
+    border-bottom-color: var(--pg-panel-border, rgb(74, 104, 170));
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
-    padding-left: 18px;
-    padding-right: 18px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    margin: 4px;
-    transition-property: background-color, scale;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin: 3px;
+    transition-property: background-color, border-color, scale;
     transition-duration: 0.08s;
 }
 
 .pg-button:hover {
-    background-color: var(--pg-accent, rgb(106, 169, 255));
-    color: rgb(10, 16, 40);
+    background-color: var(--pg-chip-bg, rgb(41, 61, 117));
+    border-left-color: var(--pg-accent, rgb(106, 169, 255));
+    border-right-color: var(--pg-accent, rgb(106, 169, 255));
+    border-top-color: var(--pg-accent, rgb(106, 169, 255));
+    border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
 }
 
 .pg-button:active {
@@ -115,15 +155,31 @@
 }
 
 .pg-button:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
 }
 
 .pg-button--primary {
     background-color: var(--pg-accent, rgb(106, 169, 255));
     color: rgb(8, 14, 34);
+    border-left-color: rgb(189, 217, 255);
+    border-right-color: rgb(189, 217, 255);
+    border-top-color: rgb(189, 217, 255);
+    border-bottom-color: rgb(189, 217, 255);
+}
+.pg-button--primary:hover {
+    background-color: rgb(150, 196, 255);
+    color: rgb(8, 14, 34);
 }
 
 .pg-button--danger {
+    color: rgb(255, 170, 165);
+    border-top-color: rgb(150, 70, 80);
+    border-bottom-color: rgb(150, 70, 80);
+    border-left-color: rgb(150, 70, 80);
+    border-right-color: rgb(150, 70, 80);
+}
+.pg-button--danger:hover {
+    background-color: rgb(90, 36, 48);
     border-top-color: var(--pg-danger, rgb(255, 90, 90));
     border-bottom-color: var(--pg-danger, rgb(255, 90, 90));
     border-left-color: var(--pg-danger, rgb(255, 90, 90));
@@ -161,7 +217,7 @@
 
 /* ---- Listas (jogadores, chat) ------------------------------------------- */
 .pg-list {
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: rgba(10, 18, 41, 0.75);
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
     border-bottom-left-radius: 6px;

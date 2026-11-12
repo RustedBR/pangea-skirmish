@@ -79,6 +79,20 @@ namespace PangeaSkirmish
             // com "célula ocupada". Reinicia o estado servidor toda vez que o grid fica pronto.
             if (IsServer) ResetPlacementState();
 
+            // Estado do CLIENTE também recomeça. Este objeto sobrevive à troca de cena, então no
+            // reinício da partida ele chegava aqui com _placementDone = true da batalha anterior
+            // (o Update saía na primeira linha: a zona aparecia, mas nenhum clique era aceito),
+            // com a lista de unidades apontando para objetos já destruídos e com o OnBattleStart
+            // inscrito duas vezes.
+            _placementDone = false;
+            _controlled = null;
+            _allUnits.Clear();
+            _myZoneHighlights.Clear();
+            _lastHover = new Vector2Int(int.MinValue, int.MinValue);
+            StopAllCoroutines();
+            if (_chatRoom != null) { _chatRoom.OnChatMessage -= HandleChatMessage; _chatRoom = null; }
+            if (RoomManager.Instance != null) RoomManager.Instance.OnBattleStart -= OnBattleStart;
+
             _grid    = grid;
             _hud     = hud;
             _cam     = cam;

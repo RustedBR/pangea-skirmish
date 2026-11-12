@@ -21,6 +21,8 @@ namespace PangeaSkirmish
     public enum RoomPhase
     {
         Lobby = 0,
+        // CharCreation e MapEditing saíram do fluxo (2026-11-12): o personagem vem do perfil do
+        // jogador e o mapa é o padrão. Os valores ficam para não renumerar as fases na rede.
         CharCreation,
         MapEditing,
         Placement,
@@ -77,7 +79,8 @@ namespace PangeaSkirmish
         public ulong ClientId;
         public FixedString64Bytes PlayerName;
         public int Team;
-        public bool ReadyMap;
+        /// <summary>Nome do personagem que o jogador escolheu do perfil (vazio = ainda não enviou).</summary>
+        public FixedString64Bytes CharName;
         public bool ReadyChar;
         public bool Placed;
 
@@ -86,7 +89,7 @@ namespace PangeaSkirmish
             serializer.SerializeValue(ref ClientId);
             serializer.SerializeValue(ref PlayerName);
             serializer.SerializeValue(ref Team);
-            serializer.SerializeValue(ref ReadyMap);
+            serializer.SerializeValue(ref CharName);
             serializer.SerializeValue(ref ReadyChar);
             serializer.SerializeValue(ref Placed);
         }
@@ -95,7 +98,7 @@ namespace PangeaSkirmish
             ClientId == other.ClientId &&
             PlayerName.Equals(other.PlayerName) &&
             Team == other.Team &&
-            ReadyMap == other.ReadyMap &&
+            CharName.Equals(other.CharName) &&
             ReadyChar == other.ReadyChar &&
             Placed == other.Placed;
     }
@@ -134,7 +137,7 @@ namespace PangeaSkirmish
                 NetworkVariableWritePermission.Server);
 
             _config = new NetworkVariable<RoomConfigNet>(
-                new RoomConfigNet { GameMode = 0, AttributeBudget = 25, PlanningTime = 15f, MaxPlayers = 8 },
+                new RoomConfigNet { GameMode = 0, AttributeBudget = PlayerProfile.AttributeBudget, PlanningTime = 15f, MaxPlayers = 8 },
                 NetworkVariableReadPermission.Everyone,
                 NetworkVariableWritePermission.Server);
         }
@@ -224,7 +227,6 @@ namespace PangeaSkirmish
                 ClientId = clientId,
                 PlayerName = playerName,
                 Team = team,
-                ReadyMap = false,
                 ReadyChar = false,
                 Placed = false
             });
@@ -313,17 +315,78 @@ namespace PangeaSkirmish
             _config.Value = cfg;
         }
 
-        // --- Avançar fase (host envia) ----------------------------------------
+        // --- Iniciar a partida (host envia) ------------------------------------
+        /// <summary>
+        /// Lobby → posicionamento. Não há mais fases de criação de personagem nem de mapa: cada
+        /// jogador já entrou com um personagem do seu perfil. Só inicia quando todos têm um.
+        /// </summary>
         [ServerRpc(RequireOwnership = false)]
         public void AdvancePhaseServerRpc(ServerRpcParams rpc = default)
         {
             if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
-            var next = (RoomPhase)((int)_phase.Value + 1);
-            Debug.Log($"[MP] AdvancePhase: {_phase.Value} -> {next}");
-            if ((int)next < System.Enum.GetValues(typeof(RoomPhase)).Length)
+            if (_phase.Value != RoomPhase.Lobby) { Debug.Log($"[MP] Iniciar ignorado: fase atual {_phase.Value}"); return; }
+
+            string missing = PlayersWithoutCharacter();
+            if (missing.Length > 0)
             {
-                _phase.Value = next;
-                ApplyPhaseDefaults(next);
+                Debug.Log($"[MP] Iniciar recusado: sem personagem -> {missing}");
+                ChatMessageClientRpc("Sistema", $"Não dá para iniciar: {missing} ainda sem personagem.");
+                return;
+            }
+            StartMatch();
+        }
+
+        /// <summary>Nomes dos jogadores que ainda não enviaram personagem (vazio = todos prontos).</summary>
+        public string PlayersWithoutCharacter()
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < _slots.Count; i++)
+                if (!_slots[i].ReadyChar) sb.Append(sb.Length > 0 ? ", " : "").Append(_slots[i].PlayerName.ToString());
+            return sb.ToString();
+        }
+
+        private void StartMatch()
+        {
+            RuntimeMultiplayerSession.CurrentConfig = _config.Value.ToData();
+            AssignTeamsForMode();
+
+            // O tuning que o anfitrião editou na aba da sala vai junto com o início.
+            var active = RuntimeTuning.Active
+                ?? Resources.Load<GameTuning>("GameTuning")
+                ?? ScriptableObject.CreateInstance<GameTuning>();
+            string json = JsonUtility.ToJson(active);
+            RuntimeMultiplayerSession.CurrentConfig.tuningJson = json;
+            SyncTuningClientRpc(json);
+
+            Debug.Log($"[MP] Partida iniciada: modo={GameModes.Name(_config.Value.GameMode)}, {_slots.Count} jogador(es), tuning {json.Length} bytes");
+            _phase.Value = RoomPhase.Placement;
+            if (NetworkManager.Singleton.SceneManager != null)
+                NetworkManager.Singleton.SceneManager.LoadScene("Battle", LoadSceneMode.Single);
+        }
+
+        /// <summary>
+        /// Coop: todos no time 0. Todos contra todos: um time por jogador. PvP Times: respeita o
+        /// que o anfitrião montou na sala; só redistribui se algum lado ficou vazio ou inválido.
+        /// </summary>
+        private void AssignTeamsForMode()
+        {
+            int mode = _config.Value.GameMode;
+            bool keep = mode == GameModes.PvpTeams;
+            if (keep)
+            {
+                int a = 0, b = 0;
+                for (int i = 0; i < _slots.Count; i++)
+                {
+                    if (_slots[i].Team == 0) a++; else if (_slots[i].Team == 1) b++; else keep = false;
+                }
+                if (_slots.Count > 1 && (a == 0 || b == 0)) keep = false;
+            }
+            if (keep) return;
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                var slot = _slots[i];
+                slot.Team = mode == GameModes.PvpFreeForAll ? i : mode == GameModes.Coop ? 0 : (i % 2);
+                _slots[i] = slot;
             }
         }
 
@@ -361,90 +424,7 @@ namespace PangeaSkirmish
         }
 
         // -------------------------------------------------------------------------
-        // Fase 2 — defaults ao avançar fase
-        // -------------------------------------------------------------------------
-        private void ApplyPhaseDefaults(RoomPhase phase)
-        {
-            // Garante config populada em RuntimeMultiplayerSession
-            RuntimeMultiplayerSession.CurrentConfig = _config.Value.ToData();
-
-            if (phase == RoomPhase.MapEditing)
-            {
-                // TDM: redistribui times 0/1 balanceados; FFA: team = índice do slot
-                for (int i = 0; i < _slots.Count; i++)
-                {
-                    var slot = _slots[i];
-                    slot.Team = _config.Value.GameMode == GameModes.PvpFreeForAll ? i
-                              : _config.Value.GameMode == GameModes.Coop ? 0 : (i % 2);
-                    _slots[i] = slot;
-                }
-
-                // Transição de cena sincronizada pelo NGO Scene Management
-                if (NetworkManager.Singleton.SceneManager != null)
-                    NetworkManager.Singleton.SceneManager.LoadScene("Sandbox", LoadSceneMode.Single);
-            }
-            else if (phase == RoomPhase.CharCreation)
-            {
-                // Permanece na cena Sandbox (CharCreationHUD será exibido por overlay)
-                PhaseChangedClientRpc(phase);
-
-                // Sync do GameTuning: SÓ agora (ao entrar em CharCreation) o host envia
-                // o snapshot completo do tuning que ele editou na aba da sala.
-                if (IsServer)
-                {
-                    var active = RuntimeTuning.Active
-                        ?? Resources.Load<GameTuning>("GameTuning")
-                        ?? ScriptableObject.CreateInstance<GameTuning>();
-                    string json = JsonUtility.ToJson(active);
-                    RuntimeMultiplayerSession.CurrentConfig.tuningJson = json;
-                    SyncTuningClientRpc(json);
-                    Debug.Log($"[MP] Tuning enviado aos clientes ({json.Length} bytes JSON).");
-                }
-            }
-            else if (phase == RoomPhase.Placement)
-            {
-                if (NetworkManager.Singleton.SceneManager != null)
-                    NetworkManager.Singleton.SceneManager.LoadScene("Battle", LoadSceneMode.Single);
-            }
-        }
-
-        // Notifica clientes de mudança de fase (para fases sem LoadScene)
-        [ClientRpc]
-        private void PhaseChangedClientRpc(RoomPhase phase)
-        {
-            OnPhaseChanged?.Invoke(phase);
-        }
-
-        // -------------------------------------------------------------------------
-        // Fase 3 — ReadyMap + AdvancePhase para CharCreation
-        // -------------------------------------------------------------------------
-        [ServerRpc(RequireOwnership = false)]
-        public void SetReadyMapServerRpc(bool ready, ServerRpcParams rpc = default)
-        {
-            int idx = FindSlot(rpc.Receive.SenderClientId);
-            if (idx < 0) return;
-            var slot = _slots[idx];
-            slot.ReadyMap = ready;
-            _slots[idx] = slot;
-
-            // Verificar se todos estão prontos
-            if (ready) CheckAllReadyMap();
-        }
-
-        private void CheckAllReadyMap()
-        {
-            if (_slots.Count == 0) return;
-            for (int i = 0; i < _slots.Count; i++)
-                if (!_slots[i].ReadyMap) return;
-
-            // Todos prontos: congela o mapa (snapshot final a todos) e vai para o posicionamento
-            CollabMapSync.Instance?.SendFinalSnapshotAndAdvance();
-            _phase.Value = RoomPhase.Placement;
-            ApplyPhaseDefaults(RoomPhase.Placement);
-        }
-
-        // -------------------------------------------------------------------------
-        // Fase 4 — SubmitCharacter + ReadyChar
+        // Personagem do jogador (vem do perfil, enviado ao entrar na sala ou ao trocar)
         // -------------------------------------------------------------------------
 
         // Dicionário servidor: clientId → CharacterPreset validado
@@ -464,24 +444,14 @@ namespace PangeaSkirmish
 
             if (preset == null) { CharacterRejectedClientRpc("Preset nulo", BuildTargetParams(senderId)); return; }
 
-            // Revalidar budget (autoridade do servidor)
-            int budget = _config.Value.AttributeBudget;
-            var s = preset.stats;
-            int total = (int)(s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS);
-            if (total > budget)
-            {
-                CharacterRejectedClientRpc($"Budget excedido ({total}/{budget})", BuildTargetParams(senderId));
-                return;
-            }
+            // Só no lobby: depois que a partida começa, o personagem fica travado.
+            if (_phase.Value != RoomPhase.Lobby)
+            { CharacterRejectedClientRpc("A partida já começou", BuildTargetParams(senderId)); return; }
 
-            float min = CharacterConfig.AttrMin, max = CharacterConfig.AttrMax;
-            if (s.STR < min || s.STR > max || s.VIT < min || s.VIT > max ||
-                s.DEX < min || s.DEX > max || s.AGI < min || s.AGI > max ||
-                s.INT < min || s.INT > max || s.WIS < min || s.WIS > max)
-            {
-                CharacterRejectedClientRpc("Atributo fora dos limites", BuildTargetParams(senderId));
-                return;
-            }
+            // Mesma regra do perfil (orçamento fixo exato, atributos nos limites) — autoridade do servidor.
+            string why = PlayerProfile.WhyInvalid(preset);
+            if (why.Length > 0) { CharacterRejectedClientRpc(why, BuildTargetParams(senderId)); return; }
+            int total = PlayerProfile.Points(preset), budget = PlayerProfile.AttributeBudget;
 
             _submittedChars[senderId] = preset;
             Debug.Log($"[MP] Personagem aceito (host): clientId={senderId} nome={preset.presetName} pts={total}/{budget}");
@@ -492,10 +462,9 @@ namespace PangeaSkirmish
             {
                 var slot = _slots[idx];
                 slot.ReadyChar = true;
+                slot.CharName = preset.presetName ?? "";
                 _slots[idx] = slot;
             }
-
-            CheckAllReadyChar();
         }
 
         [ClientRpc]
@@ -506,17 +475,6 @@ namespace PangeaSkirmish
         }
 
         public event Action<string> OnCharacterRejected;
-
-        private void CheckAllReadyChar()
-        {
-            if (_slots.Count == 0) return;
-            for (int i = 0; i < _slots.Count; i++)
-                if (!_slots[i].ReadyChar) return;
-
-            // Personagens prontos → criar o mapa colaborativo
-            _phase.Value = RoomPhase.MapEditing;
-            ApplyPhaseDefaults(RoomPhase.MapEditing);
-        }
 
         // -------------------------------------------------------------------------
         // Fase 5 — Placed + StartBattle
@@ -581,7 +539,7 @@ namespace PangeaSkirmish
             OnBattleStart?.Invoke(initiativeSeed);
         }
 
-        // --- Sync do GameTuning: enviado SÓ ao entrar em CharCreation ---------
+        // --- Sync do GameTuning: enviado quando o anfitrião inicia a partida ----
         [ClientRpc]
         private void SyncTuningClientRpc(string tuningJson, ClientRpcParams rpc = default)
         {

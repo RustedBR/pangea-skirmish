@@ -1,15 +1,23 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="../Theme/PangeaTheme.uss" />
-    <ui:VisualElement name="root" class="pg-theme" style="flex-grow: 1; align-items: center; justify-content: center;">
-        <ui:VisualElement name="panel" class="pg-panel main-menu__panel">
-            <ui:Label text="PANGEA SKIRMISH" name="title" class="pg-title" />
-            <ui:Label text="Tactics de combate simultâneo" name="subtitle" class="pg-subtitle" />
-            <ui:VisualElement name="spacer" style="height: 12px;" />
-            <ui:Button text="Criar Mapa" name="btn-create-map" class="pg-button pg-button--primary main-menu__btn" />
-            <ui:Button text="Criar Personagem" name="btn-create-char" class="pg-button main-menu__btn" />
-            <ui:Button text="Multiplayer" name="btn-multiplayer" class="pg-button main-menu__btn" />
-            <ui:Button text="Opções" name="btn-options" class="pg-button main-menu__btn" />
-            <ui:Button text="Sair" name="btn-quit" class="pg-button main-menu__btn" />
+    <Style src="MainMenu.uss" />
+    <ui:VisualElement name="root" class="pg-theme main-menu__root">
+        <ui:VisualElement class="main-menu__column">
+            <ui:Label text="PANGEA SKIRMISH" name="title" class="main-menu__logo" />
+            <ui:Label text="Tática de combate simultâneo" name="subtitle" class="pg-subtitle" />
+
+            <ui:VisualElement name="panel" class="pg-panel main-menu__panel">
+                <ui:Label text="Jogador" class="pg-section" />
+                <ui:VisualElement name="profile-card" class="pg-card main-menu__profile">
+                    <ui:Label name="profile-name" text="—" class="main-menu__profile-name" />
+                    <ui:Label name="profile-char" text="" class="main-menu__profile-char" />
+                </ui:VisualElement>
+
+                <ui:Button text="Jogar" name="btn-multiplayer" class="pg-button pg-button--primary main-menu__btn main-menu__btn--play" />
+                <ui:Button text="Perfil e personagens" name="btn-profile" class="pg-button main-menu__btn" />
+                <ui:Button text="Opções" name="btn-options" class="pg-button main-menu__btn" />
+                <ui:Button text="Sair" name="btn-quit" class="pg-button pg-button--danger main-menu__btn" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

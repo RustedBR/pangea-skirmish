@@ -63,9 +63,6 @@ namespace PangeaSkirmish
     // Sobrevive ao LoadScene (igual RuntimeTuning). null = batalha padrão.
     public static class RuntimeMap { public static MapData Selected; }
 
-    // Passa um mapa para o Sandbox EDITAR (null = criar do zero). Consumido e limpo no Start.
-    public static class RuntimeSandbox { public static MapData MapToEdit; }
-
     // Personagem salvo pelo jogador — reutilizável entre mapas.
     [Serializable]
     public class CharacterPreset

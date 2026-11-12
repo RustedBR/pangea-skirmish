@@ -7,27 +7,14 @@
         <ui:VisualElement name="dimmer" class="cc-dimmer">
             <ui:VisualElement name="panel" class="pg-panel cc-panel">
 
-                <ui:Label text="Criar Personagem" class="pg-title cc-title" />
+                <ui:Label name="cc-title" text="Novo Personagem" class="pg-title cc-title" />
 
-                <ui:Label name="budget-label" text="Pontos: 0/30" class="cc-budget" />
-
-                <ui:VisualElement name="budget-stepper" class="cc-budget-stepper">
-                    <ui:Label text="Budget:" class="pg-label--dim cc-field-label" />
-                    <ui:Button name="budget-minus" text="-" class="pg-button cc-step" />
-                    <ui:Label name="budget-value" text="30" class="cc-step-value" />
-                    <ui:Button name="budget-plus" text="+" class="pg-button cc-step" />
-                </ui:VisualElement>
+                <ui:Label name="budget-label" text="Pontos: 30/30" class="cc-budget" />
 
                 <ui:ScrollView name="cc-scroll" class="cc-scroll">
                 <ui:VisualElement name="cc-body" class="cc-body">
 
                     <ui:VisualElement name="cc-form" class="cc-form">
-
-                        <ui:VisualElement class="cc-field">
-                            <ui:Label text="Salvos:" class="pg-label--dim cc-field-label" />
-                            <ui:DropdownField name="preset-dropdown" class="pg-dropdown cc-input" />
-                            <ui:Button name="preset-load" text="Carregar" class="pg-button cc-load" />
-                        </ui:VisualElement>
 
                         <ui:VisualElement class="cc-field">
                             <ui:Label text="Nome:" class="pg-label--dim cc-field-label" />
@@ -105,7 +92,7 @@
                     <ui:Label name="status-label" text="" class="cc-status" />
                     <ui:VisualElement class="cc-footer-buttons">
                         <ui:Button name="back-btn" text="← Voltar" class="pg-button cc-confirm" />
-                        <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
+                        <ui:Button name="confirm-btn" text="Salvar personagem" class="pg-button pg-button--primary cc-confirm" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>

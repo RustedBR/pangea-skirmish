@@ -6,137 +6,123 @@
         <!-- ============ LOBBY (criar / entrar) ============ -->
         <ui:VisualElement name="lobby-view" class="room__center">
             <ui:VisualElement name="lobby-panel" class="pg-panel room__lobby">
-                <ui:Label text="Multiplayer" class="pg-title" />
+                <ui:Label text="JOGAR" class="pg-title" />
+                <ui:Label name="profile-summary" text="" class="room__profile-summary" />
 
-                <ui:VisualElement class="room__field">
-                    <ui:Label text="Seu nome" class="pg-label--dim room__field-label" />
-                    <ui:TextField name="name-input" value="Jogador" class="pg-input" />
+                <ui:Label text="Criar" class="pg-section" />
+                <ui:Button name="btn-create" text="Criar sala" class="pg-button pg-button--primary" />
+
+                <ui:Label text="Entrar numa sala aberta" class="pg-section room__section-gap" />
+                <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
+                <ui:VisualElement class="room__code-join-row">
+                    <ui:Button name="btn-browse" text="Buscar salas" class="pg-button room__half-btn" />
+                    <ui:Button name="btn-refresh" text="Atualizar" class="pg-button room__half-btn" />
                 </ui:VisualElement>
 
-                <ui:Button name="btn-create" text="Criar Sala" class="pg-button pg-button--primary" />
-                <ui:Label text="ou entre numa sala ativa" class="pg-label--dim room__or" />
-                <ui:Button name="btn-browse" text="Buscar Salas" class="pg-button" />
-                <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
-                <ui:Button name="btn-refresh" text="Atualizar Lista" class="pg-button room__refresh-btn" />
-
-                <ui:Label text="ou entre com o código da sala" class="pg-label--dim room__or" />
+                <ui:Label text="Entrar com o código" class="pg-section room__section-gap" />
                 <ui:VisualElement class="room__code-join-row">
                     <ui:TextField name="code-input" max-length="12" class="pg-input room__code-input" />
                     <ui:Button name="btn-join-code" text="Entrar" class="pg-button pg-button--primary room__code-join-btn" />
                 </ui:VisualElement>
 
-                <ui:Toggle name="loopback-toggle" label="Modo local (sem UGS/internet)" class="room__loopback" />
+                <ui:Toggle name="loopback-toggle" label="Modo local (sem internet, só nesta máquina)" class="room__loopback" />
                 <ui:Label name="lobby-status" text="" class="room__status" />
-                <ui:Button name="btn-back" text="← Voltar" class="pg-button pg-button--danger" />
+                <ui:Button name="btn-back" text="← Voltar" class="pg-button" />
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <!-- ============ SALA ATIVA (3 abas) ============ -->
+        <!-- ============ SALA ATIVA ============ -->
         <ui:VisualElement name="room-view" class="room__roomview">
             <ui:VisualElement class="pg-panel room__header">
-                <ui:Label text="Sala Multiplayer" class="room__header-title" />
+                <ui:VisualElement class="room__header-left">
+                    <ui:Label text="SALA" class="room__header-title" />
+                    <ui:Label name="phase-label" text="Aguardando jogadores" class="room__phase" />
+                </ui:VisualElement>
                 <ui:VisualElement class="room__code-row">
-                    <ui:Label text="Código:" class="pg-label--dim" />
+                    <ui:Label text="Código" class="pg-label--dim" />
                     <ui:Label name="joincode-display" text="---" class="room__code" />
                     <ui:Button name="btn-copy-code" text="Copiar" class="pg-button room__copy-btn" />
                     <ui:Label name="copy-feedback" text="" class="room__copy-feedback" />
                 </ui:VisualElement>
-                <ui:Label name="phase-label" text="Fase: Lobby" class="room__phase" />
+                <ui:VisualElement class="room__header-right">
+                    <ui:Button name="btn-tab-chat" text="Sala" class="pg-button pg-button--primary room__tab-btn" />
+                    <ui:Button name="btn-tab-game" text="Ajustes avançados" class="pg-button room__tab-btn" />
+                    <ui:Button name="btn-leave" text="Sair da sala" class="pg-button pg-button--danger room__tab-btn" />
+                </ui:VisualElement>
             </ui:VisualElement>
 
-            <!-- Barra de abas (ocupa a largura toda) -->
-            <ui:VisualElement class="room__tabbar">
-                <ui:Button name="btn-tab-chat" text="Chat" class="pg-button pg-button--primary room__tab-btn" />
-                <ui:Button name="btn-tab-room" text="Room" class="pg-button room__tab-btn" />
-                <ui:Button name="btn-tab-game" text="Game" class="pg-button room__tab-btn" />
-            </ui:VisualElement>
-
-            <!-- Conteúdo das abas (flex-grow pra ocupar a tela) -->
+            <!-- Aba principal: jogadores + seu personagem | chat | regras -->
             <ui:VisualElement name="tab-chat" class="room__tabpanel">
                 <ui:VisualElement class="pg-panel room__col room__col--players">
-                    <ui:Label text="Jogadores" class="room__col-title" />
+                    <ui:Label text="Jogadores" class="pg-section" />
                     <ui:ScrollView name="player-list" class="pg-list room__scroll" />
+
+                    <ui:Label text="Seu personagem" class="pg-section room__section-gap" />
+                    <ui:VisualElement class="pg-card room__char">
+                        <ui:VisualElement class="room__char-row">
+                            <ui:Button name="char-prev" text="&lt;" class="pg-button room__char-step" />
+                            <ui:Label name="char-label" text="—" class="room__char-name" />
+                            <ui:Button name="char-next" text="&gt;" class="pg-button room__char-step" />
+                        </ui:VisualElement>
+                        <ui:Label name="char-info" text="" class="room__char-info" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
+
                 <ui:VisualElement class="pg-panel room__col room__col--chat">
-                    <ui:Label text="Chat" class="room__col-title" />
+                    <ui:Label text="Chat" class="pg-section" />
                     <ui:ScrollView name="chat-log" class="pg-list room__scroll" />
                     <ui:VisualElement class="room__chat-input-row">
                         <ui:TextField name="chat-input" class="pg-input room__chat-input" />
                         <ui:Button name="btn-send" text="Enviar" class="pg-button" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-            </ui:VisualElement>
 
-            <ui:VisualElement name="tab-room" class="room__tabpanel" style="display: none;">
-                <ui:VisualElement name="host-controls" class="pg-panel room__host-panel">
-                    <ui:Label text="Modo" class="room__col-title" />
+                <ui:VisualElement name="host-controls" class="pg-panel room__col room__col--rules">
+                    <ui:Label text="Regras (anfitrião)" class="pg-section" />
+                    <ui:Label text="Modo" class="pg-label--dim room__ctrl-label" />
                     <ui:VisualElement class="room__row">
-                        <ui:Button name="btn-tdm" text="PvP Times" class="pg-button room__mode-btn" />
-                        <ui:Button name="btn-ffa" text="PvP Todos" class="pg-button room__mode-btn" />
                         <ui:Button name="btn-coop" text="Coop" class="pg-button room__mode-btn" />
+                        <ui:Button name="btn-tdm" text="Times" class="pg-button room__mode-btn" />
+                        <ui:Button name="btn-ffa" text="Todos x todos" class="pg-button room__mode-btn" />
                     </ui:VisualElement>
 
-                    <ui:Label text="Nome da sala" class="pg-label--dim room__ctrl-label" />
+                    <ui:Label text="Nome da sala (Enter confirma)" class="pg-label--dim room__ctrl-label" />
                     <ui:TextField name="roomname-input" value="Sala" class="pg-input" />
 
                     <ui:VisualElement class="opt-row">
-                        <ui:VisualElement class="opt-text">
-                            <ui:Label text="Jogadores (máx)" class="opt-label" />
-                            <ui:Label text="Quantos jogadores cabem na sala" class="opt-desc" />
-                        </ui:VisualElement>
+                        <ui:Label text="Jogadores (máx.)" class="opt-label" />
                         <ui:VisualElement class="stepper">
-                            <ui:Image name="room-max-icon-minus" class="room__icon room__icon--arrow" />
-                            <ui:Button name="btn-max-minus" text="-" class="pg-button step-btn" />
+                            <ui:Button name="btn-max-minus" text="−" class="pg-button step-btn" />
                             <ui:Label name="max-label" text="4" class="step-value" />
                             <ui:Button name="btn-max-plus" text="+" class="pg-button step-btn" />
-                            <ui:Image name="room-max-icon-plus" class="room__icon room__icon--arrow" />
                         </ui:VisualElement>
                     </ui:VisualElement>
 
                     <ui:VisualElement class="opt-row">
-                        <ui:VisualElement class="opt-text">
-                            <ui:Label text="Budget de atributos" class="opt-label" />
-                            <ui:Label text="Pontos para distribuir nos personagens" class="opt-desc" />
-                        </ui:VisualElement>
+                        <ui:Label text="Tempo de decisão" class="opt-label" />
                         <ui:VisualElement class="stepper">
-                            <ui:Image name="room-budget-icon-minus" class="room__icon room__icon--arrow" />
-                            <ui:Button name="btn-budget-minus" text="-" class="pg-button step-btn" />
-                            <ui:Label name="budget-label" text="30" class="step-value" />
-                            <ui:Button name="btn-budget-plus" text="+" class="pg-button step-btn" />
-                            <ui:Image name="room-budget-icon-plus" class="room__icon room__icon--arrow" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-
-                    <ui:VisualElement class="opt-row">
-                        <ui:VisualElement class="opt-text">
-                            <ui:Label text="Tempo de decisão" class="opt-label" />
-                            <ui:Label text="Segundos para decidir em cada ponto de decisão" class="opt-desc" />
-                        </ui:VisualElement>
-                        <ui:VisualElement class="stepper">
-                            <ui:Image name="room-plan-icon-minus" class="room__icon room__icon--arrow" />
-                            <ui:Button name="btn-plan-minus" text="-" class="pg-button step-btn" />
+                            <ui:Button name="btn-plan-minus" text="−" class="pg-button step-btn" />
                             <ui:Label name="plan-label" text="15s" class="step-value" />
                             <ui:Button name="btn-plan-plus" text="+" class="pg-button step-btn" />
-                            <ui:Image name="room-plan-icon-plus" class="room__icon room__icon--arrow" />
                         </ui:VisualElement>
                     </ui:VisualElement>
 
-                    <ui:Button name="btn-advance" text="Iniciar (Criar Personagens)" class="pg-button pg-button--primary room__advance" />
+                    <ui:VisualElement class="room__spacer" />
+                    <ui:Label name="start-hint" text="" class="room__start-hint" />
+                    <ui:Button name="btn-advance" text="Iniciar partida" class="pg-button pg-button--primary room__advance" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
             <ui:VisualElement name="tab-game" class="room__tabpanel" style="display: none;">
                 <ui:VisualElement class="pg-panel room__host-panel">
-                    <ui:Label text="GameTuning (host edita)" class="room__col-title" />
+                    <ui:Label text="Ajustes avançados de balanceamento (só o anfitrião edita; valem ao iniciar a partida)" class="pg-section" />
                     <ui:ScrollView name="tuning-list" class="pg-list room__scroll room__tuning-list" />
-                    <ui:Button name="btn-reset-tuning" text="Resetar p/ Default" class="pg-button" />
+                    <ui:Button name="btn-reset-tuning" text="Voltar ao padrão" class="pg-button" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
-            <ui:Button name="btn-leave" text="Sair da Sala" class="pg-button pg-button--danger room__leave" />
-
             <ui:VisualElement name="waiting-overlay" class="room__overlay">
-                <ui:Label name="waiting-label" text="Aguardando o host..." class="room__overlay-label" />
+                <ui:Label name="waiting-label" text="Carregando a partida..." class="room__overlay-label" />
             </ui:VisualElement>
         </ui:VisualElement>
 

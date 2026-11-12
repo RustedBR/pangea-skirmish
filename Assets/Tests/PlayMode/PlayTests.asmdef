@@ -3,6 +3,8 @@
     "rootNamespace": "PangeaSkirmish.PlayTests",
     "references": [
         "PangeaSkirmish",
+        "Unity.Netcode.Runtime",
+        "Unity.Collections",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

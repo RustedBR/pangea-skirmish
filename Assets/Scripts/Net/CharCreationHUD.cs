@@ -1,12 +1,8 @@
 // Net/CharCreationHUD.cs
-// Overlay de criação de personagem para o modo multiplayer (em UI Toolkit).
-// Exibido sobre a cena Sandbox após a fase MapEditing, sem trocar de cena.
-// Criado e destruído por MpPhaseDirector ao detectar fase CharCreation.
-//
-// Migrado de UGUI → UI Toolkit: a classe herda de PangeaScreen e carrega
-// o layout de Resources/UI/Screens/CharCreation.uxml. A lógica de negócio (steppers
-// de atributo, budget, sprite/arma picker, submit) foi preservada; só a camada de
-// apresentação mudou. O nome da classe foi mantido para não quebrar MpPhaseDirector.
+// Editor de personagem do perfil do jogador (UI Toolkit, Resources/UI/Screens/CharCreation.uxml).
+// Aberto pela tela de Perfil para criar um personagem novo ou editar um salvo. Não fala com a
+// rede: devolve o resultado por OnConfirmed e quem chamou grava no PlayerProfile. O orçamento
+// de pontos é fixo (PlayerProfile.AttributeBudget), igual em toda sala.
 
 using System;
 using System.Collections.Generic;
@@ -24,11 +20,12 @@ namespace PangeaSkirmish
         private CharacterPreset _editing;
         private int _budget;
 
-        // ---- Modo local (sala loopback solo do menu principal) --------------
-        // Em vez de enviar ao RoomManager, salva em CharacterStorage e volta ao menu.
-        public bool LocalContentMode { get; set; } = false;
-        // Callback de "Voltar" (modo local): encerra a sala e retorna ao menu.
-        public Action OnBackToMenu { get; set; }
+        /// <summary>Confirmou: recebe uma cópia do personagem pronto (orçamento exato).</summary>
+        public Action<CharacterPreset> OnConfirmed { get; set; }
+        /// <summary>Voltou sem salvar.</summary>
+        public Action OnCancelled { get; set; }
+        /// <summary>Personagem em edição (leitura, para testes).</summary>
+        public CharacterPreset Editing => _editing;
 
         // ---- UI references -------------------------------------------------
         private Label _budgetLbl;
@@ -43,15 +40,10 @@ namespace PangeaSkirmish
         private Label[] _attrValueLbls;
         private Button _confirmBtn;
         private Label _statusLbl;
-        private DropdownField _presetDropdown;
-        private Button _presetLoadBtn;
-        private VisualElement _budgetStepper;
-        private List<CharacterPreset> _savedPresets = new List<CharacterPreset>();
 
         // ---- Índices de navegação -------------------------------------------
         private int _spriteIdx;
         private int _weaponIdx;
-        private Sprite[] _spriteFramesCache; // cache do LoadAll do sprite atual
 
         private static readonly string[] AttrNames = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
 
@@ -60,19 +52,18 @@ namespace PangeaSkirmish
         // =========================================================================
         protected override void Bind()
         {
-            _budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
+            _budget = PlayerProfile.AttributeBudget;
 
-            // Inicializar preset com valores mínimos
+            // Personagem novo: pontos repartidos por igual, já válido; o jogador redistribui.
+            float each = Mathf.Clamp(Mathf.Floor(_budget / 6f), CharacterConfig.AttrMin, CharacterConfig.AttrMax);
             _editing = new CharacterPreset
             {
-                presetName = RuntimeMultiplayerSession.PlayerName,
+                presetName = PlayerProfile.NextCharacterName(),
                 spritePath = CharacterSpriteCatalog.Default,
                 weaponId   = "Hatchet",
                 stats      = new UnitStatBlock
                 {
-                    STR = CharacterConfig.AttrMin, VIT = CharacterConfig.AttrMin,
-                    DEX = CharacterConfig.AttrMin, AGI = CharacterConfig.AttrMin,
-                    INT = CharacterConfig.AttrMin, WIS = CharacterConfig.AttrMin,
+                    STR = each, VIT = each, DEX = each, AGI = each, INT = each, WIS = each,
                     Footprint = 3,
                     // AttackRange vem da arma (não 0 — senão a unidade nasce sem alcance)
                     AttackRange = WeaponCatalog.Get("Hatchet")?.range ?? 1
@@ -98,25 +89,11 @@ namespace PangeaSkirmish
             _weaponLbl  = r.Q<Label>("weapon-label");
             _statusLbl  = r.Q<Label>("status-label");
             _confirmBtn = r.Q<Button>("confirm-btn");
-            _presetDropdown = r.Q<DropdownField>("preset-dropdown");
-            _presetLoadBtn  = r.Q<Button>("preset-load");
 
             if (_nameInput != null)
             {
                 _nameInput.value = _editing.presetName;
                 _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
-            }
-
-            // Personagens salvos (carregar no MP)
-            PopulateSavedPresets();
-            _presetLoadBtn?.RegisterCallback<ClickEvent>(_ => LoadSelectedPreset());
-
-            // Seletor de budget (modo offline — em MP vem da sala)
-            _budgetStepper = r.Q<VisualElement>("budget-stepper");
-            if (_budgetStepper != null)
-            {
-                _budgetStepper.Q<Button>("budget-minus")?.RegisterCallback<ClickEvent>(_ => StepBudget(-1));
-                _budgetStepper.Q<Button>("budget-plus")?.RegisterCallback<ClickEvent>(_ => StepBudget(+1));
             }
 
             // Sprite picker
@@ -158,71 +135,25 @@ namespace PangeaSkirmish
             Hover(r.Q<Button>("sprite-prev")?.parent, () => $"<b>Aparência — {CharacterLookCatalog.All[_lookIdx].displayName}</b>\n{CharacterLookCatalog.All[_lookIdx].blurb}\nÉ só visual: não muda nenhum número.");
             Hover(r.Q<Button>("weapon-prev")?.parent, WeaponHelp);
 
-            // Confirmar
+            // Confirmar / voltar
             _confirmBtn?.RegisterCallback<ClickEvent>(_ => OnConfirm());
+            r.Q<Button>("back-btn")?.RegisterCallback<ClickEvent>(_ => OnCancelled?.Invoke());
 
             // Inicializar UI
             SyncSprite();
             SyncWeapon();
             RefreshBudgetDisplay();
             RefreshAttrDisplay();
-
-            // Escutar rejeição do servidor
-            if (RoomManager.Instance != null)
-                RoomManager.Instance.OnCharacterRejected += OnRejected;
-        }
-
-        private void Start()
-        {
-            // O back-btn é configurado em Start() (não no Bind) porque o LocalContentMode
-            // é setado PELO CHAMADOR APÓS o Spawn (que dispara o Bind via OnEnable).
-            // No Bind, LocalContentMode ainda é false → esconderia o botão no modo offline.
-            var backBtn = Root.Q<Button>("back-btn");
-            if (backBtn != null)
-            {
-                if (LocalContentMode)
-                {
-                    backBtn.style.display = DisplayStyle.Flex;
-                    backBtn.RegisterCallback<ClickEvent>(_ => OnBackToMenu?.Invoke());
-                }
-                else
-                    backBtn.style.display = DisplayStyle.None; // MP: sem volta direta
-            }
-
-            // Seletor de budget (só no modo offline — em MP vem da sala)
-            if (LocalContentMode && _budgetStepper != null)
-            {
-                _budgetStepper.style.display = DisplayStyle.Flex;
-                var bv = _budgetStepper.Q<Label>("budget-value");
-                if (bv != null) bv.text = _budget.ToString();
-            }
-            else if (_budgetStepper != null)
-                _budgetStepper.style.display = DisplayStyle.None;
         }
 
         private void OnDestroy()
         {
             if (_preview3D != null) Destroy(_preview3D.gameObject);
-            if (RoomManager.Instance != null)
-                RoomManager.Instance.OnCharacterRejected -= OnRejected;
         }
 
         // =========================================================================
         // Lógica de atributos
         // =========================================================================
-        private void StepBudget(int delta)
-        {
-            if (!LocalContentMode) return;
-            // Limites razoáveis para o budget offline (nem 0 nem infinito)
-            int newBudget = Mathf.Clamp(_budget + delta * 5, 5, 100);
-            _budget = newBudget;
-            if (RuntimeMultiplayerSession.CurrentConfig != null)
-                RuntimeMultiplayerSession.CurrentConfig.attributeBudget = newBudget;
-            var bv2 = _budgetStepper?.Q<Label>("budget-value");
-            if (bv2 != null) bv2.text = _budget.ToString();
-            RefreshBudgetDisplay();
-        }
-
         private void StepAttr(int idx, float delta)
         {
             float[] vals = GetAttrArray();
@@ -342,7 +273,7 @@ namespace PangeaSkirmish
             {
                 case 0: return $"<b>STR — Força</b>\nDano de armas corpo a corpo: +{F.dmgPerSTR * st.WeightFactor:0.#} por ponto com esta arma (arma pesada aproveita mais).\nEstâmina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.\nEscala a magia Física <b>Fúria</b>.";
                 case 1: return $"<b>VIT — Vitalidade</b>\nVida: +{F.hpPerVIT:0.#} por ponto.\nArmadura: −{F.armorPctPerVIT * 100:0.#}% de dano físico por ponto (até {F.armorPctMax * 100:0}%).\nBloquear absorve mais. Estâmina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
-                case 2: return $"<b>DEX — Destreza</b>\nAções mais rápidas: menos ticks para atacar e conjurar.\nAcerto +{F.hitPerDEX * 100:0.#}% e crítico +{F.critPerDEX * 100:0.#}% por ponto.\nDano de armas à distância (arcos, cajados): +{F.dmgPerDEXRanged * st.WeightFactor:0.#} por ponto com esta arma.";
+                case 2: return $"<b>DEX — Destreza</b>\nAções mais rápidas: menos ticks para atacar e conjurar.\nAcerto +{F.hitPerDEX * 100:0.#}% e crítico +{F.critPerDEX * 100:0.#}% por ponto.\nDano de armas à distância (arcos, cajados): +{F.dmgPerDEXRanged * st.WeightFactor:0.#} por ponto com esta arma.\nEstâmina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
                 case 3: return $"<b>AGI — Agilidade</b>\nTiles por andada (até {T.maxTilesPerMove}).\nEsquiva +{F.dodgePerAGI * 100:0.#}% por ponto e iniciativa.\nAcima de {T.agiRegenFrom}, a Estâmina volta mais rápido.";
                 case 4: return $"<b>INT — Inteligência</b>\nPotência das magias: +{T.spellPotPerINT:0.#} por ponto.\nAlcance das magias: +{T.spellRangePerINT:0.#} célula por ponto.";
                 default: return $"<b>WIS — Sabedoria</b>\nMana máxima: +{F.manaPerWIS:0.#} por ponto.\nMana volta mais rápido a cada {T.wisRegenStep} pontos.\nDefesa contra magia: −{F.magicResistPerWIS} de dano mágico por ponto.";
@@ -398,37 +329,15 @@ namespace PangeaSkirmish
         }
 
         // =========================================================================
-        // Personagens salvos (carregar no MP)
+        // Editar um personagem salvo
         // =========================================================================
-        private void PopulateSavedPresets()
+        /// <summary>Carrega um personagem do perfil para edição (chamar logo após o Spawn).</summary>
+        public void Edit(CharacterPreset p)
         {
-            if (_presetDropdown == null) return;
-            var all = CharacterStorage.LoadAll();
-            _savedPresets.Clear();
-            var names = new List<string> { "(novo)" };
-            foreach (var p in all)
-            {
-                // Só mostra presets que cabem no budget da sala atual
-                int pts = (int)(p.stats.STR + p.stats.VIT + p.stats.DEX + p.stats.AGI + p.stats.INT + p.stats.WIS);
-                if (pts > _budget) continue;
-                _savedPresets.Add(p);
-                names.Add(p.presetName);
-            }
-            _presetDropdown.choices = names;
-            _presetDropdown.value = names[0];
-            _presetDropdown.index = 0;
-        }
-
-        private void LoadSelectedPreset()
-        {
-            if (_presetDropdown == null || _presetDropdown.index <= 0) return;
-            int i = _presetDropdown.index - 1;
-            if (i < 0 || i >= _savedPresets.Count) return;
-
-            var p = _savedPresets[i];
+            if (p == null || p.stats == null) return;
             ApplyPreset(p);
-
-            if (_statusLbl != null) _statusLbl.text = $"Carregado: {p.presetName}";
+            var title = Root?.Q<Label>("cc-title");
+            if (title != null) title.text = "Editar Personagem";
         }
 
         /// <summary>Deep-copy de um preset para o estado em edição, atualizando a UI.</summary>
@@ -481,66 +390,18 @@ namespace PangeaSkirmish
         private void OnConfirm()
         {
             if (SumAttrs() != _budget) return;
-            if (string.IsNullOrWhiteSpace(_editing.presetName))
-                _editing.presetName = RuntimeMultiplayerSession.PlayerName;
+            _editing.presetName = (_editing.presetName ?? "").Trim();
+            if (_editing.presetName.Length == 0) _editing.presetName = PlayerProfile.NextCharacterName();
+            if (_editing.presetName.Length > PlayerProfile.MaxNameLength)
+                _editing.presetName = _editing.presetName.Substring(0, PlayerProfile.MaxNameLength);
 
             // Garante que o AttackRange reflete a arma escolhida no envio
             var w = WeaponCatalog.Get(_editing.weaponId);
             if (w != null) _editing.stats.AttackRange = w.range;
 
-            string json = JsonUtility.ToJson(_editing);
-            Debug.Log($"[MP] Personagem criado (enviando): {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId} range={_editing.stats.AttackRange}");
-
-            if (LocalContentMode)
-            {
-                // Modo local (offline, sala loopback solo): salva o preset no disco
-                // e fecha a sessão, voltando ao menu principal.
-                CharacterStorage.Save(_editing);
-                RuntimeMultiplayerSession.LocalCharacterPreset = _editing;
-                LocalContentLauncher.FinishAndReturnToMenu();
-                return;
-            }
-
-            RoomManager.Instance?.SubmitCharacterServerRpc(json);
-
-            // Salvar localmente para uso no GameBootstrap MP
-            RuntimeMultiplayerSession.LocalCharacterPreset = _editing;
-
-            if (_confirmBtn != null) _confirmBtn.SetEnabled(false);
-            if (_statusLbl != null) _statusLbl.text = "Aguardando confirmação...";
+            Debug.Log($"[Perfil] Personagem confirmado: {_editing.presetName} pts={SumAttrs()}/{_budget} arma={_editing.weaponId} aparência='{_editing.modelId}'");
+            OnConfirmed?.Invoke(PlayerProfile.Clone(_editing));
         }
 
-        private void OnRejected(string reason)
-        {
-            if (_confirmBtn != null) _confirmBtn.SetEnabled(true);
-            if (_statusLbl != null) _statusLbl.text = $"Rejeitado: {reason}";
-        }
-
-        // Recorta a região do sprite do atlas para uma Texture2D legível (WebGL-safe).
-        // Usa RenderTexture + ReadPixels para contornar atlas comprimido (ASTC/DXT5)
-        // que quebra o GetPixels direto em WebGL/mobile.
-        private static Texture2D SpriteToTexture(Sprite sprite)
-        {
-            if (sprite == null) return null;
-            int w = Mathf.RoundToInt(sprite.rect.width);
-            int h = Mathf.RoundToInt(sprite.rect.height);
-            if (w <= 0 || h <= 0) return null;
-
-            var src = sprite.texture;
-            // Cópia 1:1 do retângulo do sprite para um RT (formato RGBA32, sempre legível)
-            var rt = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32,
-                RenderTextureReadWrite.Linear);
-            var prevActive = RenderTexture.active;
-            Graphics.Blit(src, rt, new Vector2(1f, 1f), new Vector2(-sprite.rect.x, -sprite.rect.y));
-            RenderTexture.active = rt;
-
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
-            tex.Apply();
-
-            RenderTexture.active = prevActive;
-            RenderTexture.ReleaseTemporary(rt);
-            return tex;
-        }
     }
 }

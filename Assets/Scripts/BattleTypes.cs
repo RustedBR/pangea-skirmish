@@ -147,13 +147,13 @@ namespace PangeaSkirmish
         /// <summary>Ticks base do ataque, pelo peso da arma equipada (GDD-016 §2.1).</summary>
         public int AttackTicks = 2;
 
-        /// <summary>Estâmina máxima: reserva do Corpo (GDD-016 §3).</summary>
+        /// <summary>Estâmina máxima: reserva do Corpo (GDD-016 §3). STR, VIT e DEX contam; a AGI acelera a regeneração.</summary>
         public int MaxStamina
         {
             get
             {
                 var T = Tuning.Get();
-                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + (STR + VIT) * T.staminaPerBodyPoint));
+                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + (STR + VIT + DEX) * T.staminaPerBodyPoint));
             }
         }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));

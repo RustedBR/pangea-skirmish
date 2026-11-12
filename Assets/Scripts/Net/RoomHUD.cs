@@ -28,7 +28,7 @@ namespace PangeaSkirmish
         private VisualElement _lobbyView, _roomView;
 
         // ---- Widgets do lobby ------------------------------------------------
-        private TextField _nameInput;
+        private Label _profileSummary;
         private ScrollView _roomList;
         private Button _browseBtn;
         private Button _refreshBtn;
@@ -39,7 +39,7 @@ namespace PangeaSkirmish
         private Label _joinCodeDisplay, _phaseLabel;
         private ScrollView _playerList, _chatLog;
         private TextField _chatInput;
-        private Button _tdmBtn, _ffaBtn, _coopBtn, _budgetMinus, _budgetPlus, _planMinus, _planPlus, _advanceBtn;
+        private Button _tdmBtn, _ffaBtn, _coopBtn, _planMinus, _planPlus, _advanceBtn;
         private Label _budgetLabel, _planLabel;
         private VisualElement _hostControls, _waitingOverlay;
         private Label _waitingLabel;
@@ -59,10 +59,12 @@ namespace PangeaSkirmish
 
         // ---- Estado ----------------------------------------------------------
         private int _gameMode = 0;       // 0=TDM, 1=FFA
-        private int _budgetValue = 30;
+        private int _budgetValue = PlayerProfile.AttributeBudget;
         private int _maxPlayersValue = 4;
         private float _planningValue = 15f; // GDD-014: segundos por ponto de decisão
         private bool _inRoom = false;
+        private Label _charLabel, _charInfo, _startHint;
+        private Button _charPrev, _charNext;
         private bool _boundRoom = false;
         private string _joinCode = "---";
 
@@ -72,7 +74,7 @@ namespace PangeaSkirmish
 
         /// <summary>Mantido por compatibilidade com o MainMenuManager. UI Toolkit usa
         /// PanelSettings + tema, então canvas/font não são mais necessários.</summary>
-        public void Init(Transform canvasTransform, Font font) { }
+        public void Init(Transform canvasTransform = null, Font font = null) { }
 
         // ---- Ícones BDragon (Opção C): valida uso de sprites do atlas na UI ----
         private static Sprite[] _bdragonSprites;
@@ -119,8 +121,6 @@ namespace PangeaSkirmish
             // Aba Room (steppers de -/+)
             SetBdragonIcon(r, "room-max-icon-minus", "UI_buttons_left_arrow_round_blue");
             SetBdragonIcon(r, "room-max-icon-plus", "UI_buttons_right_arrow_round_blue");
-            SetBdragonIcon(r, "room-budget-icon-minus", "UI_buttons_left_arrow_round_blue");
-            SetBdragonIcon(r, "room-budget-icon-plus", "UI_buttons_right_arrow_round_blue");
             SetBdragonIcon(r, "room-plan-icon-minus", "UI_buttons_left_arrow_round_blue");
             SetBdragonIcon(r, "room-plan-icon-plus", "UI_buttons_right_arrow_round_blue");
             // Aba Game (tuning list)
@@ -134,7 +134,7 @@ namespace PangeaSkirmish
             _roomView  = r.Q<VisualElement>("room-view");
 
             // --- lobby ---
-            _nameInput      = r.Q<TextField>("name-input");
+            _profileSummary = r.Q<Label>("profile-summary");
             _roomList       = r.Q<ScrollView>("room-list");
             _browseBtn      = r.Q<Button>("btn-browse");
             _refreshBtn     = r.Q<Button>("btn-refresh");
@@ -163,8 +163,6 @@ namespace PangeaSkirmish
             _tdmBtn          = r.Q<Button>("btn-tdm");
             _ffaBtn          = r.Q<Button>("btn-ffa");
             _coopBtn         = r.Q<Button>("btn-coop");
-            _budgetMinus     = r.Q<Button>("btn-budget-minus");
-            _budgetPlus      = r.Q<Button>("btn-budget-plus");
             _planMinus       = r.Q<Button>("btn-plan-minus");
             _planPlus        = r.Q<Button>("btn-plan-plus");
             _advanceBtn      = r.Q<Button>("btn-advance");
@@ -179,13 +177,10 @@ namespace PangeaSkirmish
             _tuningList  = r.Q<VisualElement>("tuning-list");
             _resetTuningBtn = r.Q<Button>("btn-reset-tuning");
 
-            // Ícones BDragon (Opção C)
-            ApplyBdragonIcons(r);
 
             // Scroller BDragon (Opção 1): handle com sprite
             ApplyBdragonScrollbars(r);
             _tabChatBtn.clicked  += () => { ShowTab("chat"); };
-            _tabRoomBtn.clicked  += () => { ShowTab("room"); };
             _tabGameBtn.clicked  += () => { ShowTab("game"); if (!_tuningBuilt) BuildTuningTab(); };
             _resetTuningBtn.clicked += ResetTuningToDefault;
 
@@ -219,8 +214,16 @@ namespace PangeaSkirmish
             _ffaBtn.clicked += () => { _gameMode = 1; UpdateModeHighlight(); SyncConfig(); };
             if (_coopBtn != null)
                 _coopBtn.clicked += () => { _gameMode = GameModes.Coop; UpdateModeHighlight(); SyncConfig(); };
-            _budgetMinus.clicked += () => { _budgetValue = Mathf.Max(10, _budgetValue - 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); };
-            _budgetPlus.clicked  += () => { _budgetValue = Mathf.Min(100, _budgetValue + 5); _budgetLabel.text = _budgetValue.ToString(); SyncConfig(); };
+            // Orçamento de atributos é fixo (PlayerProfile.AttributeBudget): sem controle na sala.
+
+            // Personagem do perfil usado nesta sala (troca só no lobby).
+            _charLabel = r.Q<Label>("char-label");
+            _charInfo  = r.Q<Label>("char-info");
+            _charPrev  = r.Q<Button>("char-prev");
+            _charNext  = r.Q<Button>("char-next");
+            _startHint = r.Q<Label>("start-hint");
+            if (_charPrev != null) _charPrev.clicked += () => StepCharacter(-1);
+            if (_charNext != null) _charNext.clicked += () => StepCharacter(+1);
             _planMinus.clicked   += () => { _planningValue = Mathf.Max(5f, _planningValue - 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
             _planPlus.clicked    += () => { _planningValue = Mathf.Min(60f, _planningValue + 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
 
@@ -254,8 +257,17 @@ namespace PangeaSkirmish
             HideAll(); // começa oculto (como o Init antigo, que deixava os dois painéis inativos)
         }
 
+        private static string ProfileName() => PlayerProfile.HasName ? PlayerProfile.Name : "Jogador";
+
         public void ShowLobbyPanel()
         {
+            if (_profileSummary != null)
+            {
+                var c = PlayerProfile.Selected;
+                _profileSummary.text = c != null
+                    ? $"Jogando como <b>{ProfileName()}</b> · personagem <b>{c.presetName}</b>"
+                    : $"Jogando como <b>{ProfileName()}</b> · sem personagem";
+            }
             Root.style.display = DisplayStyle.Flex;
             _lobbyView.style.display = DisplayStyle.Flex;
             _roomView.style.display = DisplayStyle.None;
@@ -272,6 +284,7 @@ namespace PangeaSkirmish
             _lobbyView.style.display = DisplayStyle.None;
             _roomView.style.display = DisplayStyle.Flex;
             _waitingOverlay.style.display = DisplayStyle.None;
+            ShowTab("chat");
         }
 
         // =====================================================================
@@ -305,7 +318,9 @@ namespace PangeaSkirmish
             RoomManager.Instance.OnPhaseChanged += OnPhaseChanged;
             RoomManager.Instance.OnConfigChanged += UpdateConfigDisplay;
             RoomManager.Instance.OnChatMessage += AppendChatMessage;
+            RoomManager.Instance.OnCharacterRejected += OnCharacterRejected;
             _boundRoom = true;
+            SubmitMyCharacter();   // entra na sala já com o personagem em uso no perfil
             RebuildPlayerList();
             UpdateConfigDisplay();
             OnPhaseChanged(RoomManager.Instance.CurrentPhase);
@@ -332,9 +347,57 @@ namespace PangeaSkirmish
                 RoomManager.Instance.OnPhaseChanged -= OnPhaseChanged;
                 RoomManager.Instance.OnConfigChanged -= UpdateConfigDisplay;
                 RoomManager.Instance.OnChatMessage -= AppendChatMessage;
+                RoomManager.Instance.OnCharacterRejected -= OnCharacterRejected;
             }
             _boundRoom = false;
         }
+
+        // =====================================================================
+        // Personagem do perfil nesta sala
+        // =====================================================================
+
+        private void SubmitMyCharacter()
+        {
+            var c = PlayerProfile.Selected;
+            RefreshCharacterPicker();
+            if (c == null || RoomManager.Instance == null) return;
+            RuntimeMultiplayerSession.LocalCharacterPreset = c;
+            RoomManager.Instance.SubmitCharacterServerRpc(JsonUtility.ToJson(c));
+            Debug.Log($"[MP] Personagem enviado à sala: {c.presetName} ({c.weaponId})");
+        }
+
+        private void StepCharacter(int dir)
+        {
+            int n = PlayerProfile.Count;
+            if (n <= 1) return;
+            if (RoomManager.Instance != null && RoomManager.Instance.CurrentPhase != RoomPhase.Lobby) return;
+            PlayerProfile.Select((PlayerProfile.Data.selected + dir + n) % n);
+            SubmitMyCharacter();
+        }
+
+        private void RefreshCharacterPicker()
+        {
+            var c = PlayerProfile.Selected;
+            if (_charLabel != null) _charLabel.text = c != null ? c.presetName : "(nenhum)";
+            if (_charInfo != null) _charInfo.text = c != null ? DescribeCharacter(c) : "Crie um personagem no Perfil, no menu principal.";
+            bool many = PlayerProfile.Count > 1;
+            _charPrev?.SetEnabled(many);
+            _charNext?.SetEnabled(many);
+        }
+
+        /// <summary>Resumo de uma linha: arma, aparência e os atributos.</summary>
+        public static string DescribeCharacter(CharacterPreset c)
+        {
+            if (c == null || c.stats == null) return "";
+            var w = WeaponCatalog.Get(c.weaponId);
+            var look = CharacterLookCatalog.All[CharacterLookCatalog.IndexOf(c.modelId)];
+            var s = c.stats;
+            return $"{(w != null ? w.displayName : "Desarmado")} · {look.displayName}\n" +
+                   $"STR {s.STR:0}  VIT {s.VIT:0}  DEX {s.DEX:0}  AGI {s.AGI:0}  INT {s.INT:0}  WIS {s.WIS:0}";
+        }
+
+        private void OnCharacterRejected(string reason) =>
+            AppendChatMessage("Sistema", $"Seu personagem foi recusado: {reason}.");
 
         // =====================================================================
         // Callbacks de rede
@@ -344,26 +407,19 @@ namespace PangeaSkirmish
 
         private void OnPhaseChanged(RoomPhase phase)
         {
-            _phaseLabel.text = "Fase: " + phase.ToString();
-
-            // Durante a criacao de personagem esta tela (sala/lobby) deve sumir para
-            // que o CharCreationHUD (overlay do MpPhaseDirector) fique visivel e receba
-            // input. Sem isso, o RoomHUD ficava por cima e o menu de criacao nao abria.
-            if (phase == RoomPhase.CharCreation)
-            {
-                SetVisible(false);
-                return;
-            }
+            _phaseLabel.text = phase == RoomPhase.Lobby ? "Aguardando jogadores" : "Partida em andamento";
             SetVisible(true);
 
             bool isHost = RuntimeMultiplayerSession.IsHost;
             bool isLobby = phase == RoomPhase.Lobby;
             if (_advanceBtn != null) _advanceBtn.SetEnabled(isHost && isLobby);
+            _charPrev?.SetEnabled(isLobby && PlayerProfile.Count > 1);
+            _charNext?.SetEnabled(isLobby && PlayerProfile.Count > 1);
 
             if (!isHost && phase != RoomPhase.Lobby)
             {
                 _waitingOverlay.style.display = DisplayStyle.Flex;
-                _waitingLabel.text = $"Aguardando o host...\nFase: {phase}";
+                _waitingLabel.text = "Carregando a partida...";
             }
             else
             {
@@ -404,6 +460,12 @@ namespace PangeaSkirmish
                 nameLbl.AddToClassList("room__player-name");
                 row.Add(nameLbl);
 
+                string charName = slot.CharName.ToString();
+                var charLbl = new Label(slot.ReadyChar ? charName : "sem personagem") { tooltip = charName };
+                charLbl.AddToClassList("room__player-char");
+                if (!slot.ReadyChar) charLbl.AddToClassList("room__player-char--missing");
+                row.Add(charLbl);
+
                 bool isCoop = RoomManager.Instance.CurrentConfig.GameMode == GameModes.Coop;
                 var teamLbl = new Label(isFfa ? "FFA" : isCoop ? "Coop" : (slot.Team == 0 ? "Time A" : "Time B"));
                 teamLbl.AddToClassList("pg-badge");
@@ -426,6 +488,13 @@ namespace PangeaSkirmish
                 }
 
                 _playerList.Add(row);
+            }
+
+            if (_startHint != null)
+            {
+                string missing = RoomManager.Instance.PlayersWithoutCharacter();
+                _startHint.text = missing.Length > 0 ? $"Sem personagem: {missing}" : "Todos prontos.";
+                _startHint.EnableInClassList("room__start-hint--missing", missing.Length > 0);
             }
         }
 
@@ -518,7 +587,7 @@ namespace PangeaSkirmish
         /// <summary>
         /// Constrói a lista de controles do GameTuning via reflection.
         /// O host edita RuntimeTuning.Active localmente; o sync acontece SÓ ao
-        /// avançar para CharCreation (RoomManager.ApplyPhaseDefaults).
+        /// iniciar a partida (RoomManager.StartMatch).
         /// Clientes veem a lista mas não podem editar.
         /// </summary>
         private void BuildTuningTab()
@@ -659,8 +728,8 @@ namespace PangeaSkirmish
             }
 
             _tuningBuilt = true;
-            // garante que a aba Sala comece visível
-            ShowTab("room");
+            // a aba principal (Sala) continua sendo a visível
+            ShowTab("chat");
         }
 
         private static string PrettyName(string name)
@@ -678,7 +747,7 @@ namespace PangeaSkirmish
 
         private void OnTuningChanged()
         {
-            // Host editou localmente. O sync real acontece em RoomManager.ApplyPhaseDefaults(CharCreation).
+            // Host editou localmente. O sync real acontece em RoomManager.StartMatch.
             // Aqui só garantimos que RuntimeTuning.Active está pronto.
             if (RuntimeTuning.Active == null)
                 RuntimeTuning.Active = ScriptableObject.CreateInstance<GameTuning>();
@@ -719,8 +788,6 @@ namespace PangeaSkirmish
             _tdmBtn?.SetEnabled(on);
             _ffaBtn?.SetEnabled(on);
             _coopBtn?.SetEnabled(on);
-            _budgetMinus?.SetEnabled(on);
-            _budgetPlus?.SetEnabled(on);
             _planMinus?.SetEnabled(on);
             _planPlus?.SetEnabled(on);
             _maxMinus?.SetEnabled(on);
@@ -742,8 +809,7 @@ namespace PangeaSkirmish
             SetLobbyStatus("Criando sala...");
             try
             {
-                string playerName = _nameInput.value.Trim();
-                if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                string playerName = ProfileName();
                 // Nome da sala automático: "Sala de {playerName}". Editável DENTRO da sala (host).
                 string roomName = "Sala de " + playerName;
 
@@ -837,8 +903,7 @@ namespace PangeaSkirmish
             {
                 // O browser SEMPRE usa UGS (mesmo que o toggle "modo local" esteja marcado
                 // para criar sala loopback). Não dá pra listar salas sem auth.
-                string playerName = _nameInput.value.Trim();
-                if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                string playerName = ProfileName();
                 RuntimeMultiplayerSession.PlayerName = playerName;
 
                 try { await NetBootstrap.EnsureExists().InitUgsAsync(playerName); }
@@ -948,8 +1013,7 @@ namespace PangeaSkirmish
             SetLobbyStatus("Entrando na sala...");
             try
             {
-                string playerName = _nameInput.value.Trim();
-                if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                string playerName = ProfileName();
                 RuntimeMultiplayerSession.PlayerName = playerName;
 
                 var bootstrap = NetBootstrap.EnsureExists();
@@ -1044,8 +1108,7 @@ namespace PangeaSkirmish
             Debug.Log($"[RoomHUD] JoinByCode: {code}");
             try
             {
-                string playerName = _nameInput.value.Trim();
-                if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                string playerName = ProfileName();
                 RuntimeMultiplayerSession.PlayerName = playerName;
 
                 var bootstrap = NetBootstrap.EnsureExists();
