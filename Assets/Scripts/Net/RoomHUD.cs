@@ -202,6 +202,15 @@ namespace PangeaSkirmish
             Root.Add(_tooltipGo);
 
             r.Q<Button>("btn-copy-code").clicked += OnClickCopyCode;
+            _copyFeedback = r.Q<Label>("copy-feedback");
+            _codeInput = r.Q<TextField>("code-input");
+            var joinCodeBtn = r.Q<Button>("btn-join-code");
+            if (joinCodeBtn != null) joinCodeBtn.clicked += () => _ = JoinByCodeAsync(_codeInput != null ? _codeInput.value : "");
+            if (_codeInput != null)
+                _codeInput.RegisterCallback<KeyDownEvent>(e =>
+                {
+                    if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter) _ = JoinByCodeAsync(_codeInput.value);
+                });
             r.Q<Button>("btn-send").clicked      += () => OnChatSubmit(_chatInput.value);
             r.Q<Button>("btn-leave").clicked     += OnClickLeaveRoom;
             _advanceBtn.clicked += OnClickAdvancePhase;
@@ -390,17 +399,20 @@ namespace PangeaSkirmish
                 var row = new VisualElement();
                 row.AddToClassList("room__player-row");
 
-                var nameLbl = new Label(slot.PlayerName.ToString() + (slot.ClientId == hostId ? "  (host)" : ""));
+                string fullName = slot.PlayerName.ToString() + (slot.ClientId == hostId ? "  (host)" : "");
+                var nameLbl = new Label(fullName) { tooltip = fullName };   // nome longo: reticências + dica
                 nameLbl.AddToClassList("room__player-name");
                 row.Add(nameLbl);
 
-                var teamLbl = new Label(isFfa ? "FFA" : (slot.Team == 0 ? "Time A" : "Time B"));
+                bool isCoop = RoomManager.Instance.CurrentConfig.GameMode == GameModes.Coop;
+                var teamLbl = new Label(isFfa ? "FFA" : isCoop ? "Coop" : (slot.Team == 0 ? "Time A" : "Time B"));
                 teamLbl.AddToClassList("pg-badge");
+                teamLbl.AddToClassList("room__player-team");
                 if (!isFfa) teamLbl.AddToClassList(slot.Team == 0 ? "pg-badge--team-a" : "pg-badge--team-b");
                 row.Add(teamLbl);
 
                 // Botão trocar time — só host, só TDM
-                if (isHost && !isFfa)
+                if (isHost && !isFfa && !isCoop)
                 {
                     var slotCapture = slot;
                     var swap = new Button(() =>
@@ -998,10 +1010,65 @@ namespace PangeaSkirmish
 
         private void OnClickAdvancePhase() => RoomManager.Instance?.AdvancePhaseServerRpc();
 
+        private Label _copyFeedback;
+        private TextField _codeInput;
+
+        /// <summary>
+        /// Copia o código da sala. GUIUtility.systemCopyBuffer não chega à área de transferência
+        /// do navegador no WebGL; o WebBridge usa a API do navegador (com reservas).
+        /// </summary>
         private void OnClickCopyCode()
         {
-            if (!string.IsNullOrEmpty(_joinCode) && _joinCode != "---")
-                GUIUtility.systemCopyBuffer = _joinCode;
+            if (string.IsNullOrEmpty(_joinCode) || _joinCode == "---") return;
+            WebBridge.CopyText(_joinCode);
+            Debug.Log($"[RoomHUD] código copiado: {_joinCode}");
+            if (_copyFeedback != null)
+            {
+                _copyFeedback.text = "Copiado!";
+                _copyFeedback.schedule.Execute(() => _copyFeedback.text = "").StartingIn(1800);
+            }
+        }
+
+        /// <summary>
+        /// Entra numa sala pelo código mostrado no cabeçalho dela (o código do Relay). Não havia
+        /// campo para isso: só dava para entrar clicando na lista. Aceita espaços e minúsculas.
+        /// </summary>
+        private async Task JoinByCodeAsync(string raw)
+        {
+            string code = (raw ?? "").Trim().Replace(" ", "").Replace("-", "").ToUpperInvariant();
+            if (code.Length < 4) { SetLobbyStatus("Digite o código da sala (ex.: ABC123)."); return; }
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            { SetLobbyStatus("Já conectado — saia da sala antes."); return; }
+
+            SetLobbyStatus($"Entrando na sala {code}...");
+            Debug.Log($"[RoomHUD] JoinByCode: {code}");
+            try
+            {
+                string playerName = _nameInput.value.Trim();
+                if (string.IsNullOrEmpty(playerName)) playerName = "Jogador";
+                RuntimeMultiplayerSession.PlayerName = playerName;
+
+                var bootstrap = NetBootstrap.EnsureExists();
+                if (bootstrap.useLoopback) { SetLobbyStatus("Modo local não aceita código — desmarque \"Modo local\"."); return; }
+
+                try { await bootstrap.InitUgsAsync(playerName); }
+                catch (Exception ex) { SetLobbyStatus($"Erro UGS: {ex.Message}"); Debug.LogError($"[RoomHUD] InitUgsAsync (código): {ex}"); return; }
+
+                StopAutoRefresh();
+                await bootstrap.JoinRelayAsync(code);
+                Debug.Log($"[MP] Entrou na sala por código (cliente): jogador={playerName} codigo={code}");
+                SetLobbyStatus("Conectado!");
+                EnterRoom(code);
+                StartCoroutine(SendNameAfterConnect(playerName));
+            }
+            catch (Exception ex)
+            {
+                // Código errado ou sala encerrada: o Relay responde "join code not found".
+                string msg = ex.Message ?? "";
+                bool notFound = msg.IndexOf("not found", StringComparison.OrdinalIgnoreCase) >= 0 || msg.IndexOf("404", StringComparison.Ordinal) >= 0;
+                SetLobbyStatus(notFound ? $"Sala {code} não encontrada. Confira o código ou peça um novo ao anfitrião." : $"Erro: {msg}");
+                Debug.LogError($"[RoomHUD] JoinByCodeAsync({code}): {ex}");
+            }
         }
 
         private void OnChatSubmit(string text)

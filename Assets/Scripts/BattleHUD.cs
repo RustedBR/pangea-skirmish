@@ -295,7 +295,7 @@ namespace PangeaSkirmish
                     OnIntentSelected?.Invoke(slot);
                 });
             }
-            _endMenuButton.RegisterCallback<ClickEvent>(_ => SceneManager.LoadScene("MainMenu"));
+            _endMenuButton.RegisterCallback<ClickEvent>(_ => { if (_endMenuAction != null) _endMenuAction(); else SceneManager.LoadScene("MainMenu"); });
 
             // Estado inicial
             if (_intentsPanel != null) _intentsPanel.style.display = DisplayStyle.None;
@@ -349,6 +349,7 @@ namespace PangeaSkirmish
 
         public bool IsPointerOverUI()
         {
+            if (GameLog.PointerOver) return true;          // painel/botão de LOG (IMGUI) por cima do jogo
             if (Root == null || Root.panel == null) return false;
             HookUiPointerDown();
             if (Mouse.current == null) return false;
@@ -1390,6 +1391,30 @@ namespace PangeaSkirmish
         {
             if (_endText != null) _endText.text = msg;
             if (_endPanel != null) _endPanel.style.display = DisplayStyle.Flex;
+        }
+
+        private Button _endRestartButton;
+        private Action _endMenuAction;
+
+        /// <summary>
+        /// Ações da tela de fim: <paramref name="restart"/> (null = sem botão; só o anfitrião reinicia)
+        /// e <paramref name="menu"/> (sai da sala direito antes de voltar ao menu).
+        /// </summary>
+        public void SetEndActions(Action restart, Action menu, string hint = null)
+        {
+            _endMenuAction = menu;
+            if (_endMenuButton == null) return;
+            if (_endRestartButton == null)
+            {
+                _endRestartButton = new Button { text = "Jogar de novo" };
+                _endRestartButton.AddToClassList("bh-confirm-btn");
+                _endRestartButton.style.marginBottom = 8;
+                var parent = _endMenuButton.parent;
+                parent.Insert(parent.IndexOf(_endMenuButton), _endRestartButton);
+            }
+            _endRestartButton.clickable = new Clickable(() => { AudioManager.I?.Play(AudioManager.I.sfxUIConfirm); restart?.Invoke(); });
+            _endRestartButton.style.display = restart != null ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!string.IsNullOrEmpty(hint) && _endText != null && !_endText.text.Contains(hint)) _endText.text += "\n" + hint;
         }
 
         // ── MULTIPLAYER: aguardando posicionamento ──

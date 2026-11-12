@@ -19,6 +19,12 @@
                 <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
                 <ui:Button name="btn-refresh" text="Atualizar Lista" class="pg-button room__refresh-btn" />
 
+                <ui:Label text="ou entre com o código da sala" class="pg-label--dim room__or" />
+                <ui:VisualElement class="room__code-join-row">
+                    <ui:TextField name="code-input" max-length="12" class="pg-input room__code-input" />
+                    <ui:Button name="btn-join-code" text="Entrar" class="pg-button pg-button--primary room__code-join-btn" />
+                </ui:VisualElement>
+
                 <ui:Toggle name="loopback-toggle" label="Modo local (sem UGS/internet)" class="room__loopback" />
                 <ui:Label name="lobby-status" text="" class="room__status" />
                 <ui:Button name="btn-back" text="← Voltar" class="pg-button pg-button--danger" />
@@ -33,6 +39,7 @@
                     <ui:Label text="Código:" class="pg-label--dim" />
                     <ui:Label name="joincode-display" text="---" class="room__code" />
                     <ui:Button name="btn-copy-code" text="Copiar" class="pg-button room__copy-btn" />
+                    <ui:Label name="copy-feedback" text="" class="room__copy-feedback" />
                 </ui:VisualElement>
                 <ui:Label name="phase-label" text="Fase: Lobby" class="room__phase" />
             </ui:VisualElement>

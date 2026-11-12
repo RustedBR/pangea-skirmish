@@ -1008,8 +1008,12 @@ namespace PangeaSkirmish
         {
             if (!_active || _controlled == null) return;
             var s = SpellCatalog.Get(spellId);
-            if (s == null) return;
-            if (!_controlled.CanFitSpell(s, out string why)) { _hud.ShowPlanNote($"{s.displayName}: {why}"); return; }
+            if (s == null) { Debug.LogWarning($"[Plano] magia desconhecida: {spellId}"); return; }
+            if (!_controlled.CanFitSpell(s, out string why))
+            {
+                Debug.Log($"[Plano] {_controlled.unitName} não pode conjurar {s.id}: {why} (ticks livres {_controlled.remainingAP}, Mana {_controlled.AvailableMana}, Estâmina {_controlled.remainingBAP})");
+                _hud.ShowPlanNote($"{s.displayName}: {why}"); return;
+            }
             if (s.effect != SpellEffect.Leap && (s.range < 0 || s.range == 0))
             {
                 AppendSpell(s, null, _controlled.plannedAnchor);

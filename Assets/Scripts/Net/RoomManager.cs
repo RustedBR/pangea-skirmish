@@ -327,6 +327,39 @@ namespace PangeaSkirmish
             }
         }
 
+        /// <summary>
+        /// Reinício rápido (só o anfitrião): mesma sala, mesmos personagens e mapa, de volta ao
+        /// posicionamento. Refaz exatamente o caminho da fase Placement (recarrega a cena Battle
+        /// pelo NGO, que leva todos os clientes juntos) depois de zerar o que a batalha deixou.
+        /// </summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void RestartBattleServerRpc(ServerRpcParams rpc = default)
+        {
+            if (rpc.Receive.SenderClientId != NetworkManager.Singleton.LocalClientId) return;
+            Debug.Log($"[MP] RestartBattle pedido pelo anfitrião (fase atual {_phase.Value}, {_slots.Count} jogador(es))");
+
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                var slot = _slots[i];
+                slot.Placed = false;
+                _slots[i] = slot;
+            }
+
+            // O lockstep da batalha anterior guarda rodada, planos e hashes: sai junto com ela.
+            // CheckAllPlaced cria um novo quando todos posicionarem de novo.
+            if (LockstepBattleSync.Instance != null)
+            {
+                var nob = LockstepBattleSync.Instance.GetComponent<NetworkObject>();
+                if (nob != null && nob.IsSpawned) nob.Despawn(true);
+                else Destroy(LockstepBattleSync.Instance.gameObject);
+            }
+
+            RuntimeMultiplayerSession.CurrentConfig = _config.Value.ToData();
+            _phase.Value = RoomPhase.Placement;
+            if (NetworkManager.Singleton.SceneManager != null)
+                NetworkManager.Singleton.SceneManager.LoadScene("Battle", LoadSceneMode.Single);
+        }
+
         // -------------------------------------------------------------------------
         // Fase 2 — defaults ao avançar fase
         // -------------------------------------------------------------------------
