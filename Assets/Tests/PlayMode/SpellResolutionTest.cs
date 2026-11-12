@@ -49,6 +49,7 @@ public class SpellResolutionTest
         var ally = Make("Aliado", Team.Player, new Vector2Int(2, 6), 0);
         var foe  = Make("Fera", Team.Enemy, new Vector2Int(6, 2), BeastAI.OwnerId);
 
+        foe.currentHP = 9999;            // com o dano rebalanceado, Brasa + Jato matariam o alvo no meio do teste
         int hp = foe.currentHP;
         Cast(mage, "Ember", foe.anchor, foe);
         Assert.Less(foe.currentHP, hp, "Brasa causa dano");

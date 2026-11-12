@@ -25,6 +25,8 @@ namespace PangeaSkirmish
         public float weaponBase = 2f;
         public float dmgPerSTR  = 1f;
         public float dmgPerINT  = 1f;
+        [Tooltip("Armas à distância (que não escalam com STR): dano += DEX × este valor × (ticks da arma ÷ 2). Arma pesada bate mais por disparo.")]
+        public float dmgPerDEXRanged = 3.5f;
 
         [Header("Iniciativa")]
         public float iniPerAGI = 1f;
@@ -101,10 +103,14 @@ namespace PangeaSkirmish
         public int WeaponDamage = -1;
         public int AttackRange = 1;
         public bool strScalesDamage = true; // false para armas ranged com range > strDamageMaxRange
+        /// <summary>Arma à distância: o dano escala com a DEX (antes não escalava com nada: o Arco Longo batia 1).</summary>
+        public bool dexScalesDamage = false;
 
         public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT);
         public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS);
-        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) + (strScalesDamage ? STR * F.dmgPerSTR : 0));
+        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase)
+            + (strScalesDamage ? STR * F.dmgPerSTR : 0)
+            + (dexScalesDamage ? DEX * F.dmgPerDEXRanged * Mathf.Max(1, AttackTicks) / 2f : 0));
         public int MagicDamage => Mathf.RoundToInt(INT * F.dmgPerINT);
         public int Initiative => Mathf.RoundToInt(AGI * F.iniPerAGI + DEX * F.iniPerDEX);
         public int MoveBudget => Footprint + Mathf.RoundToInt(AGI * F.movePerAGI);

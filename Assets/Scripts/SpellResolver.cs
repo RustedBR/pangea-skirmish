@@ -146,15 +146,30 @@ namespace PangeaSkirmish
     /// </summary>
     public static class SpellResolver
     {
-        /// <summary>Potência mágica: INT (GDD-019 §1).</summary>
-        public static float Pot(Unit u) => u.stats.INT;
+        /// <summary>Potência mágica: INT × spellPotPerINT (GDD-019 §1).</summary>
+        public static float Pot(Unit u) => u.stats.INT * Tuning.Get().spellPotPerINT;
 
-        /// <summary>Alcance efetivo da magia (embotamento tira tiles; Salto usa a andada × multiplicador).</summary>
+        /// <summary>Valor principal da magia para este conjurador (dano, cura, HP da Muralha).</summary>
+        public static int Amount(Unit u, SpellDef s) =>
+            Mathf.RoundToInt(s.baseAmount * Tuning.Get().spellBaseMult + Pot(u) * s.potFactor);
+
+        /// <summary>Dano por tick (Queimando, Magma) já com o multiplicador do tuning.</summary>
+        public static int TickDamage(SpellDef s) => Mathf.RoundToInt(s.tickDamage * Tuning.Get().spellTickDamageMult);
+
+        /// <summary>Raio da área em células da grade (uma unidade ocupa 3).</summary>
+        public static int AreaRadius(SpellDef s) => s.area <= 0 ? 0 : Mathf.Max(1, Mathf.RoundToInt(s.area * Tuning.Get().spellAreaMult));
+
+        /// <summary>
+        /// Alcance efetivo em células: base × spellRangeMult + INT × spellRangePerINT; o embotamento
+        /// tira células. O Salto usa a andada × multiplicador.
+        /// </summary>
         public static int Reach(Unit u, SpellDef s)
         {
             if (s.effect == SpellEffect.Leap) return Mathf.Max(1, Mathf.RoundToInt(u.EffectiveMoveStep * s.multiplier));
             if (s.range <= 0) return s.range;
-            return u.IsDulled ? Mathf.Max(1, s.range - Tuning.Get().dullRangePenalty) : s.range;
+            var T = Tuning.Get();
+            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT);
+            return u.IsDulled ? Mathf.Max(1, r - T.dullRangePenalty) : Mathf.Max(1, r);
         }
 
         /// <summary>Limite de dano que interrompe a conjuração Elemental (GDD-019 §1).</summary>
@@ -201,8 +216,9 @@ namespace PangeaSkirmish
             // ---------------- Elemental ----------------
             int fp = caster.stats.Footprint;
             var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
-            float pot = Pot(caster);
-            int amount = s.Amount(pot);
+            float potInt = caster.stats.INT;                 // limiares por INT (ex.: Rajada empurra +1 com INT ≥ 8)
+            int amount = Amount(caster, s);
+            int radius = AreaRadius(s);
 
             switch (s.effect)
             {
@@ -226,7 +242,7 @@ namespace PangeaSkirmish
                     int healed = 0;
                     foreach (var u in all)
                     {
-                        if (u.IsDead || u.IsHostileTo(caster) || !InArea(u, center, s.area)) continue;
+                        if (u.IsDead || u.IsHostileTo(caster) || !InArea(u, center, radius)) continue;
                         int before = u.currentHP;
                         u.currentHP = Mathf.Min(u.stats.MaxHP, u.currentHP + amount);
                         u.burningTicks = 0; u.soakedTicks = 0;
@@ -243,9 +259,9 @@ namespace PangeaSkirmish
                 case SpellEffect.ZoneSteam:
                 case SpellEffect.ZoneSandstorm:
                 {
-                    var z = new SpellZone { Kind = s.effect, TicksLeft = s.durationTicks, TickDamage = s.tickDamage, Caster = caster, Name = s.displayName };
-                    for (int dx = -s.area; dx <= s.area; dx++)
-                    for (int dy = -s.area; dy <= s.area; dy++)
+                    var z = new SpellZone { Kind = s.effect, TicksLeft = s.durationTicks, TickDamage = TickDamage(s), Caster = caster, Name = s.displayName };
+                    for (int dx = -radius; dx <= radius; dx++)
+                    for (int dy = -radius; dy <= radius; dy++)
                         z.Cells.Add(center + new Vector2Int(dx, dy));
                     field?.Add(z, grid);
                     log.Add($"{head}: zona de {z.Cells.Count} células por {s.durationTicks} ticks");
@@ -271,7 +287,7 @@ namespace PangeaSkirmish
             if (s.area > 0)
             {
                 foreach (var u in all)
-                    if (!u.IsDead && u.IsHostileTo(caster) && InArea(u, center, s.area)) targets.Add(u);
+                    if (!u.IsDead && u.IsHostileTo(caster) && InArea(u, center, radius)) targets.Add(u);
             }
             else
             {
@@ -305,7 +321,8 @@ namespace PangeaSkirmish
             {
                 if (s.effect == SpellEffect.DrainMana)
                 {
-                    int drained = Mathf.Min(t.currentMana, Mathf.Max(0, amount));
+                    // Dreno não usa os multiplicadores de dano: senão esvaziava qualquer reserva num toque.
+                    int drained = Mathf.Min(t.currentMana, Mathf.Max(0, s.Amount(caster.stats.INT)));
                     t.currentMana -= drained;
                     caster.GainMana(drained / 2);
                     BattleFeedback.Mana(t, -drained);
@@ -323,14 +340,14 @@ namespace PangeaSkirmish
                 string extra = "";
 
                 if (!t.IsDead && s.appliesStatus == "Burning")
-                { t.burningTicks = Mathf.Max(t.burningTicks, s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, s.tickDamage); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
+                { t.burningTicks = Mathf.Max(t.burningTicks, s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
                 if (!t.IsDead && s.appliesStatus == "Soaked")
                 { t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
                 if (!t.IsDead && s.effect == SpellEffect.CancelMove && t.queue.Count > 0 && t.queue[0].Type == ActionType.Move)
                 { t.queue.RemoveAt(0); extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
                 if (!t.IsDead && s.pushTiles > 0)
                 {
-                    int tiles = s.pushTiles + ((s.effect == SpellEffect.Push && pot >= 8f) ? 1 : 0);
+                    int tiles = s.pushTiles + ((s.effect == SpellEffect.Push && potInt >= 8f) ? 1 : 0);
                     var from = s.area > 0 ? center - new Vector2Int(t.stats.Footprint / 2, t.stats.Footprint / 2) : caster.anchor;
                     int moved = Push(t, from, tiles, all, grid, field);
                     if (moved > 0) { extra += $" · empurrado {moved}"; BattleFeedback.Status(t, "Empurrado", new Color(0.86f, 0.95f, 0.98f)); }

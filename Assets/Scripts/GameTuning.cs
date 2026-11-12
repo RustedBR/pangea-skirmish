@@ -74,6 +74,18 @@ namespace PangeaSkirmish
         public int conduitManaDiscount = 1;
         [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
         public float conduitPotBonus = 0.25f;
+        [Tooltip("Potência mágica por ponto de INT. Dano/cura = base × spellBaseMult + INT × spellPotPerINT × fator da magia. 3 deixa a Brasa (INT 6) perto de uma espada (STR 6).")]
+        public float spellPotPerINT = 3f;
+        [Tooltip("Multiplicador do valor base das magias (dano, cura, HP da Muralha).")]
+        public float spellBaseMult = 2f;
+        [Tooltip("Multiplicador do dano por tick (Queimando, Magma).")]
+        public float spellTickDamageMult = 2f;
+        [Tooltip("Alcance em células = alcance da magia × este valor + INT × spellRangePerINT. Uma unidade ocupa 3 células: sem isto o alcance 3 do Magma era corpo a corpo.")]
+        public float spellRangeMult = 2f;
+        [Tooltip("Células de alcance ganhas por ponto de INT.")]
+        public float spellRangePerINT = 0.5f;
+        [Tooltip("Raio da área em células = área da magia × este valor. 2 = uma Explosão pega o alvo e quem está colado nele.")]
+        public float spellAreaMult = 2f;
         [Tooltip("Pausa (s) depois que as magias de um tick resolvem, para o projétil e o impacto serem vistos.")]
         public float spellFxPause = 0.45f;
         [Tooltip("Ticks base: andar (1 waypoint).")]

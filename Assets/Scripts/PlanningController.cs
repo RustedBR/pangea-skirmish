@@ -802,6 +802,19 @@ namespace PangeaSkirmish
             {
                 if (_controlled.plannedConcentrations > 0) _controlled.plannedConcentrations--;
             }
+            else if (last.Type == ActionType.Spell)
+            {
+                // Desfazer tirava a magia da sequência mas a deixava em plannedSpells (e ia assim pelo
+                // PlanWire). Remove das duas e reindexa as que vinham depois.
+                if (last.Index >= 0 && last.Index < _controlled.plannedSpells.Count)
+                {
+                    _controlled.plannedSpells.RemoveAt(last.Index);
+                    for (int i = 0; i < _controlled.actionSequence.Count; i++)
+                        if (_controlled.actionSequence[i].Type == ActionType.Spell && _controlled.actionSequence[i].Index > last.Index)
+                        { var x = _controlled.actionSequence[i]; x.Index--; _controlled.actionSequence[i] = x; }
+                }
+                if (_mode == PlanMode.SpellTilePicking) { _pendingSpell = null; SetMode(PlanMode.Idle); }
+            }
 
             _controlled.actionSequence.RemoveAt(_controlled.actionSequence.Count - 1);
 
@@ -816,12 +829,17 @@ namespace PangeaSkirmish
         private void OnClearClick()
         {
             if (!_active || _controlled == null) return;
-            if (_controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0 && _controlled.plannedConcentrations == 0) return;
+            // O teste de "plano vazio" olhava só andar/atacar/concentrar: com um plano só de magia,
+            // Limpar não fazia nada. A sequência é a fonte da verdade.
+            if (_controlled.actionSequence.Count == 0 && _controlled.plannedSpells.Count == 0
+                && _controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0 && _controlled.plannedConcentrations == 0) return;
 
             _controlled.plannedMoveCount = 0;
             _controlled.plannedAnchor = _controlled.anchor;
             _controlled.plannedPath.Clear();
             _controlled.plannedAttacks.Clear();
+            _controlled.plannedSpells.Clear();
+            _pendingSpell = null;
             _controlled.reservedMana = 0;
             _controlled.plannedConcentrations = 0;
             _controlled.actionSequence.Clear();
@@ -1024,13 +1042,20 @@ namespace PangeaSkirmish
             SetMode(PlanMode.SpellTilePicking);
         }
 
-        private void CommitSpellTile(Vector2Int anchor)
+        private void CommitSpellTile(Vector2Int anchor, Unit aimedUnit = null)
         {
             var s = _pendingSpell;
-            if (s == null || !_attackable.Contains(anchor)) return;
-            Unit target = null;
-            foreach (var o in _allUnits)
-                if (o != null && !o.IsDead && GridManager.FootprintsOverlap(o.anchor, o.stats.Footprint, anchor, _controlled.stats.Footprint)) { target = o; break; }
+            if (s == null) return;
+            Unit target = aimedUnit;
+            if (target == null)
+            {
+                if (!_attackable.Contains(anchor)) return;
+                foreach (var o in _allUnits)
+                    if (o != null && !o.IsDead && o != _controlled && GridManager.FootprintsOverlap(o.anchor, o.stats.Footprint, anchor, _controlled.stats.Footprint)) { target = o; break; }
+            }
+            // Destino de Salto/Passo do vento precisa estar livre: avisa na hora, não só ao resolver.
+            if ((s.effect == SpellEffect.Leap || s.effect == SpellEffect.Teleport) && target != null)
+            { _hud.ShowPlanNote($"{s.displayName}: escolha um lugar livre"); return; }
             AppendSpell(s, target, anchor);
             _pendingSpell = null;
             HideCursorGhost();
@@ -1372,14 +1397,27 @@ namespace PangeaSkirmish
             }
             else if (_mode == PlanMode.SpellTilePicking)
             {
+                // Mira tolerante: apontar para QUALQUER parte de uma unidade ao alcance mira a unidade
+                // (antes só valia o tile exato; clicar no corpo de um inimigo podia não fazer nada).
                 var hovered = HitAnchor();
-                bool valid = hovered.HasValue && _attackable.Contains(hovered.Value);
+                var overUnit = HitUnitWithCollider();
+                if (overUnit != null && !overUnit.IsDead && _pendingSpell != null &&
+                    GridManager.FootprintGap(_controlled.plannedAnchor, _controlled.stats.Footprint, overUnit.anchor, overUnit.stats.Footprint)
+                        <= SpellResolver.Reach(_controlled, _pendingSpell))
+                    hovered = overUnit.anchor;
+                bool valid = hovered.HasValue && (_attackable.Contains(hovered.Value) || (overUnit != null && hovered.Value == overUnit.anchor));
                 if (valid)
                 {
                     PlaceGhost(_cursorGhost, hovered.Value);
-                    if (Mouse.current.leftButton.wasPressedThisFrame) CommitSpellTile(hovered.Value);
+                    if (Mouse.current.leftButton.wasPressedThisFrame && !_hud.IsPointerOverUI()) CommitSpellTile(hovered.Value, overUnit);
                 }
-                else HideCursorGhost();
+                else
+                {
+                    HideCursorGhost();
+                    // Clique fora do alcance não é silencioso: diz o porquê e mantém a mira aberta.
+                    if (Mouse.current.leftButton.wasPressedThisFrame && !_hud.IsPointerOverUI() && _pendingSpell != null)
+                        _hud.ShowPlanNote($"{_pendingSpell.displayName}: fora de alcance ({SpellResolver.Reach(_controlled, _pendingSpell)} células a partir de onde você vai estar). Esc cancela.");
+                }
             }
             else if (_mode == PlanMode.QuickStepPicking)
             {

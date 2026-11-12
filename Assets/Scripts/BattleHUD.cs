@@ -159,8 +159,8 @@ namespace PangeaSkirmish
                     if (!pick(s)) continue;
                     bool ok = u.CanFitSpell(s, out string why);
                     int ticks = TickRules.Duration(u, ActionType.Spell, false, s);
-                    string reach = s.range < 0 ? "sem alvo" : s.range == 0 ? "em si" : $"alc {s.range}";
-                    string area  = s.area > 0 ? (s.effect == SpellEffect.Barrier ? $"linha {s.area}" : $"raio {s.area}") : "";
+                    string reach = s.effect == SpellEffect.Leap ? $"alc {SpellResolver.Reach(u, s)}" : s.range < 0 ? "sem alvo" : s.range == 0 ? "em si" : $"alc {SpellResolver.Reach(u, s)}";
+                    string area  = s.area > 0 ? (s.effect == SpellEffect.Barrier ? $"linha {s.area * AttributeStats.DefaultFootprint}" : $"raio {SpellResolver.AreaRadius(s)}") : "";
                     string meta  = $"{reach}{(area != "" ? " · " + area : "")}";
                     var b = new Button(() => { AudioManager.I?.PlayNamed("sfx_spell_pick", AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnSpellPick?.Invoke(s.id); });
                     b.AddToClassList("bh-intent-btn");
@@ -173,8 +173,8 @@ namespace PangeaSkirmish
                     if (!ok) b.style.opacity = 0.45f;
                     string eff = s.description;
                     if (s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push)
-                        eff += $"  (~{s.Amount(u.stats.INT)} de dano com INT {u.stats.INT:0})";
-                    else if (s.effect == SpellEffect.Heal) eff += $"  (~{s.Amount(u.stats.INT)} de cura com INT {u.stats.INT:0})";
+                        eff += $"  (~{SpellResolver.Amount(u, s)} de dano com INT {u.stats.INT:0})";
+                    else if (s.effect == SpellEffect.Heal) eff += $"  (~{SpellResolver.Amount(u, s)} de cura com INT {u.stats.INT:0})";
                     if (!ok) eff = $"<color=#ff9a8a>Não cabe: {why}.</color>  " + eff;
                     if (!s.IsPhysical) eff += "  <color=#c9b8ff>Interrompível.</color>";
                     var captured = eff;
@@ -920,7 +920,7 @@ namespace PangeaSkirmish
                         string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0))
                                      : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? SpellGlyph + " conjurando" : "ocupada";
                         if (seen && !mine) label = "👁 " + label;
-                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.55f, 0.20f, 0.20f) : TlWait, label, mine || threat);
+                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.72f, 0.20f, 0.18f) : TlWait, label, mine || threat);
                         if (threat) ((Label)seg.ElementAt(0)).style.color = new Color(1f, 0.82f, 0.80f);
                         track.Add(seg);
                         if (firstSeg && mine && u == _windowUnit && q.Type == ActionType.Attack)
@@ -968,11 +968,20 @@ namespace PangeaSkirmish
                         if (th.target != u || th.endTick > maxTicks) continue;
                         var mark = new VisualElement { pickingMode = PickingMode.Ignore };
                         mark.style.position = Position.Absolute; mark.style.top = 0; mark.style.bottom = 0;
-                        mark.style.left = Length.Percent(th.endTick * 100f / maxTicks); mark.style.width = 2;
-                        mark.style.marginLeft = -2; mark.style.backgroundColor = new Color(1f, 0.38f, 0.33f);
-                        var ml = new Label("!") { pickingMode = PickingMode.Ignore };
-                        ml.style.position = Position.Absolute; ml.style.top = -2; ml.style.left = -4; ml.style.fontSize = 11;
-                        ml.style.color = new Color(1f, 0.55f, 0.50f); ml.style.unityFontStyleAndWeight = FontStyle.Bold;
+                        mark.style.left = Length.Percent(th.endTick * 100f / maxTicks); mark.style.width = 3;
+                        mark.style.marginLeft = -3; mark.style.backgroundColor = new Color(1f, 0.38f, 0.33f);
+                        // Etiqueta legível no lugar do "!" solto (que ficava cortado e parecia defeito):
+                        // diz quem ataca e que o golpe chega neste tick. Fica à esquerda da linha,
+                        // dentro do tick em que o golpe está vindo.
+                        string who = th.by != null ? th.by.unitName : "inimigo";
+                        if (who.Length > 9) who = who.Substring(0, 8) + "…";
+                        var ml = new Label($"⚠ {who} acerta") { pickingMode = PickingMode.Ignore };
+                        ml.style.position = Position.Absolute; ml.style.top = 3; ml.style.right = 5; ml.style.fontSize = 10;
+                        ml.style.whiteSpace = WhiteSpace.NoWrap;
+                        ml.style.color = new Color(1f, 0.90f, 0.88f); ml.style.unityFontStyleAndWeight = FontStyle.Bold;
+                        ml.style.backgroundColor = new Color(0.62f, 0.16f, 0.14f, 0.95f);
+                        ml.style.paddingLeft = ml.style.paddingRight = 4; ml.style.paddingTop = ml.style.paddingBottom = 1;
+                        ml.style.borderTopLeftRadius = ml.style.borderBottomLeftRadius = ml.style.borderTopRightRadius = ml.style.borderBottomRightRadius = 3;
                         mark.Add(ml);
                         track.Add(mark);
                     }
@@ -1063,8 +1072,8 @@ namespace PangeaSkirmish
         {
             if (s == null) return SpellGlyph + " Magia";
             string eff = s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push
-                       ? $" ~{s.Amount(u.stats.INT)}"
-                       : s.effect == SpellEffect.Heal ? $" +{s.Amount(u.stats.INT)}" : "";
+                       ? $" ~{SpellResolver.Amount(u, s)}"
+                       : s.effect == SpellEffect.Heal ? $" +{SpellResolver.Amount(u, s)}" : "";
             return $"{SpellGlyph} {s.displayName}{eff}";
         }
 

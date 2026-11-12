@@ -248,8 +248,9 @@ namespace PangeaSkirmish
             if (s.effect == SpellEffect.Barrier) return;                       // a própria Muralha já marca o chão
             if (s.area > 0)
             {
-                for (int dx = -s.area; dx <= s.area; dx++)
-                for (int dy = -s.area; dy <= s.area; dy++) cells.Add(center + new Vector2Int(dx, dy));
+                int r = SpellResolver.AreaRadius(s);
+                for (int dx = -r; dx <= r; dx++)
+                for (int dy = -r; dy <= r; dy++) cells.Add(center + new Vector2Int(dx, dy));
             }
             else cells.AddRange(FootprintCells(ps.TargetTile, fp));
             GroundFlash(grid, cells, col, 1.0f, 0.75f);

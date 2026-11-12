@@ -768,6 +768,7 @@ namespace PangeaSkirmish
                 stats.AttackTicks = Mathf.Max(1, w.attackTicks);
                 stats.AttackRange = baseRange + w.range;
                 stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
+                stats.dexScalesDamage = !stats.strScalesDamage;   // à distância: DEX no lugar da STR
             }
             else
             {
@@ -776,6 +777,7 @@ namespace PangeaSkirmish
                 stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
                 stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
                 stats.strScalesDamage = true; // unarmed sempre escala com STR
+                stats.dexScalesDamage = false;
             }
 
             // Criar overlay apenas se houver arma E o overlay estiver ligado no GameTuning.
