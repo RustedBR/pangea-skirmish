@@ -237,10 +237,26 @@ namespace PangeaSkirmish
         // -------------------------------------------------------------------------
         // Heartbeat — mantém o lobby ativo (host envia a cada 15s)
         // -------------------------------------------------------------------------
+        // O heartbeat usava `await Task.Delay(...)`, que NUNCA retorna no WebGL (não há timer de
+        // thread por trás). Sem heartbeat o UGS marca o lobby como inativo em ~30 s e ele some da
+        // busca: quem abria a página depois disso não via a sala. Agora roda numa corrotina,
+        // em tempo real, num objeto que sobrevive à troca de cena.
+        private static HeartbeatRunner _runner;
+        /// <summary>Quantos heartbeats já foram enviados com sucesso nesta sala (diagnóstico/testes).</summary>
+        public static int HeartbeatsSent { get; private set; }
+        public static bool HeartbeatRunning => _heartbeatActive && _runner != null;
+
         private static void StartHeartbeat()
         {
             _heartbeatActive = true;
-            HeartbeatLoop();
+            HeartbeatsSent = 0;
+            if (_runner == null)
+            {
+                var go = new GameObject("LobbyHeartbeat");
+                UnityEngine.Object.DontDestroyOnLoad(go);
+                _runner = go.AddComponent<HeartbeatRunner>();
+            }
+            _runner.Begin();
         }
 
         private static void StopHeartbeat()
@@ -248,17 +264,33 @@ namespace PangeaSkirmish
             _heartbeatActive = false;
         }
 
-        private static async void HeartbeatLoop()
+        private class HeartbeatRunner : MonoBehaviour
         {
-            while (_heartbeatActive && !string.IsNullOrEmpty(_currentLobbyId))
+            private Coroutine _co;
+            public void Begin()
             {
-                await Task.Delay(Mathf.RoundToInt(HeartbeatInterval * 1000));
-                if (!_heartbeatActive || string.IsNullOrEmpty(_currentLobbyId)) break;
+                if (_co != null) StopCoroutine(_co);
+                _co = StartCoroutine(Loop());
+            }
 
+            private System.Collections.IEnumerator Loop()
+            {
+                while (_heartbeatActive && !string.IsNullOrEmpty(_currentLobbyId))
+                {
+                    yield return new WaitForSecondsRealtime(HeartbeatInterval);
+                    if (!_heartbeatActive || string.IsNullOrEmpty(_currentLobbyId)) break;
+                    _ = Ping(_currentLobbyId);
+                }
+                _co = null;
+            }
+
+            private static async Task Ping(string lobbyId)
+            {
                 try
                 {
-                    await Unity.Services.Lobbies.LobbyService.Instance
-                        .SendHeartbeatPingAsync(_currentLobbyId);
+                    await Unity.Services.Lobbies.LobbyService.Instance.SendHeartbeatPingAsync(lobbyId);
+                    HeartbeatsSent++;
+                    if (HeartbeatsSent == 1 || HeartbeatsSent % 8 == 0) Debug.Log($"[LobbyService] heartbeat #{HeartbeatsSent} ok");
                 }
                 catch (Exception ex)
                 {

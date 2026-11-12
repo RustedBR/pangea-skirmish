@@ -25,6 +25,8 @@ namespace PangeaSkirmish
         public float weaponBase = 2f;
         public float dmgPerSTR  = 1f;
         public float dmgPerINT  = 1f;
+        [Tooltip("Armas à distância (que não escalam com STR): dano += DEX × este valor × (ticks da arma ÷ 2). Arma pesada bate mais por disparo.")]
+        public float dmgPerDEXRanged = 3f;
 
         [Header("Iniciativa")]
         public float iniPerAGI = 1f;
@@ -101,10 +103,17 @@ namespace PangeaSkirmish
         public int WeaponDamage = -1;
         public int AttackRange = 1;
         public bool strScalesDamage = true; // false para armas ranged com range > strDamageMaxRange
+        /// <summary>Arma à distância: o dano escala com a DEX (antes não escalava com nada: o Arco Longo batia 1).</summary>
+        public bool dexScalesDamage = false;
 
         public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT);
         public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS);
-        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) + (strScalesDamage ? STR * F.dmgPerSTR : 0));
+        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase)
+            + (strScalesDamage ? STR * F.dmgPerSTR * WeightFactor : 0)
+            + (dexScalesDamage ? DEX * F.dmgPerDEXRanged * WeightFactor : 0));
+
+        /// <summary>Peso da arma: o atributo conta × (ticks ÷ 2). Arma de 1 tick bate metade por golpe, a de 3 bate 1,5×.</summary>
+        public float WeightFactor => Mathf.Max(1, AttackTicks) / 2f;
         public int MagicDamage => Mathf.RoundToInt(INT * F.dmgPerINT);
         public int Initiative => Mathf.RoundToInt(AGI * F.iniPerAGI + DEX * F.iniPerDEX);
         public int MoveBudget => Footprint + Mathf.RoundToInt(AGI * F.movePerAGI);
@@ -236,6 +245,37 @@ namespace PangeaSkirmish
 
         [Header("Magia (conduíte)")]
         public SpellElement elementAffinity = SpellElement.None;
+        [Tooltip("Multiplica o dano/cura das magias de quem empunha (cajados são conduítes melhores).")]
+        public float spellPowerMult = 1f;
+        [Tooltip("Células somadas ao alcance das magias.")]
+        public int spellRangeBonus = 0;
+
+        /// <summary>
+        /// Aplica a arma aos stats: dano base, peso em ticks, alcance (base + arma) e qual
+        /// atributo escala (STR corpo a corpo, DEX à distância). Fonte única para a batalha
+        /// (Unit.EquipWeapon) e para a ficha na criação de personagem. null = desarmado.
+        /// </summary>
+        public static void ApplyTo(AttributeStats stats, WeaponDef w, GameTuning tuning)
+        {
+            if (stats == null) return;
+            int baseRange = tuning != null ? tuning.baseAttackRange : 1;
+            if (w != null)
+            {
+                stats.WeaponDamage = w.damage;
+                stats.AttackTicks = Mathf.Max(1, w.attackTicks);
+                stats.AttackRange = baseRange + w.range;
+                stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
+                stats.dexScalesDamage = !stats.strScalesDamage;
+            }
+            else
+            {
+                stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
+                stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
+                stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
+                stats.strScalesDamage = true;
+                stats.dexScalesDamage = false;
+            }
+        }
     }
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES

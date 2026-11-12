@@ -79,6 +79,7 @@ public class SpellCatalogTests
     public void Amount_ScalesWithPot_AndPureMagicPierces()
     {
         var ember = SpellCatalog.Get("Ember");
+        // Amount(pot) é a fórmula crua da magia; os multiplicadores do tuning entram em SpellResolver.Amount.
         Assert.AreEqual(4, ember.Amount(0));
         Assert.AreEqual(12, ember.Amount(8));
         Assert.AreEqual(0.5f, SpellCatalog.ArmorPierce(SpellCatalog.Get("ArcaneSight")), 1e-4f, "Mágico puro ignora metade da armadura");

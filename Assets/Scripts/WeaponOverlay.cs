@@ -63,9 +63,27 @@ namespace PangeaSkirmish
             _sr = _animGo.AddComponent<SpriteRenderer>();
             _sort = _animGo.AddComponent<WeaponSortDriver>();
 
+            // Mundo 3D: a arma é um modelo na mão do corpo 3D (UnitModel3D) e este overlay em sprite
+            // fica oculto de qualquer jeito. Ligá-lo só produzia erros a cada unidade criada
+            // ("AnimatorOverrideController with no AnimatorController to override", "Sem controller
+            // para 'ArcaneStaff'"), que enchiam o log e escondiam os erros de verdade.
+            if (World3D.Has("Character"))
+            {
+                _overlayGo.SetActive(false);
+                return;
+            }
+
             var ctrl = string.IsNullOrEmpty(weaponId)
                 ? null
                 : Resources.Load<RuntimeAnimatorController>($"Animations/Weapons/{weaponId}Overlay");
+            // Override sem controller base não toca nada e o Animator recusa com erro: trata como ausente.
+            if (ctrl is AnimatorOverrideController ov && ov.runtimeAnimatorController == null)
+            {
+                Debug.LogWarning($"[WeaponOverlay] '{weaponId}Overlay' é um override sem controller base — arma sem sprite.");
+                ctrl = null;
+                _overlayGo.SetActive(false);
+                return;
+            }
             if (ctrl == null)
             {
                 if (!string.IsNullOrEmpty(weaponId))

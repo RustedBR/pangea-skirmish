@@ -30,6 +30,7 @@ MonoBehaviour:
     manaPerWIS: 1.5
     weaponBase: 1
     dmgPerSTR: 3.5
+    dmgPerDEXRanged: 3
     dmgPerINT: 2
     iniPerAGI: 1
     iniPerDEX: 1
@@ -56,38 +57,38 @@ MonoBehaviour:
   weapons:
   - id: Hatchet
     displayName: Machado
-    damage: 10
+    damage: 3
     range: 1
     attackTicks: 1
     blockHardness: 2
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 1
   - id: IronAxe
     displayName: Machado de Ferro
-    damage: 8
+    damage: 12
     range: 2
     attackTicks: 3
     blockHardness: 2
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 6
   - id: WoodenSword
     displayName: Espada de Madeira
-    damage: 6
+    damage: 4
     range: 3
     attackTicks: 2
     blockHardness: 3
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 4
   - id: IronSword
     displayName: Espada de Ferro
-    damage: 4
+    damage: 6
     range: 4
     attackTicks: 2
     blockHardness: 3
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 3
   - id: WoodenStaff
@@ -96,7 +97,7 @@ MonoBehaviour:
     range: 7
     attackTicks: 2
     blockHardness: 2
-    spellPowerMult: 1
+    spellPowerMult: 1.1
     spellRangeBonus: 0
     elementAffinity: 2
   - id: Scepter
@@ -105,8 +106,8 @@ MonoBehaviour:
     range: 6
     attackTicks: 2
     blockHardness: 2
-    spellPowerMult: 1
-    spellRangeBonus: 0
+    spellPowerMult: 1.15
+    spellRangeBonus: 1
     elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
@@ -114,16 +115,16 @@ MonoBehaviour:
     range: 8
     attackTicks: 1
     blockHardness: 0
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 5
   - id: LongBow
     displayName: Arco Longo
-    damage: 1
+    damage: 5
     range: 10
     attackTicks: 3
     blockHardness: 0
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 5
   - id: ApprenticeWand
@@ -132,7 +133,7 @@ MonoBehaviour:
     range: 5
     attackTicks: 1
     blockHardness: 1
-    spellPowerMult: 1
+    spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 4
   - id: ArcaneStaff
@@ -141,8 +142,8 @@ MonoBehaviour:
     range: 7
     attackTicks: 2
     blockHardness: 2
-    spellPowerMult: 1
-    spellRangeBonus: 0
+    spellPowerMult: 1.3
+    spellRangeBonus: 2
     elementAffinity: 6
   attributeMin: 1
   attributeMax: 20

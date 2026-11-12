@@ -42,8 +42,9 @@
 
 .room__body { flex-grow: 1; flex-direction: row; }
 .room__col { margin: 6px; }
-.room__col--players { width: 260px; }
-.room__col--chat { flex-grow: 1; }
+/* Era 260px fixos: nome + "(host)" + time + botão Troca não cabiam e eram cortados. */
+.room__col--players { width: 36%; min-width: 320px; max-width: 520px; flex-shrink: 0; }
+.room__col--chat { flex-grow: 1; flex-shrink: 1; min-width: 0; }
 .room__col--host { width: 250px; }
 .room__col-title {
     -unity-font-style: bold;
@@ -75,8 +76,21 @@
     padding-left: 4px;
     padding-right: 4px;
 }
-.room__player-name { color: var(--pg-text, rgb(238, 242, 255)); flex-grow: 1; }
-.room__swap-btn { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; margin-left: 6px; }
+/* O nome encolhe com reticências; time e botão nunca encolhem nem são cortados. */
+.room__player-name {
+    color: var(--pg-text, rgb(238, 242, 255));
+    flex-grow: 1; flex-shrink: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-right: 6px;
+}
+.room__player-team { flex-shrink: 0; white-space: nowrap; }
+.room__swap-btn { padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; margin-left: 6px; flex-shrink: 0; }
+
+/* entrar por código */
+.room__code-join-row { flex-direction: row; align-items: center; }
+.room__code-input { flex-grow: 1; margin-right: 6px; }
+.room__code-join-btn { flex-shrink: 0; }
+.room__copy-feedback { color: var(--pg-ok, rgb(90, 209, 138)); margin-left: 8px; min-width: 70px; }
 
 /* linha de chat (criada em código) */
 .room__chat-line { color: var(--pg-text, rgb(238, 242, 255)); white-space: normal; padding-top: 1px; padding-bottom: 1px; }

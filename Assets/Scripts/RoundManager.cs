@@ -88,6 +88,10 @@ namespace PangeaSkirmish
             _spellField.Clear();
             SpellField.Current = _spellField;
             BattleFeedback.Cam = cam;
+            // Reinício rápido a qualquer momento pelo painel de LOG (F8), só para o anfitrião.
+            GameLog.RestartAction = CanRestart ? (System.Action)RequestRestart : null;
+            GameLog.RestartLabel = "Reiniciar partida (anfitrião)";
+            Debug.Log($"[RoundManager] Setup: {units?.Count ?? 0} unidade(s), multiplayer={RuntimeMultiplayerSession.IsMultiplayer}, host={RuntimeMultiplayerSession.IsHost}, modo={RuntimeMultiplayerSession.CurrentConfig?.gameMode}");
             _planner = planner;
             _hud = hud;
             _cam = cam;
@@ -182,6 +186,30 @@ namespace PangeaSkirmish
                 ? Unity.Netcode.NetworkManager.Singleton.LocalClientId : 0;
             _hud.UpdateTimeline(_globalTick, _units, u =>
                 RuntimeMultiplayerSession.IsMultiplayer ? u.ownerId == localId : u == _playerUnit);
+        }
+
+        /// <summary>Uma linha por unidade com a fila comprometida, recursos e posição. Só para o log.</summary>
+        private void LogQueues()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append($"[Fila] tick {_globalTick} rodada {_round}:");
+            foreach (var u in _units)
+            {
+                if (u == null) continue;
+                sb.Append($"\n  {u.unitName}{(u.IsDead ? " (morto)" : "")} @({u.anchor.x},{u.anchor.y}) HP {u.currentHP}/{u.stats.MaxHP} Est {u.currentStamina} Mana {u.currentMana}: ");
+                if (u.queue.Count == 0) { sb.Append("—"); continue; }
+                for (int i = 0; i < u.queue.Count; i++)
+                {
+                    var q = u.queue[i];
+                    if (i > 0) sb.Append(", ");
+                    sb.Append(ActionShort(q.Type));
+                    if (q.Type == ActionType.Spell) sb.Append($"[{q.Spell.SpellId}→({q.Spell.TargetTile.x},{q.Spell.TargetTile.y}){(q.Spell.TargetUnit != null ? " " + q.Spell.TargetUnit.unitName : "")}]");
+                    else if (q.Type == ActionType.Move) sb.Append($"→({q.Dest.x},{q.Dest.y})");
+                    else if (q.Type == ActionType.Attack && q.Attack.TargetUnit != null) sb.Append($"→{q.Attack.TargetUnit.unitName}");
+                    sb.Append($" {q.Elapsed}/{q.Duration}");
+                }
+            }
+            Debug.Log(sb.ToString());
         }
 
         private static string ActionShort(ActionType t) =>
@@ -523,6 +551,8 @@ namespace PangeaSkirmish
                 if (BeastAI.Controls(u)) BeastAI.Plan(u, _units, _grid);
                 u.BuildQueueFromPlan();
             }
+            // Diagnóstico (vai para o painel de LOG): a fila de cada unidade neste ponto de decisão.
+            LogQueues();
 
             // 2) Próximo ponto de decisão = menor fila restante entre os vivos.
             int segment = int.MaxValue;
@@ -634,9 +664,18 @@ namespace PangeaSkirmish
                     if (su.IsDead) continue;
                     // Visual primeiro (lê posições de antes do efeito); o Salto anima de onde saiu.
                     var castFrom = su.transform.position;
-                    ActionFx.MarkSpell(_grid, su, sp);
-                    ActionFx.PlaySpell(su, sp, _grid);
-                    foreach (var line in SpellResolver.Resolve(su, sp, _units, _grid, _spellField))
+                    Debug.Log($"[Magia] {su.unitName} resolve {sp.SpellId} em ({sp.TargetTile.x},{sp.TargetTile.y}) alvo={(sp.TargetUnit != null ? sp.TargetUnit.unitName : "—")} de ({su.anchor.x},{su.anchor.y})");
+                    // O visual nunca pode impedir a regra de resolver: se falhar, registra e segue.
+                    try { ActionFx.MarkSpell(_grid, su, sp); ActionFx.PlaySpell(su, sp, _grid); }
+                    catch (System.Exception ex) { Debug.LogError($"[Magia] falha no VISUAL de {sp.SpellId}: {ex}"); }
+                    List<string> spellLines;
+                    try { spellLines = SpellResolver.Resolve(su, sp, _units, _grid, _spellField); }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[Magia] falha ao RESOLVER {sp.SpellId} de {su.unitName}: {ex}");
+                        spellLines = new List<string> { $"<color=#ff7a6a>✕</color> {su.unitName}: {sp.SpellId} falhou (ver LOG)" };
+                    }
+                    foreach (var line in spellLines)
                         _hud.LogAction(line, su);
                     var sdef = sp.Def;
                     if (sdef != null && (sdef.effect == SpellEffect.Leap || sdef.effect == SpellEffect.Teleport) && su.Model3D != null
@@ -1761,19 +1800,44 @@ namespace PangeaSkirmish
             _hud.SetPhase("Fim de jogo");
             _hud.ShowEndScreen(message);
 
-            // MP: volta ao menu após delay
-            // Decisão de design: sem lobby pós-batalha na v1 — reset limpo e volta ao MainMenu.
-            // Host avança a fase; todos recebem o GameOver via ShowEndScreen + auto-retorno.
-            if (RuntimeMultiplayerSession.IsMultiplayer)
-                StartCoroutine(MpReturnToMenu());
+            // Antes: todos eram derrubados para o menu depois de 5 s e precisavam recriar a sala,
+            // refazer personagens e mapa. Agora a sala continua: o anfitrião escolhe "Jogar de
+            // novo" (mesma sala, de volta ao posicionamento) e qualquer um pode sair para o menu.
+            bool canRestart = CanRestart;
+            _hud.SetEndActions(canRestart ? (System.Action)RequestRestart : null, LeaveToMenu,
+                RuntimeMultiplayerSession.IsMultiplayer && !canRestart ? "Aguardando o anfitrião reiniciar…" : null);
         }
 
-        private IEnumerator MpReturnToMenu()
+        /// <summary>Só o anfitrião reinicia (ele é o servidor que recarrega a cena para todos).</summary>
+        private static bool CanRestart
         {
-            yield return new WaitForSeconds(5f);
+            get
+            {
+                var nm = Unity.Netcode.NetworkManager.Singleton;
+                return nm != null && nm.IsServer;
+            }
+        }
+
+        /// <summary>Reinício rápido da partida: mesma sala, de volta ao posicionamento.</summary>
+        public void RequestRestart()
+        {
+            Debug.Log($"[RoundManager] RequestRestart (fase {_phase}, tick {_globalTick}, rodada {_round})");
+            if (RoomManager.Instance != null) { RoomManager.Instance.RestartBattleServerRpc(); return; }
+            var nm = Unity.Netcode.NetworkManager.Singleton;
+            if (nm != null && nm.IsServer && nm.SceneManager != null)
+                nm.SceneManager.LoadScene("Battle", UnityEngine.SceneManagement.LoadSceneMode.Single);
+            else
+                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        }
+
+        /// <summary>Sai da sala direito (encerra a rede) e volta ao menu.</summary>
+        public void LeaveToMenu()
+        {
+            Debug.Log("[RoundManager] LeaveToMenu");
             RuntimeMultiplayerSession.Reset();
             if (Unity.Netcode.NetworkManager.Singleton != null)
                 Unity.Netcode.NetworkManager.Singleton.Shutdown();
+            _ = LobbyService.LeaveAsync();
             UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
         }
 
