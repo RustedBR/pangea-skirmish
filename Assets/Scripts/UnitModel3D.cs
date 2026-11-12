@@ -522,6 +522,7 @@ namespace PangeaSkirmish
             {
                 _castOrb = World3D.Spawn("SpellOrb", null);
                 if (_castOrb == null) return;
+                AudioManager.I?.PlayNamed("sfx_cast_start", null, 0.7f);
                 _castColor = def != null ? ElementInfo.Color(def.PrimaryElement) : Color.white;
                 ActionFx.Tint(_castOrb.transform, _castColor);
             }

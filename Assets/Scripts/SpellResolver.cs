@@ -36,7 +36,6 @@ namespace PangeaSkirmish
     {
         public static SpellField Current;
         public readonly List<SpellZone> Zones = new List<SpellZone>();
-        private static Sprite _cellSprite;
 
         public bool InZone(Unit u, SpellEffect kind)
         {
@@ -106,7 +105,7 @@ namespace PangeaSkirmish
                 }
                 var g = new GameObject($"Zone_{z.Name}");
                 var sr = g.AddComponent<SpriteRenderer>();
-                sr.sprite = CellSprite(); sr.color = col; sr.sortingOrder = 4900;
+                sr.sprite = World3D.CellDiamondSprite(); sr.color = col; sr.sortingOrder = 4900;
                 g.transform.localScale = new Vector3(1f, World3D.GroundStretch, 1f);
                 g.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
                 GridAnchored.Attach(g, c, 1);
@@ -138,17 +137,6 @@ namespace PangeaSkirmish
                 case SpellEffect.Barrier:       return new Color(0.55f, 0.45f, 0.80f, 0.80f);
                 default:                        return new Color(1f, 1f, 1f, 0.4f);
             }
-        }
-
-        private static Sprite CellSprite()
-        {
-            if (_cellSprite != null) return _cellSprite;
-            var tex = new Texture2D(8, 8, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
-            var px = new Color[64];
-            for (int i = 0; i < 64; i++) px[i] = Color.white;
-            tex.SetPixels(px); tex.Apply();
-            _cellSprite = Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 8f);
-            return _cellSprite;
         }
     }
 
@@ -194,6 +182,7 @@ namespace PangeaSkirmish
                 case SpellEffect.PrepStoneSkin:
                     caster.stoneSkinTicks = Mathf.Max(1, Tuning.Get().ticksPerRound);
                     caster.stoneSkinMult = s.multiplier;
+                    BattleFeedback.Status(caster, "Pele de pedra", new Color(0.86f, 0.80f, 0.70f));
                     log.Add($"{head}: redução de dano ×{s.multiplier:0.#} por {caster.stoneSkinTicks} ticks");
                     return log;
                 case SpellEffect.Leap:
@@ -219,6 +208,7 @@ namespace PangeaSkirmish
             {
                 case SpellEffect.Foresight:
                     caster.foresightTicks = Mathf.Max(caster.foresightTicks, s.durationTicks);
+                    BattleFeedback.Status(caster, "Visão arcana", new Color(0.78f, 0.62f, 1f));
                     log.Add($"{head}: vê as filas inimigas +2 ticks à frente por {s.durationTicks} ticks");
                     return log;
 
@@ -241,6 +231,7 @@ namespace PangeaSkirmish
                         u.currentHP = Mathf.Min(u.stats.MaxHP, u.currentHP + amount);
                         u.burningTicks = 0; u.soakedTicks = 0;
                         healed++;
+                        BattleFeedback.Heal(u, u.currentHP - before);
                         log.Add($"{head}: {u.unitName} +{u.currentHP - before} HP ({u.currentHP}/{u.stats.MaxHP})");
                     }
                     if (healed == 0) log.Add($"{head}: <color=#888888>nenhum aliado na área</color>");
@@ -301,12 +292,13 @@ namespace PangeaSkirmish
                 if (b != null)   // bloqueia projéteis de todos, inclusive do conjurador (GDD-019 §3.2)
                 {
                     b.Hp -= amount;
+                    BattleFeedback.Absorbed(t, $"{b.Name} absorveu {amount}");
                     log.Add($"{head}: acerta a {b.Name} ({Mathf.Max(0, b.Hp)} HP)");
                     if (b.Hp <= 0) { field.Remove(b); log.Add($"   a {b.Name} desmorona"); }
                     return log;
                 }
                 if (field.SandstormOnLine(caster.anchor, t.anchor) && BattleRng.Roll10000() < 5000)
-                { log.Add($"{head}: <color=#888888>perdeu-se na tempestade de areia</color>"); return log; }
+                { BattleFeedback.Miss(t); log.Add($"{head}: <color=#888888>perdeu-se na tempestade de areia</color>"); return log; }
             }
 
             foreach (var t in targets)
@@ -316,6 +308,8 @@ namespace PangeaSkirmish
                     int drained = Mathf.Min(t.currentMana, Mathf.Max(0, amount));
                     t.currentMana -= drained;
                     caster.GainMana(drained / 2);
+                    BattleFeedback.Mana(t, -drained);
+                    BattleFeedback.Mana(caster, drained / 2);
                     log.Add($"{head}: drena {drained} de Mana de {t.unitName} (+{drained / 2} para {caster.unitName})");
                     continue;
                 }
@@ -329,17 +323,17 @@ namespace PangeaSkirmish
                 string extra = "";
 
                 if (!t.IsDead && s.appliesStatus == "Burning")
-                { t.burningTicks = Mathf.Max(t.burningTicks, s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, s.tickDamage); extra += " · Queimando"; }
+                { t.burningTicks = Mathf.Max(t.burningTicks, s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, s.tickDamage); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
                 if (!t.IsDead && s.appliesStatus == "Soaked")
-                { t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; }
+                { t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
                 if (!t.IsDead && s.effect == SpellEffect.CancelMove && t.queue.Count > 0 && t.queue[0].Type == ActionType.Move)
-                { t.queue.RemoveAt(0); extra += " · movimento cancelado"; }
+                { t.queue.RemoveAt(0); extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
                 if (!t.IsDead && s.pushTiles > 0)
                 {
                     int tiles = s.pushTiles + ((s.effect == SpellEffect.Push && pot >= 8f) ? 1 : 0);
                     var from = s.area > 0 ? center - new Vector2Int(t.stats.Footprint / 2, t.stats.Footprint / 2) : caster.anchor;
                     int moved = Push(t, from, tiles, all, grid, field);
-                    if (moved > 0) extra += $" · empurrado {moved}";
+                    if (moved > 0) { extra += $" · empurrado {moved}"; BattleFeedback.Status(t, "Empurrado", new Color(0.86f, 0.95f, 0.98f)); }
                 }
                 log.Add($"{head} -> {t.unitName}: {dmg}{extra}  ({hp})");
             }
@@ -358,6 +352,7 @@ namespace PangeaSkirmish
                 if (u.burningTicks > 0)
                 {
                     u.TakeDamage(u.burningDamage);
+                    AudioManager.I?.PlayNamed("sfx_burn", null, 0.7f);
                     log.Add($"🔥 {u.unitName} queima: {u.burningDamage}  ({(u.IsDead ? "MORTO" : u.currentHP + "/" + u.stats.MaxHP + " HP")})");
                     u.burningTicks--;
                 }

@@ -49,7 +49,7 @@ namespace PangeaSkirmish
         {
             float topY = FindTopY(worldPos);
             var t = Tuning.Get();
-            float spacing = t.battleLabelStackSpacing;
+            float spacing = t.battleLabelStackSpacing * Mathf.Clamp(scale, 0.62f, 1f);
             float newY = topY + spacing;
             Vector3 finalPos = new Vector3(worldPos.x, newY, worldPos.z);
 
@@ -118,7 +118,7 @@ namespace PangeaSkirmish
                     new Color32(0x05, 0x02, 0x00, 255),
                     new Color32(0xCC, 0x77, 0x00, 255),
                     scale: t.critLabelScale);
-                label.StartCoroutine(label.AnimateRiseAndFade(0f, d));
+                label.StartCoroutine(label.AnimatePop(d, t.critLabelScale, punch: 1.9f));
                 return label;
             }
             float nd = t.damageRiseDuration;
@@ -126,15 +126,30 @@ namespace PangeaSkirmish
                 t.damageLabelTextColor,
                 new Color32(0x05, 0x01, 0x01, 255),
                 new Color32(0x99, 0x22, 0x22, 255));
-            normalLabel.StartCoroutine(normalLabel.AnimateRiseAndFade(0f, nd));
+            normalLabel.StartCoroutine(normalLabel.AnimatePop(nd, 1f));
             return normalLabel;
+        }
+
+        /// <summary>
+        /// Rótulo de retorno de combate: nasce com um estalo de escala, sobe desviando um pouco
+        /// para o lado e some. Usado por BattleFeedback (cura, erro, bloqueio, estados...).
+        /// </summary>
+        public static BattleLabel CreatePop(Camera cam, Vector3 pos, string text, Color textColor,
+                                            Color32 bg, Color32 border, float scale = 1f, float duration = 1f)
+        {
+            var t = Tuning.Get();
+            // +0.55: acima das barras de vida/Mana/conjuração, sem cobri-las.
+            var label = Create(cam, pos + Vector3.up * (t.battleLabelHeightOffset + 0.55f), text, textColor, bg, border, scale);
+            label.FitBackgroundToText();
+            label.StartCoroutine(label.AnimatePop(duration, scale));
+            return label;
         }
 
         public static BattleLabel CreateMiss(Camera cam, Vector3 pos)
         {
             var t = Tuning.Get();
             float d = t.missRiseDuration;
-            var label = Create(cam, pos + Vector3.up * t.missLabelHeightOffset, "MISS",
+            var label = Create(cam, pos + Vector3.up * t.missLabelHeightOffset, "Errou",
                 t.missLabelTextColor,
                 new Color32(0x05, 0x05, 0x05, 255),
                 new Color32(0x66, 0x66, 0x66, 255));
@@ -241,6 +256,53 @@ namespace PangeaSkirmish
         }
 
         // ── Animação ──────────────────────────────────────────
+
+        private static int _popSeq;
+
+        /// <summary>
+        /// Ajusta a pílula de fundo à largura REAL do texto. O Create dimensiona por contagem de
+        /// caracteres com uma largura pensada para números curtos ("-12"); em palavras
+        /// ("Bloqueou 5") a pílula ficava com o dobro do texto.
+        /// </summary>
+        private void FitBackgroundToText()
+        {
+            if (_text == null || _bg == null || _text.font == null) return;
+            _text.font.RequestCharactersInTexture(_text.text, _text.fontSize, _text.fontStyle);
+            float adv = 0f;
+            foreach (char c in _text.text)
+                if (_text.font.GetCharacterInfo(c, out var ci, _text.fontSize, _text.fontStyle)) adv += ci.advance;
+            float unit = _text.characterSize * 0.1f;                 // TextMesh: 1 px de fonte = characterSize/10 unidades
+            float w = adv * unit, h = _text.fontSize * unit;
+            // O sprite da pílula tem 2×1 unidades (64×32 px a 32 ppu).
+            _bg.transform.localScale = new Vector3((w + h * 0.9f) / 2f, h * 1.5f, 1f);
+        }
+
+        /// <summary>Estalo de escala (overshoot) → sobe com leve desvio lateral → some no terço final.</summary>
+        private IEnumerator AnimatePop(float duration, float scale, float punch = 1.45f)
+        {
+            duration = Mathf.Max(0.2f, duration);
+            Vector3 start = transform.position;
+            Vector3 right = _cam != null ? _cam.transform.right : Vector3.right;
+            float side = ((_popSeq++ & 1) == 0 ? 1f : -1f) * 0.18f;
+            Vector3 baseScale = transform.localScale;
+            Color textCol = _text != null ? _text.color : Color.white;
+            Color bgCol = _bg != null ? _bg.color : Color.white;
+            for (float e = 0f; e < duration; e += Time.deltaTime)
+            {
+                float k = e / duration;
+                // escala: 0.5 → punch em 12% do tempo, assenta em 1 até 30%
+                float s = k < 0.12f ? Mathf.Lerp(0.5f, punch, k / 0.12f)
+                        : k < 0.30f ? Mathf.Lerp(punch, 1f, (k - 0.12f) / 0.18f) : 1f;
+                transform.localScale = baseScale * s;
+                float rise = 1f - (1f - k) * (1f - k);                 // desacelera
+                transform.position = start + Vector3.up * (0.55f * rise) + right * (side * rise);
+                float alpha = k < 0.66f ? 1f : 1f - (k - 0.66f) / 0.34f;
+                if (_text != null) _text.color = new Color(textCol.r, textCol.g, textCol.b, alpha);
+                if (_bg != null) _bg.color = new Color(bgCol.r, bgCol.g, bgCol.b, bgCol.a * alpha);
+                yield return null;
+            }
+            Destroy(gameObject);
+        }
 
         private System.Collections.IEnumerator AnimateRiseAndFade(float riseHeight, float duration)
         {

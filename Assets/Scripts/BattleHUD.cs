@@ -162,7 +162,7 @@ namespace PangeaSkirmish
                     string reach = s.range < 0 ? "sem alvo" : s.range == 0 ? "em si" : $"alc {s.range}";
                     string area  = s.area > 0 ? (s.effect == SpellEffect.Barrier ? $"linha {s.area}" : $"raio {s.area}") : "";
                     string meta  = $"{reach}{(area != "" ? " · " + area : "")}";
-                    var b = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnSpellPick?.Invoke(s.id); });
+                    var b = new Button(() => { AudioManager.I?.PlayNamed("sfx_spell_pick", AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnSpellPick?.Invoke(s.id); });
                     b.AddToClassList("bh-intent-btn");
                     b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 36;
                     b.style.fontSize = 12; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 8;

@@ -158,7 +158,7 @@ MonoBehaviour:
   powerStrikeMult: 1.5
   ticksUnarmed: 2
   spriteScalePerFootprint: 1.4
-  footprintScalePerFootprint: 0.95
+  footprintScalePerFootprint: 0.97
   spriteFootOffsetRatio: -0.1
   headHeightRatio: 0.9
   footprintAlpha: 0.9
@@ -277,7 +277,7 @@ MonoBehaviour:
   stepGhostScale: 0.95
   reachHighlightColor: {r: 0.52, g: 0.74, b: 0.55, a: 1}
   bonusHighlightColor: {r: 0.86, g: 0.74, b: 0.46, a: 1}
-  gridLineColor: {r: 1, g: 1, b: 1, a: 0.10}
+  gridLineColor: {r: 0.05, g: 0.12, b: 0.05, a: 0.16}
   sideFaceLeftColor: {r: 0.38, g: 0.25, b: 0.12, a: 1}
   sideFaceRightColor: {r: 0.5, g: 0.34, b: 0.2, a: 1}
   playerTeamColor: {r: 0.3, g: 0.5, b: 0.92, a: 1}

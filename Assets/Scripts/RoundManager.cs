@@ -87,6 +87,7 @@ namespace PangeaSkirmish
             _grid = grid;
             _spellField.Clear();
             SpellField.Current = _spellField;
+            BattleFeedback.Cam = cam;
             _planner = planner;
             _hud = hud;
             _cam = cam;
@@ -633,6 +634,7 @@ namespace PangeaSkirmish
                     if (su.IsDead) continue;
                     // Visual primeiro (lê posições de antes do efeito); o Salto anima de onde saiu.
                     var castFrom = su.transform.position;
+                    ActionFx.MarkSpell(_grid, su, sp);
                     ActionFx.PlaySpell(su, sp, _grid);
                     foreach (var line in SpellResolver.Resolve(su, sp, _units, _grid, _spellField))
                         _hud.LogAction(line, su);
@@ -656,6 +658,7 @@ namespace PangeaSkirmish
                     var q = u.queue[0];
                     string nm = q.Spell.Def != null ? q.Spell.Def.displayName : q.Spell.SpellId;
                     _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: <b>{nm}</b> interrompida ({q.DamageTaken} ≥ {SpellResolver.InterruptThreshold(u)}). Mana gasta.", u);
+                    BattleFeedback.Interrupted(u, q.DamageTaken, SpellResolver.InterruptThreshold(u));
                     u.queue.Clear();
                     interrupted = true;
                 }
@@ -1215,6 +1218,7 @@ namespace PangeaSkirmish
                 Vector3 aimPos = AttackAimPos(u, atk);
                 BattleLabel.CreateAttack(_cam, u.HeadWorld, u.unitName);
                 animating++;
+                ActionFx.MarkAttack(_grid, u, atk);      // onde na grade o golpe acontece
                 StartCoroutine(RunThen(u.PlayAttackAnim(aimPos, incr), () => animating--));
             }
             while (animating > 0) yield return null;
@@ -1546,17 +1550,20 @@ namespace PangeaSkirmish
                 case ReactionKind.Dodge:
                     reactor.dodgeReactBonus = Mathf.Clamp01(reactor.stats.AGI * T.dodgeReactionPerAGI);
                     reactor.PlayReactionAnim(ReactionKind.Dodge);
+                    BattleFeedback.Status(reactor, "Esquiva ágil", new Color(0.55f, 0.85f, 1f));
                     _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquiva! (+" +
                         Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
                     reactor.PlayReactionAnim(ReactionKind.Block);
+                    BattleFeedback.Status(reactor, $"Escudo erguido (−{reactor.blockFlat})", new Color(1f, 0.86f, 0.40f));
                     _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
                     break;
                 case ReactionKind.Intercept:
                     _interceptedBy = reactor;    // o fluxo do ataque redireciona o golpe
                     reactor.PlayReactionAnim(ReactionKind.Intercept);
+                    BattleFeedback.Status(reactor, "Interceptou!", new Color(1f, 0.86f, 0.40f));
                     break;
                 case ReactionKind.Step:
                     {

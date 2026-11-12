@@ -63,7 +63,7 @@ namespace PangeaSkirmish
                                       float arc = 0f, float scale = 1f, System.Action onArrive = null)
         {
             if (!Application.isPlaying || !World3D.Has(model)) { onArrive?.Invoke(); return; }
-            var go = World3D.Spawn(model, null);
+            var go = World3D.Spawn(model, Runner.transform);
             if (go == null) { onArrive?.Invoke(); return; }
             Spawned++; LastModel = model;
             if (tint.HasValue) Tint(go.transform, tint.Value);
@@ -74,7 +74,7 @@ namespace PangeaSkirmish
         public static void Burst(string model, Vector3 at, float duration, Color? tint, float scale = 1f, float rise = 0.2f)
         {
             if (!Application.isPlaying || !World3D.Has(model)) return;
-            var go = World3D.Spawn(model, null);
+            var go = World3D.Spawn(model, Runner.transform);
             if (go == null) return;
             Spawned++; LastModel = model;
             if (tint.HasValue) Tint(go.transform, tint.Value);
@@ -84,8 +84,9 @@ namespace PangeaSkirmish
         /// <summary>A alma sai da cabeça, paira um instante e desce para dentro do planeta (GDD-013).</summary>
         public static void SoulDescent(Vector3 head, float scale = 1f)
         {
+            AudioManager.I?.PlayNamed("sfx_soul", null, 0.8f);
             if (!Application.isPlaying || !World3D.Has("Soul")) return;
-            var go = World3D.Spawn("Soul", null);
+            var go = World3D.Spawn("Soul", Runner.transform);
             if (go == null) return;
             Spawned++; LastModel = "Soul";
             Runner.StartCoroutine(Runner.Soul(go, head, scale));
@@ -151,16 +152,146 @@ namespace PangeaSkirmish
             Destroy(go);
         }
 
+        // ---------------------------------------------------------------- marcas no chão
+
+        /// <summary>Marcas de chão criadas desde o último reset (testes).</summary>
+        public static int GroundMarks { get; private set; }
+        public static void ResetGroundMarks() => GroundMarks = 0;
+        public static IEnumerable<Vector2Int> FootprintCells(Vector2Int anchor, int fp)
+        {
+            for (int dx = 0; dx < fp; dx++)
+            for (int dy = 0; dy < fp; dy++)
+                yield return new Vector2Int(anchor.x + dx, anchor.y + dy);
+        }
+
+        /// <summary>
+        /// Acende células da grade na cor dada, pulsa e apaga em <paramref name="duration"/> s.
+        /// É o "onde aconteceu" de um ataque ou magia enquanto a ação é executada.
+        /// </summary>
+        public static void GroundFlash(GridManager grid, IEnumerable<Vector2Int> cells, Color color, float duration = 0.8f, float peakAlpha = 0.70f)
+        {
+            if (grid == null || cells == null || !Application.isPlaying) return;
+            var quads = new List<SpriteRenderer>();
+            foreach (var c in cells)
+            {
+                if (!grid.IsAnchorInBounds(c, 1)) continue;
+                var g = new GameObject("GroundMark");
+                g.transform.SetParent(Runner.transform, false);
+                var sr = g.AddComponent<SpriteRenderer>();
+                sr.sprite = World3D.CellDiamondSprite(); sr.sortingOrder = 4950;
+                sr.color = new Color(color.r, color.g, color.b, 0f);
+                g.transform.localScale = new Vector3(1f, World3D.GroundStretch, 1f);
+                g.transform.rotation = World3D.GroundRotation;
+                GridAnchored.Attach(g, c, 1);
+                g.SetActive(true);
+                quads.Add(sr);
+                GroundMarks++;
+            }
+            if (quads.Count > 0) Runner.StartCoroutine(Runner.FlashQuads(quads, color, Mathf.Max(0.15f, duration), peakAlpha));
+        }
+
+        private IEnumerator FlashQuads(List<SpriteRenderer> quads, Color color, float dur, float peak)
+        {
+            for (float e = 0f; e < dur; e += Time.deltaTime)
+            {
+                float k = e / dur;
+                // sobe rápido, dois pulsos, some
+                float a = (k < 0.12f ? k / 0.12f : 1f - (k - 0.12f) / 0.88f) * (0.75f + 0.25f * Mathf.Cos(k * Mathf.PI * 4f));
+                var col = new Color(color.r, color.g, color.b, Mathf.Clamp01(a) * peak);
+                foreach (var q in quads) if (q != null) q.color = col;
+                yield return null;
+            }
+            foreach (var q in quads) if (q != null) Destroy(q.gameObject);
+        }
+
+        /// <summary>
+        /// Marca onde um ataque acontece: as células do alvo (vermelho) e, à distância, a trilha
+        /// do golpe do atacante até ele (claro). Ataque em tile marca a área golpeada.
+        /// </summary>
+        public static void MarkAttack(GridManager grid, Unit attacker, PlannedAttack atk)
+        {
+            if (grid == null || attacker == null) return;
+            int afp = attacker.stats.Footprint;
+            Vector2Int targetAnchor; int tfp;
+            if (atk.Mode == AttackMode.Unit && atk.TargetUnit != null && !atk.TargetUnit.IsDead)
+            { targetAnchor = atk.TargetUnit.anchor; tfp = atk.TargetUnit.stats.Footprint; }
+            else if (atk.Mode == AttackMode.Tile) { targetAnchor = atk.TargetTile; tfp = afp; }
+            else return;
+
+            var hit = new Color(1f, 0.26f, 0.20f);
+            GroundFlash(grid, FootprintCells(targetAnchor, tfp), hit, 0.9f, 0.72f);
+
+            // Trilha: só quando há chão entre os dois (ataque à distância ou de alcance longo).
+            var from = attacker.anchor + new Vector2Int(afp / 2, afp / 2);
+            var to = targetAnchor + new Vector2Int(tfp / 2, tfp / 2);
+            var trail = new List<Vector2Int>();
+            foreach (var c in SpellField.LineCells(from, to, includeEnds: false))
+            {
+                if (GridManager.FootprintsOverlap(attacker.anchor, afp, c, 1)) continue;
+                if (GridManager.FootprintsOverlap(targetAnchor, tfp, c, 1)) continue;
+                trail.Add(c);
+            }
+            if (trail.Count > 0) GroundFlash(grid, trail, new Color(1f, 0.90f, 0.75f), 0.7f, 0.45f);
+        }
+
+        /// <summary>Marca onde uma magia cai: a área (ou o alvo) na cor do elemento, e a trilha até lá.</summary>
+        public static void MarkSpell(GridManager grid, Unit caster, PlannedSpell ps)
+        {
+            var s = ps.Def;
+            if (grid == null || caster == null || s == null) return;
+            if (s.range < 0 && s.effect != SpellEffect.Leap) return;          // sem alvo no chão
+            if (s.IsPhysical && s.effect != SpellEffect.Leap) return;
+            int fp = caster.stats.Footprint;
+            Color col = ElementInfo.Color(s.PrimaryElement);
+            var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
+            var cells = new List<Vector2Int>();
+            if (s.effect == SpellEffect.Barrier) return;                       // a própria Muralha já marca o chão
+            if (s.area > 0)
+            {
+                for (int dx = -s.area; dx <= s.area; dx++)
+                for (int dy = -s.area; dy <= s.area; dy++) cells.Add(center + new Vector2Int(dx, dy));
+            }
+            else cells.AddRange(FootprintCells(ps.TargetTile, fp));
+            GroundFlash(grid, cells, col, 1.0f, 0.75f);
+
+            var from = caster.anchor + new Vector2Int(fp / 2, fp / 2);
+            var trail = new List<Vector2Int>();
+            foreach (var c in SpellField.LineCells(from, center, includeEnds: false))
+            {
+                if (GridManager.FootprintsOverlap(caster.anchor, fp, c, 1) || cells.Contains(c)) continue;
+                trail.Add(c);
+            }
+            if (trail.Count > 0) GroundFlash(grid, trail, Color.Lerp(col, Color.white, 0.5f), 0.7f, 0.40f);
+        }
+
         // ---------------------------------------------------------------- magias
 
         /// <summary>
         /// Visual de uma magia resolvendo (chamado pelo RoundManager junto do SpellResolver):
         /// pose de soltar, projétil na cor do elemento e impacto no alvo, ou efeito no próprio corpo.
         /// </summary>
+        /// <summary>Som de uma magia: pelo efeito (Salto, Muralha, Física) ou pelo elemento principal.</summary>
+        public static string SfxFor(SpellDef s)
+        {
+            if (s == null) return null;
+            if (s.effect == SpellEffect.Leap) return "sfx_leap";
+            if (s.IsPhysical) return "sfx_flex";
+            if (s.effect == SpellEffect.Barrier) return "sfx_wall";
+            switch (s.PrimaryElement)
+            {
+                case SpellElement.Fire:  return "sfx_spell_fire";
+                case SpellElement.Water: return "sfx_spell_water";
+                case SpellElement.Earth: return "sfx_spell_earth";
+                case SpellElement.Air:   return "sfx_spell_air";
+                default:                 return "sfx_spell_magic";
+            }
+        }
+
         public static void PlaySpell(Unit caster, PlannedSpell ps, GridManager grid)
         {
             var s = ps.Def;
             if (s == null || caster == null || !Application.isPlaying) return;
+            AudioManager.I?.PlayNamed(SfxFor(s));
             var model = caster.Model3D;
             Color col = ElementInfo.Color(s.PrimaryElement);
             float sc = model != null ? model.ModelScale : 1f;

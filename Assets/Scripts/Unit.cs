@@ -438,6 +438,15 @@ namespace PangeaSkirmish
             footprintGo.transform.localScale = new Vector3(footprintScale, footprintScale, 1f);
             footprintGo.transform.localPosition = Vector3.zero;
 
+            // Sombra escura sob a placa: separa a cor do time da grama e desenha a divisa entre
+            // unidades coladas (as duas sombras se encostam, as placas não).
+            var shadowGo = new GameObject("FootprintShadow");
+            shadowGo.transform.SetParent(footprintGo.transform, false);
+            shadowGo.transform.localScale = new Vector3(1.07f, 1.07f, 1f);
+            _footprintShadow = shadowGo.AddComponent<SpriteRenderer>();
+            _footprintShadow.sprite = BuildFootprintShadowSprite();
+            _footprintShadow.color = new Color(0f, 0f, 0f, 0.38f);
+
             var spriteGo = new GameObject("Sprite");
             spriteGo.transform.SetParent(transform, false);
             spriteGo.transform.localScale = new Vector3(spriteScale, spriteScale, 1f);
@@ -469,8 +478,19 @@ namespace PangeaSkirmish
         // ------------------------------------------------------------------ BARRAS HP/MP (mundo)
 
         private Transform _barsRoot;
-        private SpriteRenderer _hpFill, _mpFill;
-        private float _hpFillY, _mpFillY;
+        private SpriteRenderer _hpFill, _mpFill, _hpTrail, _castBg, _castFill;
+        private float _hpFillY, _mpFillY, _pipY, _castY;
+        private float _hpTrailRatio = 1f, _hpTrailHold;
+        private readonly List<SpriteRenderer> _staminaPips = new List<SpriteRenderer>();
+        private TextMesh _statusText;
+        private string _statusShown = "";
+
+        /// <summary>Quantos pips de Estâmina estão acesos acima da cabeça (testes).</summary>
+        public int WorldStaminaPipsLit { get; private set; }
+        /// <summary>A barra de conjuração acima da cabeça está visível? (testes)</summary>
+        public bool WorldCastBarVisible => _castBg != null && _castBg.enabled;
+        /// <summary>Texto de estados mostrado acima da cabeça (testes).</summary>
+        public string WorldStatusText => _statusShown;
         private static Sprite _sharedWhite;
 
         private static Sprite WhiteSprite()
@@ -502,9 +522,46 @@ namespace PangeaSkirmish
             _mpFillY = -(sz.y + T.worldBarGap);
 
             MakeBar(_barsRoot, "HpBg", _hpFillY, sz, T.worldBarBgColor, sortBg);
-            _hpFill = MakeBar(_barsRoot, "HpFill", _hpFillY, new Vector2(sz.x, sz.y * 0.8f), T.worldHpHighColor, sortBg + 1);
+            // Rastro do dano: fica um instante onde a vida estava e depois escorre até a barra real.
+            _hpTrail = MakeBar(_barsRoot, "HpTrail", _hpFillY, new Vector2(sz.x, sz.y * 0.8f), new Color(1f, 0.95f, 0.80f, 0.95f), sortBg + 1);
+            _hpFill = MakeBar(_barsRoot, "HpFill", _hpFillY, new Vector2(sz.x, sz.y * 0.8f), T.worldHpHighColor, sortBg + 2);
+            _hpTrailRatio = stats.MaxHP > 0 ? Mathf.Clamp01((float)currentHP / stats.MaxHP) : 1f;
             MakeBar(_barsRoot, "MpBg", _mpFillY, sz, T.worldBarBgColor, sortBg);
             _mpFill = MakeBar(_barsRoot, "MpFill", _mpFillY, new Vector2(sz.x, sz.y * 0.8f), T.worldMpColor, sortBg + 1);
+
+            // Estâmina: um pip por ponto, abaixo da Mana (dourado = tem, apagado = gasto).
+            _pipY = _mpFillY - (sz.y + T.worldBarGap);
+            int maxPips = Mathf.Clamp(stats.MaxStamina, 0, 10);
+            float pipW = Mathf.Min(0.16f, (sz.x - 0.03f * (maxPips - 1)) / Mathf.Max(1, maxPips));
+            float total = maxPips * pipW + (maxPips - 1) * 0.03f;
+            for (int i = 0; i < maxPips; i++)
+            {
+                var go = new GameObject("Pip" + i);
+                go.transform.SetParent(_barsRoot, false);
+                go.transform.localPosition = new Vector3(-total * 0.5f + pipW * 0.5f + i * (pipW + 0.03f), _pipY, 0f);
+                go.transform.localScale = new Vector3(pipW, sz.y * 0.7f, 1f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = WhiteSprite(); sr.sortingOrder = sortBg + 1;
+                _staminaPips.Add(sr);
+            }
+
+            // Conjuração: barra acima da vida, só enquanto conjura (enche até a magia sair).
+            _castY = _hpFillY + sz.y + T.worldBarGap;
+            _castBg = MakeBar(_barsRoot, "CastBg", _castY, sz, T.worldBarBgColor, sortBg);
+            _castFill = MakeBar(_barsRoot, "CastFill", _castY, new Vector2(sz.x, sz.y * 0.8f), new Color(0.72f, 0.48f, 1f), sortBg + 1);
+            _castBg.enabled = _castFill.enabled = false;
+
+            // Estados (Queimando, Encharcado, Pele de pedra...) em uma linha curta sob os pips.
+            var stGo = new GameObject("Status");
+            stGo.transform.SetParent(_barsRoot, false);
+            stGo.transform.localPosition = new Vector3(0f, _pipY - 0.16f, 0f);
+            _statusText = stGo.AddComponent<TextMesh>();
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _statusText.font = font; _statusText.fontSize = 48; _statusText.characterSize = 0.05f;
+            _statusText.anchor = TextAnchor.UpperCenter; _statusText.alignment = TextAlignment.Center;
+            _statusText.color = new Color(0.88f, 0.84f, 1f);
+            var stMr = stGo.GetComponent<MeshRenderer>();
+            stMr.sharedMaterial = font.material; stMr.sortingOrder = sortBg + 2;
 
             UpdateBars();
         }
@@ -565,8 +622,83 @@ namespace PangeaSkirmish
                 if (sliced) _mpFill.size = new Vector2(fw, h);
                 else _mpFill.transform.localScale = new Vector3(fw, h, 1f);
                 _mpFill.transform.localPosition = new Vector3(-w * 0.5f + fw * 0.5f, _mpFillY, 0f);
-                _mpFill.color = T.worldMpColor;
+                // Embotado (Mana < 25%): a barra de Mana fica roxa e pulsa.
+                _mpFill.color = IsDulled ? Color.Lerp(new Color(0.75f, 0.45f, 1f), T.worldMpColor, 0.5f + 0.5f * Mathf.Sin(Time.time * 6f)) : T.worldMpColor;
             }
+
+            // Rastro do dano: segura 0,35 s onde a vida estava e depois escorre.
+            if (_hpTrail != null)
+            {
+                if (_hpTrailShownTarget >= 0f && hpRatio < _hpTrailShownTarget) _hpTrailHold = 0.35f;   // novo golpe: segura de novo
+                _hpTrailShownTarget = hpRatio;
+                if (hpRatio >= _hpTrailRatio) _hpTrailRatio = hpRatio;                // cura: acompanha na hora
+                else if (_hpTrailHold > 0f) _hpTrailHold -= Time.deltaTime;
+                else _hpTrailRatio = Mathf.MoveTowards(_hpTrailRatio, hpRatio, Time.deltaTime * 0.9f);
+                float tw = w * _hpTrailRatio;
+                if (sliced) _hpTrail.size = new Vector2(tw, h);
+                else _hpTrail.transform.localScale = new Vector3(tw, h, 1f);
+                _hpTrail.transform.localPosition = new Vector3(-w * 0.5f + tw * 0.5f, _hpFillY, 0f);
+                _hpTrail.enabled = _hpTrailRatio > hpRatio + 0.001f;
+            }
+
+            // Estâmina em pips.
+            int lit = 0;
+            for (int i = 0; i < _staminaPips.Count; i++)
+            {
+                bool on = i < currentStamina;
+                if (on) lit++;
+                _staminaPips[i].color = on ? new Color(1f, 0.82f, 0.30f) : new Color(0.22f, 0.20f, 0.16f, 0.85f);
+            }
+            WorldStaminaPipsLit = lit;
+
+            // Barra de conjuração (só magia Elemental: é o que pode ser interrompido).
+            if (_castBg != null)
+            {
+                bool casting = false; float prog = 0f; Color cc = new Color(0.72f, 0.48f, 1f);
+                if (!IsDead && queue.Count > 0 && queue[0].Type == ActionType.Spell)
+                {
+                    var d = queue[0].Spell.Def;
+                    if (d != null && !d.IsPhysical)
+                    {
+                        casting = true;
+                        prog = queue[0].Duration > 0 ? Mathf.Clamp01((float)queue[0].Elapsed / queue[0].Duration) : 1f;
+                        cc = ElementInfo.Color(d.PrimaryElement);
+                    }
+                }
+                _castBg.enabled = _castFill.enabled = casting;
+                if (casting)
+                {
+                    float cw = Mathf.Max(0.04f, w * prog);
+                    if (sliced) _castFill.size = new Vector2(cw, h);
+                    else _castFill.transform.localScale = new Vector3(cw, h, 1f);
+                    _castFill.transform.localPosition = new Vector3(-w * 0.5f + cw * 0.5f, _castY, 0f);
+                    _castFill.color = cc;
+                }
+            }
+
+            // Estados em texto curto.
+            if (_statusText != null)
+            {
+                string st = IsDead ? "" : WorldStatusLine();
+                if (st != _statusShown) { _statusShown = st; _statusText.text = st; }
+            }
+        }
+
+        private float _hpTrailShownTarget = -1f;   // última razão de vida vista pela barra
+
+        /// <summary>Estados visíveis acima da cabeça, curtos: "Queimando 3 · Encharcado 2".</summary>
+        private string WorldStatusLine()
+        {
+            var p = new List<string>();
+            if (burningTicks > 0) p.Add($"Queimando {burningTicks}");
+            if (soakedTicks > 0) p.Add($"Encharcado {soakedTicks}");
+            if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}");
+            if (furyReady > 0f) p.Add("Fúria");
+            if (trueAimCrit > 0f) p.Add("Olho certeiro");
+            if (foresightTicks > 0) p.Add($"Visão {foresightTicks}");
+            if (blockFlat > 0) p.Add($"Escudo −{blockFlat}");
+            if (IsDulled) p.Add("Embotado");
+            return string.Join(" · ", p);
         }
 
         private void LateUpdate()
@@ -658,6 +790,25 @@ namespace PangeaSkirmish
 
         private SpriteRenderer _footprint;
 
+        private SpriteRenderer _footprintShadow;
+        private static Sprite _sharedFootprintShadow;
+        /// <summary>Losango cheio (mesma proporção do footprint) usado como sombra/contorno escuro.</summary>
+        private static Sprite BuildFootprintShadowSprite()
+        {
+            if (_sharedFootprintShadow != null) return _sharedFootprintShadow;
+            const int W = 64, H = 32;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            for (int y = 0; y < H; y++)
+            for (int x = 0; x < W; x++)
+            {
+                float d = Mathf.Abs(x - 32) / 32f + Mathf.Abs(y - 16) / 16f;
+                tex.SetPixel(x, y, d <= 0.90f ? Color.white : Color.clear);
+            }
+            tex.Apply();
+            _sharedFootprintShadow = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 32);
+            return _sharedFootprintShadow;
+        }
+
         private static Sprite _sharedFootprint;
         private static Sprite BuildFootprintSprite()
         {
@@ -676,7 +827,9 @@ namespace PangeaSkirmish
                 // Contorno nítido + preenchimento leve: lê como "placa" no chão, não como mancha.
                 float d = dx + dy;
                 Color px = Color.clear;
-                if (d <= 0.95f) px = new Color(1f, 1f, 1f, d >= 0.82f ? 1f : 0.16f);
+                // Aro grosso e cheio + miolo leve. O aro termina em 0.90 (não 0.95): duas unidades
+                // coladas ficam com uma faixa de chão visível entre as placas.
+                if (d <= 0.90f) px = new Color(1f, 1f, 1f, d >= 0.72f ? 1f : 0.20f);
                 tex.SetPixel(x, y, px);
             }
             tex.Apply();
@@ -848,6 +1001,7 @@ namespace PangeaSkirmish
         {
             int order = _grid.SortingFor(anchor, stats.Footprint);
             if (_footprint != null) _footprint.sortingOrder = 10000 + order;
+            if (_footprintShadow != null) _footprintShadow.sortingOrder = 9999 + order;
             if (_sr != null) _sr.sortingOrder = 10001 + order;
             // Arma: frente/atrás do corpo é decidido por frame nos clips (WeaponSortDriver)
             if (_weapon != null) _weapon.SetSortingOrder(_sr.sortingOrder);
@@ -898,7 +1052,9 @@ namespace PangeaSkirmish
                 if (sd != null && !sd.IsPhysical)
                 {
                     queue[0].DamageTaken += amount;
-                    if (queue[0].DamageTaken >= SpellResolver.InterruptThreshold(this)) queue[0].Interrupted = true;
+                    int limit = SpellResolver.InterruptThreshold(this);
+                    if (queue[0].DamageTaken >= limit) queue[0].Interrupted = true;
+                    else if (!IsDead) BattleFeedback.KeptConcentration(this, queue[0].DamageTaken, limit);   // ensina a regra (GDD-019 §9.3)
                 }
             }
             AudioManager.I?.Play(AudioManager.I.sfxHit);
@@ -1079,9 +1235,23 @@ namespace PangeaSkirmish
 
         // ------------------------------------------------------------------ ATAQUE
 
+        /// <summary>Som do golpe conforme a arma (espada, machado, arco, cajado) ou a mordida da fera.</summary>
+        public string AttackSfxName()
+        {
+            if (_model == null) return "sfx_attack";
+            switch (_model.Style)
+            {
+                case UnitModel3D.AttackStyle.Chop:   return "sfx_chop";
+                case UnitModel3D.AttackStyle.Shoot:  return "sfx_bow";
+                case UnitModel3D.AttackStyle.Thrust: return "sfx_thrust";
+                case UnitModel3D.AttackStyle.Bite:   return "sfx_bite";
+                default:                             return "sfx_slash";
+            }
+        }
+
         public IEnumerator PlayAttackAnim(Vector3 targetPos, bool power = false)
         {
-            AudioManager.I?.Play(AudioManager.I.sfxAttack);
+            if (AudioManager.I != null) AudioManager.I.PlayNamed(AttackSfxName(), AudioManager.I.sfxAttack);
             StopIdleAnim();
             SetDirectionFromDelta(targetPos - transform.position);
 

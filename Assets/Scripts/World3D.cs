@@ -71,6 +71,30 @@ namespace PangeaSkirmish
             { "leaf", new Color(0.36f, 0.72f, 0.30f) }, { "leaf_dark", new Color(0.22f, 0.46f, 0.20f) },
         };
 
+        private static Sprite _cellDiamond;
+        /// <summary>
+        /// Losango de UMA célula da grade (64×32 px a 32 ppu = 2×1 unidades). Deitado com
+        /// GroundRotation e escala (1, GroundStretch, 1), cobre exatamente o topo de um tile —
+        /// a mesma geometria do footprint das unidades. Marcas de chão devem usar este sprite:
+        /// um quadrado não acompanha a grade, que é em losangos.
+        /// </summary>
+        public static Sprite CellDiamondSprite()
+        {
+            if (_cellDiamond != null) return _cellDiamond;
+            const int W = 64, H = 32;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            for (int y = 0; y < H; y++)
+            for (int x = 0; x < W; x++)
+            {
+                float d = Mathf.Abs(x + 0.5f - 32) / 32f + Mathf.Abs(y + 0.5f - 16) / 16f;
+                tex.SetPixel(x, y, d <= 0.94f ? Color.white : Color.clear);     // 0.94: fresta fina entre células
+            }
+            tex.Apply();
+            _cellDiamond = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 32);
+            _cellDiamond.name = "CellDiamond";
+            return _cellDiamond;
+        }
+
         /// <summary>O modelo existe em Resources/Models/Base? (sem logar erro, para escolher com reserva)</summary>
         public static bool Has(string modelName)
         {
