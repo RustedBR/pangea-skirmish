@@ -13,6 +13,8 @@ namespace PangeaSkirmish
     {
         public string unitName = "Unit";
         public string definitionId = ""; // unitId da UnitDefinition (se spawnada via SpawnUnit)
+        /// <summary>Corpo 3D escolhido na criação (Warrior, Tank, Archer, Mage, Character). Vazio = decide pela definição/arma.</summary>
+        public string modelId = "";
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
         public string weaponId = ""; // id da arma equipada (setado antes de Init)
@@ -759,26 +761,10 @@ namespace PangeaSkirmish
             // Resolver a arma via WeaponCatalog
             var w = WeaponCatalog.Get(weaponId); // null = desarmado
 
-            // Aplicar dano da arma aos stats (alcance é ADITIVO: base + arma)
+            // Dano, peso, alcance e atributo que escala: regra única em WeaponDef.ApplyTo
+            // (a criação de personagem mostra os mesmos números).
             var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
-            int baseRange = tuning != null ? tuning.baseAttackRange : 1;
-            if (w != null)
-            {
-                stats.WeaponDamage = w.damage;
-                stats.AttackTicks = Mathf.Max(1, w.attackTicks);
-                stats.AttackRange = baseRange + w.range;
-                stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
-                stats.dexScalesDamage = !stats.strScalesDamage;   // à distância: DEX no lugar da STR
-            }
-            else
-            {
-                // Sem arma: usar valores desarmados do GameTuning
-                stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
-                stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
-                stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
-                stats.strScalesDamage = true; // unarmed sempre escala com STR
-                stats.dexScalesDamage = false;
-            }
+            WeaponDef.ApplyTo(stats, w, tuning);
 
             // Criar overlay apenas se houver arma E o overlay estiver ligado no GameTuning.
             // Os sprites TinyTactics JÁ trazem a arma desenhada e animada nos frames de corpo;

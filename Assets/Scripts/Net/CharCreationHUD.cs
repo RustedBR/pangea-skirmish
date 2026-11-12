@@ -34,7 +34,11 @@ namespace PangeaSkirmish
         private Label _budgetLbl;
         private TextField _nameInput;
         private Label _spriteLbl;
-        private Image _spritePreview;
+        private VisualElement _spritePreview;
+        private CharacterPreview3D _preview3D;
+        private Label _weaponInfoLbl, _derivedLbl, _infoLbl;
+        private string _infoDefault = "Passe o mouse sobre um atributo, a arma ou a aparência para ver o que faz.";
+        private int _lookIdx;
         private Label _weaponLbl;
         private Label[] _attrValueLbls;
         private Button _confirmBtn;
@@ -80,7 +84,17 @@ namespace PangeaSkirmish
             _budgetLbl  = r.Q<Label>("budget-label");
             _nameInput  = r.Q<TextField>("name-input");
             _spriteLbl  = r.Q<Label>("sprite-label");
-            _spritePreview = r.Q<Image>("sprite-preview");
+            _spritePreview = r.Q<VisualElement>("sprite-preview");
+            _weaponInfoLbl = r.Q<Label>("weapon-info");
+            _derivedLbl    = r.Q<Label>("derived-label");
+            _infoLbl       = r.Q<Label>("info-label");
+            if (_infoLbl != null) _infoLbl.text = _infoDefault;
+            // Prévia 3D: o corpo que entra na batalha, com a arma na mão (antes: sprite 2D sem arma).
+            if (_spritePreview != null && World3D.Has("Character"))
+            {
+                _preview3D = CharacterPreview3D.Create(320);
+                _spritePreview.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(_preview3D.Texture));
+            }
             _weaponLbl  = r.Q<Label>("weapon-label");
             _statusLbl  = r.Q<Label>("status-label");
             _confirmBtn = r.Q<Button>("confirm-btn");
@@ -108,12 +122,12 @@ namespace PangeaSkirmish
             // Sprite picker
             r.Q<Button>("sprite-prev")?.RegisterCallback<ClickEvent>(_ =>
             {
-                _spriteIdx = (_spriteIdx - 1 + CharacterSpriteCatalog.All.Length) % CharacterSpriteCatalog.All.Length;
+                _lookIdx = (_lookIdx - 1 + CharacterLookCatalog.All.Length) % CharacterLookCatalog.All.Length;
                 SyncSprite();
             });
             r.Q<Button>("sprite-next")?.RegisterCallback<ClickEvent>(_ =>
             {
-                _spriteIdx = (_spriteIdx + 1) % CharacterSpriteCatalog.All.Length;
+                _lookIdx = (_lookIdx + 1) % CharacterLookCatalog.All.Length;
                 SyncSprite();
             });
 
@@ -139,7 +153,10 @@ namespace PangeaSkirmish
                 r.Q<Button>($"attr-minus-{i}")?.RegisterCallback<ClickEvent>(_ => StepAttr(idx, -1));
                 r.Q<Button>($"attr-plus-{i}")?.RegisterCallback<ClickEvent>(_ => StepAttr(idx, +1));
                 _attrValueLbls[i] = r.Q<Label>($"attr-val-{i}");
+                Hover(r.Q<VisualElement>($"attr-row-{i}"), () => AttrHelp(idx));
             }
+            Hover(r.Q<Button>("sprite-prev")?.parent, () => $"<b>Aparência — {CharacterLookCatalog.All[_lookIdx].displayName}</b>\n{CharacterLookCatalog.All[_lookIdx].blurb}\nÉ só visual: não muda nenhum número.");
+            Hover(r.Q<Button>("weapon-prev")?.parent, WeaponHelp);
 
             // Confirmar
             _confirmBtn?.RegisterCallback<ClickEvent>(_ => OnConfirm());
@@ -185,6 +202,7 @@ namespace PangeaSkirmish
 
         private void OnDestroy()
         {
+            if (_preview3D != null) Destroy(_preview3D.gameObject);
             if (RoomManager.Instance != null)
                 RoomManager.Instance.OnCharacterRejected -= OnRejected;
         }
@@ -269,29 +287,114 @@ namespace PangeaSkirmish
             var vals = GetAttrArray();
             for (int i = 0; i < 6; i++)
                 if (_attrValueLbls[i] != null) _attrValueLbls[i].text = ((int)vals[i]).ToString();
+            RefreshDerived();
         }
 
+        /// <summary>Aparência = corpo 3D (CharacterLookCatalog). O spritePath segue existindo para a lógica antiga.</summary>
         private void SyncSprite()
         {
-            var all = CharacterSpriteCatalog.All;
-            if (_spriteIdx < 0 || _spriteIdx >= all.Length) _spriteIdx = 0;
-            _editing.spritePath = all[_spriteIdx].resourcePath;
-            if (_spriteLbl != null) _spriteLbl.text = all[_spriteIdx].displayName;
+            var all = CharacterLookCatalog.All;
+            if (_lookIdx < 0 || _lookIdx >= all.Length) _lookIdx = 0;
+            _editing.modelId = all[_lookIdx].modelId;
+            _editing.spritePath = all[_lookIdx].spritePath;
+            if (_spriteLbl != null) _spriteLbl.text = all[_lookIdx].displayName;
+            RefreshPreview();
+        }
 
-            // Preview do sprite (frame walkingSE_0) — cacheia o LoadAll pra não reload a cada nav
-            if (_spritePreview != null)
+        /// <summary>Corpo que a batalha vai usar para a escolha atual (aparência, ou a arma no modo automático).</summary>
+        public string PreviewBodyModel()
+        {
+            if (!string.IsNullOrEmpty(_editing.modelId)) return _editing.modelId;
+            return UnitModel3D.CharacterModelFor("", "", WeaponCatalog.Get(_editing.weaponId));
+        }
+
+        private void RefreshPreview()
+        {
+            if (_preview3D != null)
+                _preview3D.Show(PreviewBodyModel(), _editing.weaponId, Tuning.Get().playerTeamColor);
+            RefreshDerived();
+        }
+
+        // =========================================================================
+        // Ficha e explicações (hover)
+        // =========================================================================
+        private void Hover(VisualElement el, Func<string> text)
+        {
+            if (el == null || _infoLbl == null) return;
+            el.RegisterCallback<PointerEnterEvent>(_ => _infoLbl.text = text());
+            el.RegisterCallback<PointerLeaveEvent>(_ => _infoLbl.text = _infoDefault);
+        }
+
+        /// <summary>Stats completos da escolha atual, com a arma aplicada pela mesma regra da batalha.</summary>
+        public AttributeStats CurrentStats()
+        {
+            var st = _editing.stats.ToAttributeStats();
+            WeaponDef.ApplyTo(st, WeaponCatalog.Get(_editing.weaponId), Tuning.Get());
+            return st;
+        }
+
+        /// <summary>Texto do que um atributo faz, com os números do tuning em vigor e o efeito do próximo ponto.</summary>
+        public string AttrHelp(int idx)
+        {
+            var T = Tuning.Get(); var F = AttributeStats.Formulas ?? T.statFormulas;
+            var st = CurrentStats();
+            switch (idx)
             {
-                _spriteFramesCache = Resources.LoadAll<Sprite>(_editing.spritePath);
-                Sprite preview = null;
-                if (_spriteFramesCache != null && _spriteFramesCache.Length > 0)
-                {
-                    foreach (var s in _spriteFramesCache)
-                        if (s.name == "walkingSE_0") { preview = s; break; }
-                    if (preview == null) preview = _spriteFramesCache[0];
-                }
-                // Unity 6 UI Toolkit: Image usa style.backgroundImage (não .image, depreciado)
-                _spritePreview.style.backgroundImage = new StyleBackground(SpriteToTexture(preview));
+                case 0: return $"<b>STR — Força</b>\nDano de armas corpo a corpo: +{F.dmgPerSTR * st.WeightFactor:0.#} por ponto com esta arma (arma pesada aproveita mais).\nEstâmina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.\nEscala a magia Física <b>Fúria</b>.";
+                case 1: return $"<b>VIT — Vitalidade</b>\nVida: +{F.hpPerVIT:0.#} por ponto.\nArmadura: −{F.armorPctPerVIT * 100:0.#}% de dano físico por ponto (até {F.armorPctMax * 100:0}%).\nBloquear absorve mais. Estâmina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
+                case 2: return $"<b>DEX — Destreza</b>\nAções mais rápidas: menos ticks para atacar e conjurar.\nAcerto +{F.hitPerDEX * 100:0.#}% e crítico +{F.critPerDEX * 100:0.#}% por ponto.\nDano de armas à distância (arcos, cajados): +{F.dmgPerDEXRanged * st.WeightFactor:0.#} por ponto com esta arma.";
+                case 3: return $"<b>AGI — Agilidade</b>\nTiles por andada (até {T.maxTilesPerMove}).\nEsquiva +{F.dodgePerAGI * 100:0.#}% por ponto e iniciativa.\nAcima de {T.agiRegenFrom}, a Estâmina volta mais rápido.";
+                case 4: return $"<b>INT — Inteligência</b>\nPotência das magias: +{T.spellPotPerINT:0.#} por ponto.\nAlcance das magias: +{T.spellRangePerINT:0.#} célula por ponto.";
+                default: return $"<b>WIS — Sabedoria</b>\nMana máxima: +{F.manaPerWIS:0.#} por ponto.\nMana volta mais rápido a cada {T.wisRegenStep} pontos.\nDefesa contra magia: −{F.magicResistPerWIS} de dano mágico por ponto.";
             }
+        }
+
+        /// <summary>O que a arma escolhida faz: estilo, dano com os atributos atuais, cadência, alcance, bloqueio e magia.</summary>
+        public string WeaponHelp()
+        {
+            var w = WeaponCatalog.Get(_editing.weaponId);
+            if (w == null) return "Desarmado.";
+            var T = Tuning.Get(); var F = AttributeStats.Formulas ?? T.statFormulas;
+            var st = CurrentStats();
+            string style;
+            switch (UnitModel3D.StyleFor(w.id))
+            {
+                case UnitModel3D.AttackStyle.Chop:   style = "machado: golpe de cima para baixo"; break;
+                case UnitModel3D.AttackStyle.Shoot:  style = "arco: dispara flechas à distância"; break;
+                case UnitModel3D.AttackStyle.Thrust: style = "cajado: estocada e conduíte de magia"; break;
+                default:                             style = "lâmina: corte cruzado"; break;
+            }
+            string scale = st.dexScalesDamage ? $"DEX × {F.dmgPerDEXRanged * st.WeightFactor:0.#}" : $"STR × {F.dmgPerSTR * st.WeightFactor:0.#}";
+            int ticks = Mathf.Max(1, Mathf.RoundToInt(st.AttackTicks * T.tickDexFactor / (T.tickDexFactor + Mathf.Max(0f, st.DEX))));
+            string magic = (w.spellPowerMult != 1f || w.spellRangeBonus != 0)
+                ? $"\nConduíte: magias ×{w.spellPowerMult:0.##}" + (w.spellRangeBonus != 0 ? $", +{w.spellRangeBonus} de alcance" : "") + "."
+                : "";
+            return $"<b>{w.displayName}</b> — {style}\n" +
+                   $"Dano por golpe: {w.damage} + {scale} = <b>{st.PhysicalDamage}</b>\n" +
+                   $"Cadência: {ticks} tick{(ticks == 1 ? "" : "s")} (peso {w.attackTicks}; a DEX encurta) → {st.PhysicalDamage / (float)ticks:0.#} de dano por tick\n" +
+                   $"Alcance: {st.AttackRange} célula{(st.AttackRange == 1 ? "" : "s")} (uma unidade ocupa 3).  Bloqueio: +{w.blockHardness}.{magic}";
+        }
+
+        private void RefreshDerived()
+        {
+            var w = WeaponCatalog.Get(_editing.weaponId);
+            var T = Tuning.Get();
+            var st = CurrentStats();
+            if (_weaponInfoLbl != null && w != null)
+            {
+                int tk = Mathf.Max(1, Mathf.RoundToInt(st.AttackTicks * T.tickDexFactor / (T.tickDexFactor + Mathf.Max(0f, st.DEX))));
+                _weaponInfoLbl.text = $"{st.PhysicalDamage} de dano a cada {tk} tick{(tk == 1 ? "" : "s")} · alcance {st.AttackRange} · escala com {(st.dexScalesDamage ? "DEX" : "STR")}" +
+                                      (w.spellPowerMult != 1f ? $" · magia ×{w.spellPowerMult:0.##}" : "");
+            }
+            if (_derivedLbl == null) return;
+            int emberDmg = Mathf.RoundToInt((4f * T.spellBaseMult + st.INT * T.spellPotPerINT) * (w != null ? w.spellPowerMult : 1f));
+            int emberReach = Mathf.RoundToInt(4f * T.spellRangeMult + st.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0);
+            _derivedLbl.text =
+                $"<b>Vida</b> {st.MaxHP}    <b>Estâmina</b> {st.MaxStamina}    <b>Mana</b> {st.MaxMana}\n" +
+                $"<b>Golpe</b> {st.PhysicalDamage}    <b>Alcance</b> {st.AttackRange}    <b>Andada</b> {st.MoveStep}\n" +
+                $"<b>Acerto</b> {st.HitChance * 100:0}%    <b>Crítico</b> {st.CritChance * 100:0}%    <b>Esquiva</b> {st.DodgeChance * 100:0}%\n" +
+                $"<b>Armadura</b> −{st.PhysicalReduction * 100:0}%    <b>Def. mágica</b> −{st.MagicDefense}\n" +
+                $"<b>Brasa</b> ~{emberDmg} de dano, alcance {emberReach}";
         }
 
         // =========================================================================
@@ -336,6 +439,7 @@ namespace PangeaSkirmish
                 presetName = p.presetName,
                 spritePath = p.spritePath,
                 weaponId   = p.weaponId,
+                modelId    = p.modelId ?? "",
                 stats      = new UnitStatBlock
                 {
                     STR = p.stats.STR, VIT = p.stats.VIT,
@@ -347,9 +451,7 @@ namespace PangeaSkirmish
             };
 
             // Sincronizar índices de navegação (sprite/weapon) com o preset carregado
-            var spriteDef = CharacterSpriteCatalog.GetByPath(_editing.spritePath);
-            _spriteIdx = spriteDef != null ? System.Array.IndexOf(CharacterSpriteCatalog.All, spriteDef) : 0;
-            if (_spriteIdx < 0) _spriteIdx = 0;
+            _lookIdx = CharacterLookCatalog.IndexOf(_editing.modelId);
             var ws = WeaponCatalog.All();
             _weaponIdx = 0;
             for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
@@ -369,8 +471,8 @@ namespace PangeaSkirmish
             _editing.weaponId = w.id;
             // AttackRange da unidade = range da arma (senão nasce sem alcance de ataque)
             _editing.stats.AttackRange = w.range;
-            if (_weaponLbl != null)
-                _weaponLbl.text = $"{w.displayName} (d{w.damage}/r{w.range})";
+            if (_weaponLbl != null) _weaponLbl.text = w.displayName;
+            RefreshPreview();
         }
 
         // =========================================================================

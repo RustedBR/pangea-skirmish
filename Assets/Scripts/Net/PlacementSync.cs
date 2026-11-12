@@ -421,6 +421,7 @@ namespace PangeaSkirmish
             unit.isPlayerCharacter = (ownerId == LocalId);
             unit.weaponId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
             if (BeastAI.Controls(unit)) unit.definitionId = "monster"; // usa o modelo 3D da fera
+            unit.modelId  = preset.modelId ?? "";                        // aparência escolhida na criação
             unit.stats    = (preset.stats ?? new UnitStatBlock()).ToAttributeStats();
             unit.Init(_grid, new Vector2Int(x, y), color,
                 !string.IsNullOrEmpty(preset.spritePath) ? preset.spritePath : CharacterSpriteCatalog.Default);

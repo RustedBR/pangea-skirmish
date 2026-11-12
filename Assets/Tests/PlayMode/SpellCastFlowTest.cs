@@ -187,7 +187,8 @@ public class SpellCastFlowTest
         var sage   = Make("Sabia", Team.Player, new Vector2Int(2, 8), "ArcaneStaff", 0, 1, intel: 10);
         var ember = SpellCatalog.Get("Ember"); var magma = SpellCatalog.Get("Magma");
         // Alcance: base × mult + INT × porINT. Mais INT = mais longe.
-        Assert.AreEqual(Mathf.RoundToInt(ember.range * T.spellRangeMult + 2 * T.spellRangePerINT), SpellResolver.Reach(novice, ember));
+        int conduit = WeaponCatalog.Get("ArcaneStaff").spellRangeBonus;      // o Cajado Arcano soma alcance às magias
+        Assert.AreEqual(Mathf.RoundToInt(ember.range * T.spellRangeMult + 2 * T.spellRangePerINT) + conduit, SpellResolver.Reach(novice, ember));
         Assert.Greater(SpellResolver.Reach(sage, ember), SpellResolver.Reach(novice, ember), "INT aumenta o alcance");
         Assert.Greater(SpellResolver.Reach(novice, magma), 3 + 1, "Magma deixa de ser corpo a corpo (uma unidade tem 3 células)");
 
@@ -196,7 +197,7 @@ public class SpellCastFlowTest
         var sword = Make("Guerreiro", Team.Player, new Vector2Int(8, 2), "IronSword", 0, 3);
         sword.stats.STR = 6; 
         int emberDmg = SpellResolver.Amount(mage, ember), swordDmg = sword.stats.PhysicalDamage;
-        Assert.That(emberDmg, Is.InRange(swordDmg * 0.7f, swordDmg * 1.4f), $"Brasa {emberDmg} vs espada {swordDmg}");
+        Assert.That(emberDmg, Is.InRange(swordDmg * 0.7f, swordDmg * 1.5f), $"Brasa {emberDmg} (com Cajado Arcano ×1,3) vs espada {swordDmg}");
 
         // Arcos: escalam com a DEX (antes: Arco Longo = 1 de dano fixo).
         var shortBow = Make("ArqCurto", Team.Player, new Vector2Int(8, 8), "ShortBow", 0, 4, dex: 6);

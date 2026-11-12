@@ -18,6 +18,7 @@
                     <ui:Button name="budget-plus" text="+" class="pg-button cc-step" />
                 </ui:VisualElement>
 
+                <ui:ScrollView name="cc-scroll" class="cc-scroll">
                 <ui:VisualElement name="cc-body" class="cc-body">
 
                     <ui:VisualElement name="cc-form" class="cc-form">
@@ -43,9 +44,10 @@
                         <ui:VisualElement class="cc-row">
                             <ui:Label text="Arma:" class="pg-label--dim cc-row-label" />
                             <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
-                            <ui:Label name="weapon-label" text="Machado (d4/r1)" class="cc-value cc-value--wide" />
+                            <ui:Label name="weapon-label" text="Machado" class="cc-value cc-value--wide" />
                             <ui:Button name="weapon-next" text="&gt;" class="pg-button cc-step" />
                         </ui:VisualElement>
+                        <ui:Label name="weapon-info" text="" class="cc-weapon-info" />
 
                         <ui:VisualElement name="attrs" class="cc-attrs">
                             <ui:VisualElement class="cc-attr-row" name="attr-row-0">
@@ -86,18 +88,25 @@
                             </ui:VisualElement>
                         </ui:VisualElement>
 
-                        <ui:Label name="status-label" text="" class="cc-status" />
-
-                        <ui:Button name="back-btn" text="← Voltar" class="pg-button cc-confirm" />
-                        <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
-
                     </ui:VisualElement>
 
                     <ui:VisualElement name="cc-side" class="cc-side">
-                        <ui:Label text="Preview" class="cc-side-title" />
-                        <ui:Image name="sprite-preview" class="cc-sprite-preview" />
+                        <ui:VisualElement name="sprite-preview" class="cc-sprite-preview" />
+                        <ui:Label text="Ficha" class="cc-side-title" />
+                        <ui:Label name="derived-label" text="" class="cc-derived" />
+                        <ui:Label name="info-label" text="" class="cc-info" />
                     </ui:VisualElement>
 
+                </ui:VisualElement>
+                </ui:ScrollView>
+
+                <!-- Rodapé fixo: fica sempre visível, fora da área que rola. -->
+                <ui:VisualElement name="cc-footer" class="cc-footer">
+                    <ui:Label name="status-label" text="" class="cc-status" />
+                    <ui:VisualElement class="cc-footer-buttons">
+                        <ui:Button name="back-btn" text="← Voltar" class="pg-button cc-confirm" />
+                        <ui:Button name="confirm-btn" text="Confirmar" class="pg-button pg-button--primary cc-confirm" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

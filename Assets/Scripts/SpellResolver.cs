@@ -150,8 +150,12 @@ namespace PangeaSkirmish
         public static float Pot(Unit u) => u.stats.INT * Tuning.Get().spellPotPerINT;
 
         /// <summary>Valor principal da magia para este conjurador (dano, cura, HP da Muralha).</summary>
-        public static int Amount(Unit u, SpellDef s) =>
-            Mathf.RoundToInt(s.baseAmount * Tuning.Get().spellBaseMult + Pot(u) * s.potFactor);
+        public static int Amount(Unit u, SpellDef s)
+        {
+            var w = WeaponCatalog.Get(u.weaponId);
+            float conduit = (w != null && !s.IsPhysical) ? Mathf.Max(0.1f, w.spellPowerMult) : 1f;   // cajados reforçam magia
+            return Mathf.RoundToInt((s.baseAmount * Tuning.Get().spellBaseMult + Pot(u) * s.potFactor) * conduit);
+        }
 
         /// <summary>Dano por tick (Queimando, Magma) já com o multiplicador do tuning.</summary>
         public static int TickDamage(SpellDef s) => Mathf.RoundToInt(s.tickDamage * Tuning.Get().spellTickDamageMult);
@@ -168,7 +172,8 @@ namespace PangeaSkirmish
             if (s.effect == SpellEffect.Leap) return Mathf.Max(1, Mathf.RoundToInt(u.EffectiveMoveStep * s.multiplier));
             if (s.range <= 0) return s.range;
             var T = Tuning.Get();
-            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT);
+            var w = WeaponCatalog.Get(u.weaponId);
+            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0);
             return u.IsDulled ? Mathf.Max(1, r - T.dullRangePenalty) : Mathf.Max(1, r);
         }
 

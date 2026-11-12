@@ -12,20 +12,29 @@
     justify-content: center;
 }
 
+/* Antes: 720px com min-height 640px, sem teto. Em janela baixa (navegador com barras) o
+   painel passava da tela e o Confirmar ficava cortado embaixo. Agora o painel nunca passa
+   de 96% da altura: o meio rola e o rodapé com os botões fica fixo. */
 .cc-panel {
-    width: 720px;
-    min-height: 640px;
-    padding: 24px 28px;
+    width: 940px;
+    max-width: 96%;
+    max-height: 96%;
+    padding: 16px 22px;
     align-items: stretch;
+    flex-direction: column;
 }
+.cc-scroll { flex-grow: 1; flex-shrink: 1; min-height: 120px; }
+.cc-footer { flex-shrink: 0; margin-top: 6px; }
+.cc-footer-buttons { flex-direction: row; justify-content: center; }
+.cc-footer-buttons .cc-confirm { margin-left: 8px; margin-right: 8px; margin-top: 4px; }
 
-.cc-title { align-self: center; margin-bottom: 10px; }
+.cc-title { align-self: center; margin-bottom: 4px; }
 
 .cc-budget {
     align-self: center;
     font-size: 16px;
     color: var(--pg-ok, rgb(90, 209, 138));
-    margin-bottom: 14px;
+    margin-bottom: 6px;
     -unity-text-align: middle-center;
 }
 
@@ -53,10 +62,10 @@
 
 .cc-side {
     flex-direction: column;
-    align-items: center;
-    width: 200px;
+    align-items: stretch;
+    width: 330px;
     flex-shrink: 0;
-    padding-top: 8px;
+    padding-top: 4px;
 }
 
 .cc-side-title {
@@ -67,13 +76,42 @@
 }
 
 .cc-sprite-preview {
-    width: 160px;
-    height: 160px;
+    width: 230px;
+    height: 230px;
+    align-self: center;
     background-color: rgba(0, 0, 0, 0.35);
     border-radius: 10px;
+    margin-bottom: 8px;
+    -unity-background-scale-mode: scale-to-fit;
 }
+/* Ficha: números derivados do que está escolhido agora. */
+.cc-derived {
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 13px;
+    white-space: normal;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+}
+/* Explicação do que está sob o mouse (atributo, arma, aparência). */
+.cc-info {
+    color: var(--pg-gold, rgb(255, 204, 85));
+    font-size: 13px;
+    white-space: normal;
+    min-height: 96px;
+    padding: 6px 10px;
+}
+.cc-weapon-info {
+    color: var(--pg-text-dim, rgb(159, 176, 208));
+    font-size: 12px;
+    white-space: normal;
+    margin-left: 96px;
+    margin-bottom: 4px;
+}
+.cc-attr-row:hover, .cc-row:hover { background-color: rgba(106, 169, 255, 0.14); }
 
-.cc-field { margin-bottom: 12px; }
+.cc-field { margin-bottom: 6px; }
 .cc-field-label { margin-bottom: 2px; }
 .cc-input { width: 100%; }
 
@@ -105,12 +143,15 @@
 }
 .cc-value--wide { width: 180px; }
 
-.cc-attrs { margin-top: 12px; margin-bottom: 12px; }
+/* Atributos em duas colunas: metade da altura. */
+.cc-attrs { margin-top: 6px; margin-bottom: 4px; flex-direction: row; flex-wrap: wrap; }
 .cc-attr-row {
     flex-direction: row;
     align-items: center;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    width: 50%;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-radius: 6px;
 }
 .cc-attr-label { width: 60px; }
 .cc-step-value {
@@ -123,9 +164,9 @@
 
 .cc-status {
     align-self: center;
-    min-height: 24px;
-    margin-top: 10px;
-    margin-bottom: 6px;
+    min-height: 20px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     color: var(--pg-danger, rgb(255, 102, 102));
     -unity-text-align: middle-center;
     white-space: normal;

@@ -163,7 +163,15 @@ namespace PangeaSkirmish
         /// </summary>
         public static string CharacterModelFor(Unit u, WeaponDef weapon)
         {
-            string s = ((u.definitionId ?? "") + "|" + (u.unitName ?? "")).ToLowerInvariant();
+            // Aparência escolhida pelo jogador na criação tem prioridade sobre tudo.
+            if (!string.IsNullOrEmpty(u.modelId) && World3D.Has(u.modelId)) return u.modelId;
+            return CharacterModelFor(u.definitionId, u.unitName, weapon);
+        }
+
+        /// <summary>Mesma regra sem uma Unit (prévia da criação de personagem).</summary>
+        public static string CharacterModelFor(string definitionId, string unitName, WeaponDef weapon)
+        {
+            string s = ((definitionId ?? "") + "|" + (unitName ?? "")).ToLowerInvariant();
             string pick = null;
             if (s.Contains("tank") || s.Contains("tanque")) pick = "Tank";
             else if (s.Contains("archer") || s.Contains("arqueir")) pick = "Archer";
@@ -237,7 +245,7 @@ namespace PangeaSkirmish
             SetWeapon(go.transform, StyleFor(model));
         }
 
-        private static AttackStyle StyleFor(string weaponOrModel)
+        public static AttackStyle StyleFor(string weaponOrModel)
         {
             string id = (weaponOrModel ?? "").ToLowerInvariant();
             if (id.Contains("bow")) return AttackStyle.Shoot;

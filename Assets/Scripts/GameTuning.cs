@@ -135,17 +135,21 @@ namespace PangeaSkirmish
 
 
         [Tooltip("Catálogo de armas: dano e alcance de cada uma. Adicionar aqui novas armas (o id precisa bater com o spritesheet).")]
+        // Tabela de armas (rebalanceada em 2026-11-12). Princípio: o atributo conta × (ticks ÷ 2),
+        // então todas ficam perto do mesmo dano por tick e o que muda é o estilo: rápida e curta
+        // (Machado), alcance (Espada de Ferro), golpe pesado (Machado de Ferro), à distância por
+        // DEX (arcos), conduítes que reforçam magia (cajados). Antes o Machado batia 10 em 1 tick.
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=2, attackTicks=1, blockHardness=2 },
-            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=2, attackTicks=3, blockHardness=2 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=2, attackTicks=2, blockHardness=3 },
-            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=2, attackTicks=2, blockHardness=3 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=3, attackTicks=2, blockHardness=2 },
-            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=3, attackTicks=2, blockHardness=2 },
-            new WeaponDef{ id="ShortBow",    displayName="Arco Curto",     damage=3, range=3, attackTicks=1, blockHardness=0 },
-            new WeaponDef{ id="LongBow",     displayName="Arco Longo",     damage=5, range=5, attackTicks=3, blockHardness=0 },
-            new WeaponDef{ id="ApprenticeWand", displayName="Varinha",     damage=2, range=3, attackTicks=1, blockHardness=1 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano",  damage=6, range=5, attackTicks=2, blockHardness=2 },
+            new WeaponDef{ id="Hatchet", displayName="Machado", damage=3, range=1, attackTicks=1, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="IronAxe", displayName="Machado de Ferro", damage=12, range=2, attackTicks=3, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira", damage=4, range=3, attackTicks=2, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="IronSword", displayName="Espada de Ferro", damage=6, range=4, attackTicks=2, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado", damage=3, range=7, attackTicks=2, blockHardness=2, spellPowerMult=1.1f, spellRangeBonus=0 },
+            new WeaponDef{ id="Scepter", displayName="Cetro", damage=3, range=6, attackTicks=2, blockHardness=2, spellPowerMult=1.15f, spellRangeBonus=1 },
+            new WeaponDef{ id="ShortBow", displayName="Arco Curto", damage=2, range=8, attackTicks=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="LongBow", displayName="Arco Longo", damage=5, range=10, attackTicks=3, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="ApprenticeWand", displayName="Varinha", damage=2, range=5, attackTicks=1, blockHardness=1, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano", damage=3, range=7, attackTicks=2, blockHardness=2, spellPowerMult=1.3f, spellRangeBonus=2 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]

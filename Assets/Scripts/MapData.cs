@@ -74,6 +74,8 @@ namespace PangeaSkirmish
         public string spritePath = "";       // resourcePath do sprite escolhido (novo modelo)
         public string classId    = "";       // LEGADO — usado apenas para migração no load; não usar em código novo
         public string weaponId   = "Hatchet";
+        /// <summary>Corpo 3D (CharacterLookCatalog). Vazio = automático pela arma. Presets antigos não têm e caem no automático.</summary>
+        public string modelId    = "";
         public UnitStatBlock stats = new UnitStatBlock();
     }
 
@@ -89,6 +91,30 @@ namespace PangeaSkirmish
     {
         public string displayName;
         public string resourcePath;
+    }
+
+    /// <summary>Aparência 3D do personagem na criação: qual corpo (modelo de Resources/Models/Base) ele usa.</summary>
+    public class CharacterLookDef { public string displayName; public string modelId; public string spritePath; public string blurb; }
+
+    public static class CharacterLookCatalog
+    {
+        private const string Fighter = "Sprites/TinyTactics/Characters/fighter";
+        private const string MageSprite = "Sprites/TinyTactics/Characters/mage";
+        public static readonly CharacterLookDef[] All =
+        {
+            new CharacterLookDef { displayName = "Automático", modelId = "",          spritePath = Fighter,    blurb = "O corpo acompanha a arma: cajado vira Mago, arco vira Arqueiro, lâmina vira Guerreiro." },
+            new CharacterLookDef { displayName = "Guerreiro",  modelId = "Warrior",   spritePath = Fighter,    blurb = "Faixa na cabeça, ombreiras e bandoleira." },
+            new CharacterLookDef { displayName = "Tanque",     modelId = "Tank",      spritePath = Fighter,    blurb = "Elmo de crânio, peitoral de osso e escudo no braço." },
+            new CharacterLookDef { displayName = "Arqueiro",   modelId = "Archer",    spritePath = Fighter,    blurb = "Capuz, aljava nas costas e botas altas." },
+            new CharacterLookDef { displayName = "Mago",       modelId = "Mage",      spritePath = MageSprite, blurb = "Manto, chapéu pontudo e conduíte no peito." },
+            new CharacterLookDef { displayName = "Aventureiro",modelId = "Character", spritePath = Fighter,    blurb = "Sem adereços." },
+        };
+
+        public static int IndexOf(string modelId)
+        {
+            for (int i = 0; i < All.Length; i++) if (All[i].modelId == (modelId ?? "")) return i;
+            return 0;
+        }
     }
 
     public static class CharacterSpriteCatalog
