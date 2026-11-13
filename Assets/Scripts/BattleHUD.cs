@@ -434,7 +434,58 @@ namespace PangeaSkirmish
             ApplyUnitInfo(u);
             if (_inspectPanel != null) _inspectPanel.style.display = DisplayStyle.Flex;
             if (_miniLog != null) _miniLog.style.display = DisplayStyle.Flex;
+            ApplyEscLevel();
         }
+        private VisualElement _inspectToggleIcon;
+
+        /// <summary>
+        /// Inspeção ao lado da unidade inspecionada (2026-11-13): de preferência à esquerda dela,
+        /// sem cobrir unidades. Testa algumas posições e fica com a que esconde menos unidades;
+        /// o fallback é colada na borda esquerda.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_inspectPanel == null || _inspectedUnit == null || _inspectPanel.resolvedStyle.display != DisplayStyle.Flex) return;
+            var cam = Camera.main; var panel = _inspectPanel.panel; var parent = _inspectPanel.parent;
+            if (cam == null || panel == null || parent == null) return;
+            float w = _inspectPanel.layout.width, h = _inspectPanel.layout.height;
+            float W = parent.layout.width, H = parent.layout.height;
+            if (float.IsNaN(w) || float.IsNaN(H) || w <= 0f || W <= 0f) return;
+            Vector2 Screen(Unit x) => RuntimePanelUtils.CameraTransformWorldToPanel(panel, x.HeadWorld, cam);
+            Vector2 me = Screen(_inspectedUnit);
+            const float gap = 40f, top = 120f, bottomReserve = 200f;   // topo: barra de fase e dica   // topo: barra de fase; baixo: barras de ação e ticks
+            var cands = new List<Vector2>
+            {
+                new Vector2(me.x - gap - w, me.y - h * 0.3f),   // à esquerda da unidade
+                new Vector2(me.x - gap - w, me.y - h),          // à esquerda, acima
+                new Vector2(me.x - gap - w, me.y + 10f),        // à esquerda, abaixo
+                new Vector2(me.x + gap,     me.y - h * 0.3f),   // à direita da unidade
+                new Vector2(12f, top),                          // colada na borda esquerda, no topo
+                new Vector2(12f, H - bottomReserve - h),        // colada na borda esquerda, embaixo
+            };
+            Vector2 best = cands[0]; int bestScore = int.MaxValue;
+            for (int i = 0; i < cands.Count; i++)
+            {
+                var c = new Vector2(Mathf.Clamp(cands[i].x, 12f, Mathf.Max(12f, W - w - 12f)), Mathf.Clamp(cands[i].y, top, Mathf.Max(top, H - bottomReserve - h)));
+                var rect = new Rect(c.x - 16f, c.y - 16f, w + 32f, h + 32f);
+                int covered = 0;
+                foreach (var u in UnitRegistry.Tracked)
+                {
+                    if (u == null || u.IsDead) continue;
+                    Vector2 sp = Screen(u);
+                    if (rect.Contains(sp) || rect.Contains(sp + new Vector2(0f, 60f))) covered += u == _inspectedUnit ? 100 : 10;
+                }
+                int score = covered * 10 + i;   // empate: a ordem de preferência
+                if (score < bestScore) { bestScore = score; best = c; }
+            }
+            // Desliza em vez de pular, para não tremer com a câmera.
+            float cx = _inspectPanel.resolvedStyle.left, cy = _inspectPanel.resolvedStyle.top;
+            float k = Mathf.Clamp01(Time.unscaledDeltaTime * 12f);
+            if (float.IsNaN(cx) || Mathf.Abs(cx - best.x) > 600f) { cx = best.x; cy = best.y; k = 1f; }
+            _inspectPanel.style.left = Mathf.Lerp(cx, best.x, k);
+            _inspectPanel.style.top = Mathf.Lerp(cy, best.y, k);
+        }
+
         public void HideUnitInfo()
         {
             _inspectedUnit = null;
@@ -562,7 +613,15 @@ namespace PangeaSkirmish
                 _inspectToggle.AddToClassList("bh-itoggle");
                 _inspectPanel.Add(_inspectToggle);
             }
-            _inspectToggle.text = _inspectExpanded ? "▴ menos" : "▾ ficha";
+            _inspectToggle.text = _inspectExpanded ? "menos" : "ficha";
+            if (_inspectToggleIcon == null)
+            {
+                _inspectToggleIcon = new VisualElement { pickingMode = PickingMode.Ignore };
+                _inspectToggleIcon.AddToClassList("bh-itoggle-icon");
+                _inspectToggle.Insert(0, _inspectToggleIcon);
+            }
+            var chev = IconTex(_inspectExpanded ? "chev_up" : "chev_down");
+            if (chev != null) _inspectToggleIcon.style.backgroundImage = new StyleBackground(chev);
             _inspectBody.Clear();
             var s = u.stats; var T = Tuning.Get(); var F = AttributeStats.Formulas ?? T.statFormulas;
 
@@ -699,7 +758,28 @@ namespace PangeaSkirmish
 
         // ── NAVEGAÇÃO CASCATA (removida; no-ops de compatibilidade) ──
         public void ShowMainMenu() { }
-        public void GoBack() { }
+        /// <summary>
+        /// Esc vai limpando a tela, uma parte por vez (2026-11-13): 1º Histórico, 2º inspeção,
+        /// 3º as unidades dos outros na barra de ticks; o 4º mostra tudo de novo.
+        /// </summary>
+        public void GoBack()
+        {
+            _escLevel = (_escLevel + 1) % 4;
+            ApplyEscLevel();
+            RebuildTickRows();
+            string[] msg = { "Mostrando tudo", "Histórico escondido (Esc)", "Inspeção escondida (Esc)", "Barra de ticks: só você (Esc mostra tudo)" };
+            ShowPlanNote(msg[_escLevel]);
+        }
+        private static int _escLevel;
+        public static int EscLevel => _escLevel;
+
+        private void ApplyEscLevel()
+        {
+            if (_miniLog != null && _escLevel >= 1) _miniLog.style.display = DisplayStyle.None;
+            else if (_miniLog != null && _escLevel == 0 && _inspectedUnit != null) _miniLog.style.display = DisplayStyle.Flex;
+            if (_inspectPanel != null && _escLevel >= 2) _inspectPanel.style.display = DisplayStyle.None;
+            else if (_inspectPanel != null && _inspectedUnit != null) _inspectPanel.style.display = DisplayStyle.Flex;
+        }
 
         // ── ESTADOS DE BOTÕES MANUAIS (no-ops de compatibilidade) ──
         public void SetMoveState(bool canAdd, int count, bool isPicking) { }
@@ -719,12 +799,15 @@ namespace PangeaSkirmish
             public Func<bool> Enabled;
             public Func<bool> Active;         // destacado (modo armado / postura escolhida)
             public Func<string> GlyphFn;      // ícone que muda (postura atual)
+            public string Icon;               // sprite em Resources/UI/Icons (a fonte do WebGL não tem os símbolos)
+            public Func<string> IconFn;       // sprite que muda (postura, reação)
             public Action<bool> OnClick;      // bool = Shift pressionado
         }
         private VisualElement _actionBar;
         private Label _actionTip;
         private readonly List<(ActionBarItem item, Button btn, Label badge)> _barButtons = new List<(ActionBarItem, Button, Label)>();
         private readonly Dictionary<ActionBarItem, Label> _barGlyphs = new Dictionary<ActionBarItem, Label>();
+        private readonly Dictionary<ActionBarItem, (VisualElement el, string name)> _barIcons = new Dictionary<ActionBarItem, (VisualElement, string)>();
         private bool _actionBarWanted;
 
         public void SetActionBarItems(List<ActionBarItem> items)
@@ -754,6 +837,14 @@ namespace PangeaSkirmish
                 var glyph = new Label(item.Glyph) { pickingMode = PickingMode.Ignore }; glyph.AddToClassList("bh-abtn-glyph");
                 var key = new Label(item.Key) { pickingMode = PickingMode.Ignore };     key.AddToClassList("bh-abtn-key");
                 var badge = new Label("") { pickingMode = PickingMode.Ignore };         badge.AddToClassList("bh-abtn-badge");
+                string iconName = item.IconFn != null ? item.IconFn() : item.Icon;
+                if (!string.IsNullOrEmpty(iconName))
+                {
+                    var ic = new VisualElement { pickingMode = PickingMode.Ignore }; ic.AddToClassList("bh-abtn-icon");
+                    var tx = IconTex(iconName); if (tx != null) ic.style.backgroundImage = new StyleBackground(tx);
+                    btn.Add(ic); _barIcons[item] = (ic, iconName);
+                    glyph.style.display = DisplayStyle.None;
+                }
                 btn.Add(glyph); btn.Add(key); btn.Add(badge);
                 _barGlyphs[item] = glyph;
                 btn.RegisterCallback<ClickEvent>(e =>
@@ -811,6 +902,11 @@ namespace PangeaSkirmish
                 btn.EnableInClassList("bh-abtn--on", item.Active != null && item.Active());
                 badge.text = item.Badge != null ? item.Badge() : "";
                 if (item.GlyphFn != null && _barGlyphs.TryGetValue(item, out var gl)) gl.text = item.GlyphFn();
+                if (item.IconFn != null && _barIcons.TryGetValue(item, out var bi))
+                {
+                    string n = item.IconFn();
+                    if (n != bi.name) { var tx = IconTex(n); bi.el.style.backgroundImage = tx != null ? new StyleBackground(tx) : new StyleBackground(StyleKeyword.None); _barIcons[item] = (bi.el, n); }
+                }
             }
         }
 
@@ -1137,6 +1233,7 @@ namespace PangeaSkirmish
                 if (u == null || u.IsDead) continue;
                 bool mine = _tlIsMine != null && _tlIsMine(u);
                 bool isPlanRow = planning && u == planUnit;
+                if (_escLevel >= 3 && !mine && !isPlanRow) continue;   // Esc: só as minhas unidades
 
                 var row = new VisualElement { pickingMode = PickingMode.Ignore };
                 row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Stretch;

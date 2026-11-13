@@ -11,6 +11,50 @@ namespace PangeaSkirmish
         private TextMesh _text;
         private SpriteRenderer _bg;
         private Camera _cam;
+        private List<SpriteRenderer> _digits;   // números em pixel (dano/cura)
+        private static readonly Dictionary<string, Sprite> _digitCache = new();
+
+        private static Sprite DigitSprite(char c)
+        {
+            string k = c == '+' ? "plus" : c == '-' ? "minus" : c == '!' ? "bang" : c.ToString();
+            if (_digitCache.TryGetValue(k, out var sp) && sp != null && sp.texture != null) return sp;
+            var tex = Resources.Load<Texture2D>("UI/Icons/num_" + k);
+            if (tex == null) return null;
+            tex.filterMode = FilterMode.Point;
+            sp = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), tex.height);   // 1 unidade de altura
+            _digitCache[k] = sp;
+            return sp;
+        }
+
+        /// <summary>
+        /// Número em pixel (2026-11-13): dígitos em sprite, tingidos (vermelho no dano, verde na
+        /// cura). A fonte do WebGL não tinha um bom número e o texto ficava borrado.
+        /// </summary>
+        public static BattleLabel CreatePixelNumber(Camera cam, Vector3 pos, string text, Color color, float height, float duration, float punch = 1.45f, float extraY = 0f)
+        {
+            var t = Tuning.Get();
+            var label = Create(cam, pos + Vector3.up * (t.battleLabelHeightOffset + extraY), "", color, new Color32(0, 0, 0, 0), new Color32(0, 0, 0, 0));
+            if (label._bg != null) label._bg.enabled = false;
+            if (label._text != null) label._text.GetComponent<MeshRenderer>().enabled = false;
+            label._digits = new List<SpriteRenderer>();
+            float w = height * 7f / 9f;          // célula 7×9; o contorno encosta no vizinho
+            float step = w * 0.86f;
+            float x0 = -(text.Length - 1) * step * 0.5f;
+            for (int i = 0; i < text.Length; i++)
+            {
+                var sp = DigitSprite(text[i]);
+                if (sp == null) continue;
+                var go = new GameObject("d" + text[i]);
+                go.transform.SetParent(label.transform, false);
+                go.transform.localPosition = new Vector3(x0 + i * step, 0f, 0f);
+                go.transform.localScale = new Vector3(height, height, 1f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = sp; sr.color = color; sr.sortingOrder = SortOrderBase + 2;
+                label._digits.Add(sr);
+            }
+            label.StartCoroutine(label.AnimatePop(duration, 1f, punch));
+            return label;
+        }
 
         private static readonly Dictionary<(Color32, Color32), Sprite> _bgCache = new();
 
@@ -111,23 +155,8 @@ namespace PangeaSkirmish
         {
             var t = Tuning.Get();
             if (isCritical)
-            {
-                float d = t.critRiseDuration;
-                var label = Create(cam, pos + Vector3.up * t.battleLabelHeightOffset, $"-{damage}!",
-                    t.critLabelTextColor,
-                    new Color32(0x05, 0x02, 0x00, 255),
-                    new Color32(0xCC, 0x77, 0x00, 255),
-                    scale: t.critLabelScale);
-                label.StartCoroutine(label.AnimatePop(d, t.critLabelScale, punch: 1.9f));
-                return label;
-            }
-            float nd = t.damageRiseDuration;
-            var normalLabel = Create(cam, pos + Vector3.up * t.battleLabelHeightOffset, $"-{damage}",
-                t.damageLabelTextColor,
-                new Color32(0x05, 0x01, 0x01, 255),
-                new Color32(0x99, 0x22, 0x22, 255));
-            normalLabel.StartCoroutine(normalLabel.AnimatePop(nd, 1f));
-            return normalLabel;
+                return CreatePixelNumber(cam, pos, $"-{damage}!", new Color(1f, 0.55f, 0.15f), 0.75f, t.critRiseDuration, 1.9f);
+            return CreatePixelNumber(cam, pos, $"-{damage}", new Color(1f, 0.25f, 0.22f), 0.55f, t.damageRiseDuration);
         }
 
         /// <summary>
@@ -310,6 +339,7 @@ namespace PangeaSkirmish
                 float alpha = k < 0.66f ? 1f : 1f - (k - 0.66f) / 0.34f;
                 if (_text != null) _text.color = new Color(textCol.r, textCol.g, textCol.b, alpha);
                 if (_bg != null) _bg.color = new Color(bgCol.r, bgCol.g, bgCol.b, bgCol.a * alpha);
+                if (_digits != null) foreach (var d in _digits) if (d != null) { var c = d.color; c.a = alpha; d.color = c; }
                 yield return null;
             }
             Destroy(gameObject);
