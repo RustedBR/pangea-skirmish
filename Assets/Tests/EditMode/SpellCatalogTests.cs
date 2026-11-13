@@ -54,7 +54,8 @@ public class SpellCatalogTests
     public void Physical_OnePerBodyAttribute_AndOnlyPhysicalElement()
     {
         var ph = SpellCatalog.OfKind(SpellKind.Physical).ToList();
-        CollectionAssert.AreEquivalent(new[] { Attr.STR, Attr.AGI, Attr.VIT, Attr.DEX }, ph.Select(s => s.scalesWith).ToList());
+        // Olho certeiro (DEX) virou reação; a Curva entrou com AGI (2026-11-13).
+        CollectionAssert.AreEquivalent(new[] { Attr.STR, Attr.AGI, Attr.VIT, Attr.AGI }, ph.Select(s => s.scalesWith).ToList());
         foreach (var s in ph)
         {
             Assert.AreEqual(1, s.elements.Length, $"{s.id}: Física tem só [Physical]");

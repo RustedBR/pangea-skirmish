@@ -203,9 +203,29 @@ namespace PangeaSkirmish
             return World3D.Has(pick) ? pick : "Monster";
         }
 
+        private bool _hasShield;
+
+        /// <summary>Mão esquerda (GDD-021): escudo ou arma de 1 mão aparecem no modelo; armaduras não.</summary>
+        public void EquipOffhand(string offhandId)
+        {
+            if (_armL == null) return;
+            var item = ItemCatalog.Get(offhandId);
+            if (item != null && item.isShield) { EquipShield(); return; }
+            var w = Equipment.OffhandWeapon(offhandId);
+            if (w == null) return;
+            string model = World3D.Has(w.id) ? w.id : (w.id.ToLowerInvariant().Contains("axe") || w.id == "Hatchet") ? "IronAxe" : "Sword";
+            if (!World3D.Has(model)) model = "Sword";
+            var go = World3D.Spawn(model, _armL);
+            if (go == null) return;
+            go.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
+            go.transform.localRotation = Quaternion.Euler(18f, 0f, 0f);
+        }
+
         private void EquipShield()
         {
+            if (_hasShield) return;
             if (_armL == null || !World3D.Has("Shield")) return;
+            _hasShield = true;
             var go = World3D.Spawn("Shield", _armL);
             if (go == null) return;
             go.transform.localPosition = new Vector3(-0.07f, -0.22f, 0.05f);

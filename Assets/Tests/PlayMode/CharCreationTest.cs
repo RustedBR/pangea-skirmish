@@ -82,6 +82,23 @@ public class CharCreationTest
         Click(root.Q<Button>("attr-plus-0")); yield return null;
         Assert.Greater(hud.CurrentStats().PhysicalDamage, before, "STR sobe o dano da espada");
 
+        // Regressão (teste no site, 2026-11-12): o hover na arma mudava a altura do painel, o
+        // botão de trocar saía de baixo do cursor e o menu "saltava". Painel e botão ficam parados.
+        var weaponRow = root.Q<Button>("weapon-prev").parent;
+        var next = root.Q<Button>("weapon-next");
+        using (var e = PointerEnterEvent.GetPooled()) { e.target = row; row.SendEvent(e); }
+        for (int i = 0; i < 3; i++) yield return null;
+        float panelH = panel.layout.height; var nextPos = next.worldBound.position;
+        for (int i = 0; i < 10; i++)
+        {
+            using (var e = PointerEnterEvent.GetPooled()) { e.target = weaponRow; weaponRow.SendEvent(e); }
+            Click(next);
+            for (int f = 0; f < 3; f++) yield return null;
+            Assert.AreEqual(panelH, panel.layout.height, 0.5f, $"altura do painel fixa (arma {i})");
+            Assert.AreEqual(nextPos.x, next.worldBound.position.x, 0.5f, "botão de trocar arma não se move");
+            Assert.AreEqual(nextPos.y, next.worldBound.position.y, 0.5f, "botão de trocar arma não se move");
+        }
+
         // Personagem novo já nasce válido (orçamento exato) e não há mais controle de orçamento.
         Assert.AreEqual(PlayerProfile.AttributeBudget, PlayerProfile.Points(hud.Editing), "orçamento fixo todo gasto");
         Assert.IsNull(root.Q<VisualElement>("budget-stepper"), "sem seletor de orçamento");
@@ -119,6 +136,8 @@ public class CharCreationTest
             if (perTick > max) { max = perTick; hi = w.id; }
         }
         AttributeStats.Formulas = null;
-        Assert.LessOrEqual(max / min, 1.5f, $"nenhuma arma bate mais de 1,5× outra por tick (menor {lo} {min:0.#}, maior {hi} {max:0.#})");
+        // Desde o balanceamento do simulador (2026-11-13) o critério é a taxa de vitória (scripts/balance_sim.py),
+        // não o dano por tick: cajados e varinha trocam dano por conduíte de magia e alcance. Aqui só um teto de sanidade.
+        Assert.LessOrEqual(max / min, 3.5f, $"nenhuma arma bate mais de 3,5× outra por tick (menor {lo} {min:0.#}, maior {hi} {max:0.#})");
     }
 }

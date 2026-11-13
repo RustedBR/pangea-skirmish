@@ -67,9 +67,11 @@ public class ReactionsTest
         var guard = Make("Guarda", Team.Player, new Vector2Int(8, 6), "IronSword");
         var foe = Make("Inimigo", Team.Enemy, new Vector2Int(12, 6), "IronSword", str: 6);
         guard.currentStamina = guard.stats.MaxStamina;
-        Assert.AreSame(guard, (Unit)Call("FindInterceptor", hurt, foe), "qualquer aliado colado pode interpor, com vida cheia ou não");
+        var list = (System.Collections.Generic.List<Unit>)Call("FindInterceptors", hurt, foe);
+        Assert.Contains(guard, list, "aliado que chega colado com uma andada pode interpor");
         guard.currentStamina = Unit.ReactionCost(ReactionKind.Intercept) - 1;
-        Assert.IsNull(Call("FindInterceptor", hurt, foe), "sem Stamina para Interpor (2), não interpõe");
+        list = (System.Collections.Generic.List<Unit>)Call("FindInterceptors", hurt, foe);
+        Assert.IsFalse(list.Contains(guard), "sem Stamina para Interpor (2), não interpõe");
     }
 
     [UnityTest]
@@ -80,7 +82,8 @@ public class ReactionsTest
         var far = Make("Longe", Team.Player, new Vector2Int(14, 6), "IronSword");
         var foe = Make("Inimigo", Team.Enemy, new Vector2Int(12, 12), "IronSword");
         far.currentStamina = far.stats.MaxStamina;
-        Assert.IsNull(Call("FindInterceptor", hurt, foe), "longe demais não intercepta");
+        var list = (System.Collections.Generic.List<Unit>)Call("FindInterceptors", hurt, foe);
+        Assert.IsFalse(list.Contains(far), "longe demais para chegar com uma andada não intercepta");
     }
 
     [Test]

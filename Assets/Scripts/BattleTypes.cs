@@ -55,7 +55,8 @@ namespace PangeaSkirmish
 
         [Header("Defesa / Mitigação")]
         public int armorBase     = 0;
-        public int armorPerVIT   = 1;
+        [Tooltip("Defesa fixa por ponto de VIT (GDD-020 §7). 0,5 = 1 de defesa a cada 2 de VIT (balanceamento 2026-11-13).")]
+        public float armorPerVIT = 0.5f;
         [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT (substitui a armadura fixa: dano alto passa a ser reduzido na mesma proporção).")]
         public float armorPctPerVIT = 0f;
         public float armorPctMax    = 0.6f;
@@ -104,6 +105,8 @@ namespace PangeaSkirmish
         private static StatFormulas F => Formulas ?? (Formulas = new StatFormulas());
 
         public int WeaponDamage = -1;
+        // Equipamento (GDD-021): defesa das armaduras e peso acima do limite (preenchidos por Equipment.ApplyTo).
+        public int ArmorPhys, ArmorMag, OverWeight;
         public int AttackRange = 1;
         public bool strScalesDamage = true; // false para armas ranged com range > strDamageMaxRange
         /// <summary>Arma à distância: o dano escala com a DEX (antes não escalava com nada: o Arco Longo batia 1).</summary>
@@ -142,7 +145,8 @@ namespace PangeaSkirmish
             {
                 var T = Tuning.Get();
                 int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
-                return Mathf.Clamp(tiles, 1, Mathf.Max(1, T.maxTilesPerMove));
+                tiles = Mathf.Min(tiles, Mathf.Max(1, T.maxTilesPerMove)) - OverWeight;   // peso acima do limite (GDD-021 §4)
+                return Mathf.Max(1, tiles);
             }
         }
 
@@ -197,12 +201,12 @@ namespace PangeaSkirmish
         public int ManaRegen => Mathf.RoundToInt(F.manaRegenBase + WIS * F.manaRegenPerWIS);
 
         public float HitChance => Mathf.Clamp01(F.baseHitChance + DEX * F.hitPerDEX);
-        public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI);
+        public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI - OverWeight * 0.04f);
         public float CritChance => Mathf.Clamp01(DEX * F.critPerDEX);
-        public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT);
+        public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT) + ArmorPhys;
         /// <summary>Redução percentual do dano físico pela VIT (0..armorPctMax).</summary>
         public float PhysicalReduction => Mathf.Clamp(VIT * F.armorPctPerVIT, 0f, F.armorPctMax);
-        public int MagicDefense => F.magicResistBase + Mathf.RoundToInt(WIS * F.magicResistPerWIS);
+        public int MagicDefense => F.magicResistBase + Mathf.RoundToInt(WIS * F.magicResistPerWIS) + ArmorMag;
 
         public HitResult RollHit(float attackerHitChance, float targetDodgeChance)
         {
@@ -432,7 +436,7 @@ namespace PangeaSkirmish
     public enum AttackMode { Auto, Unit, Tile }
 
     /// <summary>Reações do rework de Ações Bônus. Disparadas por trigger na fase de ação.</summary>
-    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step, Intercept }
+    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step, Intercept, TrueAim }   // novos no fim (PlanWire usa int)
 
     /// <summary>Ataque planejado pelo jogador (ou IA) com alvo específico ou posição.</summary>
     public struct PlannedAttack

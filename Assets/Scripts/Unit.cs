@@ -17,7 +17,18 @@ namespace PangeaSkirmish
         public string modelId = "";
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
-        public string weaponId = ""; // id da arma equipada (setado antes de Init)
+        public string weaponId = ""; // id da arma equipada (setado antes de Init) — mão direita
+        // Equipamento (GDD-021): mão esquerda, cabeça, torso, pernas.
+        public string offhandId = "", headId = "", torsoId = "", legsId = "";
+        private readonly int[] _itemAttrBonus = new int[6];
+
+        /// <summary>Reaplica o equipamento (troca de item na descida do Coop) sem acumular bônus.</summary>
+        public void ReapplyEquipment()
+        {
+            var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+            Equipment.ApplyTo(stats, Equipment.Of(this), tuning, _itemAttrBonus);
+            currentHP = Mathf.Min(currentHP, stats.MaxHP); currentMana = Mathf.Min(currentMana, stats.MaxMana);
+        }
 
         // ---- Campos de identidade MP (Fase 5 — preenchidos no SpawnUnitClientRpc) ----
         // Não usados pela lógica SP. Fase 6 substituirá IsHostileTo usando estes campos.
@@ -176,6 +187,16 @@ namespace PangeaSkirmish
             return true;
         }
 
+        /// <summary>
+        /// Custo de reagir (2026-11-13): a fila anda 1 tick. A ação em andamento recomeça do zero;
+        /// se nada estava em andamento, entra 1 tick de espera na frente.
+        /// </summary>
+        public void ReactionPushQueue()
+        {
+            if (queue.Count > 0 && queue[0].Elapsed > 0) { queue[0].Elapsed = 0; return; }
+            queue.Insert(0, new QueuedAction { Type = ActionType.Wait, Duration = 1 });
+        }
+
         /// <summary>Insere uma espera no início da fila (custo de reação).</summary>
         public void DelayQueue(int ticks)
         {
@@ -208,6 +229,7 @@ namespace PangeaSkirmish
             var T = Tuning.Get();
             switch (k)
             {
+                case ReactionKind.TrueAim:       return T.reactCostTrueAim;
                 case ReactionKind.Dodge:         return T.reactCostDodge;
                 case ReactionKind.Block:         return T.reactCostBlock;
                 case ReactionKind.CounterAttack: return T.reactCostCounter;
@@ -217,10 +239,11 @@ namespace PangeaSkirmish
         }
         /// <summary>Tem Stamina para alguma reação (a mais barata)?</summary>
         public bool CanReact() => !IsDead && currentStamina >= Mathf.Min(ReactionCost(ReactionKind.Dodge), ReactionCost(ReactionKind.Block));
-        public bool CanReact(ReactionKind k) => !IsDead && currentStamina >= ReactionCost(k);
+        public bool CanReact(ReactionKind k) => !IsDead && remainingReactions > 0 && currentStamina >= ReactionCost(k);   // 1 reação por round
         public void ConsumeReaction(ReactionKind k = ReactionKind.None)
         {
             currentStamina = Mathf.Max(0, currentStamina - ReactionCost(k));
+            remainingReactions = Mathf.Max(0, remainingReactions - 1);
         }
 
         // ── Postura (GDD-020 §8.1): bônus de atributo com troca, escolhido por ponto de decisão ──
@@ -263,6 +286,9 @@ namespace PangeaSkirmish
 
         // ---- Estado de magia (GDD-019). Por ticks, sobrevive entre pontos de decisão. ----
         [System.NonSerialized] public float furyReady;      // Fúria: multiplicador do próximo ataque (0 = nada)
+        /// <summary>Curva preparada: o próximo ataque à distância segue o alvo e contorna obstáculos.</summary>
+        [System.NonSerialized] public bool curveReady;
+        public bool curveReadyForSpell => curveReady;
         [System.NonSerialized] public float trueAimCrit;    // Olho certeiro: bônus de crítico do próximo ataque (0 = nada)
         [System.NonSerialized] public int   stoneSkinTicks; // Pele de pedra
         [System.NonSerialized] public float stoneSkinMult = 1f;
@@ -287,11 +313,12 @@ namespace PangeaSkirmish
             if (posture != Posture.Neutral) p.Add($"Postura {PostureRules.Name(posture)} ({PostureRules.Effect(posture)})");
             if (furyReady > 0f) p.Add($"Fúria (próximo golpe ×{furyReady:0.#})");
             if (trueAimCrit > 0f) p.Add("Olho certeiro (próximo golpe não erra)");
+            if (curveReady) p.Add("Curva (próximo ataque à distância segue o alvo)");
             if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}t (VIT ×{stoneSkinMult:0.#} na defesa)");
             if (burningTicks > 0) p.Add($"Queimando {burningTicks}t (−{burningDamage}/tick)");
             if (soakedTicks > 0) p.Add($"Encharcado {soakedTicks}t (−1 andada)");
             if (foresightTicks > 0) p.Add($"Visão arcana {foresightTicks}t");
-            if (dodgeReactTiles > 0) p.Add($"Esquivando (−{dodgeReactTiles} tiles)");
+            if (dodgeReactTiles > 0) p.Add("Esquivando");
             if (blockFlat > 0) p.Add($"Bloqueando (−{blockFlat})");
             if (IsDulled) p.Add("Embotado (pouca Mana: magias com menos alcance)");
             return string.Join(" · ", p);
@@ -459,6 +486,7 @@ namespace PangeaSkirmish
             BuildVisual(resourcePath);
             _model = UnitModel3D.Attach(this, _sr, _footprint, teamColor, resourcePath, _spriteH,
                                         WeaponCatalog.Get(weaponId));
+            if (_model != null) _model.EquipOffhand(offhandId);   // GDD-021: escudo ou 2ª arma na mão esquerda
             RefreshFacing();
             SnapToAnchor();
             StartIdleAnim();
@@ -558,6 +586,74 @@ namespace PangeaSkirmish
             return _sharedWhite;
         }
 
+        // ---- Placa sobre a unidade (2026-11-13): nome + Vida com número; Mana e Stamina só no hover
+        //      (ou quando estão acabando, piscando); ícones de estado e da postura; conjuração fina.
+        private TextMesh _nameText, _hpText;
+        private SpriteRenderer _plateBg, _postureIcon;
+        private readonly List<SpriteRenderer> _stateIcons = new List<SpriteRenderer>();
+        private readonly List<SpriteRenderer> _manaRow = new List<SpriteRenderer>();
+        private readonly List<SpriteRenderer> _staminaRow = new List<SpriteRenderer>();
+        private bool _selectedNow;
+        public bool IsSelectedNow => _selectedNow;
+        /// <summary>Placas desenhadas pela interface (UnitPlates) estão ativas: a barra no mundo fica escondida.</summary>
+        public static bool ScreenPlatesActive;
+        private static readonly Dictionary<string, Sprite> _iconSprites = new Dictionary<string, Sprite>();
+
+        /// <summary>Ícone 16×16 desenhado (Resources/UI/Icons, gerado por scripts/gen_icons.py) como Sprite do mundo.</summary>
+        public static Sprite IconSprite(string name)
+        {
+            if (_iconSprites.TryGetValue(name, out var sp) && sp != null && sp.texture != null) return sp;
+            var tex = Resources.Load<Texture2D>("UI/Icons/" + name);
+            if (tex == null) return null;
+            tex.filterMode = FilterMode.Point;
+            sp = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), tex.width / 0.22f);
+            _iconSprites[name] = sp;
+            return sp;
+        }
+
+        /// <summary>Unidade sob o mouse neste quadro (calculado uma vez por quadro, para todas as placas).</summary>
+        public static Unit HoveredUnit
+        {
+            get
+            {
+                if (_hoverFrame == Time.frameCount) return _hovered;
+                _hoverFrame = Time.frameCount; _hovered = null;
+                var cam = Camera.main;
+                var mouse = UnityEngine.InputSystem.Mouse.current;
+                if (cam != null && mouse != null) _hovered = PickAtWorld(cam, mouse.position.ReadValue());
+                return _hovered;
+            }
+        }
+        private static int _hoverFrame = -1;
+        private static Unit _hovered;
+
+        /// <summary>A placa está mostrando Mana e Stamina (hover, selecionada ou recurso acabando)? (testes)</summary>
+        public bool WorldDetailVisible { get; private set; }
+
+        private TextMesh MakeText(string name, Vector3 pos, float charSize, TextAnchor anchor, Color col, int sort)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(_barsRoot, false);
+            go.transform.localPosition = pos;
+            var tm = go.AddComponent<TextMesh>();
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            tm.font = font; tm.fontSize = 48; tm.characterSize = charSize;
+            tm.anchor = anchor; tm.alignment = TextAlignment.Center; tm.color = col; tm.fontStyle = FontStyle.Bold;
+            var mr = go.GetComponent<MeshRenderer>();
+            mr.sharedMaterial = font.material; mr.sortingOrder = sort;
+            return tm;
+        }
+
+        private SpriteRenderer MakeIcon(string name, Vector3 pos, int sort)
+        {
+            var go = new GameObject("Icon_" + name);
+            go.transform.SetParent(_barsRoot, false);
+            go.transform.localPosition = pos;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = IconSprite(name); sr.sortingOrder = sort;
+            return sr;
+        }
+
         private void BuildHealthBars()
         {
             var T = Tuning.Get();
@@ -569,55 +665,99 @@ namespace PangeaSkirmish
             rootGo.transform.localPosition = new Vector3(0f, y, 0f);
             _barsRoot = rootGo.transform;
 
-            Vector2 sz = T.worldBarSize;
+            Vector2 sz = new Vector2(T.worldBarSize.x, T.worldBarSize.y * 1.45f);   // vida mais grossa
             int sortBg = T.worldBarSortingBase;
-
             _hpFillY = 0f;
-            _mpFillY = -(sz.y + T.worldBarGap);
+
+            // Placa escura atrás de nome + vida.
+            _plateBg = MakeBar(_barsRoot, "PlateBg", 0.10f, new Vector2(sz.x + 0.16f, sz.y + 0.34f), new Color(0.05f, 0.07f, 0.13f, 0.82f), sortBg - 1);
+
+            Color team = this.team == Team.Player ? T.playerTeamColor : T.enemyTeamColor;
+            _nameText = MakeText("Name", new Vector3(0.06f, sz.y * 0.5f + 0.13f, 0f), 0.034f, TextAnchor.MiddleCenter,
+                                 Color.Lerp(team, Color.white, 0.55f), sortBg + 3);
+            _nameText.text = unitName ?? "";
+            _postureIcon = MakeIcon("p_neutral", new Vector3(-sz.x * 0.5f + 0.02f, sz.y * 0.5f + 0.13f, 0f), sortBg + 3);
+            _postureIcon.transform.localScale = Vector3.one * 0.62f;
 
             MakeBar(_barsRoot, "HpBg", _hpFillY, sz, T.worldBarBgColor, sortBg);
             // Rastro do dano: fica um instante onde a vida estava e depois escorre até a barra real.
             _hpTrail = MakeBar(_barsRoot, "HpTrail", _hpFillY, new Vector2(sz.x, sz.y * 0.8f), new Color(1f, 0.95f, 0.80f, 0.95f), sortBg + 1);
             _hpFill = MakeBar(_barsRoot, "HpFill", _hpFillY, new Vector2(sz.x, sz.y * 0.8f), T.worldHpHighColor, sortBg + 2);
             _hpTrailRatio = stats.MaxHP > 0 ? Mathf.Clamp01((float)currentHP / stats.MaxHP) : 1f;
-            MakeBar(_barsRoot, "MpBg", _mpFillY, sz, T.worldBarBgColor, sortBg);
-            _mpFill = MakeBar(_barsRoot, "MpFill", _mpFillY, new Vector2(sz.x, sz.y * 0.8f), T.worldMpColor, sortBg + 1);
+            _hpText = MakeText("HpNum", new Vector3(0f, _hpFillY, 0f), 0.032f, TextAnchor.MiddleCenter, Color.white, sortBg + 4);
 
-            // Stamina: um pip por ponto, abaixo da Mana (dourado = tem, apagado = gasto).
-            _pipY = _mpFillY - (sz.y + T.worldBarGap);
-            int maxPips = Mathf.Clamp(stats.MaxStamina, 0, 10);
-            float pipW = Mathf.Min(0.16f, (sz.x - 0.03f * (maxPips - 1)) / Mathf.Max(1, maxPips));
+            // Detalhe (hover): Mana numa barra fina e Stamina em pontos, sob a vida.
+            _mpFillY = -(sz.y * 0.5f + 0.09f);
+            Vector2 thin = new Vector2(sz.x, T.worldBarSize.y * 0.7f);
+            var mpBg = MakeBar(_barsRoot, "MpBg", _mpFillY, thin, T.worldBarBgColor, sortBg);
+            _mpFill = MakeBar(_barsRoot, "MpFill", _mpFillY, new Vector2(thin.x, thin.y * 0.8f), T.worldMpColor, sortBg + 1);
+            _manaRow.Add(mpBg); _manaRow.Add(_mpFill);
+            var mpIcon = MakeIcon("mana", new Vector3(-sz.x * 0.5f - 0.13f, _mpFillY, 0f), sortBg + 2);
+            mpIcon.transform.localScale = Vector3.one * 0.5f; _manaRow.Add(mpIcon);
+
+            _pipY = _mpFillY - (thin.y + T.worldBarGap + 0.02f);
+            int maxPips = Mathf.Clamp(stats.MaxStamina, 0, 12);
+            float pipW = Mathf.Min(0.14f, (sz.x - 0.03f * (maxPips - 1)) / Mathf.Max(1, maxPips));
             float total = maxPips * pipW + (maxPips - 1) * 0.03f;
             for (int i = 0; i < maxPips; i++)
             {
                 var go = new GameObject("Pip" + i);
                 go.transform.SetParent(_barsRoot, false);
                 go.transform.localPosition = new Vector3(-total * 0.5f + pipW * 0.5f + i * (pipW + 0.03f), _pipY, 0f);
-                go.transform.localScale = new Vector3(pipW, sz.y * 0.7f, 1f);
+                go.transform.localScale = new Vector3(pipW, thin.y * 0.9f, 1f);
                 var sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = WhiteSprite(); sr.sortingOrder = sortBg + 1;
-                _staminaPips.Add(sr);
+                _staminaPips.Add(sr); _staminaRow.Add(sr);
             }
+            var stIcon = MakeIcon("stamina", new Vector3(-sz.x * 0.5f - 0.13f, _pipY, 0f), sortBg + 2);
+            stIcon.transform.localScale = Vector3.one * 0.5f; _staminaRow.Add(stIcon);
 
-            // Conjuração: barra acima da vida, só enquanto conjura (enche até a magia sair).
-            _castY = _hpFillY + sz.y + T.worldBarGap;
-            _castBg = MakeBar(_barsRoot, "CastBg", _castY, sz, T.worldBarBgColor, sortBg);
-            _castFill = MakeBar(_barsRoot, "CastFill", _castY, new Vector2(sz.x, sz.y * 0.8f), new Color(0.72f, 0.48f, 1f), sortBg + 1);
+            // Conjuração: barra fina logo acima da placa, só enquanto conjura.
+            _castY = sz.y * 0.5f + 0.30f;
+            _castBg = MakeBar(_barsRoot, "CastBg", _castY, new Vector2(sz.x, thin.y), T.worldBarBgColor, sortBg);
+            _castFill = MakeBar(_barsRoot, "CastFill", _castY, new Vector2(sz.x, thin.y * 0.8f), new Color(0.72f, 0.48f, 1f), sortBg + 1);
             _castBg.enabled = _castFill.enabled = false;
 
-            // Estados (Queimando, Encharcado, Pele de pedra...) em uma linha curta sob os pips.
-            var stGo = new GameObject("Status");
-            stGo.transform.SetParent(_barsRoot, false);
-            stGo.transform.localPosition = new Vector3(0f, _pipY - 0.16f, 0f);
-            _statusText = stGo.AddComponent<TextMesh>();
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            _statusText.font = font; _statusText.fontSize = 48; _statusText.characterSize = 0.05f;
-            _statusText.anchor = TextAnchor.UpperCenter; _statusText.alignment = TextAlignment.Center;
-            _statusText.color = new Color(0.88f, 0.84f, 1f);
-            var stMr = stGo.GetComponent<MeshRenderer>();
-            stMr.sharedMaterial = font.material; stMr.sortingOrder = sortBg + 2;
+            // Ícones de estado à direita da placa (até 4).
+            for (int i = 0; i < 4; i++)
+            {
+                var ic = MakeIcon("burn", new Vector3(sz.x * 0.5f + 0.17f + i * 0.2f, _hpFillY, 0f), sortBg + 3);
+                ic.transform.localScale = Vector3.one * 0.8f; ic.enabled = false;
+                _stateIcons.Add(ic);
+            }
 
             UpdateBars();
+        }
+
+        /// <summary>Ícones de estado ativos, na ordem em que aparecem na placa.</summary>
+        public List<string> WorldStateIcons()
+        {
+            var l = new List<string>();
+            if (IsDead) return l;
+            if (burningTicks > 0) l.Add("burn");
+            if (soakedTicks > 0) l.Add("soaked");
+            if (stoneSkinTicks > 0) l.Add("stone");
+            if (furyReady > 0f) l.Add("fury");
+            if (curveReady || trueAimCrit > 0f) l.Add("eye");
+            if (foresightTicks > 0) l.Add("cast");
+            if (blockFlat > 0) l.Add("def");
+            if (dodgeReactTiles > 0) l.Add("dodge");
+            if (IsDulled) l.Add("dulled");
+            return l;
+        }
+
+        private static string PostureIconName(Posture p)
+        {
+            switch (p)
+            {
+                case Posture.Aggressive:   return "p_aggressive";
+                case Posture.Defensive:    return "p_defensive";
+                case Posture.Agile:        return "p_agile";
+                case Posture.Focused:      return "p_focused";
+                case Posture.Concentrated: return "p_concentrated";
+                case Posture.Serene:       return "p_serene";
+                default:                   return null;
+            }
         }
 
         /// <summary>Pílula 9-slice do BDragon1727 p/ barras de HP/MP; null se skin desligada/sem asset (usa fallback branco).</summary>
@@ -656,7 +796,7 @@ namespace PangeaSkirmish
             if (_barsRoot == null) return;
             var T = Tuning.Get();
             float w = T.worldBarSize.x;
-            float h = T.worldBarSize.y * 0.8f;
+            float h = T.worldBarSize.y * 1.45f * 0.8f;
             bool sliced = _hpFill != null && _hpFill.drawMode == SpriteDrawMode.Sliced;
 
             float hpRatio = stats.MaxHP   > 0 ? Mathf.Clamp01((float)currentHP   / stats.MaxHP)   : 0f;
@@ -672,9 +812,9 @@ namespace PangeaSkirmish
             }
             if (_mpFill != null)
             {
-                float fw = w * mpRatio;
-                if (sliced) _mpFill.size = new Vector2(fw, h);
-                else _mpFill.transform.localScale = new Vector3(fw, h, 1f);
+                float fw = w * mpRatio, mh = T.worldBarSize.y * 0.7f * 0.8f;
+                if (sliced) _mpFill.size = new Vector2(fw, mh);
+                else _mpFill.transform.localScale = new Vector3(fw, mh, 1f);
                 _mpFill.transform.localPosition = new Vector3(-w * 0.5f + fw * 0.5f, _mpFillY, 0f);
                 // Embotado (Mana < 25%): a barra de Mana fica roxa e pulsa.
                 _mpFill.color = IsDulled ? Color.Lerp(new Color(0.75f, 0.45f, 1f), T.worldMpColor, 0.5f + 0.5f * Mathf.Sin(Time.time * 6f)) : T.worldMpColor;
@@ -695,13 +835,45 @@ namespace PangeaSkirmish
                 _hpTrail.enabled = _hpTrailRatio > hpRatio + 0.001f;
             }
 
+            // Número da vida dentro da barra; a vida pisca quando está acabando.
+            float blink = 0.55f + 0.45f * Mathf.Sin(Time.time * 9f);
+            if (_hpText != null) { string ht = IsDead ? "" : currentHP.ToString(); if (_hpText.text != ht) _hpText.text = ht; }
+            if (_hpFill != null && hpRatio <= 0.25f && !IsDead)
+                _hpFill.color = Color.Lerp(T.worldHpLowColor, Color.white, 0.35f * (1f - blink));
+            if (_nameText != null && _nameText.text != unitName) _nameText.text = unitName ?? "";
+
+            // Mana e Stamina só no hover / selecionada; quando estão acabando aparecem sozinhas, piscando.
+            bool detail = !IsDead && (_selectedNow || HoveredUnit == this);
+            bool manaLow = !IsDead && stats.MaxMana > 0 && currentMana <= Mathf.CeilToInt(stats.MaxMana * 0.25f);
+            bool stLow = !IsDead && currentStamina <= 1;
+            WorldDetailVisible = detail;
+            foreach (var r in _manaRow) { r.enabled = detail || manaLow; if (manaLow && !detail) { var c = r.color; c.a = blink; r.color = c; } }
+            foreach (var r in _staminaRow) r.enabled = detail || stLow;
+
+            // Postura e estados como ícones.
+            if (_postureIcon != null)
+            {
+                string pn = IsDead ? null : PostureIconName(posture);
+                _postureIcon.enabled = pn != null;
+                if (pn != null) _postureIcon.sprite = IconSprite(pn);
+            }
+            var icons = WorldStateIcons();
+            for (int i = 0; i < _stateIcons.Count; i++)
+            {
+                bool on = i < icons.Count;
+                _stateIcons[i].enabled = on;
+                if (on) _stateIcons[i].sprite = IconSprite(icons[i]);
+            }
+
             // Stamina em pips.
             int lit = 0;
             for (int i = 0; i < _staminaPips.Count; i++)
             {
                 bool on = i < currentStamina;
                 if (on) lit++;
-                _staminaPips[i].color = on ? new Color(1f, 0.82f, 0.30f) : new Color(0.22f, 0.20f, 0.16f, 0.85f);
+                var pc = on ? new Color(1f, 0.82f, 0.30f) : new Color(0.22f, 0.20f, 0.16f, 0.85f);
+                if (stLow && !detail) pc.a *= blink;
+                _staminaPips[i].color = pc;
             }
             WorldStaminaPipsLit = lit;
 
@@ -723,19 +895,18 @@ namespace PangeaSkirmish
                 if (casting)
                 {
                     float cw = Mathf.Max(0.04f, w * prog);
-                    if (sliced) _castFill.size = new Vector2(cw, h);
-                    else _castFill.transform.localScale = new Vector3(cw, h, 1f);
+                    float ch = T.worldBarSize.y * 0.7f * 0.8f;
+                    if (sliced) _castFill.size = new Vector2(cw, ch);
+                    else _castFill.transform.localScale = new Vector3(cw, ch, 1f);
                     _castFill.transform.localPosition = new Vector3(-w * 0.5f + cw * 0.5f, _castY, 0f);
                     _castFill.color = cc;
                 }
             }
 
-            // Estados em texto curto.
-            if (_statusText != null)
-            {
-                string st = IsDead ? "" : WorldStatusLine();
-                if (st != _statusShown) { _statusShown = st; _statusText.text = st; }
-            }
+            // Estados: agora são ícones; o texto fica só para leitura (testes, inspeção).
+            _statusShown = IsDead ? "" : WorldStatusLine();
+            // Com as placas da interface (UnitPlates), a barra no mundo só calcula, não aparece.
+            if (_barsRoot.gameObject.activeSelf == ScreenPlatesActive) _barsRoot.gameObject.SetActive(!ScreenPlatesActive);
         }
 
         private float _hpTrailShownTarget = -1f;   // última razão de vida vista pela barra
@@ -749,9 +920,10 @@ namespace PangeaSkirmish
             if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}");
             if (furyReady > 0f) p.Add("Fúria");
             if (trueAimCrit > 0f) p.Add("Olho certeiro");
+            if (curveReady) p.Add("Curva");
             if (foresightTicks > 0) p.Add($"Visão {foresightTicks}");
             if (blockFlat > 0) p.Add($"Escudo −{blockFlat}");
-            if (dodgeReactTiles > 0) p.Add($"Esquiva −{dodgeReactTiles}");
+            if (dodgeReactTiles > 0) p.Add("Esquivando");
             if (IsDulled) p.Add("Embotado");
             if (posture != Posture.Neutral) p.Add(PostureRules.Glyph(posture) + " " + PostureRules.Name(posture));
             return string.Join(" · ", p);
@@ -818,7 +990,7 @@ namespace PangeaSkirmish
             // Dano, peso, alcance e atributo que escala: regra única em WeaponDef.ApplyTo
             // (a criação de personagem mostra os mesmos números).
             var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
-            WeaponDef.ApplyTo(stats, w, tuning);
+            Equipment.ApplyTo(stats, Equipment.Of(this), tuning, _itemAttrBonus);   // GDD-021: mãos, armadura, peso
 
             // Criar overlay apenas se houver arma E o overlay estiver ligado no GameTuning.
             // Os sprites TinyTactics JÁ trazem a arma desenhada e animada nos frames de corpo;
@@ -907,6 +1079,7 @@ namespace PangeaSkirmish
 
         public void SetSelected(bool selected)
         {
+            _selectedNow = selected;
             var T = Tuning.Get();
             if (_sr != null)
                 _sr.color = selected ? Color.Lerp(_baseTint, T.selectedTintColor, T.selectedTintStrength) : _baseTint;

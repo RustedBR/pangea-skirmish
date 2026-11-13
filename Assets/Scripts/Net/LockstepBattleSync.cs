@@ -605,22 +605,109 @@ namespace PangeaSkirmish
             ApplyReactionClientRpc(reactorId, kind);
         }
 
+        // ---- Janela de REAÇÃO (2026-11-13): o host abre, aceita a 1ª escolha e fecha para todos ----
+        private int _openReactSeq, _closedReactSeq;
+        private readonly HashSet<uint> _reactPending = new HashSet<uint>();
+        private readonly List<(int seq, uint unit, int kind, ulong sender)> _earlyReact = new List<(int, uint, int, ulong)>();
+
+        /// <summary>Host: abre a janela de reação <paramref name="seq"/> para as unidades que podem reagir.</summary>
+        public void HostOpenReactionWindow(int seq, float seconds, List<uint> eligible)
+        {
+            if (!IsServer) return;
+            _openReactSeq = seq;
+            _reactPending.Clear();
+            foreach (var id in eligible) _reactPending.Add(id);
+            StartCoroutine(CloseReactAfter(seq, seconds));
+            // Escolhas que chegaram antes do host alcançar este ponto da resolução.
+            var early = _earlyReact.FindAll(e => e.seq == seq);
+            _earlyReact.RemoveAll(e => e.seq <= seq);
+            foreach (var e in early) HostTakeReaction(e.seq, e.unit, e.kind, e.sender);
+        }
+
+        private IEnumerator CloseReactAfter(int seq, float seconds)
+        {
+            yield return new WaitForSeconds(seconds);
+            HostCloseReact(seq, true);
+        }
+
+        private void HostCloseReact(int seq, bool timedOut)
+        {
+            if (_openReactSeq != seq) return;
+            _openReactSeq = 0; _closedReactSeq = Mathf.Max(_closedReactSeq, seq);
+            CloseReactionWindowClientRpc(seq, timedOut);
+        }
+
+        /// <summary>Dono de uma unidade escolheu a reação (0 = não reagir). A primeira escolha real vale e fecha.</summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void SubmitReactionChoiceServerRpc(int seq, uint unitId, int kind, ServerRpcParams rpcParams = default)
+        {
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (seq <= _closedReactSeq) return;                       // janela já fechou: chegou tarde
+            if (seq != _openReactSeq) { _earlyReact.Add((seq, unitId, kind, sender)); return; }
+            HostTakeReaction(seq, unitId, kind, sender);
+        }
+
+        private void HostTakeReaction(int seq, uint unitId, int kind, ulong sender)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || u.ownerId != sender || seq != _openReactSeq || !_reactPending.Remove(unitId)) return;
+            if (kind != 0)
+            {
+                ReactionChosenClientRpc(seq, unitId, kind);   // a primeira que chega vale (dois não reagem juntos)
+                HostCloseReact(seq, false);
+            }
+            else if (_reactPending.Count == 0) HostCloseReact(seq, false);   // todos recusaram
+        }
+
+        [ClientRpc]
+        private void ReactionChosenClientRpc(int seq, uint unitId, int kind)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.BufferReaction(seq, unitId, kind);
+        }
+
+        [ClientRpc]
+        private void CloseReactionWindowClientRpc(int seq, bool timedOut)
+        {
+            var rm = UnityEngine.Object.FindObjectOfType<RoundManager>();
+            if (rm != null) rm.OnReactionWindowClosed(seq, timedOut);
+        }
+
         // ---- Janela de incremento entre ticks (GDD-016): o host ordena, todos aplicam igual ----
         private int _openWindowSeq;      // janela aberta no host (0 = fechada)
 
         /// <summary>Host: abre a janela <paramref name="seq"/> e a fecha para todos após <paramref name="seconds"/>.</summary>
-        public void HostOpenIncrementWindow(int seq, float seconds)
+        public void HostOpenIncrementWindow(int seq, float seconds, List<uint> eligible = null)
         {
             if (!IsServer) return;
             _openWindowSeq = seq;
+            _windowPending.Clear();
+            if (eligible != null) foreach (var id in eligible) _windowPending.Add(id);
             StartCoroutine(CloseWindowAfter(seq, seconds));
         }
+        private readonly HashSet<uint> _windowPending = new HashSet<uint>();   // unidades que ainda não decidiram
 
         private IEnumerator CloseWindowAfter(int seq, float seconds)
         {
             yield return new WaitForSeconds(seconds);
-            if (_openWindowSeq == seq) _openWindowSeq = 0;
+            HostCloseWindow(seq);
+        }
+
+        private void HostCloseWindow(int seq)
+        {
+            if (_openWindowSeq != seq) return;   // já fechou (todos decidiram antes do tempo)
+            _openWindowSeq = 0;
             CloseIncrementWindowClientRpc(seq);
+        }
+
+        /// <summary>O dono decidiu o incremento (inclusive "não"): quando todos decidem, a janela fecha já.</summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void IncrementDoneServerRpc(uint unitId, ServerRpcParams rpcParams = default)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || u.ownerId != rpcParams.Receive.SenderClientId || _openWindowSeq == 0) return;
+            _windowPending.Remove(unitId);
+            if (_windowPending.Count == 0) HostCloseWindow(_openWindowSeq);
         }
 
         [ServerRpc(RequireOwnership = false)]

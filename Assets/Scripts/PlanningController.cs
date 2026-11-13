@@ -407,7 +407,7 @@ namespace PangeaSkirmish
         // ------------------------------------------------------------------ BARRA DE AÇÕES (GDD-020 §9)
 
         private static readonly ReactionKind[] DefaultReactionCycle =
-            { ReactionKind.None, ReactionKind.Dodge, ReactionKind.Block, ReactionKind.CounterAttack, ReactionKind.Intercept };
+            { ReactionKind.None, ReactionKind.Dodge, ReactionKind.Block, ReactionKind.CounterAttack, ReactionKind.Intercept, ReactionKind.TrueAim };
 
         public static string ReactionName(ReactionKind k)
         {
@@ -417,6 +417,7 @@ namespace PangeaSkirmish
                 case ReactionKind.Block:         return "Bloquear";
                 case ReactionKind.CounterAttack: return "Contra-atacar";
                 case ReactionKind.Intercept:     return "Interpor";
+                case ReactionKind.TrueAim:       return "Olho certeiro";
                 default:                         return "Nenhuma";
             }
         }
@@ -428,48 +429,48 @@ namespace PangeaSkirmish
             var w = WeaponCatalog.Get(_controlled.weaponId);
             return new List<BattleHUD.ActionBarItem>
             {
-                new BattleHUD.ActionBarItem { Id = "attack", Glyph = "⚔", Key = "4", Name = "Atacar (centralizado)",
+                new BattleHUD.ActionBarItem { Id = "attack", Glyph = "⚔", Icon = "dmg", Key = "4", Name = "Atacar (centralizado)",
                     Tip = () => $"Clique num inimigo: a forma da arma ({AttackShape.Describe(WeaponCatalog.Get(_controlled.weaponId))}) centraliza nele. " +
                                 $"Dano comum: ~{_controlled.stats.PhysicalDamage} num alvo inteiro. {Ticks(ActionType.Attack)}.",
                     Enabled = () => _controlled.CanFit(ActionType.Attack),
                     Active = () => _mode == PlanMode.AttackUnitPicking,
                     OnClick = _ => OnAttackUnitClick() },
-                new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Key = "5", Name = "Mirar livre",
+                new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Icon = "hit", Key = "5", Name = "Mirar livre",
                     Tip = () => $"Você posiciona a forma tile a tile. <color=#9fd0ff>+{(T.freeAimDamageMult - 1f) * 100:0}% de dano e +{T.freeAimHitBonus * 100:0}% de acerto</color>; " +
                                 $"pega quem estiver nos tiles (só inimigos). {Ticks(ActionType.Attack)}.",
                     Enabled = () => _controlled.CanFit(ActionType.Attack),
                     Active = () => _mode == PlanMode.AttackTilePicking,
                     OnClick = _ => OnAttackTileClick() },
-                new BattleHUD.ActionBarItem { Id = "spell", Glyph = "◈", Key = "6", Name = "Magia",
+                new BattleHUD.ActionBarItem { Id = "spell", Glyph = "◈", Icon = "cast", Key = "6", Name = "Magia",
                     Tip = () => $"Abre o catálogo. Física: metade Mana, metade Stamina. Elemental: Mana. Mana {_controlled.AvailableMana}, Stamina {_controlled.remainingBAP}.",
                     OnClick = _ => _hud.ToggleSpellMenu() },
                 null,
-                new BattleHUD.ActionBarItem { Id = "concentrate", Glyph = "✦", Key = "7", Name = "Concentrar",
+                new BattleHUD.ActionBarItem { Id = "concentrate", Glyph = "✦", Icon = "mana", Key = "7", Name = "Concentrar",
                     Tip = () => $"Parado, recupera <b>+{_controlled.stats.ConcentrateMana} Mana</b>. {Ticks(ActionType.Concentrate)}. Shift: até encher a fila ou a Mana.",
                     Enabled = () => _controlled.CanFit(ActionType.Concentrate),
                     Badge = () => _controlled.plannedConcentrations > 0 ? "×" + _controlled.plannedConcentrations : $"{_controlled.currentMana}/{_controlled.stats.MaxMana}",
                     OnClick = fill => AddRepeat(OnConcentrateClick, ActionType.Concentrate, fill) },
-                new BattleHUD.ActionBarItem { Id = "breathe", Glyph = "❂", Key = "8", Name = "Respirar",
+                new BattleHUD.ActionBarItem { Id = "breathe", Glyph = "❂", Icon = "stamina", Key = "8", Name = "Respirar",
                     Tip = () => $"Parado, recupera <b>+{T.breatheStamina} Stamina</b>. {Ticks(ActionType.Breathe)}. Shift: até encher a fila ou a Stamina.",
                     Enabled = () => _controlled.CanFit(ActionType.Breathe),
                     Badge = () => { int n = CountPlanned(ActionType.Breathe); return n > 0 ? "×" + n : $"{_controlled.currentStamina}/{_controlled.stats.MaxStamina}"; },
                     OnClick = fill => AddRepeat(OnBreatheClick, ActionType.Breathe, fill) },
-                new BattleHUD.ActionBarItem { Id = "wait", Glyph = "…", Key = "9", Name = "Esperar",
+                new BattleHUD.ActionBarItem { Id = "wait", Glyph = "…", Icon = "wait", Key = "9", Name = "Esperar",
                     Tip = () => $"Passa {Ticks(ActionType.Wait)} sem agir (a Stamina e a Mana seguem voltando). Shift: até o próximo ponto de decisão.",
                     Enabled = () => _controlled.CanFit(ActionType.Wait),
                     Badge = () => { int n = CountPlanned(ActionType.Wait); return n > 0 ? "×" + n : ""; },
                     OnClick = fill => AddRepeat(OnWaitClick, ActionType.Wait, fill) },
                 null,
                 new BattleHUD.ActionBarItem { Id = "posture", Key = "0", Name = "Postura",
-                    Glyph = "○", GlyphFn = () => PostureRules.Glyph(_controlled.plannedPosture),
+                    Glyph = "○", GlyphFn = () => PostureRules.Glyph(_controlled.plannedPosture), IconFn = () => "p_" + _controlled.plannedPosture.ToString().ToLowerInvariant(),
                     Tip = () => PostureTip(),
                     Badge = () => PostureRules.Name(_controlled.plannedPosture),
                     Active = () => _controlled.plannedPosture != Posture.Neutral,
                     OnClick = back => CyclePosture(back ? -1 : +1) },
-                new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "-", Name = "Reação padrão",
-                    Tip = () => $"Usada se o menu de reação esgotar ({T.reactionChoiceTime:0} s). Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
+                new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "-", Name = "Reação padrão", IconFn = () => ReactionIcon(_controlled.defaultReaction),
+                    Tip = () => $"Quando alguém age contra você, abre a janela de reação. Esta é a usada se o tempo da janela acabar. Só 1 reação por round; reagir faz a ação em andamento recomeçar. Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
                                 (_controlled.defaultReaction != ReactionKind.None ? $" ({Unit.ReactionCost(_controlled.defaultReaction)} Stamina)" : "") +
-                                ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2.",
+                                ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2 · Olho certeiro 2 (seu tiro à distância que ia errar).",
                     Badge = () => ReactionName(_controlled.defaultReaction),
                     Active = () => _controlled.defaultReaction != ReactionKind.None,
                     OnClick = back =>
@@ -479,6 +480,20 @@ namespace PangeaSkirmish
                         _controlled.defaultReaction = DefaultReactionCycle[((i < 0 ? 0 : i) + (back ? -1 : 1) + n) % n];
                     } },
             };
+        }
+
+        private static string ReactionIcon(ReactionKind k)
+        {
+            switch (k)
+            {
+                case ReactionKind.Dodge:         return "dodge";
+                case ReactionKind.Block:         return "def";
+                case ReactionKind.CounterAttack: return "dmg";
+                case ReactionKind.Intercept:     return "intercept";
+                case ReactionKind.TrueAim:       return "eye";
+                case ReactionKind.Step:          return "move";
+                default:                         return "r_none";
+            }
         }
 
         private string PostureTip()
@@ -1036,18 +1051,37 @@ namespace PangeaSkirmish
             i == ArmedIntent.Charge ? "Investir" : i == ArmedIntent.HitAndRun ? "Golpear e recuar"
             : i == ArmedIntent.Retreat ? "Recuar" : "Automática";
 
+        /// <summary>Tecla em destaque na dica do topo.</summary>
+        private static string K(string key) => $"<color=#ffd76a><b>[{key}]</b></color>";
+
+        /// <summary>
+        /// Dica do topo em passo a passo (2026-11-13): uma frase só, que muda com o que o
+        /// jogador já fez no round. Antes era uma linha cheia de atalhos difícil de ler.
+        /// </summary>
         private void ShowIntentHint()
         {
-            // Banda própria no topo (reformulação): a dica de intenção NÃO usa mais o
-            // prompt de canto, que cobria o botão Confirmar (bug antigo de confirmação).
+            if (_controlled == null) return;
+            int max = Tuning.Get().maxQueueTicks;
+            int used = Mathf.Clamp(max - _controlled.remainingAP, 0, max);
+            string tag, hint;
             if (_freeMode)
-                _hud.ShowIntentBand("✎ MODO LIVRE",
-                                    "clique no chão = andar  •  no inimigo = atacar (2x = até acabar o tempo)  •  clique num bloco p/ editar  •  Backspace desfaz  •  Tab volta às intenções");
+            {
+                tag = "Modo livre";
+                if (used == 0)        hint = $"Passo 1 · {K("Clique")} no chão para andar ou num inimigo para atacar";
+                else if (used < max)  hint = $"Passo 2 · {used}/{max} ticks usados. Adicione mais ou {K("Enter")} confirma o round  ·  {K("Backspace")} desfaz";
+                else                  hint = $"Round cheio · {K("Enter")} confirma  ·  {K("Backspace")} desfaz";
+                hint += $"  ·  {K("Tab")} volta ao automático";
+            }
             else
-                _hud.ShowIntentBand($"⚡ INTENÇÃO: <b>{IntentName(_armed)}</b>",
-                                    "clique no inimigo p/ montar a fila  •  Tab = modo livre  •  Enter/2º clique confirma");
+            {
+                tag = _armed == ArmedIntent.None ? "Automático" : $"Automático: {IntentName(_armed)}";
+                if (used == 0)        hint = $"Passo 1 · {K("Clique")} num inimigo e o round se monta sozinho  ·  {K("Tab")} para planejar tile a tile";
+                else                  hint = $"Passo 2 · {K("Enter")} ou clique de novo para confirmar o round ({used}/{max} ticks)";
+            }
+            if (tag != _lastHintTag || hint != _lastHint) { _lastHintTag = tag; _lastHint = hint; _hud.ShowIntentBand(tag, hint); }
             _hud.SetIntentArmed(IntentSlot(_armed));
         }
+        private string _lastHintTag, _lastHint;
         private static int IntentSlot(ArmedIntent i) => i switch
         {
             ArmedIntent.Charge    => 0,
@@ -1073,6 +1107,7 @@ namespace PangeaSkirmish
         /// <summary>Teclas e cliques do Modo Intenção. Devolve true se consumiu o input do frame.</summary>
         private bool HandleIntentInput()
         {
+            ShowIntentHint();   // o passo da dica acompanha o plano
             if (_hud.HandleActionBarKeys()) return true;
             var kb = Keyboard.current;
             if (kb != null)

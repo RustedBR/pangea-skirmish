@@ -57,7 +57,10 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Troca corpo e arma. <paramref name="bodyModel"/> vazio usa o corpo genérico.</summary>
-        public void Show(string bodyModel, string weaponId, Color teamColor)
+        public void Show(string bodyModel, string weaponId, Color teamColor) => Show(bodyModel, weaponId, teamColor, null);
+
+        /// <summary>Corpo, arma da mão direita e o que vai na esquerda (escudo ou arma de 1 mão, GDD-021).</summary>
+        public void Show(string bodyModel, string weaponId, Color teamColor, string offhandId)
         {
             if (_body != null) Destroy(_body);
             BodyModel = World3D.Has(bodyModel) ? bodyModel : "Character";
@@ -82,7 +85,20 @@ namespace PangeaSkirmish
                 }
             }
             var armL = World3D.FindPart(_body.transform, "ArmL");
-            if (BodyModel == "Tank" && armL != null && World3D.Has("Shield"))
+            var offItem = ItemCatalog.Get(offhandId);
+            var offWeapon = Equipment.OffhandWeapon(offhandId);
+            if (armL != null && offWeapon != null)
+            {
+                string om = World3D.Has(offWeapon.id) ? offWeapon.id : FamilyModel(offWeapon.id);
+                var ow = World3D.Has(om) ? World3D.Spawn(om, armL) : null;
+                if (ow != null)
+                {
+                    var b = Bounds(armL);
+                    ow.transform.localPosition = new Vector3(b.center.x, b.min.y + 0.03f, b.center.z + 0.07f);
+                    ow.transform.localRotation = Quaternion.Euler(18f, 0f, 0f);
+                }
+            }
+            if ((BodyModel == "Tank" || (offItem != null && offItem.isShield)) && armL != null && World3D.Has("Shield"))
             {
                 var sh = World3D.Spawn("Shield", armL);
                 if (sh != null)

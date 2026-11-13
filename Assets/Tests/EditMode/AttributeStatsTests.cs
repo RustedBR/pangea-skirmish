@@ -185,14 +185,14 @@ public class AttributeStatsTests
     public void PhysicalDefense_CalculatedFromVIT()
     {
         // Arrange
-        var stats = new AttributeStats { VIT = 5f };
+        var stats = new AttributeStats { VIT = 8f };
 
         // Act
         int defense = stats.PhysicalDefense;
 
         // Assert
-        // armorBase (0) + VIT (5) × armorPerVIT (1) = 5
-        Assert.AreEqual(5, defense);
+        // armorBase (0) + VIT (8) × armorPerVIT (0,5) = 4
+        Assert.AreEqual(4, defense);
     }
 
     [Test]

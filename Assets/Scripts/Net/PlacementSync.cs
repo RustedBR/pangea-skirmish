@@ -304,6 +304,13 @@ namespace PangeaSkirmish
         public void HostDescend(int layer)
         {
             if (!IsServer) return;
+            // Cartas (GDD-021 §7): quem não escolheu fica com a primeira, antes de preparar a camada.
+            foreach (var u in _allUnits)
+            {
+                if (u == null || BeastAI.Controls(u)) continue;
+                uint id = UnitRegistry.GetId(u);
+                if (_cardPicked.Add((layer - 1, id))) ApplyCardClientRpc(layer - 1, id, 0);
+            }
             PrepareLayerClientRpc(layer);
 
             // Ocupação calculada no servidor a partir dos pontos de partida (não depende da
@@ -318,6 +325,32 @@ namespace PangeaSkirmish
             }
             SpawnBeastsForCoop(players, layer);
             StartLayerClientRpc(layer);
+        }
+
+        // ── Cartas da descida (GDD-021 §7): cada jogador escolhe 1 de 3; o host repassa para todos ──
+        private readonly HashSet<(int layer, uint unit)> _cardPicked = new HashSet<(int, uint)>();
+
+        [ServerRpc(RequireOwnership = false)]
+        public void PickCardServerRpc(int layer, uint unitId, int index, ServerRpcParams rpc = default)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || u.ownerId != rpc.Receive.SenderClientId || index < 0 || index > 2) return;
+            if (!_cardPicked.Add((layer, unitId))) return;   // já escolheu (ou o host já deu a primeira)
+            ApplyCardClientRpc(layer, unitId, index);
+        }
+
+        [ClientRpc]
+        private void ApplyCardClientRpc(int layer, uint unitId, int index)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null) return;
+            var cards = Equipment.DrawCards(layer, unitId, u);   // mesmo sorteio em toda máquina
+            if (index < 0 || index >= cards.Count) return;
+            Equipment.ApplyCard(u, cards[index]);
+            var c = cards[index];
+            string what = c.IsAttr ? $"+{c.points} {c.attr}" : c.item.displayName;
+            Debug.Log($"[Coop] {u.unitName} pegou a carta {index + 1}: {what}");
+            if (_round != null) _round.OnCardApplied(u, what);
         }
 
         /// <summary>Host: o grupo decidiu recuar com o que conquistou.</summary>
@@ -367,29 +400,47 @@ namespace PangeaSkirmish
             if (!IsServer || _grid == null) return;
             int count = Mathf.Max(1, Mathf.Max(1, playerCount) + layer - 1); // camada 1: uma fera por jogador
             int budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
-            int fp = AttributeStats.DefaultFootprint;
             int w = _grid.width, h = _grid.height;
             int spawned = 0;
 
-            // Varre da borda direita para o centro, espalhando no eixo Y.
-            for (int x = w - fp; x >= w / 2 && spawned < count; x -= fp + 1)
-            for (int k = 0; k < h && spawned < count; k++)
+            // Tamanhos (teste 2026-11-13): Pequena 1x1 fraca, Media 2x2 ~2x, Grande 4x4 ~4x + alcance.
+            // Cada fera tenta o tamanho do seu slot; se nao couber, tenta os menores antes de desistir.
+            while (spawned < count)
             {
-                // Alterna em torno do meio: h/2, h/2+passo, h/2-passo...
-                int step = (k + 1) / 2 * (fp + 1);
-                int y = h / 2 - fp / 2 + ((k % 2 == 0) ? step : -step);
-                var anchor = new Vector2Int(x, y);
-                if (y < 0 || !_grid.IsAnchorInBounds(anchor, fp)) continue;
-                var cells = FootprintCells(anchor, fp);
-                bool free = true;
-                foreach (var c in cells) if (_occupiedCells.Contains(c)) { free = false; break; }
-                if (!free) continue;
+                var size = BeastAI.SizeFor(spawned, layer);
+                int wanted = BeastAI.FootprintOf(size);
+                var fps = new List<int>();
+                foreach (int c in new[] { wanted, 2, 1 })
+                    if (c <= wanted && !fps.Contains(c)) fps.Add(c);
 
-                foreach (var c in cells) _occupiedCells.Add(c);
-                uint unitId = _nextUnitId++;
-                string json = JsonUtility.ToJson(BeastAI.BuildPreset(spawned, layer, budget));
-                SpawnUnitClientRpc(unitId, BeastAI.OwnerId, BeastAI.TeamId, json, x, y);
-                spawned++;
+                bool placed = false;
+                foreach (int fp in fps)
+                {
+                    // Varre da borda direita para o centro, espalhando no eixo Y.
+                    for (int x = w - fp; x >= w / 2 && !placed; x -= fp + 1)
+                    for (int k = 0; k < h && !placed; k++)
+                    {
+                        // Alterna em torno do meio: h/2, h/2+passo, h/2-passo...
+                        int step = (k + 1) / 2 * (fp + 1);
+                        int y = h / 2 - fp / 2 + ((k % 2 == 0) ? step : -step);
+                        var anchor = new Vector2Int(x, y);
+                        if (y < 0 || !_grid.IsAnchorInBounds(anchor, fp)) continue;
+                        var cells = FootprintCells(anchor, fp);
+                        bool free = true;
+                        foreach (var c2 in cells) if (_occupiedCells.Contains(c2)) { free = false; break; }
+                        if (!free) continue;
+
+                        foreach (var c2 in cells) _occupiedCells.Add(c2);
+                        uint unitId = _nextUnitId++;
+                        string json = JsonUtility.ToJson(BeastAI.BuildPreset(spawned, layer, budget, size, fp));
+                        SpawnUnitClientRpc(unitId, BeastAI.OwnerId, BeastAI.TeamId, json, x, y);
+                        spawned++;
+                        placed = true;
+                        break;
+                    }
+                    if (placed) break;
+                }
+                if (!placed) break; // nao coube mais nenhuma fera no mapa
             }
             Debug.Log($"[PlacementSync] Coop: {spawned}/{count} feras posicionadas (camada {layer})");
         }
@@ -434,6 +485,10 @@ namespace PangeaSkirmish
             unit.teamId   = team;
             unit.isPlayerCharacter = (ownerId == LocalId);
             unit.weaponId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
+            if (!BeastAI.Controls(unit)) Equipment.EnsureKit(preset);   // feras não usam equipamento (GDD-021 §10)
+            unit.offhandId = preset.offhandId ?? ""; unit.headId = preset.headId ?? "";
+            unit.torsoId = preset.torsoId ?? ""; unit.legsId = preset.legsId ?? "";
+            if (Equipment.IsTwoHanded(unit.weaponId)) unit.offhandId = "";
             if (BeastAI.Controls(unit)) unit.definitionId = "monster"; // usa o modelo 3D da fera
             unit.modelId  = preset.modelId ?? "";                        // aparência escolhida na criação
             unit.stats    = (preset.stats ?? new UnitStatBlock()).ToAttributeStats();

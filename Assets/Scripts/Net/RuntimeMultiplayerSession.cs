@@ -14,7 +14,7 @@ namespace PangeaSkirmish
         public int gameMode = 0;
         /// <summary>Orçamento de atributos: fixo (PlayerProfile.AttributeBudget), igual em toda sala.</summary>
         public int attributeBudget = PlayerProfile.AttributeBudget;
-        public float planningTime = 15f; // GDD-014: tempo de um ponto de decisão
+        public float planningTime = 60f; // GDD-014: tempo de um ponto de decisão
         public int maxPlayers = 8;
         /// <summary>Snapshot do GameTuning (JSON) enviado ao servidor quando o anfitrião inicia a partida.
         /// Clientes aplicam em RuntimeTuning.Active. Vazio = usa GameTuning.asset default.</summary>

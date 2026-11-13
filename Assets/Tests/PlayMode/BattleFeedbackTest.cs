@@ -173,7 +173,7 @@ public class BattleFeedbackTest
         Assert.GreaterOrEqual(ActionFx.GroundMarks, 9, "área da Explosão (raio 1 = 3×3)");
         yield return Wait(0.12f);
         Capture("grid-adjacent.png");
-        yield return Wait(1.3f);
+        yield return Wait(Tuning.Get().spellMarkSeconds + 0.4f);   // marcas duram 1,9 s (golpe) e 2,4 s (magia)
         Assert.IsNull(GameObject.Find("GroundMark"), "as marcas somem sozinhas");
     }
 }

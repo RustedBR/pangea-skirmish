@@ -13,6 +13,14 @@ namespace PangeaSkirmish
         private const string KEY_WIDTH   = "settings.resWidth";
         private const string KEY_HEIGHT  = "settings.resHeight";
         private const string KEY_FULL    = "settings.fullscreen";
+        private const string KEY_PLATE   = "settings.plateScale";
+
+        /// <summary>Tamanho das placas de vida sobre as unidades (1 = médio). Opções: 0,7 a 1,6.</summary>
+        public static float PlateScale
+        {
+            get { return Mathf.Clamp(PlayerPrefs.GetFloat(KEY_PLATE, 1f), 0.7f, 1.6f); }
+            set { PlayerPrefs.SetFloat(KEY_PLATE, Mathf.Clamp(value, 0.7f, 1.6f)); PlayerPrefs.Save(); }
+        }
 
         // Cache em memória (evita ler PlayerPrefs a todo momento)
         private static float  _musicVolume  = 1f;

@@ -138,7 +138,7 @@ namespace PangeaSkirmish.UI
         public static string Sheet(CharacterPreset c)
         {
             var st = c.stats.ToAttributeStats();
-            WeaponDef.ApplyTo(st, WeaponCatalog.Get(c.weaponId), Tuning.Get());
+            Equipment.ApplyTo(st, Equipment.Of(c), Tuning.Get());
             return RoomHUD.DescribeCharacter(c) + "\n" +
                    $"Vida {st.MaxHP} · Stamina {st.MaxStamina} · Mana {st.MaxMana}\n" +
                    $"Golpe {st.PhysicalDamage} · Alcance {st.AttackRange} · Andada {st.MoveStep}";

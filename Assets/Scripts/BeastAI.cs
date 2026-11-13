@@ -53,22 +53,45 @@ namespace PangeaSkirmish
             return best;
         }
 
-        /// <summary>Ficha de uma fera para a camada/grupo dados (GDD-015 §3.3).</summary>
-        public static CharacterPreset BuildPreset(int index, int layer, int attributeBudget)
+        // ------------------------------------------------------- TAMANHOS (teste 2026-11-13)
+        // Pequena 1x1 (fraca, stats de hoje), Media 2x2 (~2x HP/dano), Grande 4x4 (~4x + alcance 2).
+        // Rapidez (DEX/AGI) e IGUAL entre tamanhos: fera grande e forte, nao rapida.
+
+        public enum BeastSize { Small, Medium, Large }
+
+        /// <summary>Tamanho da fera n. <paramref name="index"/> na camada <paramref name="layer"/>:
+        /// alterna com a camada (cada camada comeca num tamanho diferente, garantindo mistura).</summary>
+        public static BeastSize SizeFor(int index, int layer) => (BeastSize)((index + layer) % 3);
+
+        public static int FootprintOf(BeastSize s) => s == BeastSize.Small ? 1 : s == BeastSize.Medium ? 2 : 4;
+
+        private static string SizeName(BeastSize s) =>
+            s == BeastSize.Small ? "Fera Pequena" : s == BeastSize.Medium ? "Fera Média" : "Fera Grande";
+
+        /// <summary>Ficha de uma fera para a camada/grupo dados (GDD-015 §3.3 + tamanhos).</summary>
+        public static CharacterPreset BuildPreset(int index, int layer, int attributeBudget,
+                                                  BeastSize? size = null, int footprintOverride = 0)
         {
+            var sz = size ?? BeastSize.Medium;
+            int fp = footprintOverride > 0 ? footprintOverride : FootprintOf(sz);
             // Orçamento um pouco abaixo do dos jogadores na camada 1, crescendo por camada.
-            float pts = Mathf.Max(6f, attributeBudget * (0.55f + 0.10f * (layer - 1)));
+            var T = Tuning.Get();
+            float frac = T != null ? T.beastBudgetFrac : 0.4f;
+            float pts = Mathf.Max(6f, attributeBudget * (frac + 0.10f * (layer - 1)));
+            // Multiplicador de FORÇA por tamanho (tuning beastSizeMul; balanceamento 2026-11-13: 1/2/2).
+            var m3 = T != null ? T.beastSizeMul : new Vector3(1f, 2f, 2f);
+            float mul = sz == BeastSize.Small ? m3.x : sz == BeastSize.Medium ? m3.y : m3.z;
             return new CharacterPreset
             {
-                presetName = "Fera " + (index + 1),
+                presetName = SizeName(sz) + " " + (index + 1),
                 spritePath = "",
-                weaponId = "Claws", // fora do catálogo de propósito: usa os valores de desarmado
+                weaponId = sz == BeastSize.Large ? "ClawsLarge" : "Claws",   // garras de verdade (WeaponCatalog.BeastClaws)
                 stats = new UnitStatBlock
                 {
-                    STR = Mathf.Round(pts * 0.28f), VIT = Mathf.Round(pts * 0.30f),
+                    STR = Mathf.Round(pts * 0.28f * mul), VIT = Mathf.Round(pts * 0.30f * mul),
                     DEX = Mathf.Round(pts * 0.14f), AGI = Mathf.Round(pts * 0.18f),
                     INT = 1f, WIS = Mathf.Max(1f, Mathf.Round(pts * 0.10f)),
-                    Footprint = AttributeStats.DefaultFootprint, AttackRange = 1,
+                    Footprint = fp, AttackRange = sz == BeastSize.Large ? 2 : 1,
                 },
             };
         }

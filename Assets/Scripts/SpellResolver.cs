@@ -198,7 +198,8 @@ namespace PangeaSkirmish
             if (s.range <= 0) return s.range;
             var T = Tuning.Get();
             var w = WeaponCatalog.Get(u.weaponId);
-            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0);
+            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0)
+                  + (Equipment.HasEffect(u, ItemEffect.Conduit) ? 1 : 0);
             return u.IsDulled ? Mathf.Max(1, r - T.dullRangePenalty) : Mathf.Max(1, r);
         }
 
@@ -219,6 +220,11 @@ namespace PangeaSkirmish
                 case SpellEffect.PrepFury:
                     caster.furyReady = s.multiplier;
                     log.Add($"{head}: o próximo ataque causa dano ×{s.multiplier:0.#}");
+                    return log;
+                case SpellEffect.PrepCurve:
+                    caster.curveReady = true;
+                    BattleFeedback.Status(caster, "Curva pronta", new Color(0.55f, 0.85f, 1f));
+                    log.Add($"{head}: o próximo ataque à distância segue o alvo e contorna obstáculos");
                     return log;
                 case SpellEffect.PrepTrueAim:
                     caster.trueAimCrit = Mathf.Max(0.0001f, s.critBonus);
@@ -244,6 +250,15 @@ namespace PangeaSkirmish
             }
 
             // ---------------- Elemental ----------------
+            // Curva (magia física preparada): a magia segue a unidade mirada e contorna obstáculos.
+            bool curved = caster.curveReady && s.range > 0 && ps.TargetUnit != null && !ps.TargetUnit.IsDead
+                          && (s.effect == SpellEffect.Damage || s.effect == SpellEffect.Push || s.effect == SpellEffect.CancelMove);
+            if (curved)
+            {
+                ps.TargetTile = ps.TargetUnit.anchor;
+                caster.curveReady = false;
+                BattleFeedback.Status(caster, "Curva!", new Color(0.55f, 0.85f, 1f));
+            }
             int fp = caster.stats.Footprint;
             var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
             float potInt = caster.stats.INT;                 // limiares por INT (ex.: Rajada empurra +1 com INT ≥ 8)
@@ -317,7 +332,7 @@ namespace PangeaSkirmish
             if (targets.Count == 0) { log.Add($"{head}: <color=#888888>sem alvo</color>"); return log; }
 
             // Projétil: Muralha no caminho absorve; Tempestade de areia faz errar 50%.
-            if (s.area == 0 && field != null && targets.Count == 1)
+            if (!curved && s.area == 0 && field != null && targets.Count == 1)
             {
                 var t = targets[0];
                 var b = field.BarrierOnLine(caster.anchor, t.anchor);
@@ -351,7 +366,7 @@ namespace PangeaSkirmish
                 // a área conta os tiles dela dentro do quadrado; alvo único pega todos. Esquivar tira tiles.
                 int full = t.stats.Footprint * t.stats.Footprint;
                 int tiles = s.area > 0 ? TilesInArea(t, center, radius) : full;
-                int dodged = Mathf.Min(tiles, t.dodgeReactTiles);
+                int dodged = t.dodgeReactTiles > 0 && !curved ? AttackResolver.DodgeTilesFor(t, tiles) : 0;
                 t.dodgeReactTiles = 0;
                 int left = tiles - dodged;
                 if (left <= 0)
@@ -370,9 +385,9 @@ namespace PangeaSkirmish
                 string extra = "";
 
                 if (!t.IsDead && s.appliesStatus == "Burning")
-                { t.burningTicks = Mathf.Max(t.burningTicks, s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
+                { t.burningTicks = Mathf.Max(t.burningTicks, Equipment.HasEffect(t, ItemEffect.FireResist) ? Mathf.Max(1, s.durationTicks / 2) : s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
                 if (!t.IsDead && s.appliesStatus == "Soaked")
-                { t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
+                { if (!Equipment.HasEffect(t, ItemEffect.Dry)) t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
                 if (!t.IsDead && s.effect == SpellEffect.CancelMove && t.queue.Count > 0 && t.queue[0].Type == ActionType.Move)
                 { t.queue.RemoveAt(0); extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
                 if (!t.IsDead && s.pushTiles > 0)

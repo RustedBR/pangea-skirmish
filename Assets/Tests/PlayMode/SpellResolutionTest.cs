@@ -137,9 +137,10 @@ public class SpellResolutionTest
         Assert.AreEqual(2f, hero.furyReady, "Fúria prepara ×2 no próximo golpe");
 
         var foe = Make("Fera", Team.Enemy, new Vector2Int(6, 2), BeastAI.OwnerId);
-        Cast(hero, "TrueAim", hero.anchor);
-        Assert.IsTrue(SpellResolver.TryTrueAim(hero, foe, out var res));
-        Assert.AreNotEqual(HitResult.Miss, res, "Olho certeiro não erra");
+        Cast(hero, "Curve", hero.anchor);
+        Assert.IsTrue(hero.curveReady, "Curva preparada para o próximo ataque à distância");
+        Assert.IsNull(SpellCatalog.Get("TrueAim"), "Olho certeiro saiu do catálogo: virou reação");
+        Assert.AreEqual(2, Unit.ReactionCost(ReactionKind.TrueAim));
 
         Cast(foe, "StoneSkin", foe.anchor);
         Assert.Greater(foe.stoneSkinTicks, 0);

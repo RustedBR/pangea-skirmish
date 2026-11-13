@@ -36,10 +36,10 @@ public class AttackShapeTests
     [Test]
     public void Table_TotalsMatchTheGdd()
     {
-        // total = dano/tile × tiles centralizado, antes de atributos (tabela do GDD-020 §1).
+        // total = dano/tile × tiles centralizado, antes de atributos (balanceamento do simulador, 2026-11-13).
         var expected = new Dictionary<string, int> {
-            { "Hatchet", 9 }, { "IronAxe", 30 }, { "WoodenSword", 16 }, { "IronSword", 18 }, { "WoodenStaff", 18 },
-            { "Scepter", 20 }, { "ApprenticeWand", 8 }, { "ArcaneStaff", 18 }, { "ShortBow", 9 }, { "LongBow", 28 } };
+            { "Hatchet", 18 }, { "IronAxe", 36 }, { "WoodenSword", 24 }, { "IronSword", 24 }, { "WoodenStaff", 12 },
+            { "Scepter", 12 }, { "ApprenticeWand", 16 }, { "ArcaneStaff", 12 }, { "ShortBow", 15 }, { "LongBow", 25 } };
         foreach (var kv in expected)
         {
             var w = WeaponCatalog.Get(kv.Key);
@@ -71,12 +71,12 @@ public class AttackShapeTests
     {
         var st = new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5 }.ToAttributeStats();
         WeaponDef.ApplyTo(st, WeaponCatalog.Get("IronSword"), _t);
-        Assert.AreEqual(6f * (1f + 5f * _t.statFormulas.dmgPctPerAttr), st.DamagePerTile, 0.001f);
+        Assert.AreEqual(WeaponCatalog.Get("IronSword").damage * (1f + 5f * _t.statFormulas.dmgPctPerAttr), st.DamagePerTile, 0.001f);
         Assert.AreEqual(Mathf.RoundToInt(st.DamagePerTile * 3), st.PhysicalDamage);
         var bow = new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5 }.ToAttributeStats();
         WeaponDef.ApplyTo(bow, WeaponCatalog.Get("LongBow"), _t);
         Assert.IsTrue(bow.dexScalesDamage);
-        Assert.AreEqual(28f * (1f + 5f * _t.statFormulas.dmgPctPerAttr), bow.DamagePerTile, 0.001f);
+        Assert.AreEqual(WeaponCatalog.Get("LongBow").damage * (1f + 5f * _t.statFormulas.dmgPctPerAttr), bow.DamagePerTile, 0.001f);
     }
 
     [Test]

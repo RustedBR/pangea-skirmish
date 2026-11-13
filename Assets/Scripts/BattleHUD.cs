@@ -40,6 +40,8 @@ namespace PangeaSkirmish
         private VisualElement _logContent, _tooltipGo;
         private Label  _tooltipTxt;
         private VisualElement _inspectPanel, _portraitImg, _hpFill;
+        private CharacterPreview3D _unitPreview;          // retrato 3D da inspeção (câmera própria, igual à criação)
+        private string _previewKey;                        // última combinação corpo+arma+time já renderizada
         private Label  _unitNameText, _unitHPText, _apText, _unitStatsText;
         private VisualElement _miniLog;
         private VisualElement _ticksBar, _ticksTrack, _ticksQueue;
@@ -295,6 +297,17 @@ namespace PangeaSkirmish
             }
             _endMenuButton.RegisterCallback<ClickEvent>(_ => { if (_endMenuAction != null) _endMenuAction(); else SceneManager.LoadScene("MainMenu"); });
 
+            // Ordem de desenho (UI Toolkit não tem z-index): a bolha de inspeção vai para o fundo,
+            // embaixo de todos os painéis de ação; menus modais sobem ao abrir (BringToFront).
+            _inspectPanel?.SendToBack();
+
+            // Placas de vida na tela, presas acima de cada unidade (substituem as barras no mundo).
+            TextIcons.Attach();   // símbolos viram sprites em todos os textos
+            if (GetComponent<UnitPlates>() == null) gameObject.AddComponent<UnitPlates>().Init(r.Q<VisualElement>("root") ?? r);
+
+            var topbar = r.Q<VisualElement>("topbar");
+            if (topbar != null) topbar.style.display = DisplayStyle.None;   // aparece no primeiro SetPhase
+
             // Manter distância / Proteger saíram (GDD-020 §8): a postura virou bônus de atributo.
             foreach (var n in new[] { "btn-intent-4", "btn-intent-5" })
             { var b = r.Q<Button>(n); if (b != null) b.style.display = DisplayStyle.None; }
@@ -422,7 +435,59 @@ namespace PangeaSkirmish
             ApplyUnitInfo(u);
             if (_inspectPanel != null) _inspectPanel.style.display = DisplayStyle.Flex;
             if (_miniLog != null) _miniLog.style.display = DisplayStyle.Flex;
+            ApplyEscLevel();
         }
+        private VisualElement _inspectToggleIcon;
+        private Label _inspectToggleText;
+
+        /// <summary>
+        /// Inspeção ao lado da unidade inspecionada (2026-11-13): de preferência à esquerda dela,
+        /// sem cobrir unidades. Testa algumas posições e fica com a que esconde menos unidades;
+        /// o fallback é colada na borda esquerda.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_inspectPanel == null || _inspectedUnit == null || _inspectPanel.resolvedStyle.display != DisplayStyle.Flex) return;
+            var cam = Camera.main; var panel = _inspectPanel.panel; var parent = _inspectPanel.parent;
+            if (cam == null || panel == null || parent == null) return;
+            float w = _inspectPanel.layout.width, h = _inspectPanel.layout.height;
+            float W = parent.layout.width, H = parent.layout.height;
+            if (float.IsNaN(w) || float.IsNaN(H) || w <= 0f || W <= 0f) return;
+            Vector2 Screen(Unit x) => RuntimePanelUtils.CameraTransformWorldToPanel(panel, x.HeadWorld, cam);
+            Vector2 me = Screen(_inspectedUnit);
+            const float gap = 40f, top = 120f, bottomReserve = 200f;   // topo: barra de fase e dica   // topo: barra de fase; baixo: barras de ação e ticks
+            var cands = new List<Vector2>
+            {
+                new Vector2(me.x - gap - w, me.y - h * 0.3f),   // à esquerda da unidade
+                new Vector2(me.x - gap - w, me.y - h),          // à esquerda, acima
+                new Vector2(me.x - gap - w, me.y + 10f),        // à esquerda, abaixo
+                new Vector2(me.x + gap,     me.y - h * 0.3f),   // à direita da unidade
+                new Vector2(12f, top),                          // colada na borda esquerda, no topo
+                new Vector2(12f, H - bottomReserve - h),        // colada na borda esquerda, embaixo
+            };
+            Vector2 best = cands[0]; int bestScore = int.MaxValue;
+            for (int i = 0; i < cands.Count; i++)
+            {
+                var c = new Vector2(Mathf.Clamp(cands[i].x, 12f, Mathf.Max(12f, W - w - 12f)), Mathf.Clamp(cands[i].y, top, Mathf.Max(top, H - bottomReserve - h)));
+                var rect = new Rect(c.x - 16f, c.y - 16f, w + 32f, h + 32f);
+                int covered = 0;
+                foreach (var u in UnitRegistry.Tracked)
+                {
+                    if (u == null || u.IsDead) continue;
+                    Vector2 sp = Screen(u);
+                    if (rect.Contains(sp) || rect.Contains(sp + new Vector2(0f, 60f))) covered += u == _inspectedUnit ? 100 : 10;
+                }
+                int score = covered * 10 + i;   // empate: a ordem de preferência
+                if (score < bestScore) { bestScore = score; best = c; }
+            }
+            // Desliza em vez de pular, para não tremer com a câmera.
+            float cx = _inspectPanel.resolvedStyle.left, cy = _inspectPanel.resolvedStyle.top;
+            float k = Mathf.Clamp01(Time.unscaledDeltaTime * 12f);
+            if (float.IsNaN(cx) || Mathf.Abs(cx - best.x) > 600f) { cx = best.x; cy = best.y; k = 1f; }
+            _inspectPanel.style.left = Mathf.Lerp(cx, best.x, k);
+            _inspectPanel.style.top = Mathf.Lerp(cy, best.y, k);
+        }
+
         public void HideUnitInfo()
         {
             _inspectedUnit = null;
@@ -438,8 +503,26 @@ namespace PangeaSkirmish
         {
             if (u == null) return;
             var s = u.stats;
+            // Retrato = MESMO visual que a unidade usa no campo hoje: o modelo 3D (com a arma).
+            // Reusa o CharacterPreview3D da criação; só re-renderiza quando corpo/arma/time mudam.
             if (_portraitImg != null)
-                _portraitImg.style.backgroundImage = new StyleBackground(u.CurrentSprite);
+            {
+                var m = u.Model3D;
+                if (m != null && !string.IsNullOrEmpty(m.ModelName))
+                {
+                    Color tc = u.team == Team.Player ? CorPlayer : CorEnemy;
+                    string key = m.ModelName + "|" + (m.WeaponModelName ?? "") + "|" + tc.ToString();
+                    if (_unitPreview == null || key != _previewKey)
+                    {
+                        if (_unitPreview == null) _unitPreview = CharacterPreview3D.Create(256);
+                        _unitPreview.Show(m.ModelName, m.WeaponModelName, tc);
+                        _previewKey = key;
+                    }
+                    _portraitImg.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(_unitPreview.Texture));
+                }
+                else
+                    _portraitImg.style.backgroundImage = new StyleBackground(u.CurrentSprite);
+            }
             string team = u.team == Team.Player
                 ? $"<color=#{ColorUtility.ToHtmlStringRGB(CorPlayer)}>Aliado</color>"
                 : $"<color=#{ColorUtility.ToHtmlStringRGB(CorEnemy)}>Inimigo</color>";
@@ -457,16 +540,182 @@ namespace PangeaSkirmish
                                     : ratio > Thp.hpBarRedThreshold    ? Thp.hpBarMidColor
                                                                        : Thp.hpBarLowColor;
             }
-            if (_unitHPText != null) _unitHPText.text = $"HP  {u.currentHP} / {s.MaxHP}";
-            if (_apText != null) _apText.text = $"<b>Stamina</b> {u.remainingBAP}/{s.MaxStamina}";
-            var buffs = StatusEffectSystem.Summary(u.statusEffects);
-            if (_unitStatsText != null)
-                _unitStatsText.text =
-                    $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
-                    $"<b>MOV</b> {s.MoveStep}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
-                    $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}{(u.IsDulled ? "  <color=#c080ff>embotado</color>" : "")}" +
-                    (string.IsNullOrEmpty(u.SpellStateSummary()) ? "" : $"\n<color=#c9b8ff>{u.SpellStateSummary()}</color>") +
-                    (string.IsNullOrEmpty(buffs) ? "" : $"\n<color=#FFD700><b>BUFFS</b> {buffs}</color>");
+            if (_unitHPText != null) _unitHPText.text = $"{u.currentHP} / {s.MaxHP}";
+            if (_apText != null) _apText.style.display = DisplayStyle.None;
+            if (_unitStatsText != null) _unitStatsText.style.display = DisplayStyle.None;
+            BuildInspectBody(u);
+        }
+
+        // ── INSPEÇÃO COM ÍCONES (2026-11-13): compacta por padrão, expande para a ficha inteira ──
+        private void OnDestroy()
+        {
+            // A prévia 3D do retrato vive fora da HUD: sem isto ficava órfã na cena.
+            if (_unitPreview != null) Destroy(_unitPreview.gameObject);
+        }
+
+        private static bool _inspectExpanded;
+        private VisualElement _inspectBody;
+        private Button _inspectToggle;
+        private Label _inspectHint;
+        private static readonly Dictionary<string, Texture2D> _iconTex = new Dictionary<string, Texture2D>();
+
+        private static Texture2D IconTex(string name)
+        {
+            if (_iconTex.TryGetValue(name, out var t) && t != null) return t;
+            t = Resources.Load<Texture2D>("UI/Icons/" + name);
+            if (t != null) t.filterMode = FilterMode.Point;
+            _iconTex[name] = t;
+            return t;
+        }
+
+        private VisualElement Chip(string icon, string text, string tip, string cls = "bh-ichip")
+        {
+            var row = new VisualElement(); row.AddToClassList(cls);
+            var img = new VisualElement(); img.AddToClassList("bh-ichip-icon");
+            var tex = IconTex(icon);
+            if (tex != null) img.style.backgroundImage = new StyleBackground(tex);
+            row.Add(img);
+            var lbl = new Label(text) { pickingMode = PickingMode.Ignore }; lbl.AddToClassList("bh-ichip-text");
+            row.Add(lbl);
+            row.RegisterCallback<PointerEnterEvent>(_ => { if (_inspectHint != null) _inspectHint.text = tip; });
+            row.RegisterCallback<PointerLeaveEvent>(_ => { if (_inspectHint != null) _inspectHint.text = ""; });
+            return row;
+        }
+
+        private VisualElement Bar(string icon, float ratio, Color col, string text, string tip)
+        {
+            var row = new VisualElement(); row.AddToClassList("bh-ibar");
+            var img = new VisualElement(); img.AddToClassList("bh-ichip-icon");
+            var tex = IconTex(icon); if (tex != null) img.style.backgroundImage = new StyleBackground(tex);
+            row.Add(img);
+            var bg = new VisualElement(); bg.AddToClassList("bh-ibar-bg");
+            var fill = new VisualElement(); fill.AddToClassList("bh-ibar-fill");
+            fill.style.width = new Length(Mathf.Clamp01(ratio) * 100f, LengthUnit.Percent);
+            fill.style.backgroundColor = col;
+            bg.Add(fill); row.Add(bg);
+            var lbl = new Label(text) { pickingMode = PickingMode.Ignore }; lbl.AddToClassList("bh-ibar-text");
+            row.Add(lbl);
+            row.RegisterCallback<PointerEnterEvent>(_ => { if (_inspectHint != null) _inspectHint.text = tip; });
+            row.RegisterCallback<PointerLeaveEvent>(_ => { if (_inspectHint != null) _inspectHint.text = ""; });
+            return row;
+        }
+
+        private void BuildInspectBody(Unit u)
+        {
+            var content = _inspectPanel?.Q<VisualElement>("inspect-content");
+            if (content == null) return;
+            if (_inspectBody == null)
+            {
+                _inspectBody = new VisualElement { name = "inspect-body" };
+                content.Add(_inspectBody);
+                _inspectHint = new Label("") { name = "inspect-hint", pickingMode = PickingMode.Ignore };
+                _inspectHint.AddToClassList("bh-ihint");
+                content.Add(_inspectHint);
+                _inspectToggle = new Button(() => { _inspectExpanded = !_inspectExpanded; RefreshUnitInfo(); }) { name = "inspect-toggle" };
+                _inspectToggle.AddToClassList("bh-itoggle");
+                _inspectPanel.Add(_inspectToggle);
+            }
+            // Ícone e texto como filhos lado a lado (o texto do próprio botão ficava por baixo do ícone).
+            _inspectToggle.text = "";
+            if (_inspectToggleIcon == null)
+            {
+                _inspectToggleIcon = new VisualElement { pickingMode = PickingMode.Ignore };
+                _inspectToggleIcon.AddToClassList("bh-itoggle-icon");
+                _inspectToggle.Add(_inspectToggleIcon);
+                _inspectToggleText = new Label { pickingMode = PickingMode.Ignore };
+                _inspectToggleText.AddToClassList("bh-itoggle-text");
+                _inspectToggle.Add(_inspectToggleText);
+            }
+            _inspectToggleText.text = _inspectExpanded ? "menos" : "ficha";
+            var chev = IconTex(_inspectExpanded ? "chev_up" : "chev_down");
+            if (chev != null) _inspectToggleIcon.style.backgroundImage = new StyleBackground(chev);
+            _inspectBody.Clear();
+            var s = u.stats; var T = Tuning.Get(); var F = AttributeStats.Formulas ?? T.statFormulas;
+
+            // Recursos: Mana em barra, Stamina em barra curta (a Vida já está no topo).
+            _inspectBody.Add(Bar("mana", s.MaxMana > 0 ? (float)u.currentMana / s.MaxMana : 0f, new Color(0.31f, 0.59f, 1f),
+                $"{u.currentMana}/{s.MaxMana}", $"Mana: paga magias Elementais e metade das Físicas. Volta 1 a cada {s.ManaRegenTicks} ticks; Concentrar dá +{s.ConcentrateMana}."));
+            _inspectBody.Add(Bar("stamina", s.MaxStamina > 0 ? (float)u.currentStamina / s.MaxStamina : 0f, new Color(1f, 0.82f, 0.30f),
+                $"{u.currentStamina}/{s.MaxStamina}", $"Stamina: paga reações, golpe poderoso e metade das magias Físicas. Volta 1 a cada {s.StaminaRegenTicks} ticks; Respirar dá +{T.breatheStamina}."));
+
+            // Combate em ícones.
+            var combat = new VisualElement(); combat.AddToClassList("bh-igrid");
+            var w = WeaponCatalog.Get(u.weaponId);
+            combat.Add(Chip("dmg", $"{s.PhysicalDamage}", $"Golpe: {s.DamagePerTile:0.#} por tile × {s.ShapeTiles} tiles ({AttackShape.Describe(w)}) num alvo inteiro."));
+            combat.Add(Chip("range", $"{u.EffectiveAttackRange}", "Alcance da arma em células (uma unidade ocupa 3)."));
+            combat.Add(Chip("hit", $"{u.EffectiveHitChance * 100:0}%", "Chance de acertar (DEX)."));
+            combat.Add(Chip("dodge", $"{s.DodgeChance * 100:0}%", $"Chance de esquiva (AGI); a esquiva tira {AttackResolver.DodgeFrac(u) * 100:0}% dos tiles do golpe."));
+            combat.Add(Chip("def", $"−{s.PhysicalDefense}", $"Defesa física fixa por golpe (VIT × {F.armorPerVIT:0.##}). Bloquear soma {RoundManager.BlockAmount(u)}."));
+            combat.Add(Chip("mdef", $"−{s.MagicDefense}", "Defesa contra magia (WIS)."));
+            if (_inspectExpanded) combat.Add(Chip("move", $"{u.EffectiveMoveStep}", "Células por andada (AGI)."));
+            _inspectBody.Add(combat);
+
+            // Equipamento (GDD-021): os 5 slots, com a borda na cor da raridade; o hover diz o que dá.
+            if (!BeastAI.Controls(u))
+            {
+                var eq = new VisualElement(); eq.AddToClassList("bh-igrid");
+                void Slot(string id, ItemSlot slot)
+                {
+                    var it = ItemCatalog.Get(id); var w = WeaponCatalog.Get(id);
+                    string icon = it != null ? it.Icon : w != null ? "dmg" : slot == ItemSlot.Head ? "helm" : slot == ItemSlot.Torso ? "chest" : slot == ItemSlot.Legs ? "boots" : "dmg";
+                    string name = it != null ? it.displayName : w != null ? w.displayName + (Equipment.IsTwoHanded(w) ? " (2 mãos)" : "") : "—";
+                    string tip = it != null ? $"<b>{it.displayName}</b> · {Equipment.RarityName(it.rarity)}\n{it.Summary()}"
+                               : w != null ? $"<b>{w.displayName}</b> · {Equipment.SlotName(slot)}" + (slot == ItemSlot.LeftHand ? $"\nGolpe extra de {Tuning.Get().offhandDamageMult * 100:0}% junto com o ataque." : "")
+                               : $"{Equipment.SlotName(slot)}: vazio";
+                    var c = Chip(icon, name, tip);
+                    var col = it != null ? Equipment.RarityColor(it.rarity) : Equipment.RarityColor(Rarity.Common);
+                    c.style.borderTopColor = c.style.borderBottomColor = c.style.borderLeftColor = c.style.borderRightColor = col;
+                    if (it == null && w == null) c.style.opacity = 0.45f;
+                    eq.Add(c);
+                }
+                Slot(u.weaponId, ItemSlot.RightHand);
+                if (!Equipment.IsTwoHanded(u.weaponId)) Slot(u.offhandId, ItemSlot.LeftHand);
+                if (_inspectExpanded)
+                {
+                    Slot(u.headId, ItemSlot.Head); Slot(u.torsoId, ItemSlot.Torso); Slot(u.legsId, ItemSlot.Legs);
+                    int wt = Equipment.TotalWeight(Equipment.Of(u)), lim = Equipment.WeightLimit(s.VIT);
+                    eq.Add(Chip("stone", wt > lim ? $"<color=#ff8a7a>{wt}/{lim}</color>" : $"{wt}/{lim}",
+                        $"Peso {wt} de {lim} (2 + VIT/2).{(wt > lim ? $" {wt - lim} acima: −{wt - lim} na andada, na esquiva e no Esquivar." : "")}"));
+                }
+                _inspectBody.Add(eq);
+            }
+
+            // Ficha completa: atributos com a postura destacada.
+            if (_inspectExpanded)
+            {
+                var (up, down) = PostureRules.Attrs(u.posture);
+                var attrs = new VisualElement(); attrs.AddToClassList("bh-igrid");
+                void A(string icon, string key, float v, string tip)
+                {
+                    string col = key == up ? "#7fe08a" : key == down ? "#ff8a7a" : "#eef2ff";
+                    attrs.Add(Chip(icon, $"<color={col}>{key} {v:0}</color>", tip));
+                }
+                A("str", "STR", s.STR, "Força: dano por tile das armas de perto, Stamina.");
+                A("vit", "VIT", s.VIT, "Vitalidade: vida, defesa fixa, bloqueio, Stamina.");
+                A("dex", "DEX", s.DEX, "Destreza: ações mais rápidas, acerto, crítico, dano à distância, Stamina.");
+                A("agi", "AGI", s.AGI, "Agilidade: andada, esquiva (fração de tiles), iniciativa.");
+                A("int", "INT", s.INT, "Inteligência: potência e alcance das magias.");
+                A("wis", "WIS", s.WIS, "Sabedoria: Mana, regeneração e defesa mágica.");
+                _inspectBody.Add(attrs);
+            }
+
+            // Estados e postura em ícones.
+            var states = new VisualElement(); states.AddToClassList("bh-igrid");
+            if (u.posture != Posture.Neutral)
+            {
+                string pi = "p_" + u.posture.ToString().ToLowerInvariant();
+                states.Add(Chip(pi, PostureRules.Name(u.posture), $"Postura {PostureRules.Name(u.posture)}: {PostureRules.Effect(u.posture)}.", "bh-ichip bh-ichip--state"));
+            }
+            void St(string icon, string name, string tip) => states.Add(Chip(icon, name, tip, "bh-ichip bh-ichip--state"));
+            if (u.burningTicks > 0) St("burn", $"{u.burningTicks}t", $"Queimando: −{u.burningDamage} por tick.");
+            if (u.soakedTicks > 0) St("soaked", $"{u.soakedTicks}t", "Encharcado: −1 tile de andada. Apaga Queimando.");
+            if (u.stoneSkinTicks > 0) St("stone", $"{u.stoneSkinTicks}t", $"Pele de pedra: defesa da VIT ×{u.stoneSkinMult:0.#}.");
+            if (u.furyReady > 0f) St("fury", "Fúria", $"Próximo golpe ×{u.furyReady:0.#}.");
+            if (u.curveReady) St("eye", "Curva", "Próximo ataque à distância segue o alvo e contorna obstáculos.");
+            if (u.foresightTicks > 0) St("cast", $"{u.foresightTicks}t", "Visão arcana: vê a fila inimiga mais à frente.");
+            if (u.IsDulled) St("dulled", "Embotado", "Pouca Mana: magias com menos alcance.");
+            if (u.IsDead) St("hp", "Morto", "Fora da luta.");
+            if (states.childCount > 0) _inspectBody.Add(states);
         }
 
         // ── BARRA DE TICKS (GDD-016 §7) — substitui o seq-bar de chips fixos ──
@@ -546,7 +795,28 @@ namespace PangeaSkirmish
 
         // ── NAVEGAÇÃO CASCATA (removida; no-ops de compatibilidade) ──
         public void ShowMainMenu() { }
-        public void GoBack() { }
+        /// <summary>
+        /// Esc vai limpando a tela, uma parte por vez (2026-11-13): 1º Histórico, 2º inspeção,
+        /// 3º as unidades dos outros na barra de ticks; o 4º mostra tudo de novo.
+        /// </summary>
+        public void GoBack()
+        {
+            _escLevel = (_escLevel + 1) % 4;
+            ApplyEscLevel();
+            RebuildTickRows();
+            string[] msg = { "Mostrando tudo", "Histórico escondido (Esc)", "Inspeção escondida (Esc)", "Barra de ticks: só você (Esc mostra tudo)" };
+            ShowPlanNote(msg[_escLevel]);
+        }
+        private static int _escLevel;
+        public static int EscLevel => _escLevel;
+
+        private void ApplyEscLevel()
+        {
+            if (_miniLog != null && _escLevel >= 1) _miniLog.style.display = DisplayStyle.None;
+            else if (_miniLog != null && _escLevel == 0 && _inspectedUnit != null) _miniLog.style.display = DisplayStyle.Flex;
+            if (_inspectPanel != null && _escLevel >= 2) _inspectPanel.style.display = DisplayStyle.None;
+            else if (_inspectPanel != null && _inspectedUnit != null) _inspectPanel.style.display = DisplayStyle.Flex;
+        }
 
         // ── ESTADOS DE BOTÕES MANUAIS (no-ops de compatibilidade) ──
         public void SetMoveState(bool canAdd, int count, bool isPicking) { }
@@ -566,12 +836,15 @@ namespace PangeaSkirmish
             public Func<bool> Enabled;
             public Func<bool> Active;         // destacado (modo armado / postura escolhida)
             public Func<string> GlyphFn;      // ícone que muda (postura atual)
+            public string Icon;               // sprite em Resources/UI/Icons (a fonte do WebGL não tem os símbolos)
+            public Func<string> IconFn;       // sprite que muda (postura, reação)
             public Action<bool> OnClick;      // bool = Shift pressionado
         }
         private VisualElement _actionBar;
         private Label _actionTip;
         private readonly List<(ActionBarItem item, Button btn, Label badge)> _barButtons = new List<(ActionBarItem, Button, Label)>();
         private readonly Dictionary<ActionBarItem, Label> _barGlyphs = new Dictionary<ActionBarItem, Label>();
+        private readonly Dictionary<ActionBarItem, (VisualElement el, string name)> _barIcons = new Dictionary<ActionBarItem, (VisualElement, string)>();
         private bool _actionBarWanted;
 
         public void SetActionBarItems(List<ActionBarItem> items)
@@ -601,6 +874,14 @@ namespace PangeaSkirmish
                 var glyph = new Label(item.Glyph) { pickingMode = PickingMode.Ignore }; glyph.AddToClassList("bh-abtn-glyph");
                 var key = new Label(item.Key) { pickingMode = PickingMode.Ignore };     key.AddToClassList("bh-abtn-key");
                 var badge = new Label("") { pickingMode = PickingMode.Ignore };         badge.AddToClassList("bh-abtn-badge");
+                string iconName = item.IconFn != null ? item.IconFn() : item.Icon;
+                if (!string.IsNullOrEmpty(iconName))
+                {
+                    var ic = new VisualElement { pickingMode = PickingMode.Ignore }; ic.AddToClassList("bh-abtn-icon");
+                    var tx = IconTex(iconName); if (tx != null) ic.style.backgroundImage = new StyleBackground(tx);
+                    btn.Add(ic); _barIcons[item] = (ic, iconName);
+                    glyph.style.display = DisplayStyle.None;
+                }
                 btn.Add(glyph); btn.Add(key); btn.Add(badge);
                 _barGlyphs[item] = glyph;
                 btn.RegisterCallback<ClickEvent>(e =>
@@ -658,6 +939,11 @@ namespace PangeaSkirmish
                 btn.EnableInClassList("bh-abtn--on", item.Active != null && item.Active());
                 badge.text = item.Badge != null ? item.Badge() : "";
                 if (item.GlyphFn != null && _barGlyphs.TryGetValue(item, out var gl)) gl.text = item.GlyphFn();
+                if (item.IconFn != null && _barIcons.TryGetValue(item, out var bi))
+                {
+                    string n = item.IconFn();
+                    if (n != bi.name) { var tx = IconTex(n); bi.el.style.backgroundImage = tx != null ? new StyleBackground(tx) : new StyleBackground(StyleKeyword.None); _barIcons[item] = (bi.el, n); }
+                }
             }
         }
 
@@ -707,7 +993,13 @@ namespace PangeaSkirmish
         }
 
         // ── TEXTOS PÚBLICOS ──
-        public void SetPhase(string s)          { if (_phaseText != null) _phaseText.text = s; }
+        public void SetPhase(string s)
+        {
+            if (_phaseText != null) _phaseText.text = s;
+            // O topo só aparece quando a partida escreve a fase (antes mostrava "Phase/Timer" de exemplo).
+            var top = Root?.Q<VisualElement>("topbar");
+            if (top != null) top.style.display = string.IsNullOrEmpty(s) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
         public void SetTimer(float sec)         { if (_timerText != null) _timerText.text = sec.ToString("0.0") + "s"; }
         public void SetTimerWarning(bool warn)  { if (_timerText != null) _timerText.style.color = warn ? Tuning.Get().timerWarningColor : Tuning.Get().timerNormalColor; }
         public void HideTimer()                 { if (_timerText != null) _timerText.text = ""; }
@@ -978,6 +1270,7 @@ namespace PangeaSkirmish
                 if (u == null || u.IsDead) continue;
                 bool mine = _tlIsMine != null && _tlIsMine(u);
                 bool isPlanRow = planning && u == planUnit;
+                if (_escLevel >= 3 && !mine && !isPlanRow) continue;   // Esc: só as minhas unidades
 
                 var row = new VisualElement { pickingMode = PickingMode.Ignore };
                 row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Stretch;
@@ -1016,7 +1309,14 @@ namespace PangeaSkirmish
                         }
                         SpellDef planSpell = (_planSeq[i] == ActionType.Spell && _planSched != null && i < _planSched.Count)
                                            ? TickRules.SpellOf(planUnit, _planSched[i]) : null;
-                        string planText = planSpell != null ? SpellBlockText(planUnit, planSpell) : BlockText(planUnit, _planSeq[i], bonus, aimed, tiles);
+                        Unit planTarget = null;
+                        if (_planSched != null && i < _planSched.Count)
+                        {
+                            int ix = _planSched[i].Index;
+                            if (_planSeq[i] == ActionType.Attack && ix >= 0 && ix < planUnit.plannedAttacks.Count) planTarget = planUnit.plannedAttacks[ix].TargetUnit;
+                            else if (_planSeq[i] == ActionType.Spell && ix >= 0 && ix < planUnit.plannedSpells.Count) planTarget = planUnit.plannedSpells[ix].TargetUnit;
+                        }
+                        string planText = planSpell != null ? SpellBlockText(planUnit, planSpell, planTarget) : BlockText(planUnit, _planSeq[i], bonus, aimed, tiles, planTarget);
                         var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus, planSpell),
                                               $"{idx + 1} {planText}", true);
                         if (planSpell != null && !planSpell.IsPhysical)
@@ -1054,7 +1354,7 @@ namespace PangeaSkirmish
                         foreach (var th in threats) if (th.by == u && q.Type == ActionType.Attack && q.Attack.TargetUnit == th.target) threat = true;
                         SpellDef qSpell = q.Type == ActionType.Spell ? q.Spell.Def : null;
                         bool seen = mine || (foresight && used <= 2);
-                        string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0))
+                        string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell, q.Spell.TargetUnit) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0, q.Type == ActionType.Attack ? q.Attack.TargetUnit : null))
                                      : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? SpellGlyph + " conjurando" : "ocupada";
                         if (seen && !mine) label = "👁 " + label;
                         var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.72f, 0.20f, 0.18f) : TlWait, label, mine || threat);
@@ -1132,12 +1432,14 @@ namespace PangeaSkirmish
             AttackResolver.PowerDamage(u, bonus, aimed ? Mathf.RoundToInt(u.stats.DEX * Tuning.Get().aimDexMultiplier) : 0);
 
         /// <summary>Texto de um bloco: ícone, nome e efeito (tiles que anda, dano esperado).</summary>
-        private static string BlockText(Unit u, ActionType t, bool bonus, bool aimed, int tiles)
+        // Blocos (2026-11-13): ícone + verbo + alvo. O dano previsto fica na janela de incremento e no hover.
+        private static string BlockText(Unit u, ActionType t, bool bonus, bool aimed, int tiles, Unit target = null)
         {
+            string on = target != null ? " " + target.unitName : "";
             switch (t)
             {
                 case ActionType.Move:   return tiles > 0 ? $"→ Andar {tiles}" : bonus ? "→ Passo rápido" : "→ Andar";
-                case ActionType.Attack: return $"{(bonus ? "◆ Golpe" : "⚔ Atacar")}{(aimed ? " ◎" : "")} ~{ExpectedDamage(u, bonus, aimed)}";
+                case ActionType.Attack: return $"{(bonus ? "◆" : "⚔")}{(aimed ? "◎" : "")} {(bonus ? "Golpear" : "Atacar")}{on}";
                 case ActionType.Concentrate: return "✦ Concentrar";
                 default: return "… Esperar";
             }
@@ -1205,13 +1507,10 @@ namespace PangeaSkirmish
         /// <summary>Glifo das magias na HUD. A fonte desenha ✦ como "+" (confunde com "+ 3 livres"); ◈ existe no mesmo bloco de ◆/◎.</summary>
         public const string SpellGlyph = "◈";
 
-        private static string SpellBlockText(Unit u, SpellDef s)
+        private static string SpellBlockText(Unit u, SpellDef s, Unit target = null)
         {
             if (s == null) return SpellGlyph + " Magia";
-            string eff = s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push
-                       ? $" ~{SpellResolver.Amount(u, s)}"
-                       : s.effect == SpellEffect.Heal ? $" +{SpellResolver.Amount(u, s)}" : "";
-            return $"{SpellGlyph} {s.displayName}{eff}";
+            return $"{SpellGlyph} {s.displayName}{(target != null ? " em " + target.unitName : "")}";
         }
 
         /// <summary>Bloco de ação: largura proporcional aos ticks, texto dentro.</summary>
@@ -1244,8 +1543,11 @@ namespace PangeaSkirmish
             clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\(\d+/\d+ HP\)", "");
             clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^(?:[>\s*✦▼↯⚔🛡💥💨~!]|x\s)+", "");
             clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\s{2,}", " ").Trim();
-            // "Fera 1 -> Jogador: 6" vira "→ Jogador −6": cabe até num bloco de 1 tick.
-            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^.*?->\s*(.*?):\s*(\d+)\b.*$", "→ $1 −$2");
+            // O que aconteceu, no mesmo jeito dos blocos (2026-11-13): ícone + verbo + alvo.
+            // "Maga — Explosão [Fogo] -> Alvo: 26" vira "◈ Explosão em Alvo"; "Fera 1 -> Jogador: 6" vira "⚔ Atacou Jogador".
+            var sm = System.Text.RegularExpressions.Regex.Match(clean, @"—\s*(.+?)\s*\[.*?->\s*(.*?):");
+            if (sm.Success) clean = $"{SpellGlyph} {sm.Groups[1].Value} em {sm.Groups[2].Value}";
+            else clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^.*?->\s*(.*?):\s*(\d+)\b.*$", "⚔ Atacou $1");
             if (clean.Length == 0) return;
             _rowEvents[u] = (clean, Time.unscaledTime);
             ApplyRowEvent(u);
@@ -1414,7 +1716,7 @@ namespace PangeaSkirmish
             if (_bonusTimerText != null) _bonusTimerText.text = "";
             if (_simButton != null) _simButton.style.display = DisplayStyle.None;
             if (_naoButton != null) _naoButton.style.display = DisplayStyle.None;
-            if (_promptPanel != null) _promptPanel.style.display = DisplayStyle.Flex;
+            if (_promptPanel != null) { _promptPanel.style.display = DisplayStyle.Flex; _promptPanel.BringToFront(); }
         }
         public void ShowBonusPrompt(string text, Action onSim, Action onNao)
         {
@@ -1436,7 +1738,7 @@ namespace PangeaSkirmish
                 _btnHandlers[_naoButton] = hNao;
                 _naoButton.clicked += hNao;
             }
-            if (_promptPanel != null) _promptPanel.style.display = DisplayStyle.Flex;
+            if (_promptPanel != null) { _promptPanel.style.display = DisplayStyle.Flex; _promptPanel.BringToFront(); }
         }
         public void HidePrompt() { if (_promptPanel != null) _promptPanel.style.display = DisplayStyle.None; }
 
@@ -1444,6 +1746,7 @@ namespace PangeaSkirmish
         private System.Action<ReactionKind> _reactionPick;
         public void ShowReactionMenu(Unit reactor, List<ReactionKind> options, float timer, System.Action<ReactionKind> onPick)
         {
+            var ttl = _reactionMenu?.Q<Label>("reaction-title"); if (ttl != null) ttl.text = "REAGIR";
             _reactionPick = onPick;
             if (_actionTip != null) _actionTip.style.display = DisplayStyle.None;
             if (_reactionText != null)
@@ -1460,7 +1763,7 @@ namespace PangeaSkirmish
                 {
                     var btn = new Button(() => _reactionPick?.Invoke(opt))
                     {
-                        text = options.Count == 1 ? $"Sim — {ReactionLabelFor(opt, reactor)}" : ReactionLabelFor(opt, reactor)
+                        text = ReactionLabelFor(opt, reactor)
                     };
                     btn.AddToClassList("pg-button");
                     btn.AddToClassList("bh-reaction-btn");
@@ -1471,7 +1774,7 @@ namespace PangeaSkirmish
                 skip.AddToClassList("pg-button");
                 _reactionButtons.Add(skip);
             }
-            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.Flex;
+            if (_reactionMenu != null) { _reactionMenu.style.display = DisplayStyle.Flex; _reactionMenu.BringToFront(); }
         }
         public void UpdateBonusTimer(float sec)
         {
@@ -1480,9 +1783,13 @@ namespace PangeaSkirmish
             else if (_bonusTimerText != null)
                 _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         }
-        public void ShowChoice(string text, params (string label, System.Action onPick)[] options)
+        public void ShowChoice(string text, params (string label, System.Action onPick)[] options) => ShowChoiceTitled("ESCOLHA", text, options);
+
+        /// <summary>Janela de escolha no canto inferior esquerdo, com título próprio (ex.: INCREMENTAR).</summary>
+        public void ShowChoiceTitled(string title, string text, params (string label, System.Action onPick)[] options)
         {
             _reactionPick = null;
+            var ttl = _reactionMenu?.Q<Label>("reaction-title"); if (ttl != null) ttl.text = title;
             if (_reactionText != null) _reactionText.text = text;
             if (_reactionTimer != null) _reactionTimer.text = "";
             if (_reactionButtons != null)
@@ -1494,6 +1801,7 @@ namespace PangeaSkirmish
                     var act = onPick;
                     var btn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIConfirm); act?.Invoke(); }) { text = label };
                     btn.AddToClassList("pg-button");
+                    btn.AddToClassList("bh-reaction-btn");
                     _reactionButtons.Add(btn);
                 }
             }
@@ -1515,12 +1823,14 @@ namespace PangeaSkirmish
             if (u == null) return baseText;
             var T = Tuning.Get();
             int cost = Unit.ReactionCost(k);
+            string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#9fb3d9>{effect} · {cost} Stamina</color></size>";
             switch (k)
             {
-                case ReactionKind.Dodge:         return $"{baseText} — tira {AttackResolver.DodgeTiles(u)} tile(s) do golpe · {cost} St";
-                case ReactionKind.Block:         return $"{baseText} — −{RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra · {cost} St";
-                case ReactionKind.CounterAttack: return $"{baseText} — golpe da arma; se acertar, interrompe · {cost} St";
-                case ReactionKind.Intercept:     return $"{baseText} — entra na frente e divide os tiles · {cost} St";
+                case ReactionKind.Dodge:         return L($"anda até {RoundManager.DodgeMoveTiles(u)} tile{(RoundManager.DodgeMoveTiles(u) == 1 ? "" : "s")} para fora do golpe");
+                case ReactionKind.Block:         return L($"segura {RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra");
+                case ReactionKind.CounterAttack: return L("golpe da arma; se acertar, interrompe a ação dele");
+                case ReactionKind.Intercept:     return L("anda até o aliado, entra na frente e divide os tiles");
+                case ReactionKind.TrueAim:       return L($"o tiro que ia errar acerta, +{Tuning.Get().trueAimCritBonus * 100:0}% de crítico");
                 default:                         return baseText;
             }
         }
@@ -1530,13 +1840,14 @@ namespace PangeaSkirmish
             ReactionKind.Dodge         => "↯ Esquivar",
             ReactionKind.Intercept     => "▣ Interpor",
             ReactionKind.Block         => "■ Bloquear",
+            ReactionKind.TrueAim       => "◎ Olho certeiro",
             _ => "?"
         };
 
         public void ShowEndScreen(string msg)
         {
             if (_endText != null) _endText.text = msg;
-            if (_endPanel != null) _endPanel.style.display = DisplayStyle.Flex;
+            if (_endPanel != null) { _endPanel.style.display = DisplayStyle.Flex; _endPanel.BringToFront(); }
         }
 
         private Button _endRestartButton;

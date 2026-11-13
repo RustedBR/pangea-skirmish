@@ -20,6 +20,8 @@ namespace PangeaSkirmish
             public bool AnyHit;          // alguma unidade tomou dano
             public bool AbsorbedAll;     // o bloqueio de algum alvo absorveu o golpe inteiro
             public List<Unit> Hit;       // quem tomou dano
+            public List<Unit> Missed;    // quem estava na forma e escapou (errou ou esquivou tudo)
+            public bool Ranged;          // golpe à distância (mais de 1 célula até o alvo)
         }
         public static LastStrike Last;
 
@@ -44,19 +46,68 @@ namespace PangeaSkirmish
         /// <summary>Contra-atacar (golpe de oportunidade, GDD-020 §8): golpe comum centralizado no provocador.</summary>
         public static string ResolveOpportunityStrike(Unit attacker, Unit target, IEnumerable<Unit> all)
         {
-            Last = new LastStrike { Hit = new List<Unit>() };
+            Last = new LastStrike { Hit = new List<Unit>(), Missed = new List<Unit>() };
             if (target == null || target.IsDead || !attacker.IsHostileTo(target)) return null;
             // O gatilho já garante o alcance (o provocador estava nele ao andar, reagir ou conjurar).
+            float mult = Tuning.Get().aooDamageMult * (Equipment.HasEffect(attacker, ItemEffect.SharpCounter) ? 1.3f : 1f);
             string log = Strike(attacker, AttackShape.Center(target.anchor, target.stats.Footprint), false, target, all,
-                                Tuning.Get().aooDamageMult, null, null);
+                                mult, null, null);
             return log != null ? "<color=#ff8800>⚔ Oportunidade</color> " + log : null;
         }
 
         /// <summary>Resolve um ataque planejado e devolve linha(s) de log; null = sem alvo.</summary>
+        /// <summary>
+        /// Mira travada (2026-11-13): o golpe fica nos tiles de onde foi mirado, mesmo que o alvo
+        /// tenha esquivado para longe. Definida pela resolução do tick em volta de ResolveAttack.
+        /// </summary>
+        public static Vector2Int? AimLock;
+
         public static string ResolveAttack(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
                                            Unit interceptor = null, Unit protectedUnit = null)
         {
-            Last = new LastStrike { Hit = new List<Unit>() };
+            string log = ResolveMainHand(attacker, attack, all, interceptor, protectedUnit);
+            var off = Equipment.OffhandWeapon(attacker.offhandId);
+            if (off == null || log == null || attacker.IsDead) return log;
+            var main = Last;
+            if (main.Hit.Count == 0 && main.Missed.Count == 0) return log;   // o golpe principal não saiu
+
+            // Segunda arma (GDD-021 §2.2): acerta junto, mais fraca, na forma dela e no mesmo ponto.
+            Vector2Int aim;
+            if (AimLock.HasValue) aim = AimLock.Value;
+            else if (attack.Mode == AttackMode.Tile) aim = attack.TargetTile;
+            else
+            {
+                var t = attack.Mode == AttackMode.Unit ? attack.TargetUnit : FindTargetInRange(attacker, all);
+                if (t == null || t.IsDead) return log;
+                aim = AttackShape.Center(t.anchor, t.stats.Footprint);
+            }
+            var T = Tuning.Get();
+            int reach = T.baseAttackRange + off.range;
+            if (GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, aim, 1) > reach) return log;
+
+            var st = attacker.stats;
+            int saveDmg = st.WeaponDamage, saveTiles = st.ShapeTiles; string saveW = attacker.weaponId;
+            attacker.weaponId = off.id;
+            st.WeaponDamage = Mathf.Max(1, Mathf.RoundToInt(off.damage * T.oneHandDamageMult));
+            st.ShapeTiles = AttackShape.CenteredTiles(off);
+            string extra = null;
+            try { extra = Strike(attacker, aim, attack.Mode == AttackMode.Tile, null, all, T.offhandDamageMult, null, null); }
+            finally { attacker.weaponId = saveW; st.WeaponDamage = saveDmg; st.ShapeTiles = saveTiles; }
+            var second = Last;
+            main.Hit.AddRange(second.Hit); main.AnyHit |= second.AnyHit;
+            Last = main;
+            return extra != null ? log + "\n<color=#9fd0ff>2ª arma</color> " + extra : log;
+        }
+
+        private static string ResolveMainHand(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
+                                              Unit interceptor, Unit protectedUnit)
+        {
+            Last = new LastStrike { Hit = new List<Unit>(), Missed = new List<Unit>() };
+            if (AimLock.HasValue && attack.Mode != AttackMode.Tile)
+            {
+                var lt = attack.Mode == AttackMode.Unit ? attack.TargetUnit : FindTargetInRange(attacker, all);
+                return Strike(attacker, AimLock.Value, false, lt != null && !lt.IsDead ? lt : null, all, 1f, interceptor, protectedUnit);
+            }
             switch (attack.Mode)
             {
                 case AttackMode.Tile:
@@ -83,6 +134,21 @@ namespace PangeaSkirmish
             }
         }
 
+        /// <summary>
+        /// Reação Olho certeiro (2026-11-13): o golpe à distância que ia errar <paramref name="target"/>
+        /// acerta, com o bônus de crítico. Refaz o golpe só nesse alvo, sem rolagem de acerto e sem esquiva.
+        /// </summary>
+        public static string ResolveForcedHit(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all, Unit target)
+        {
+            if (attacker == null || target == null || target.IsDead) return null;
+            attacker.trueAimCrit = Mathf.Max(0.0001f, Tuning.Get().trueAimCritBonus);
+            var aim = attack.Mode == AttackMode.Tile ? attack.TargetTile : AttackShape.Center(target.anchor, target.stats.Footprint);
+            if (AttackShape.TilesOn(CellsFor(attacker, aim), target.anchor, target.stats.Footprint) <= 0)
+                aim = AttackShape.Center(target.anchor, target.stats.Footprint);
+            string log = Strike(attacker, aim, attack.Mode == AttackMode.Tile, target, all, 1f, null, null, target, forceHit: true);
+            return log != null ? "<color=#55ccff>◎ Olho certeiro</color> " + log : null;
+        }
+
         /// <summary>Células que o golpe planejado pega, da posição atual de quem ataca.</summary>
         public static List<Vector2Int> CellsFor(Unit attacker, Vector2Int aim) =>
             AttackShape.Cells(WeaponCatalog.Get(attacker.weaponId), AttackShape.Center(attacker.anchor, attacker.stats.Footprint), aim);
@@ -100,13 +166,44 @@ namespace PangeaSkirmish
                 if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
                 int tiles = AttackShape.TilesOn(cells, u.anchor, u.stats.Footprint);
                 if (tiles <= 0) continue;
+                tiles = EffectiveTiles(attacker, u, tiles);
                 int dmg = Mathf.Max(Tuning.Get().minDamageFloor, Mathf.RoundToInt(perTile * tiles) - u.stats.PhysicalDefense);
                 result.Add((u, tiles, dmg));
             }
             return result;
         }
 
+        /// <summary>
+        /// Tiles que contam no dano. Alvo menor que 3×3 (fera pequena 1×1, média 2×2) não pode
+        /// "esconder" o corpo da forma: cada tile pego vale 9/área, até o que a forma pegaria num
+        /// alvo 3×3 centralizado. Alvos 3×3 ou maiores contam os tiles como estão.
+        /// </summary>
+        public static int EffectiveTiles(Unit attacker, Unit target, int tiles)
+        {
+            int fp = target != null && target.stats != null ? target.stats.Footprint : AttributeStats.DefaultFootprint;
+            int std = AttributeStats.DefaultFootprint;
+            if (fp >= std || tiles <= 0) return tiles;
+            int cap = attacker != null ? Mathf.Max(1, attacker.stats.ShapeTiles) : tiles;
+            return Mathf.Min(cap, Mathf.CeilToInt(tiles * (std * std) / (float)(fp * fp)));
+        }
+
         /// <summary>Tiles que a esquiva tira de um golpe (AGI, mínimo 1).</summary>
+        /// <summary>Fração dos tiles que a esquiva tira (AGI × dodgeFracPerAGI, até dodgeFracCap).</summary>
+        public static float DodgeFrac(Unit u) =>
+            Mathf.Clamp01(Mathf.Min(Tuning.Get().dodgeFracCap, u.stats.AGI * Tuning.Get().dodgeFracPerAGI));
+
+        /// <summary>
+        /// Tiles tirados por uma esquiva (balanceamento 2026-11-13): uma FRAÇÃO dos tiles do golpe,
+        /// mínimo 1; contra golpe de 1 tile vira CHANCE de errar (antes anulava toda flecha).
+        /// </summary>
+        public static int DodgeTilesFor(Unit u, int tiles)
+        {
+            float f = DodgeFrac(u);
+            if (tiles <= 1) return BattleRng.Roll10000() < Mathf.RoundToInt(f * 10000f) ? tiles : 0;
+            return Mathf.Clamp(Mathf.RoundToInt(tiles * f), 1, tiles);
+        }
+
+        /// <summary>Legado (texto): tiles de um golpe 3×1 típico.</summary>
         public static int DodgeTiles(Unit u) =>
             Mathf.Max(1, Mathf.FloorToInt(u.stats.AGI) / Mathf.Max(1, Tuning.Get().dodgeAgiPerTile));
 
@@ -122,11 +219,15 @@ namespace PangeaSkirmish
         /// caminho e o Olho certeiro); null na mira livre. Interpor: os tiles do protegido se dividem.
         /// </summary>
         private static string Strike(Unit attacker, Vector2Int aim, bool freeAim, Unit primary, IEnumerable<Unit> all,
-                                     float dmgMult, Unit interceptor, Unit protectedUnit)
+                                     float dmgMult, Unit interceptor, Unit protectedUnit,
+                                     Unit onlyTarget = null, bool forceHit = false)
         {
             var T = Tuning.Get();
             var F = AttributeStats.Formulas;
-            Last = new LastStrike { Hit = new List<Unit>() };
+            Last = new LastStrike { Hit = new List<Unit>(), Missed = new List<Unit>() };
+            // Curva (magia física): o ataque à distância segue o alvo — mira no corpo dele agora.
+            bool curve = attacker.curveReady;
+            if (curve && primary != null && !primary.IsDead) aim = AttackShape.Center(primary.anchor, primary.stats.Footprint);
             var cells = CellsFor(attacker, aim);
 
             // Quem está dentro da forma (só inimigos, GDD-020 §2) e quantos tiles cada um tem nela.
@@ -135,8 +236,10 @@ namespace PangeaSkirmish
             foreach (var u in Sorted(all))
             {
                 if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
+                if (onlyTarget != null && u != onlyTarget) continue;
                 int n = AttackShape.TilesOn(cells, u.anchor, u.stats.Footprint);
                 if (n <= 0) continue;
+                n = EffectiveTiles(attacker, u, n);
                 tilesOf[u] = n; order.Add(u);
             }
             // Interpor: o protetor entra na frente e fica com metade (arredondada para cima) dos tiles.
@@ -163,7 +266,14 @@ namespace PangeaSkirmish
             // Muralha / Tempestade no caminho de golpes à distância (GDD-019 §3.2), contra o alvo do clique.
             var field = SpellField.Current;
             var lineTarget = primary ?? order[0];
-            if (field != null && GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, lineTarget.anchor, lineTarget.stats.Footprint) > 1)
+            Last.Ranged = GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, lineTarget.anchor, lineTarget.stats.Footprint) > 1;
+            if (curve && Last.Ranged)
+            {
+                attacker.curveReady = false;
+                BattleFeedback.Status(attacker, "Curva!", new Color(0.55f, 0.85f, 1f));
+            }
+            else curve = false;
+            if (!curve && field != null && GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, lineTarget.anchor, lineTarget.stats.Footprint) > 1)
             {
                 var wall = field.BarrierOnLine(attacker.anchor, lineTarget.anchor);
                 if (wall != null)
@@ -202,6 +312,7 @@ namespace PangeaSkirmish
                     else res = BattleRng.Roll10000() < Mathf.RoundToInt(Mathf.Clamp01(hitChance) * 10000f) ? HitResult.Hit : HitResult.Miss;
                 }
                 else res = HitResult.Hit;
+                if (forceHit && res == HitResult.Miss) res = HitResult.Hit;
                 firstTarget = false;
                 if (trueAim) BattleFeedback.Status(attacker, "Olho certeiro!", new Color(0.33f, 0.80f, 1f));
 
@@ -209,16 +320,18 @@ namespace PangeaSkirmish
                 {
                     BattleFeedback.Miss(t);
                     lines.Add($"<color=#888888>x</color> {attacker.unitName} errou {t.unitName}");
+                    Last.Missed.Add(t);
                     ClearDefense(t);
                     continue;
                 }
 
                 // Esquiva tira tiles (GDD-020 §4). A reação Esquivar garante; senão rola pela AGI (crítico não se esquiva).
                 int removed = 0;
-                if (t.dodgeReactTiles > 0) removed = t.dodgeReactTiles;
+                if (curve || forceHit) removed = 0;          // a Curva segue o alvo; o Olho certeiro acerta
+                else if (t.dodgeReactTiles > 0) removed = DodgeTilesFor(t, tiles);
                 else if (res != HitResult.Critical && !trueAim &&
                          BattleRng.Roll10000() < Mathf.RoundToInt(t.stats.DodgeChance * 10000f))
-                    removed = DodgeTiles(t);
+                    removed = DodgeTilesFor(t, tiles);
                 removed = Mathf.Min(removed, tiles);
                 int left = tiles - removed;
                 if (removed > 0)
@@ -230,6 +343,7 @@ namespace PangeaSkirmish
                 {
                     BattleFeedback.Dodge(t);
                     lines.Add($"<color=#55ccff>↯</color> {t.unitName} esquivou o golpe de {attacker.unitName} ({tiles}/{tiles} tiles)");
+                    Last.Missed.Add(t);
                     ClearDefense(t);
                     continue;
                 }

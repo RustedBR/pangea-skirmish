@@ -5,8 +5,8 @@
 
     <!-- TOPO: fase + timer (texto centralizado) -->
     <ui:VisualElement name="topbar" class="bh-window bh-topbar">
-      <ui:Label name="phase-text" text="Phase" class="bh-phase" />
-      <ui:Label name="timer-text" text="Timer" class="bh-timer" />
+      <ui:Label name="phase-text" text="" class="bh-phase" />
+      <ui:Label name="timer-text" text="" class="bh-timer" />
     </ui:VisualElement>
 
     <!-- BANDA DE INTENÇÃO (GDD-016): faixa central no topo, NÃO cobre mais o botão Confirmar.

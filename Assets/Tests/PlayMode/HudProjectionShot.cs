@@ -131,6 +131,14 @@ public class HudProjectionShot
         yield return Shot("hud-reaction.png");
         hud.HideReactionMenu();
 
+        // Janela de incremento (mesmo lugar da reação), com o dano de agora → depois.
+        hud.ShowChoiceTitled("INCREMENTAR", "Escudeiro vai atacar em Fera 1: ~26 de dano.\n<size=12><color=#9fb3d9>Stamina 5</color></size>",
+            ("<b>Golpe poderoso</b>   ~26 → <b>~39</b> de dano\n<size=12><color=#9fb3d9>2 Stamina · +1 tick</color></size>", null),
+            ("<b>Mirar</b>   ~26 → <b>~31</b> de dano, mais acerto\n<size=12><color=#9fb3d9>1 Stamina</color></size>", null),
+            ("Não incrementar", null));
+        yield return Shot("hud-increment.png");
+        hud.HideReactionMenu();
+
         // Catálogo de magias com a descrição de números reais.
         hud.ToggleSpellMenu();
         for (int i = 0; i < 2; i++) yield return null;
@@ -141,6 +149,24 @@ public class HudProjectionShot
         yield return Shot("hud-spells.png");
         StringAssert.Contains("5×5", SpellResolver.Describe(hero, SpellCatalog.Get("Explosion")), "área real no texto");
         StringAssert.Contains("Mana + 1 Stamina", SpellCatalog.Get("Fury").CostText);
+
+        // Inspeção com ícones (compacta e expandida) e placas sobre as unidades.
+        hud.ToggleSpellMenu();
+        f1.burningTicks = 2; f1.burningDamage = 4; f1.soakedTicks = 3;
+        hero.SetPosture(Posture.Aggressive); hero.currentMana = 2; hero.currentStamina = 1;
+        hud.ShowUnitInfo(hero);
+        for (int i = 0; i < 3; i++) yield return null;
+        Assert.IsNotNull(root.Q<VisualElement>("inspect-body"), "corpo da inspeção com ícones");
+        Assert.IsTrue(hero.WorldDetailVisible, "selecionada: a placa mostra Mana e Stamina");
+        Assert.IsFalse(f1.WorldDetailVisible, "fera sem hover: só a vida");
+        CollectionAssert.Contains(f1.WorldStateIcons(), "burn");
+        yield return Shot("hud-inspect-compact.png");
+        var toggle = root.Q<Button>("inspect-toggle");
+        using (var e = NavigationSubmitEvent.GetPooled()) { e.target = toggle; toggle.SendEvent(e); }
+        for (int i = 0; i < 3; i++) yield return null;
+        StringAssert.Contains("menos", toggle.Q<Label>().text, "expandiu a ficha");
+        yield return Shot("hud-inspect-expanded.png");
+        using (var e = NavigationSubmitEvent.GetPooled()) { e.target = toggle; toggle.SendEvent(e); }
 
         planner.End();
         Object.Destroy(hud.gameObject);

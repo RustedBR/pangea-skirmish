@@ -29,7 +29,11 @@ namespace PangeaSkirmish
         public static void Heal(Unit u, int amount)
         {
             if (amount <= 0) return;
-            Pop(u, "heal", $"+{amount}", new Color(0.55f, 1f, 0.55f), new Color32(0x2E, 0x99, 0x3A, 255), 0.85f, 1.1f, "sfx_heal");
+            Log.Add("heal");
+            if (u == null) return;
+            AudioManager.I?.PlayNamed("sfx_heal");
+            if (Cam == null || !Application.isPlaying) return;
+            BattleLabel.CreatePixelNumber(Cam, u.HeadWorld, $"{amount}", new Color(0.35f, 1f, 0.40f), 0.55f, 1.1f, 1.45f, 0.55f);
         }
 
         public static void Miss(Unit target) =>

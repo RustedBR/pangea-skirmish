@@ -42,6 +42,8 @@ public class DamageByTileTest
         foreach (var u in _units) if (u != null) Object.Destroy(u.gameObject);
     }
 
+    private static int W(string id) => WeaponCatalog.Get(id).damage;
+
     private Unit Make(string n, Team t, Vector2Int a, string weapon, float str = 5, float vit = 0, float agi = 0)
     {
         var u = new GameObject(n).AddComponent<Unit>();
@@ -60,10 +62,29 @@ public class DamageByTileTest
         yield return Setup();
         var axe = Make("Machado", Team.Player, new Vector2Int(10, 6), "IronAxe", str: 0);
         var foe = Make("Fera", Team.Enemy, new Vector2Int(10, 10), "Claws");
+        foe.currentHP = 500;                           // sobrevive ao golpe para medir o dano inteiro
         int hp = foe.currentHP;
         var log = AttackResolver.ResolveAttack(axe, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);
         StringAssert.Contains("6 tiles", log);
-        Assert.AreEqual(5 * 6, hp - foe.currentHP, "5 por tile × 6 tiles, sem defesa");
+        Assert.AreEqual(W("IronAxe") * 6, hp - foe.currentHP, "dano por tile × 6 tiles, sem defesa");
+    }
+
+    [UnityTest]
+    public IEnumerator SmallBeast_CannotHideFromTheShape()
+    {
+        yield return Setup();
+        var axe = Make("Machado", Team.Player, new Vector2Int(10, 6), "IronAxe", str: 0);
+        var small = Make("Fera Pequena", Team.Enemy, new Vector2Int(11, 10), "Claws");
+        small.stats.Footprint = 1;
+        small.currentHP = 500;                         // sem morrer entre os dois golpes (VIT 0: sem defesa)
+        int hp = small.currentHP;
+        var log = AttackResolver.ResolveAttack(axe, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = small }, _units);
+        Assert.AreEqual(W("IronAxe") * 6, hp - small.currentHP, "fera 1×1 pega em cheio conta como alvo inteiro (6 tiles da varredura)");
+
+        var bow = Make("Arco", Team.Player, new Vector2Int(5, 10), "ShortBow", str: 0);
+        int hp2 = small.currentHP;
+        AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = small }, _units);
+        Assert.AreEqual(W("ShortBow"), hp2 - small.currentHP, "arma de 1 tile continua 1 tile (não ganha com alvo pequeno)");
     }
 
     [UnityTest]
@@ -74,7 +95,7 @@ public class DamageByTileTest
         var tank = Make("Tanque", Team.Enemy, new Vector2Int(10, 10), "Claws", vit: 4);
         int hp = tank.currentHP;
         AttackResolver.ResolveAttack(sword, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = tank }, _units);
-        Assert.AreEqual(6 * 3 - 4, hp - tank.currentHP, "18 − 4 de VIT, uma vez");
+        Assert.AreEqual(Mathf.RoundToInt(W("IronSword") * _t.oneHandDamageMult) * 3 - Mathf.RoundToInt(4 * _t.statFormulas.armorPerVIT), hp - tank.currentHP, "golpe − defesa da VIT 4, uma vez");
     }
 
     [UnityTest]
@@ -86,7 +107,7 @@ public class DamageByTileTest
         int hp = foe.currentHP;
         // Mira livre num canto da fera: 1 tile, +25%.
         AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Tile, TargetTile = new Vector2Int(10, 10) }, _units);
-        Assert.AreEqual(Mathf.RoundToInt(9 * _t.freeAimDamageMult), hp - foe.currentHP, "1 tile × 9 × 1,25");
+        Assert.AreEqual(Mathf.RoundToInt(W("ShortBow") * _t.freeAimDamageMult), hp - foe.currentHP, "1 tile × dano × 1,25");
         // Mira livre no chão vazio: não pega ninguém.
         int hp2 = foe.currentHP;
         var log = AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Tile, TargetTile = new Vector2Int(20, 20) }, _units);
@@ -100,17 +121,23 @@ public class DamageByTileTest
         yield return Setup();
         var axe = Make("Machado", Team.Player, new Vector2Int(10, 6), "IronAxe", str: 0);
         var foe = Make("Ágil", Team.Enemy, new Vector2Int(10, 10), "Claws", agi: 6);
-        foe.dodgeReactTiles = AttackResolver.DodgeTiles(foe);
-        Assert.AreEqual(2, foe.dodgeReactTiles, "AGI 6 → 2 tiles");
+        // Esquiva por fração (balanceamento 2026-11-13): AGI 6 × 6% = 36% dos tiles → 2 de 6.
+        Assert.AreEqual(0.36f, AttackResolver.DodgeFrac(foe), 0.001f);
+        foe.dodgeReactTiles = 1;
         int hp = foe.currentHP;
         AttackResolver.ResolveAttack(axe, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);
-        Assert.AreEqual(5 * 4, hp - foe.currentHP, "6 tiles − 2 da esquiva = 4");
+        Assert.AreEqual(W("IronAxe") * 4, hp - foe.currentHP, "6 tiles − 2 da esquiva = 4");
 
+        // Golpe de 1 tile: a esquiva vira CHANCE (36%), não erro garantido. Em 200 flechas, umas passam e outras não.
         var bow = Make("Arco", Team.Player, new Vector2Int(10, 2), "ShortBow", str: 0);
-        foe.dodgeReactTiles = AttackResolver.DodgeTiles(foe);
-        int hp2 = foe.currentHP;
-        AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);
-        Assert.AreEqual(hp2, foe.currentHP, "golpe de 1 tile esquivado vira erro");
+        int hits = 0;
+        for (int i = 0; i < 200; i++)
+        {
+            foe.currentHP = 10000; foe.dodgeReactTiles = 1;
+            AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);
+            if (foe.currentHP < 10000) hits++;
+        }
+        Assert.That(hits, Is.InRange(90, 170), $"~64% das flechas passam a esquiva ({hits}/200)");
     }
 
     [UnityTest]
@@ -133,8 +160,41 @@ public class DamageByTileTest
         var guard = Make("Guarda", Team.Enemy, new Vector2Int(13, 10), "Claws");
         int hpFoe = foe.currentHP, hpGuard = guard.currentHP;
         AttackResolver.ResolveAttack(axe, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units, guard, foe);
-        Assert.AreEqual(5 * 3, hpFoe - foe.currentHP, "protegido fica com metade (3 de 6)");
-        Assert.AreEqual(5 * 3, hpGuard - guard.currentHP, "quem interpôs leva a outra metade");
+        Assert.AreEqual(W("IronAxe") * 3, hpFoe - foe.currentHP, "protegido fica com metade (3 de 6)");
+        Assert.AreEqual(W("IronAxe") * 3, hpGuard - guard.currentHP, "quem interpôs leva a outra metade");
+    }
+
+    [UnityTest]
+    public IEnumerator Curve_FollowsTheTarget_IgnoresDodge_AndBarrier()
+    {
+        yield return Setup();
+        var bow = Make("Arco", Team.Player, new Vector2Int(2, 10), "ShortBow", str: 0);
+        var foe = Make("Ágil", Team.Enemy, new Vector2Int(12, 10), "Claws", agi: 10);
+        var field = new SpellField(); SpellField.Current = field;
+        var wall = new SpellZone { Kind = SpellEffect.Barrier, TicksLeft = 5, Hp = 999, Name = "Muralha" };
+        for (int y = 8; y < 14; y++) wall.Cells.Add(new Vector2Int(8, y));
+        field.Add(wall, null);
+        int hp = foe.currentHP;
+        AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);
+        Assert.AreEqual(hp, foe.currentHP, "sem Curva a Muralha segura a flecha");
+        bow.curveReady = true; foe.dodgeReactTiles = 1;
+        AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);
+        Assert.AreEqual(W("ShortBow"), hp - foe.currentHP, "com Curva contorna a Muralha e a esquiva não vale");
+        Assert.IsFalse(bow.curveReady, "a Curva se consome no ataque à distância");
+        SpellField.Current = null;
+    }
+
+    [UnityTest]
+    public IEnumerator TrueAim_Reaction_ForcesTheMissedShotToHit()
+    {
+        yield return Setup();
+        var bow = Make("Arco", Team.Player, new Vector2Int(2, 10), "ShortBow", str: 0);
+        var foe = Make("Alvo", Team.Enemy, new Vector2Int(12, 10), "Claws", agi: 10);
+        int hp = foe.currentHP;
+        var log = AttackResolver.ResolveForcedHit(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units, foe);
+        StringAssert.Contains("Olho certeiro", log);
+        Assert.Less(foe.currentHP, hp, "o tiro acerta");
+        Assert.AreEqual(0f, bow.trueAimCrit, "o bônus se consome");
     }
 
     [UnityTest]
