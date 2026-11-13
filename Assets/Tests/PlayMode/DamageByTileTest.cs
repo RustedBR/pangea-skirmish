@@ -67,6 +67,24 @@ public class DamageByTileTest
     }
 
     [UnityTest]
+    public IEnumerator SmallBeast_CannotHideFromTheShape()
+    {
+        yield return Setup();
+        var axe = Make("Machado", Team.Player, new Vector2Int(10, 6), "IronAxe", str: 0);
+        var small = Make("Fera Pequena", Team.Enemy, new Vector2Int(11, 10), "Claws");
+        small.stats.Footprint = 1;
+        small.currentHP = 500;                         // sem morrer entre os dois golpes (VIT 0: sem defesa)
+        int hp = small.currentHP;
+        var log = AttackResolver.ResolveAttack(axe, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = small }, _units);
+        Assert.AreEqual(5 * 6, hp - small.currentHP, "fera 1×1 pega em cheio conta como alvo inteiro (6 tiles da varredura)");
+
+        var bow = Make("Arco", Team.Player, new Vector2Int(5, 10), "ShortBow", str: 0);
+        int hp2 = small.currentHP;
+        AttackResolver.ResolveAttack(bow, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = small }, _units);
+        Assert.AreEqual(9, hp2 - small.currentHP, "arma de 1 tile continua 1 tile (não ganha com alvo pequeno)");
+    }
+
+    [UnityTest]
     public IEnumerator Vit_IsFlatDefense_OnceOnTheTotal()
     {
         yield return Setup();

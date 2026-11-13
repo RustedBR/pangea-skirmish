@@ -221,7 +221,9 @@ namespace PangeaSkirmish
 
             var cells = AttackResolver.CellsFor(attacker, aim);
             Unit tgt = atk.Mode == AttackMode.Unit ? atk.TargetUnit : null;
-            GroundFlash(grid, cells, new Color(1f, 0.26f, 0.20f), 0.9f, 0.72f);
+            // Marcas mais longas para dar tempo de ler (pedido 2026-11-13): 1,9 s ataques.
+            float dur = Tuning.Get().attackMarkSeconds;
+            GroundFlash(grid, cells, new Color(1f, 0.26f, 0.20f), dur, 0.72f);
 
             // Trilha: só quando há chão entre os dois (ataque à distância ou de alcance longo).
             var from = attacker.anchor + new Vector2Int(afp / 2, afp / 2);
@@ -232,7 +234,7 @@ namespace PangeaSkirmish
                 if (tgt != null && GridManager.FootprintsOverlap(tgt.anchor, tgt.stats.Footprint, c, 1)) continue;   // dentro do alvo não é trilha
                 trail.Add(c);
             }
-            if (trail.Count > 0) GroundFlash(grid, trail, new Color(1f, 0.90f, 0.75f), 0.7f, 0.45f);
+            if (trail.Count > 0) GroundFlash(grid, trail, new Color(1f, 0.90f, 0.75f), dur * 0.75f, 0.45f);
         }
 
         /// <summary>Marca onde uma magia cai: a área (ou o alvo) na cor do elemento, e a trilha até lá.</summary>
@@ -254,7 +256,9 @@ namespace PangeaSkirmish
                 for (int dy = -r; dy <= r; dy++) cells.Add(center + new Vector2Int(dx, dy));
             }
             else cells.AddRange(FootprintCells(ps.TargetTile, fp));
-            GroundFlash(grid, cells, col, 1.0f, 0.75f);
+            // 2,4 s para magias (pedido 2026-11-13).
+            float dur = Tuning.Get().spellMarkSeconds;
+            GroundFlash(grid, cells, col, dur, 0.75f);
 
             var from = caster.anchor + new Vector2Int(fp / 2, fp / 2);
             var trail = new List<Vector2Int>();
@@ -263,7 +267,7 @@ namespace PangeaSkirmish
                 if (GridManager.FootprintsOverlap(caster.anchor, fp, c, 1) || cells.Contains(c)) continue;
                 trail.Add(c);
             }
-            if (trail.Count > 0) GroundFlash(grid, trail, Color.Lerp(col, Color.white, 0.5f), 0.7f, 0.40f);
+            if (trail.Count > 0) GroundFlash(grid, trail, Color.Lerp(col, Color.white, 0.5f), dur * 0.7f, 0.40f);
         }
 
         // ---------------------------------------------------------------- magias

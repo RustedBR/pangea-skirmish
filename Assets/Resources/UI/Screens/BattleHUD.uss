@@ -104,7 +104,9 @@
 }
 .bh-minilog-content .bh-round-hdr-text { font-size: 10px; color: rgb(189, 217, 255); -unity-text-align: middle-center; -unity-font-style: bold; }
 
-/* INSPEÇÃO DA UNIDADE — bolha compacta sob demanda (some ao clicar fora) */
+/* INSPEÇÃO DA UNIDADE — bolha compacta sob demanda (some ao clicar fora).
+   Fica embaixo dos painéis de ação: no UI Toolkit quem decide é a ORDEM dos elementos (é o
+   primeiro filho da raiz; ver BattleHUD.Bind). z-index não existe no USS. */
 .bh-inspect {
   position: absolute; left: 300px; top: 250px; width: 290px;
   padding: 10px; border-radius: 10px; border-color: rgb(106, 134, 200);
@@ -198,7 +200,7 @@
   width: 420px; min-height: 140px;
   flex-direction: column; align-items: stretch; gap: 6px; padding: 14px;
   background-color: rgba(8, 12, 30, 0.97); border-color: rgb(106, 134, 200);
-  display: none; z-index: 20;
+  display: none;
 }
 .bh-reaction-buttons { flex-direction: column; gap: 6px; align-self: stretch; }
 .bh-reaction .pg-button { height: 44px; font-size: 13px; -unity-text-align: middle-center; }

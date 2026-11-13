@@ -40,6 +40,8 @@ namespace PangeaSkirmish
         private VisualElement _logContent, _tooltipGo;
         private Label  _tooltipTxt;
         private VisualElement _inspectPanel, _portraitImg, _hpFill;
+        private CharacterPreview3D _unitPreview;          // retrato 3D da inspeção (câmera própria, igual à criação)
+        private string _previewKey;                        // última combinação corpo+arma+time já renderizada
         private Label  _unitNameText, _unitHPText, _apText, _unitStatsText;
         private VisualElement _miniLog;
         private VisualElement _ticksBar, _ticksTrack, _ticksQueue;
@@ -295,6 +297,10 @@ namespace PangeaSkirmish
             }
             _endMenuButton.RegisterCallback<ClickEvent>(_ => { if (_endMenuAction != null) _endMenuAction(); else SceneManager.LoadScene("MainMenu"); });
 
+            // Ordem de desenho (UI Toolkit não tem z-index): a bolha de inspeção vai para o fundo,
+            // embaixo de todos os painéis de ação; menus modais sobem ao abrir (BringToFront).
+            _inspectPanel?.SendToBack();
+
             // Manter distância / Proteger saíram (GDD-020 §8): a postura virou bônus de atributo.
             foreach (var n in new[] { "btn-intent-4", "btn-intent-5" })
             { var b = r.Q<Button>(n); if (b != null) b.style.display = DisplayStyle.None; }
@@ -438,8 +444,26 @@ namespace PangeaSkirmish
         {
             if (u == null) return;
             var s = u.stats;
+            // Retrato = MESMO visual que a unidade usa no campo hoje: o modelo 3D (com a arma).
+            // Reusa o CharacterPreview3D da criação; só re-renderiza quando corpo/arma/time mudam.
             if (_portraitImg != null)
-                _portraitImg.style.backgroundImage = new StyleBackground(u.CurrentSprite);
+            {
+                var m = u.Model3D;
+                if (m != null && !string.IsNullOrEmpty(m.ModelName))
+                {
+                    Color tc = u.team == Team.Player ? CorPlayer : CorEnemy;
+                    string key = m.ModelName + "|" + (m.WeaponModelName ?? "") + "|" + tc.ToString();
+                    if (_unitPreview == null || key != _previewKey)
+                    {
+                        if (_unitPreview == null) _unitPreview = CharacterPreview3D.Create(256);
+                        _unitPreview.Show(m.ModelName, m.WeaponModelName, tc);
+                        _previewKey = key;
+                    }
+                    _portraitImg.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(_unitPreview.Texture));
+                }
+                else
+                    _portraitImg.style.backgroundImage = new StyleBackground(u.CurrentSprite);
+            }
             string team = u.team == Team.Player
                 ? $"<color=#{ColorUtility.ToHtmlStringRGB(CorPlayer)}>Aliado</color>"
                 : $"<color=#{ColorUtility.ToHtmlStringRGB(CorEnemy)}>Inimigo</color>";
@@ -1414,7 +1438,7 @@ namespace PangeaSkirmish
             if (_bonusTimerText != null) _bonusTimerText.text = "";
             if (_simButton != null) _simButton.style.display = DisplayStyle.None;
             if (_naoButton != null) _naoButton.style.display = DisplayStyle.None;
-            if (_promptPanel != null) _promptPanel.style.display = DisplayStyle.Flex;
+            if (_promptPanel != null) { _promptPanel.style.display = DisplayStyle.Flex; _promptPanel.BringToFront(); }
         }
         public void ShowBonusPrompt(string text, Action onSim, Action onNao)
         {
@@ -1436,7 +1460,7 @@ namespace PangeaSkirmish
                 _btnHandlers[_naoButton] = hNao;
                 _naoButton.clicked += hNao;
             }
-            if (_promptPanel != null) _promptPanel.style.display = DisplayStyle.Flex;
+            if (_promptPanel != null) { _promptPanel.style.display = DisplayStyle.Flex; _promptPanel.BringToFront(); }
         }
         public void HidePrompt() { if (_promptPanel != null) _promptPanel.style.display = DisplayStyle.None; }
 
@@ -1471,7 +1495,7 @@ namespace PangeaSkirmish
                 skip.AddToClassList("pg-button");
                 _reactionButtons.Add(skip);
             }
-            if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.Flex;
+            if (_reactionMenu != null) { _reactionMenu.style.display = DisplayStyle.Flex; _reactionMenu.BringToFront(); }
         }
         public void UpdateBonusTimer(float sec)
         {
@@ -1536,7 +1560,7 @@ namespace PangeaSkirmish
         public void ShowEndScreen(string msg)
         {
             if (_endText != null) _endText.text = msg;
-            if (_endPanel != null) _endPanel.style.display = DisplayStyle.Flex;
+            if (_endPanel != null) { _endPanel.style.display = DisplayStyle.Flex; _endPanel.BringToFront(); }
         }
 
         private Button _endRestartButton;

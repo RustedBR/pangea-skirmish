@@ -100,10 +100,25 @@ namespace PangeaSkirmish
                 if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
                 int tiles = AttackShape.TilesOn(cells, u.anchor, u.stats.Footprint);
                 if (tiles <= 0) continue;
+                tiles = EffectiveTiles(attacker, u, tiles);
                 int dmg = Mathf.Max(Tuning.Get().minDamageFloor, Mathf.RoundToInt(perTile * tiles) - u.stats.PhysicalDefense);
                 result.Add((u, tiles, dmg));
             }
             return result;
+        }
+
+        /// <summary>
+        /// Tiles que contam no dano. Alvo menor que 3×3 (fera pequena 1×1, média 2×2) não pode
+        /// "esconder" o corpo da forma: cada tile pego vale 9/área, até o que a forma pegaria num
+        /// alvo 3×3 centralizado. Alvos 3×3 ou maiores contam os tiles como estão.
+        /// </summary>
+        public static int EffectiveTiles(Unit attacker, Unit target, int tiles)
+        {
+            int fp = target != null && target.stats != null ? target.stats.Footprint : AttributeStats.DefaultFootprint;
+            int std = AttributeStats.DefaultFootprint;
+            if (fp >= std || tiles <= 0) return tiles;
+            int cap = attacker != null ? Mathf.Max(1, attacker.stats.ShapeTiles) : tiles;
+            return Mathf.Min(cap, Mathf.CeilToInt(tiles * (std * std) / (float)(fp * fp)));
         }
 
         /// <summary>Tiles que a esquiva tira de um golpe (AGI, mínimo 1).</summary>
@@ -137,6 +152,7 @@ namespace PangeaSkirmish
                 if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
                 int n = AttackShape.TilesOn(cells, u.anchor, u.stats.Footprint);
                 if (n <= 0) continue;
+                n = EffectiveTiles(attacker, u, n);
                 tilesOf[u] = n; order.Add(u);
             }
             // Interpor: o protetor entra na frente e fica com metade (arredondada para cima) dos tiles.

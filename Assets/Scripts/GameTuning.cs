@@ -70,6 +70,9 @@ namespace PangeaSkirmish
         [Tooltip("Opacidade dos fantasmas 3D: paradas intermediárias e destino final.")]
         public float ghostAlphaStop = 0.28f;
         public float ghostAlphaFinal = 0.5f;
+        [Tooltip("Quanto tempo a marca no chão de um golpe e de uma magia fica na tela (s).")]
+        public float attackMarkSeconds = 1.9f;
+        public float spellMarkSeconds = 2.4f;
         [Tooltip("Respirar: Stamina imediata (espelho do Concentrar).")]
         public int breatheStamina = 3;
         [Tooltip("Postura: pontos somados no atributo principal e tirados do secundário.")]
