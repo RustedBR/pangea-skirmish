@@ -265,8 +265,15 @@ namespace PangeaSkirmish
         private void Hover(VisualElement el, Func<string> text)
         {
             if (el == null || _infoLbl == null) return;
-            el.RegisterCallback<PointerEnterEvent>(_ => _infoLbl.text = text());
-            el.RegisterCallback<PointerLeaveEvent>(_ => _infoLbl.text = _infoDefault);
+            el.RegisterCallback<PointerEnterEvent>(_ => { _hoverText = text; _infoLbl.text = text(); });
+            el.RegisterCallback<PointerLeaveEvent>(_ => { _hoverText = null; _infoLbl.text = _infoDefault; });
+        }
+
+        /// <summary>Explicação da linha sob o mouse; recalculada quando a escolha muda (◀ ▶).</summary>
+        private Func<string> _hoverText;
+        private void RefreshHoverInfo()
+        {
+            if (_hoverText != null && _infoLbl != null) _infoLbl.text = _hoverText();
         }
 
         /// <summary>Stats completos da escolha atual, com a arma aplicada pela mesma regra da batalha.</summary>
@@ -340,6 +347,7 @@ namespace PangeaSkirmish
                 $"<b>Acerto</b> {st.HitChance * 100:0}%    <b>Crítico</b> {st.CritChance * 100:0}%    <b>Esquiva</b> {st.DodgeChance * 100:0}%\n" +
                 $"<b>Defesa</b> −{st.PhysicalDefense}    <b>Def. mágica</b> −{st.MagicDefense}\n" +
                 $"<b>Brasa</b> ~{emberDmg} de dano, alcance {emberReach}";
+            RefreshHoverInfo();
         }
 
         // =========================================================================
