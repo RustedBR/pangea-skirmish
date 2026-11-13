@@ -468,7 +468,7 @@ namespace PangeaSkirmish
                     Active = () => _controlled.plannedPosture != Posture.Neutral,
                     OnClick = back => CyclePosture(back ? -1 : +1) },
                 new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "-", Name = "Reação padrão",
-                    Tip = () => $"Usada se o menu de reação esgotar ({T.reactionChoiceTime:0} s). Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
+                    Tip = () => $"Reação do round: dispara sozinha no primeiro gatilho que couber (só 1 por round; o golpe de oportunidade também conta). Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
                                 (_controlled.defaultReaction != ReactionKind.None ? $" ({Unit.ReactionCost(_controlled.defaultReaction)} Stamina)" : "") +
                                 ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2 · Olho certeiro 2 (seu tiro à distância que ia errar).",
                     Badge = () => ReactionName(_controlled.defaultReaction),

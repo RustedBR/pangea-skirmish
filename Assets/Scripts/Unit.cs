@@ -218,10 +218,11 @@ namespace PangeaSkirmish
         }
         /// <summary>Tem Stamina para alguma reação (a mais barata)?</summary>
         public bool CanReact() => !IsDead && currentStamina >= Mathf.Min(ReactionCost(ReactionKind.Dodge), ReactionCost(ReactionKind.Block));
-        public bool CanReact(ReactionKind k) => !IsDead && currentStamina >= ReactionCost(k);
+        public bool CanReact(ReactionKind k) => !IsDead && remainingReactions > 0 && currentStamina >= ReactionCost(k);   // 1 reação por round
         public void ConsumeReaction(ReactionKind k = ReactionKind.None)
         {
             currentStamina = Mathf.Max(0, currentStamina - ReactionCost(k));
+            remainingReactions = Mathf.Max(0, remainingReactions - 1);
         }
 
         // ── Postura (GDD-020 §8.1): bônus de atributo com troca, escolhido por ponto de decisão ──

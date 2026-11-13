@@ -537,10 +537,9 @@ namespace PangeaSkirmish
             LogQueues();
 
             // 2) Próximo ponto de decisão = menor fila restante entre os vivos.
-            int segment = int.MaxValue;
-            foreach (var u in _units)
-                if (!u.IsDead) segment = Mathf.Min(segment, Mathf.Max(1, u.QueueTicksRemaining));
-            if (segment == int.MaxValue) segment = 1;
+            // Round fechado (2026-11-13): todo mundo planeja o round inteiro e ele termina junto,
+            // sempre ticksPerRound ticks, sem parar no meio para decidir.
+            int segment = Mathf.Max(1, T.ticksPerRound);
 
             var burstMoves = new Dictionary<Unit, int>();
 
@@ -728,7 +727,7 @@ namespace PangeaSkirmish
                     interrupted = true;
                 }
                 LogTimeline();
-                if (interrupted) break;
+                // Interrompido só perde a fila; o round segue até o fim para todos.
                 if (t < segment - 1) yield return IncrementWindow();
 
                 if (!CheckAnyFactionAlive()) break;
@@ -1493,79 +1492,19 @@ namespace PangeaSkirmish
             _reactionApplied = false;
             _pendingReactionChoice = ReactionKind.None;
             _reactionResolved = false;
-            bool submitted = false; // dono já enviou RPC (MP)
-
-            // Em MP, só o cliente DONO da unidade reatora abre o menu interativo.
-            // O outro cliente fica aguardando o RPC de decisão (aplica igual).
-            bool isOwner = !RuntimeMultiplayerSession.IsMultiplayer
-                || reactor.ownerId == RuntimeMultiplayerSession.LocalClientId;
-
             // IA decide automaticamente: inimigo em SP, ou fera do Coop (igual em toda máquina).
             if (BeastAI.Controls(reactor)
                 || (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy))
             {
-                var aiChoice = AutoPickReaction(reactor, options);
-                ApplyReaction(reactor, aiChoice, triggerTarget);
+                ApplyReaction(reactor, AutoPickReaction(reactor, options), triggerTarget);
                 yield break;
             }
 
-            // SÓ o dono da unidade reatora abre o menu interativo. O outro cliente vê
-            // apenas o indicador "Aguardando {dono} decidir..." (sem botões clicáveis),
-            // evitando que qualquer jogador reaja a uma reação que não é sua.
-            if (isOwner)
-            {
-                _hud.ShowReactionMenu(reactor, options, Tuning.Get().reactionChoiceTime,
-                    choice =>
-                    {
-                        _pendingReactionChoice = choice;
-                        _reactionResolved = true;
-                        // Em MP, o dono manda a escolha pros outros clientes
-                        if (RuntimeMultiplayerSession.IsMultiplayer)
-                        {
-                            submitted = true;
-                            LockstepBattleSync.Instance?.SubmitReactionServerRpc(
-                                UnitRegistry.GetId(reactor), (int)choice);
-                        }
-                    });
-            }
-            else if (RuntimeMultiplayerSession.IsMultiplayer)
-            {
-                // Não-dono: aguarda o RPC de decisão (ApplyReactionRemote seta _reactionResolved).
-                // Mostra indicador "Aguardando {dono} decidir..." para o outro jogador saber quem está na decisão.
-                string who = GetPlayerName(reactor.ownerId);
-                _hud.SetWaitingText($"Aguardando {who} decidir...");
-                _hud.ShowWaitingForPlacement();
-            }
-            float timer = Tuning.Get().reactionChoiceTime;
-            while (!_reactionResolved && timer > 0f)
-            {
-                timer -= Time.deltaTime;
-                _hud.UpdateBonusTimer(timer);
-                yield return null;
-            }
-
-            if (RuntimeMultiplayerSession.IsMultiplayer && !isOwner)
-                _hud.HideWaitingForPlacement();
-
-            _hud.HideReactionMenu();
-            _hud.UpdateBonusTimer(0f);
-
-            // Tempo esgotado: vale a reação padrão marcada no plano (GDD-020 §8.1), se couber aqui.
-            var fallback = options.Contains(reactor.defaultReaction) ? reactor.defaultReaction : ReactionKind.None;
-            var final = _reactionResolved ? _pendingReactionChoice : fallback;
-
-            // Se o dono em MP não clicou e o tempo esgotou, avisa os outros com a padrão (senão trava)
-            if (RuntimeMultiplayerSession.IsMultiplayer && isOwner && !submitted)
-                LockstepBattleSync.Instance?.SubmitReactionServerRpc(
-                    UnitRegistry.GetId(reactor), (int)final);
-
-            // Em SP (ou dono em MP antes do echo), aplica localmente.
-            // Em MP non-dono, o RPC (ApplyReactionRemote) já aplicou — não re-aplica (guard em ApplyReaction).
-            if (!RuntimeMultiplayerSession.IsMultiplayer || isOwner)
-            {
-                if (final != ReactionKind.None)
-                    ApplyReaction(reactor, final, triggerTarget);
-            }
+            // Jogadores (2026-11-13): a reação é PLANEJADA no round e dispara sozinha no primeiro
+            // gatilho que couber. Sem menu nem RPC no meio da resolução: o resultado é o mesmo
+            // em todas as máquinas (o menu interativo causava DESYNC no lockstep).
+            if (options.Contains(reactor.defaultReaction))
+                ApplyReaction(reactor, reactor.defaultReaction, triggerTarget);
         }
 
         /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>

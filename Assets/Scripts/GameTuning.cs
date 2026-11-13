@@ -27,7 +27,7 @@ namespace PangeaSkirmish
         [Tooltip("Zoom mínimo (tamanho ortográfico) ao enquadrar o grupo durante os ticks. Maior = mais longe.")]
         public float tickFrameMinSize = 8f;
         [Tooltip("Quantos ticks à frente a fila de uma unidade pode ir.")]
-        public int maxQueueTicks = 6;
+        public int maxQueueTicks = 4;   // round = 4 ticks, planejado por inteiro (2026-11-13)
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
         public float moveTilesBase = 2f;
         public float moveTilesPerAGI = 0.67f;

@@ -117,8 +117,8 @@ public class SpellCastFlowTest
             ticks = (int)_tick.GetValue(_rm);
         }
         Assert.Less(dummy.currentHP, hp0, $"a Explosão deveria ter acertado (ticks={ticks}, fila da maga={mage.queue.Count})");
-        Assert.AreEqual(3, ticks, "resolve no 3º tick");
-        Assert.AreEqual(mana0 - explosion.cost + Mathf.FloorToInt(3f / mage.stats.ManaRegenTicks), mage.currentMana, "Mana gasta uma vez (mais a regeneração dos 3 ticks)");
+        Assert.AreEqual(4, ticks, "resolve no 3º tick, dentro do round de 4 ticks (o round termina junto)");
+        Assert.AreEqual(mana0 - explosion.cost + Mathf.FloorToInt(4f / mage.stats.ManaRegenTicks), mage.currentMana, "Mana gasta uma vez (mais a regeneração dos 4 ticks do round)");
         Assert.IsFalse(mage.IsBusy, "a maga fica livre depois de conjurar");
     }
 
