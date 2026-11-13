@@ -38,6 +38,9 @@ Toda arma é de **uma mão** ou de **duas mãos**.
 
 - O ataque usa a arma da **mão direita** (ou a de 2 mãos).
 - Forma, dano por tile, alcance e ticks vêm dela, como no GDD-020.
+- **Armas de uma mão dão menos dano** que as de duas mãos **[CANON]**: o dano por tile delas é
+  **80%** do valor da tabela do GDD-020 **[PROPOSTA: 80%]**. As de duas mãos ficam com 100%.
+  Assim, 1 mão + escudo ou 1 mão + 1 mão não passam a de duas mãos só pelo slot extra.
 
 ### 2.2 Segunda arma **[CANON]**
 
@@ -145,7 +148,7 @@ Para quem não quiser montar, cada arma de partida já sugere o resto:
 
 - Ao vencer uma camada, antes de descer, **cada jogador vê 3 cartas sorteadas e pega 1**.
 - Uma carta é **um item** de qualquer slot **ou** **pontos de atributo**.
-- Item novo vai direto para o slot dele; o antigo some **[PROPOSTA]**.
+- Item novo vai direto para o slot dele; **o antigo some** **[CANON]**. Não há inventário por enquanto.
 - Camadas mais fundas sorteiam itens melhores.
 
 | Camada | Chance de raro | Chance de épico | Carta de atributo |
@@ -178,9 +181,10 @@ Para quem não quiser montar, cada arma de partida já sugere o resto:
 - O plano em rede (`PlanWire`) não muda; o equipamento vai no envio do personagem à sala e na escolha da descida.
 - Atributos finais = base + postura + **itens**, calculados num lugar só (`WeaponDef.ApplyTo` vira `Equipment.ApplyTo`).
 
-## 10. Perguntas em aberto
+## 10. Respostas (2026-11-13) **[CANON]**
 
-1. A segunda arma em 50% fica forte demais com dois machados? Rodar no `balance_sim.py`.
-2. O item trocado na descida pode ir para uma mochila e voltar depois?
-3. Feras usam equipamento ou continuam só com garras?
-4. No PvP (sem descidas), todo mundo fica só com itens comuns?
+1. **Segunda arma forte demais?** Armas de uma mão dão menos dano (§2.1). Conferir no `balance_sim.py`
+   ao implementar.
+2. **Mochila?** Não. O item trocado na descida some; sem sistema de inventário agora.
+3. **Feras usam equipamento?** Não. Continuam com garras.
+4. **PvP só com itens comuns?** Sim. Sem descidas, todo mundo joga com os itens da criação.
