@@ -93,13 +93,22 @@
     border-radius: 8px;
     padding: 8px 10px;
     margin-bottom: 8px;
+    height: 112px;
+    overflow: hidden;
+    flex-shrink: 0;
 }
 /* Explicação do que está sob o mouse (atributo, arma, aparência). */
 .cc-info {
     color: var(--pg-gold, rgb(255, 204, 85));
     font-size: 13px;
     white-space: normal;
-    min-height: 96px;
+    /* Altura FIXA: o texto muda com o hover (a ajuda da arma é longa). Com altura livre o painel
+       crescia, se deslocava, o botão saía de baixo do cursor e o texto voltava — o menu "saltava"
+       e não dava para clicar nas setas da arma. */
+    font-size: 12px;
+    height: 176px;
+    overflow: hidden;
+    flex-shrink: 0;
     padding: 6px 10px;
 }
 .cc-weapon-info {
@@ -108,6 +117,9 @@
     white-space: normal;
     margin-left: 96px;
     margin-bottom: 4px;
+    height: 34px;          /* fixo: muda de tamanho a cada arma */
+    overflow: hidden;
+    flex-shrink: 0;
 }
 .cc-attr-row:hover, .cc-row:hover { background-color: rgba(106, 169, 255, 0.14); }
 
