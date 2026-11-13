@@ -157,6 +157,31 @@ namespace PangeaSkirmish
             return Mathf.RoundToInt((s.baseAmount * Tuning.Get().spellBaseMult + Pot(u) * s.potFactor) * conduit);
         }
 
+        /// <summary>
+        /// Descrição da magia com os números reais para esta unidade (o catálogo guarda o texto com
+        /// marcadores: {amount} {tick} {dur} {reach} {area} {push} {mult} {crit} {wall} {drain} {skin} {skinEx}).
+        /// </summary>
+        public static string Describe(Unit u, SpellDef s)
+        {
+            if (s == null) return "";
+            var T = Tuning.Get();
+            int r = AreaRadius(s), side = r * 2 + 1;
+            string txt = s.description ?? "";
+            txt = txt.Replace("{amount}", u != null ? Amount(u, s).ToString() : s.baseAmount.ToString())
+                     .Replace("{tick}", TickDamage(s).ToString())
+                     .Replace("{dur}", s.durationTicks.ToString())
+                     .Replace("{reach}", u != null ? Reach(u, s).ToString() : s.range.ToString())
+                     .Replace("{area}", $"{side}×{side}")
+                     .Replace("{push}", s.pushTiles.ToString())
+                     .Replace("{mult}", s.multiplier.ToString("0.#"))
+                     .Replace("{crit}", Mathf.RoundToInt(s.critBonus * 100).ToString())
+                     .Replace("{wall}", (Mathf.Max(1, s.area) * AttributeStats.DefaultFootprint).ToString())
+                     .Replace("{drain}", u != null ? Mathf.Max(0, s.Amount(u.stats.INT)).ToString() : "?")
+                     .Replace("{skin}", Mathf.Max(1, T.ticksPerRound).ToString())
+                     .Replace("{skinEx}", Mathf.RoundToInt(5 * Mathf.Max(1f, s.multiplier)).ToString());
+            return txt;
+        }
+
         /// <summary>Dano por tick (Queimando, Magma) já com o multiplicador do tuning.</summary>
         public static int TickDamage(SpellDef s) => Mathf.RoundToInt(s.tickDamage * Tuning.Get().spellTickDamageMult);
 
@@ -288,21 +313,7 @@ namespace PangeaSkirmish
             }
 
             // ---------------- Elemental com alvo: Damage / CancelMove / Push / DrainMana ----------------
-            var targets = new List<Unit>();
-            if (s.area > 0)
-            {
-                foreach (var u in all)
-                    if (!u.IsDead && u.IsHostileTo(caster) && InArea(u, center, radius)) targets.Add(u);
-            }
-            else
-            {
-                Unit t = UnitAt(ps.TargetTile, fp, all);
-                // Alvo por unidade (GDD-018 UX 1): se saiu do tile mas segue ao alcance, a magia o segue.
-                if (t == null && ps.TargetUnit != null && !ps.TargetUnit.IsDead &&
-                    GridManager.FootprintGap(caster.anchor, fp, ps.TargetUnit.anchor, ps.TargetUnit.stats.Footprint) <= Reach(caster, s))
-                    t = ps.TargetUnit;
-                if (t != null && t != caster && t.IsHostileTo(caster)) targets.Add(t);
-            }
+            var targets = HostileTargets(caster, ps, all);
             if (targets.Count == 0) { log.Add($"{head}: <color=#888888>sem alvo</color>"); return log; }
 
             // Projétil: Muralha no caminho absorve; Tempestade de areia faz errar 50%.
@@ -336,9 +347,23 @@ namespace PangeaSkirmish
                     continue;
                 }
 
+                // Dano por tile (GDD-020 §2): o valor da magia é o de pegar a unidade inteira (9 tiles);
+                // a área conta os tiles dela dentro do quadrado; alvo único pega todos. Esquivar tira tiles.
+                int full = t.stats.Footprint * t.stats.Footprint;
+                int tiles = s.area > 0 ? TilesInArea(t, center, radius) : full;
+                int dodged = Mathf.Min(tiles, t.dodgeReactTiles);
+                t.dodgeReactTiles = 0;
+                int left = tiles - dodged;
+                if (left <= 0)
+                {
+                    BattleFeedback.Dodge(t);
+                    log.Add($"{head} -> {t.unitName}: <color=#55ccff>esquivou</color> ({tiles} tiles)");
+                    continue;
+                }
                 float pierce = SpellCatalog.ArmorPierce(s);
                 int def = Mathf.RoundToInt(t.stats.MagicDefense * (1f - pierce));
-                int dmg = Mathf.Max(Tuning.Get().minDamageFloor, amount - def);
+                int raw = Mathf.RoundToInt(amount * left / (float)full);
+                int dmg = Mathf.Max(Tuning.Get().minDamageFloor, raw - def);
                 dmg = StoneSkin(t, dmg, physical: false);
                 t.TakeDamage(dmg);
                 string hp = t.IsDead ? "<color=#ff6666>MORTO</color>" : $"{t.currentHP}/{t.stats.MaxHP} HP";
@@ -352,12 +377,13 @@ namespace PangeaSkirmish
                 { t.queue.RemoveAt(0); extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
                 if (!t.IsDead && s.pushTiles > 0)
                 {
-                    int tiles = s.pushTiles + ((s.effect == SpellEffect.Push && potInt >= 8f) ? 1 : 0);
+                    int pushN = s.pushTiles + ((s.effect == SpellEffect.Push && potInt >= 8f) ? 1 : 0);
                     var from = s.area > 0 ? center - new Vector2Int(t.stats.Footprint / 2, t.stats.Footprint / 2) : caster.anchor;
-                    int moved = Push(t, from, tiles, all, grid, field);
+                    int moved = Push(t, from, pushN, all, grid, field);
                     if (moved > 0) { extra += $" · empurrado {moved}"; BattleFeedback.Status(t, "Empurrado", new Color(0.86f, 0.95f, 0.98f)); }
                 }
-                log.Add($"{head} -> {t.unitName}: {dmg}{extra}  ({hp})");
+                string tileTag = left < full ? $" ({left}/{full} tiles{(dodged > 0 ? $", −{dodged} esquiva" : "")})" : "";
+                log.Add($"{head} -> {t.unitName}: {dmg}{tileTag}{extra}  ({hp})");
             }
             return log;
         }
@@ -422,18 +448,67 @@ namespace PangeaSkirmish
             return true;
         }
 
-        /// <summary>Pele de pedra: redução percentual ×N do alvo (teto 90%). Só dano físico.</summary>
+        /// <summary>Pele de pedra: a defesa fixa da VIT conta ×N (a ×1 já foi aplicada). Só dano físico.</summary>
         public static int StoneSkin(Unit target, int dmg, bool physical)
         {
             if (!physical || target.stoneSkinTicks <= 0) return dmg;
-            float red = Mathf.Min(0.9f, target.stats.PhysicalReduction * target.stoneSkinMult);
-            return Mathf.Max(Tuning.Get().minDamageFloor, Mathf.RoundToInt(dmg * (1f - red)));
+            int extra = Mathf.RoundToInt(target.stats.PhysicalDefense * Mathf.Max(0f, target.stoneSkinMult - 1f));
+            return Mathf.Max(Tuning.Get().minDamageFloor, dmg - extra);
         }
 
         // ---------------------------------------------------------------- helpers
 
         private static bool InArea(Unit u, Vector2Int center, int r) =>
             GridManager.FootprintGap(u.anchor, u.stats.Footprint, center, 1) <= r;
+
+        /// <summary>Tiles do footprint da unidade dentro do quadrado centro ± r.</summary>
+        public static int TilesInArea(Unit u, Vector2Int center, int r)
+        {
+            int fp = u.stats.Footprint, n = 0;
+            for (int x = u.anchor.x; x < u.anchor.x + fp; x++)
+                for (int y = u.anchor.y; y < u.anchor.y + fp; y++)
+                    if (System.Math.Abs(x - center.x) <= r && System.Math.Abs(y - center.y) <= r) n++;
+            return n;
+        }
+
+        /// <summary>Inimigos que a magia de alvo/área vai atingir (sem efeitos). Mesma regra do Resolve.</summary>
+        private static List<Unit> HostileTargets(Unit caster, PlannedSpell ps, List<Unit> all)
+        {
+            var targets = new List<Unit>();
+            var s = ps.Def;
+            if (s == null) return targets;
+            int fp = caster.stats.Footprint;
+            var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
+            if (s.area > 0)
+            {
+                int radius = AreaRadius(s);
+                foreach (var u in all)
+                    if (!u.IsDead && u.IsHostileTo(caster) && InArea(u, center, radius)) targets.Add(u);
+            }
+            else
+            {
+                Unit t = UnitAt(ps.TargetTile, fp, all);
+                // Alvo por unidade (GDD-018 UX 1): se saiu do tile mas segue ao alcance, a magia o segue.
+                if (t == null && ps.TargetUnit != null && !ps.TargetUnit.IsDead &&
+                    GridManager.FootprintGap(caster.anchor, fp, ps.TargetUnit.anchor, ps.TargetUnit.stats.Footprint) <= Reach(caster, s))
+                    t = ps.TargetUnit;
+                if (t != null && t != caster && t.IsHostileTo(caster)) targets.Add(t);
+            }
+            return targets;
+        }
+
+        /// <summary>Quem vai tomar DANO desta magia (para a reação Esquivar antes de resolver).</summary>
+        public static List<Unit> DamageTargets(Unit caster, PlannedSpell ps, List<Unit> all)
+        {
+            var s = ps.Def;
+            if (s == null || s.IsPhysical || caster == null || caster.IsDead) return new List<Unit>();
+            switch (s.effect)
+            {
+                case SpellEffect.Damage: case SpellEffect.Push: case SpellEffect.CancelMove: break;
+                default: return new List<Unit>();
+            }
+            return HostileTargets(caster, ps, all);
+        }
 
         private static Unit UnitAt(Vector2Int anchor, int fp, List<Unit> all)
         {

@@ -106,7 +106,7 @@ namespace PangeaSkirmish
         public void SetSpellMenuUnit(Unit u)
         {
             _spellMenuUnit = u;
-            if (_spellBtn == null && _intentsPanel != null)
+            if (false && _spellBtn == null && _intentsPanel != null)   // Magia agora fica na barra de ações (GDD-020 §9)
             {
                 _spellBtn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ToggleSpellMenu(); }) { text = SpellGlyph + " Magia" };
                 _spellBtn.AddToClassList("bh-intent-btn");
@@ -117,19 +117,20 @@ namespace PangeaSkirmish
             if (_spellBtn != null) _spellBtn.SetEnabled(u != null);
         }
 
-        private void ToggleSpellMenu()
+        public void ToggleSpellMenu()
         {
             if (_incPopup != null && _incPopup.name == "spell-menu") { CloseIncrementPopup(); return; }
             OpenSpellMenu();
         }
 
         /// <summary>
-        /// Catálogo de magias (GDD-019 §6): dois grupos (Física em Estâmina, Elemental em Mana).
+        /// Catálogo de magias (GDD-019 §6): dois grupos (Física em Stamina, Elemental em Mana).
         /// Cada linha mostra nome, montagem, custo, ticks com a DEX atual e alcance/área;
         /// o hover escreve o efeito na linha de baixo. Linhas que não cabem ficam apagadas com o motivo.
         /// </summary>
         private void OpenSpellMenu()
         {
+            if (_actionTip != null) _actionTip.style.display = DisplayStyle.None;
             CloseIncrementPopup();
             var u = _spellMenuUnit;
             if (_ticksBar == null || u == null) return;
@@ -168,22 +169,19 @@ namespace PangeaSkirmish
                     b.style.fontSize = 12; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 8;
                     b.style.borderLeftWidth = 4; b.style.borderLeftColor = ElementInfo.Color(s.PrimaryElement);
                     b.text = $"{SpellGlyph} <b>{s.displayName}</b>  <color=#9fb3d9>[{s.MontageText()}]</color>\n" +
-                             $"<size=11>−{s.cost} {resName} · {ticks} tick{(ticks == 1 ? "" : "s")} · {meta}</size>";
+                             $"<size=11>−{s.CostText} · {ticks} tick{(ticks == 1 ? "" : "s")} · {meta}</size>";
                     b.SetEnabled(ok);
                     if (!ok) b.style.opacity = 0.45f;
-                    string eff = s.description;
-                    if (s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push)
-                        eff += $"  (~{SpellResolver.Amount(u, s)} de dano com INT {u.stats.INT:0})";
-                    else if (s.effect == SpellEffect.Heal) eff += $"  (~{SpellResolver.Amount(u, s)} de cura com INT {u.stats.INT:0})";
+                    string eff = $"<b>{s.displayName}</b> — {s.CostText}. " + SpellResolver.Describe(u, s);
                     if (!ok) eff = $"<color=#ff9a8a>Não cabe: {why}.</color>  " + eff;
-                    if (!s.IsPhysical) eff += "  <color=#c9b8ff>Interrompível.</color>";
+                    if (!s.IsPhysical) eff += $"  <color=#c9b8ff>Interrompível: {SpellResolver.InterruptThreshold(u)}+ de dano durante a conjuração corta.</color>";
                     var captured = eff;
                     b.RegisterCallback<PointerEnterEvent>(_ => hover.text = captured);
                     col.Add(b);
                 }
                 cols.Add(col);
             }
-            Group("FÍSICA", "Estâmina", u.remainingBAP, s => s.IsPhysical);
+            Group("FÍSICA", $"Mana {u.AvailableMana} · Stamina", u.remainingBAP, s => s.IsPhysical);
             Group("ELEMENTAL · PURAS", "Mana", u.AvailableMana, s => !s.IsPhysical && s.IsPure);
             Group("ELEMENTAL · PARES", "Mana", u.AvailableMana, s => !s.IsPhysical && s.IsPair);
             scroll.Add(cols);
@@ -195,7 +193,7 @@ namespace PangeaSkirmish
             pop.Add(close);
             _ticksBar.Add(pop);
             var bb = _ticksBar.worldBound;
-            ps.left = 0; ps.bottom = bb.height + 4;
+            ps.left = 0; ps.bottom = bb.height + 4 + ActionBarClearance();
             _incPopup = pop;
         }
 
@@ -296,6 +294,10 @@ namespace PangeaSkirmish
                 });
             }
             _endMenuButton.RegisterCallback<ClickEvent>(_ => { if (_endMenuAction != null) _endMenuAction(); else SceneManager.LoadScene("MainMenu"); });
+
+            // Manter distância / Proteger saíram (GDD-020 §8): a postura virou bônus de atributo.
+            foreach (var n in new[] { "btn-intent-4", "btn-intent-5" })
+            { var b = r.Q<Button>(n); if (b != null) b.style.display = DisplayStyle.None; }
 
             // Estado inicial
             if (_intentsPanel != null) _intentsPanel.style.display = DisplayStyle.None;
@@ -456,7 +458,7 @@ namespace PangeaSkirmish
                                                                        : Thp.hpBarLowColor;
             }
             if (_unitHPText != null) _unitHPText.text = $"HP  {u.currentHP} / {s.MaxHP}";
-            if (_apText != null) _apText.text = $"<b>Estâmina</b> {u.remainingBAP}/{s.MaxStamina}";
+            if (_apText != null) _apText.text = $"<b>Stamina</b> {u.remainingBAP}/{s.MaxStamina}";
             var buffs = StatusEffectSystem.Summary(u.statusEffects);
             if (_unitStatsText != null)
                 _unitStatsText.text =
@@ -555,8 +557,142 @@ namespace PangeaSkirmish
         public void SetAimState(bool canAdd, bool isPicking = false) { }
 
         // ── VISIBILIDADE ──
+        // ── BARRA DE AÇÕES (GDD-020 §9): ícones com tecla; o hover mostra nome, custo e explicação ──
+        public class ActionBarItem
+        {
+            public string Id, Glyph, Key, Name;
+            public Func<string> Tip;          // explicação com custo (rich text)
+            public Func<string> Badge;        // texto pequeno embaixo do ícone (contagem, postura...)
+            public Func<bool> Enabled;
+            public Func<bool> Active;         // destacado (modo armado / postura escolhida)
+            public Func<string> GlyphFn;      // ícone que muda (postura atual)
+            public Action<bool> OnClick;      // bool = Shift pressionado
+        }
+        private VisualElement _actionBar;
+        private Label _actionTip;
+        private readonly List<(ActionBarItem item, Button btn, Label badge)> _barButtons = new List<(ActionBarItem, Button, Label)>();
+        private readonly Dictionary<ActionBarItem, Label> _barGlyphs = new Dictionary<ActionBarItem, Label>();
+        private bool _actionBarWanted;
+
+        public void SetActionBarItems(List<ActionBarItem> items)
+        {
+            if (Root == null) return;
+            if (_actionBar == null)
+            {
+                _actionBar = new VisualElement { name = "action-bar" };
+                _actionBar.AddToClassList("bh-window"); _actionBar.AddToClassList("bh-abar");
+                _actionTip = new Label { name = "action-tip", pickingMode = PickingMode.Ignore };
+                _actionTip.AddToClassList("bh-window"); _actionTip.AddToClassList("bh-abar-tip");
+                Root.Q<VisualElement>("root")?.Add(_actionBar);
+                if (_actionBar.parent == null) Root.Add(_actionBar);
+                _actionBar.parent.Add(_actionTip);
+                _actionTip.style.display = DisplayStyle.None;
+                // Fica logo acima da barra de ticks, acompanhando a altura dela.
+                if (_ticksBar != null) _ticksBar.RegisterCallback<GeometryChangedEvent>(_ => PlaceActionBar());
+            }
+            _actionBar.Clear();
+            _barButtons.Clear();
+            foreach (var it in items)
+            {
+                if (it == null) { var sep = new VisualElement(); sep.AddToClassList("bh-abar-sep"); _actionBar.Add(sep); continue; }
+                var item = it;
+                var btn = new Button { name = "abtn-" + item.Id };
+                btn.AddToClassList("bh-abtn");
+                var glyph = new Label(item.Glyph) { pickingMode = PickingMode.Ignore }; glyph.AddToClassList("bh-abtn-glyph");
+                var key = new Label(item.Key) { pickingMode = PickingMode.Ignore };     key.AddToClassList("bh-abtn-key");
+                var badge = new Label("") { pickingMode = PickingMode.Ignore };         badge.AddToClassList("bh-abtn-badge");
+                btn.Add(glyph); btn.Add(key); btn.Add(badge);
+                _barGlyphs[item] = glyph;
+                btn.RegisterCallback<ClickEvent>(e =>
+                {
+                    if (item.Enabled != null && !item.Enabled()) return;
+                    AudioManager.I?.Play(AudioManager.I.sfxUIClick);
+                    item.OnClick?.Invoke(e.shiftKey || (Keyboard.current != null && Keyboard.current.shiftKey.isPressed));
+                    RefreshActionBar();
+                    ShowActionTip(item);
+                });
+                btn.RegisterCallback<PointerEnterEvent>(_ => ShowActionTip(item));
+                btn.RegisterCallback<PointerLeaveEvent>(_ => { if (_actionTip != null) _actionTip.style.display = DisplayStyle.None; });
+                _actionBar.Add(btn);
+                _barButtons.Add((item, btn, badge));
+            }
+            RefreshActionBar();
+        }
+
+        private void ShowActionTip(ActionBarItem item)
+        {
+            if (_actionTip == null) return;
+            string tip = item.Tip != null ? item.Tip() : "";
+            _actionTip.text = $"<b>{item.Name}</b>  <color=#9fb3d9>[{item.Key}]</color>\n{tip}";
+            _actionTip.style.display = DisplayStyle.Flex;
+        }
+
+        /// <summary>Espaço que os popups da barra de ticks deixam para a barra de ações (que fica logo acima).</summary>
+        private float ActionBarClearance()
+        {
+            if (_actionBar == null || !_actionBarWanted || _barButtons.Count == 0) return 0f;
+            float h = _actionBar.layout.height;
+            return (float.IsNaN(h) || h <= 0f ? 60f : h) + 10f;
+        }
+
+        private void PlaceActionBar()
+        {
+            if (_actionBar == null) return;
+            float h = (_ticksBar != null && _ticksBar.resolvedStyle.display == DisplayStyle.Flex) ? _ticksBar.layout.height : 0f;
+            if (float.IsNaN(h)) h = 0f;
+            _actionBar.style.bottom = 12 + h + 8;
+            if (_actionTip != null) _actionTip.style.bottom = 12 + h + 8 + 62;
+        }
+
+        /// <summary>Atualiza habilitado / destacado / rótulos (chamar após mudar o plano).</summary>
+        public void RefreshActionBar()
+        {
+            if (_actionBar == null) return;
+            _actionBar.style.display = _actionBarWanted && _barButtons.Count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            PlaceActionBar();
+            if (!_actionBarWanted && _actionTip != null) _actionTip.style.display = DisplayStyle.None;
+            foreach (var (item, btn, badge) in _barButtons)
+            {
+                bool en = item.Enabled == null || item.Enabled();
+                btn.EnableInClassList("bh-abtn--off", !en);
+                btn.EnableInClassList("bh-abtn--on", item.Active != null && item.Active());
+                badge.text = item.Badge != null ? item.Badge() : "";
+                if (item.GlyphFn != null && _barGlyphs.TryGetValue(item, out var gl)) gl.text = item.GlyphFn();
+            }
+        }
+
+        /// <summary>Teclas da barra (chamado pelo planejamento a cada frame). Devolve true se usou a tecla.</summary>
+        public bool HandleActionBarKeys()
+        {
+            if (!_actionBarWanted || Keyboard.current == null) return false;
+            var kb = Keyboard.current;
+            foreach (var (item, _, _) in _barButtons)
+            {
+                var k = KeyFor(item.Key);
+                if (k == null || !kb[k.Value].wasPressedThisFrame) continue;
+                if (item.Enabled != null && !item.Enabled()) return true;
+                item.OnClick?.Invoke(kb.shiftKey.isPressed);
+                RefreshActionBar();
+                return true;
+            }
+            return false;
+        }
+
+        private static Key? KeyFor(string label)
+        {
+            switch (label)
+            {
+                case "4": return Key.Digit4; case "5": return Key.Digit5; case "6": return Key.Digit6;
+                case "7": return Key.Digit7; case "8": return Key.Digit8; case "9": return Key.Digit9;
+                case "0": return Key.Digit0; case "-": return Key.Minus;
+                default:  return null;
+            }
+        }
+
         public void SetActionBarVisible(bool v, Unit u = null)
         {
+            _actionBarWanted = v;
+            RefreshActionBar();
             if (u != null) _lastUnit = u;
             if (_intentsPanel != null)
                 _intentsPanel.style.display = v ? DisplayStyle.Flex : DisplayStyle.None;
@@ -567,7 +703,7 @@ namespace PangeaSkirmish
         {
             if (u != null) _lastUnit = u;
             if (_apText != null && u != null)
-                _apText.text = $"<b>Estâmina</b> {u.remainingBAP}/{u.stats.MaxStamina}";
+                _apText.text = $"<b>Stamina</b> {u.remainingBAP}/{u.stats.MaxStamina}";
         }
 
         // ── TEXTOS PÚBLICOS ──
@@ -677,8 +813,8 @@ namespace PangeaSkirmish
             }
             if (type == ActionType.Attack)
             {
-                Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().staminaPowerStrike} Estâmina, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, true);
-                Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().staminaAim} Estâmina)", aimOn, true);
+                Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().staminaPowerStrike} Stamina, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, true);
+                Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().staminaAim} Stamina)", aimOn, true);
             }
             if (type == ActionType.Move) Opt(13, "⌖ Mudar destino", false, true);
             Opt(10, "◀ Mover para antes", false, idx > 0);
@@ -691,7 +827,7 @@ namespace PangeaSkirmish
             _ticksBar.Add(pop);
             var ab = anchor.worldBound; var bb = _ticksBar.worldBound;
             ps.left = Mathf.Max(0f, ab.x - bb.x);
-            ps.bottom = bb.height + 4;
+            ps.bottom = bb.height + 4 + ActionBarClearance();
             _incPopup = pop;
         }
 
@@ -720,8 +856,8 @@ namespace PangeaSkirmish
                 if (!enabled) b.style.opacity = 0.45f;
                 return b;
             }
-            pop.Add(Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().staminaPowerStrike} Estâmina, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, powerEnabled));
-            pop.Add(Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().staminaAim} Estâmina)", aimOn, aimEnabled));
+            pop.Add(Opt(0, $"{(powerOn ? "✔ " : "")}◆ Golpe poderoso  (−{Tuning.Get().staminaPowerStrike} Stamina, +{Tuning.Get().ticksPowerStrikeExtra} tick)", powerOn, powerEnabled));
+            pop.Add(Opt(1, $"{(aimOn ? "✔ " : "")}◎ Mirar  (−{Tuning.Get().staminaAim} Stamina)", aimOn, aimEnabled));
             var close = new Button(CloseIncrementPopup) { text = "Fechar" };
             close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
             close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 2;
@@ -731,7 +867,7 @@ namespace PangeaSkirmish
             // Acima da barra, alinhado ao bloco clicado.
             var ab = anchor.worldBound; var bb = _ticksBar.worldBound;
             ps.left = Mathf.Max(0f, ab.x - bb.x);
-            ps.bottom = bb.height + 4;
+            ps.bottom = bb.height + 4 + ActionBarClearance();
             _incPopup = pop;
         }
 
@@ -1007,12 +1143,12 @@ namespace PangeaSkirmish
             }
         }
 
-        /// <summary>Estâmina como pips: dourado = livre após o plano, vazado = reservado pelo plano, apagado = gasto.</summary>
+        /// <summary>Stamina como pips: dourado = livre após o plano, vazado = reservado pelo plano, apagado = gasto.</summary>
         private void BuildPips(Unit u)
         {
             _pipsRow.Clear();
             if (u == null) return;
-            var lab = new Label("Estâmina") { pickingMode = PickingMode.Ignore };
+            var lab = new Label("Stamina") { pickingMode = PickingMode.Ignore };
             lab.style.fontSize = 10; lab.style.color = new Color(0.62f, 0.69f, 0.82f); lab.style.marginRight = 5;
             _pipsRow.Add(lab);
             int max = u.stats.MaxStamina, free = Mathf.Clamp(u.remainingBAP, 0, max), have = Mathf.Clamp(u.currentStamina, 0, max);
@@ -1309,7 +1445,11 @@ namespace PangeaSkirmish
         public void ShowReactionMenu(Unit reactor, List<ReactionKind> options, float timer, System.Action<ReactionKind> onPick)
         {
             _reactionPick = onPick;
-            if (_reactionText != null) _reactionText.text = $"⚡ {reactor.unitName} pode reagir!";
+            if (_actionTip != null) _actionTip.style.display = DisplayStyle.None;
+            if (_reactionText != null)
+                _reactionText.text = $"⚡ {reactor.unitName} pode reagir (Stamina {reactor.currentStamina}).\n" +
+                    $"<size=11><color=#9fb3d9>Se o tempo acabar: {PlanningController.ReactionName(reactor.defaultReaction)}" +
+                    (options.Contains(reactor.defaultReaction) || reactor.defaultReaction == ReactionKind.None ? "" : " (não cabe aqui → não reage)") + "</color></size>";
             if (_reactionTimer != null) _reactionTimer.text = timer.ToString("0.0") + "s";
 
             if (_reactionButtons != null)
@@ -1323,6 +1463,7 @@ namespace PangeaSkirmish
                         text = options.Count == 1 ? $"Sim — {ReactionLabelFor(opt, reactor)}" : ReactionLabelFor(opt, reactor)
                     };
                     btn.AddToClassList("pg-button");
+                    btn.AddToClassList("bh-reaction-btn");
                     _reactionButtons.Add(btn);
                 }
                 var skip = new Button(() => _reactionPick?.Invoke(ReactionKind.None))
@@ -1373,17 +1514,22 @@ namespace PangeaSkirmish
             string baseText = ReactionLabel(k);
             if (u == null) return baseText;
             var T = Tuning.Get();
-            if (k == ReactionKind.Block) return $"{baseText}  (−{RoundManager.BlockAmount(u)} de dano)";
-            if (k == ReactionKind.Dodge) return $"{baseText}  (+{Mathf.RoundToInt(Mathf.Clamp01(u.stats.AGI * T.dodgeReactionPerAGI) * 100f)}%)";
-            return baseText;
+            int cost = Unit.ReactionCost(k);
+            switch (k)
+            {
+                case ReactionKind.Dodge:         return $"{baseText} — tira {AttackResolver.DodgeTiles(u)} tile(s) do golpe · {cost} St";
+                case ReactionKind.Block:         return $"{baseText} — −{RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra · {cost} St";
+                case ReactionKind.CounterAttack: return $"{baseText} — golpe da arma; se acertar, interrompe · {cost} St";
+                case ReactionKind.Intercept:     return $"{baseText} — entra na frente e divide os tiles · {cost} St";
+                default:                         return baseText;
+            }
         }
         private static string ReactionLabel(ReactionKind k) => k switch
         {
-            ReactionKind.CounterAttack => "⚔ Contra-ataque",
-            ReactionKind.Dodge         => "↯ Esquiva",
-            ReactionKind.Step          => "↯ Passo reativo",
-            ReactionKind.Intercept     => "🛡 Interceptar",
-            ReactionKind.Block         => "🛡 Bloqueio",
+            ReactionKind.CounterAttack => "⚔ Contra-atacar",
+            ReactionKind.Dodge         => "↯ Esquivar",
+            ReactionKind.Intercept     => "▣ Interpor",
+            ReactionKind.Block         => "■ Bloquear",
             _ => "?"
         };
 

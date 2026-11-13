@@ -47,8 +47,8 @@ MonoBehaviour:
     critDamageMul: 1.5
     damageVariance: 0.15
     armorBase: 0
-    armorPerVIT: 0
-    armorPctPerVIT: 0.08
+    armorPerVIT: 1
+    armorPctPerVIT: 0
     armorPctMax: 0.6
     magicResistBase: 0
     magicResistPerWIS: 1
@@ -59,6 +59,9 @@ MonoBehaviour:
     displayName: Machado
     damage: 3
     range: 1
+    shape: 2
+    shapeWidth: 3
+    shapeLength: 1
     attackTicks: 1
     blockHardness: 2
     spellPowerMult: 1.0
@@ -66,8 +69,11 @@ MonoBehaviour:
     elementAffinity: 1
   - id: IronAxe
     displayName: Machado de Ferro
-    damage: 12
+    damage: 5
     range: 2
+    shape: 2
+    shapeWidth: 3
+    shapeLength: 2
     attackTicks: 3
     blockHardness: 2
     spellPowerMult: 1.0
@@ -75,8 +81,11 @@ MonoBehaviour:
     elementAffinity: 6
   - id: WoodenSword
     displayName: Espada de Madeira
-    damage: 4
+    damage: 8
     range: 3
+    shape: 1
+    shapeWidth: 1
+    shapeLength: 2
     attackTicks: 2
     blockHardness: 3
     spellPowerMult: 1.0
@@ -86,6 +95,9 @@ MonoBehaviour:
     displayName: Espada de Ferro
     damage: 6
     range: 4
+    shape: 2
+    shapeWidth: 3
+    shapeLength: 1
     attackTicks: 2
     blockHardness: 3
     spellPowerMult: 1.0
@@ -93,8 +105,11 @@ MonoBehaviour:
     elementAffinity: 3
   - id: WoodenStaff
     displayName: Cajado
-    damage: 3
+    damage: 6
     range: 7
+    shape: 1
+    shapeWidth: 1
+    shapeLength: 3
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.1
@@ -102,8 +117,11 @@ MonoBehaviour:
     elementAffinity: 2
   - id: Scepter
     displayName: Cetro
-    damage: 3
+    damage: 5
     range: 6
+    shape: 3
+    shapeWidth: 2
+    shapeLength: 2
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.15
@@ -111,8 +129,11 @@ MonoBehaviour:
     elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
-    damage: 2
+    damage: 9
     range: 8
+    shape: 0
+    shapeWidth: 1
+    shapeLength: 1
     attackTicks: 1
     blockHardness: 0
     spellPowerMult: 1.0
@@ -120,8 +141,11 @@ MonoBehaviour:
     elementAffinity: 5
   - id: LongBow
     displayName: Arco Longo
-    damage: 5
+    damage: 28
     range: 10
+    shape: 0
+    shapeWidth: 1
+    shapeLength: 1
     attackTicks: 3
     blockHardness: 0
     spellPowerMult: 1.0
@@ -131,6 +155,9 @@ MonoBehaviour:
     displayName: Varinha
     damage: 2
     range: 5
+    shape: 3
+    shapeWidth: 2
+    shapeLength: 2
     attackTicks: 1
     blockHardness: 1
     spellPowerMult: 1.0
@@ -138,8 +165,11 @@ MonoBehaviour:
     elementAffinity: 4
   - id: ArcaneStaff
     displayName: Cajado Arcano
-    damage: 3
+    damage: 6
     range: 7
+    shape: 1
+    shapeWidth: 1
+    shapeLength: 3
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.3
@@ -410,9 +440,9 @@ MonoBehaviour:
   uiButtonFrameFlipShading: 0
   worldBarPillRect: {x: 68, y: 68, z: 38, w: 8}
   worldBarPillBorder: {x: 8, y: 3, z: 8, w: 3}
-  reactionChoiceTime: 3
+  reactionChoiceTime: 18
   dodgeReactionPerAGI: 0.09
   blockReductionPerVIT: 0.02
-  blockFlatPerVIT: 0.25
+  blockFlatPerVIT: 0.5
   maxBlockReduction: 0.6
   aooDamageMult: 1

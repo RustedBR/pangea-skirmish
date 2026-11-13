@@ -4,13 +4,25 @@ using UnityEngine;
 namespace PangeaSkirmish
 {
     /// <summary>
-    /// Resolve ataques conforme o modo planejado:
-    ///   Auto — encontra o inimigo mais próximo em alcance (comportamento original / IA)
-    ///   Unit — ataca a unidade especificada se ainda estiver em alcance; fallback = Auto
-    ///   Tile — ataca qualquer unidade no tile especificado com bônus de dano; erra se vazio
+    /// Resolve ataques de arma pela FORMA da arma e pelos tiles pegos (GDD-020):
+    ///   Unit — clique na unidade: a forma centraliza no alvo; dano comum.
+    ///   Tile — mira livre: a forma fica onde o jogador mirou; +25% de dano e +15% de acerto.
+    ///   Auto — IA / reserva: o inimigo mais próximo ao alcance, centralizado.
+    /// Dano de cada unidade = dano por tile × tiles dela dentro da forma (+ mira), menos a defesa
+    /// fixa uma vez. A esquiva tira tiles (AGI); Bloquear soma à defesa; aliados não são atingidos.
+    /// Tudo determinístico (BattleRng, ordem por unitId).
     /// </summary>
     public static class AttackResolver
     {
+        /// <summary>Resultado do último golpe resolvido (lido pelo RoundManager para reações em cadeia).</summary>
+        public struct LastStrike
+        {
+            public bool AnyHit;          // alguma unidade tomou dano
+            public bool AbsorbedAll;     // o bloqueio de algum alvo absorveu o golpe inteiro
+            public List<Unit> Hit;       // quem tomou dano
+        }
+        public static LastStrike Last;
+
         public static Unit FindTargetInRange(Unit attacker, IEnumerable<Unit> all)
         {
             Unit best    = null;
@@ -29,258 +41,240 @@ namespace PangeaSkirmish
             return best;
         }
 
-        /// <summary>
-        /// Contra-ataque (Attack of Opportunity): strike automático contra quem saiu do
-        /// alcance melee. Usa a mesma resolução de Unit attack (pode errar por dodge).
-        /// </summary>
+        /// <summary>Contra-atacar (golpe de oportunidade, GDD-020 §8): golpe comum centralizado no provocador.</summary>
         public static string ResolveOpportunityStrike(Unit attacker, Unit target, IEnumerable<Unit> all)
         {
-            if (target == null || target.IsDead || !attacker.IsHostileTo(target))
-                return null;
-            // Reusa a resolução de Unit attack (fallback:false = erra se fora de alcance,
-            // mas aqui o alvo JÁ está fora por definição do trigger — então força alcance).
-            int afp = attacker.stats.Footprint;
-            if (GridManager.FootprintGap(attacker.anchor, afp, target.anchor, target.stats.Footprint)
-                > attacker.EffectiveAttackRange)
-                return null; // segurança: já não estaria em alcance
-
-            bool bonus = ConsumeBonus(attacker);
-            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            int  dmg   = PowerDamage(attacker, bonus, aimDmg);
-
-            var res = attacker.stats.RollHit(attacker.EffectiveHitChance, target.stats.DodgeChance + target.dodgeReactBonus);
-            if (res == HitResult.Miss)
-            {
-                ConsumeStrBuffOnHit(attacker);
-                string missTag = bonus ? " <color=#ffd700>+INCR</color>" : "";
-                return $"<color=#ff8800>⚔ AoO</color> {attacker.unitName} errou {target.unitName}{missTag}";
-            }
-
-            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true, defender: target.stats);
-            if (res == HitResult.Critical)
-                rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul * Tuning.Get().aooDamageMult);
-            else
-                rolled = Mathf.RoundToInt(rolled * Tuning.Get().aooDamageMult);
-            // Bloqueio (reação do alvo): reduz dano recebido
-            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
-            {
-                int beforeBlock = rolled;
-                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
-                BattleFeedback.Block(target, beforeBlock - rolled);
-            }
-            rolled = SpellResolver.StoneSkin(target, rolled, physical: true);
-            target.TakeDamage(rolled, res == HitResult.Critical);
-            target.dodgeReactBonus = 0f; target.blockFlat = 0; // reação é de 1 uso
-            ConsumeStrBuffOnHit(attacker);
-
-            string deathTag = "<color=#ff6666>MORTO</color>";
-            string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
-            string icon     = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
-            string tag      = (bonus || res == HitResult.Critical) ? " <color=#ffd700>+INCR</color>" : "";
-            string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
-            return $"<color=#ff8800>⚔ AoO</color> {icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}  ({hp})";
+            Last = new LastStrike { Hit = new List<Unit>() };
+            if (target == null || target.IsDead || !attacker.IsHostileTo(target)) return null;
+            // O gatilho já garante o alcance (o provocador estava nele ao andar, reagir ou conjurar).
+            string log = Strike(attacker, AttackShape.Center(target.anchor, target.stats.Footprint), false, target, all,
+                                Tuning.Get().aooDamageMult, null, null);
+            return log != null ? "<color=#ff8800>⚔ Oportunidade</color> " + log : null;
         }
 
-        /// <summary>Resolve um ataque planejado e devolve linha de log; null = sem alvo.</summary>
-        public static string ResolveAttack(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all)
+        /// <summary>Resolve um ataque planejado e devolve linha(s) de log; null = sem alvo.</summary>
+        public static string ResolveAttack(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
+                                           Unit interceptor = null, Unit protectedUnit = null)
         {
+            Last = new LastStrike { Hit = new List<Unit>() };
             switch (attack.Mode)
             {
-                case AttackMode.Tile: return ResolveTileAttack(attacker, attack.TargetTile, all);
-                // Unit: sem fallback — se não chegou perto, erra e perde o PA
-                case AttackMode.Unit: return ResolveUnitAttack(attacker, attack.TargetUnit, all, fallback: false);
-                // Auto (IA): mantém fallback para o mais próximo
-                default:             return ResolveAutoAttack(attacker, all);
+                case AttackMode.Tile:
+                {
+                    var aim = attack.TargetTile;
+                    if (GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, aim, 1) > attacker.EffectiveAttackRange)
+                        return $"<color=#888888>x</color> {attacker.unitName}: mira fora de alcance";
+                    return Strike(attacker, aim, true, null, all, 1f, interceptor, protectedUnit);
+                }
+                case AttackMode.Unit:
+                {
+                    var t = attack.TargetUnit;
+                    if (t == null || t.IsDead || GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint,
+                            t.anchor, t.stats.Footprint) > attacker.EffectiveAttackRange)
+                        return $"<color=#888888>x</color> {attacker.unitName} nao alcancou {(t != null ? t.unitName : "alvo")}";
+                    return Strike(attacker, AttackShape.Center(t.anchor, t.stats.Footprint), false, t, all, 1f, interceptor, protectedUnit);
+                }
+                default:
+                {
+                    var t = FindTargetInRange(attacker, all);
+                    if (t == null) return null;
+                    return Strike(attacker, AttackShape.Center(t.anchor, t.stats.Footprint), false, t, all, 1f, interceptor, protectedUnit);
+                }
             }
         }
 
-        // ---- Auto (IA / fallback) ----
-        private static string ResolveAutoAttack(Unit attacker, IEnumerable<Unit> all)
-            => ResolveUnitAttack(attacker, null, all, fallback: true);
+        /// <summary>Células que o golpe planejado pega, da posição atual de quem ataca.</summary>
+        public static List<Vector2Int> CellsFor(Unit attacker, Vector2Int aim) =>
+            AttackShape.Cells(WeaponCatalog.Get(attacker.weaponId), AttackShape.Center(attacker.anchor, attacker.stats.Footprint), aim);
 
-        // ---- Alvo direto ----
-        private static string ResolveUnitAttack(Unit attacker, Unit target, IEnumerable<Unit> all, bool fallback)
+        /// <summary>Prévia sem sorte (para a HUD): tiles e dano esperado por unidade inimiga atingida.</summary>
+        public static List<(Unit unit, int tiles, int damage)> Preview(Unit attacker, Vector2Int fromAnchor, Vector2Int aim,
+                                                                       bool freeAim, IEnumerable<Unit> all)
         {
-            bool outOfRange = target == null || target.IsDead ||
-                GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint,
-                                         target.anchor,   target.stats.Footprint)
-                    > attacker.EffectiveAttackRange;
-
-            if (outOfRange)
+            var result = new List<(Unit, int, int)>();
+            var w = WeaponCatalog.Get(attacker.weaponId);
+            var cells = AttackShape.Cells(w, AttackShape.Center(fromAnchor, attacker.stats.Footprint), aim);
+            float perTile = attacker.stats.DamagePerTile * (freeAim ? Tuning.Get().freeAimDamageMult : 1f);
+            foreach (var u in Sorted(all))
             {
-                if (!fallback)
-                {
-                    string nome = target != null ? target.unitName : "alvo";
-                    return $"<color=#888888>x</color> {attacker.unitName} nao alcancou {nome}";
-                }
-                target = FindTargetInRange(attacker, all);
+                if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
+                int tiles = AttackShape.TilesOn(cells, u.anchor, u.stats.Footprint);
+                if (tiles <= 0) continue;
+                int dmg = Mathf.Max(Tuning.Get().minDamageFloor, Mathf.RoundToInt(perTile * tiles) - u.stats.PhysicalDefense);
+                result.Add((u, tiles, dmg));
             }
-            if (target == null) return null;
+            return result;
+        }
 
-            bool bonus  = ConsumeBonus(attacker);
-            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            int  dmg    = PowerDamage(attacker, bonus, aimDmg);
-            bool fury   = attacker.furyReady > 0f;
-            dmg = SpellResolver.ApplyFury(attacker, dmg, aimDmg);
+        /// <summary>Tiles que a esquiva tira de um golpe (AGI, mínimo 1).</summary>
+        public static int DodgeTiles(Unit u) =>
+            Mathf.Max(1, Mathf.FloorToInt(u.stats.AGI) / Mathf.Max(1, Tuning.Get().dodgeAgiPerTile));
 
-            // ---- Magia no caminho de ataques à distância (GDD-019 §3.2) ----
-            var field = SpellField.Current;
-            int gapToTarget = GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, target.anchor, target.stats.Footprint);
-            if (field != null && gapToTarget > 1)
+        private static List<Unit> Sorted(IEnumerable<Unit> all)
+        {
+            var list = new List<Unit>(all);
+            list.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+            return list;
+        }
+
+        /// <summary>
+        /// O golpe em si. <paramref name="primary"/> é o alvo do clique (para a Muralha/Tempestade no
+        /// caminho e o Olho certeiro); null na mira livre. Interpor: os tiles do protegido se dividem.
+        /// </summary>
+        private static string Strike(Unit attacker, Vector2Int aim, bool freeAim, Unit primary, IEnumerable<Unit> all,
+                                     float dmgMult, Unit interceptor, Unit protectedUnit)
+        {
+            var T = Tuning.Get();
+            var F = AttributeStats.Formulas;
+            Last = new LastStrike { Hit = new List<Unit>() };
+            var cells = CellsFor(attacker, aim);
+
+            // Quem está dentro da forma (só inimigos, GDD-020 §2) e quantos tiles cada um tem nela.
+            var tilesOf = new Dictionary<Unit, int>();
+            var order = new List<Unit>();
+            foreach (var u in Sorted(all))
             {
-                var wall = field.BarrierOnLine(attacker.anchor, target.anchor);
+                if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
+                int n = AttackShape.TilesOn(cells, u.anchor, u.stats.Footprint);
+                if (n <= 0) continue;
+                tilesOf[u] = n; order.Add(u);
+            }
+            // Interpor: o protetor entra na frente e fica com metade (arredondada para cima) dos tiles.
+            if (interceptor != null && protectedUnit != null && tilesOf.TryGetValue(protectedUnit, out int pt) && !interceptor.IsDead)
+            {
+                int toGuard = (pt + 1) / 2;
+                tilesOf[protectedUnit] = pt - toGuard;
+                tilesOf[interceptor] = (tilesOf.TryGetValue(interceptor, out int g) ? g : 0) + toGuard;
+                if (!order.Contains(interceptor)) order.Insert(order.IndexOf(protectedUnit) + 1, interceptor);
+                BattleFeedback.Status(interceptor, $"Interpôs: {toGuard} tile{(toGuard == 1 ? "" : "s")}", new Color(1f, 0.86f, 0.40f));
+            }
+
+            bool power  = ConsumeBonus(attacker);
+            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * T.aimDexMultiplier) : 0;
+            float fury  = attacker.furyReady;
+            attacker.furyReady = 0f;
+
+            if (order.Count == 0)
+            {
+                ConsumeStrBuffOnHit(attacker);
+                return $"<color=#888888>x</color> {attacker.unitName}: o golpe não pegou ninguém";
+            }
+
+            // Muralha / Tempestade no caminho de golpes à distância (GDD-019 §3.2), contra o alvo do clique.
+            var field = SpellField.Current;
+            var lineTarget = primary ?? order[0];
+            if (field != null && GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, lineTarget.anchor, lineTarget.stats.Footprint) > 1)
+            {
+                var wall = field.BarrierOnLine(attacker.anchor, lineTarget.anchor);
                 if (wall != null)
                 {
+                    int dmg = Mathf.RoundToInt(attacker.stats.DamagePerTile * tilesOf[lineTarget]);
                     wall.Hp -= dmg;
-                    BattleFeedback.Absorbed(target, $"{wall.Name} absorveu {dmg}");
+                    BattleFeedback.Absorbed(lineTarget, $"{wall.Name} absorveu {dmg}");
                     if (wall.Hp <= 0) field.Remove(wall);
                     return $"<color=#888888>x</color> {attacker.unitName} acerta a {wall.Name} ({Mathf.Max(0, wall.Hp)} HP)";
                 }
-                if (field.SandstormOnLine(attacker.anchor, target.anchor) && BattleRng.Roll10000() < 5000)
+                if (field.SandstormOnLine(attacker.anchor, lineTarget.anchor) && BattleRng.Roll10000() < 5000)
                 {
-                    BattleFeedback.Miss(target);
-                    return $"<color=#888888>x</color> {attacker.unitName} errou {target.unitName} na tempestade de areia";
+                    BattleFeedback.Miss(lineTarget);
+                    return $"<color=#888888>x</color> {attacker.unitName} errou na tempestade de areia";
                 }
             }
 
-            // ---- Rolagem de acerto / esquiva / crítico (lockstep-safe via BattleRng) ----
-            HitResult res;
-            bool trueAim = SpellResolver.TryTrueAim(attacker, target, out res);
-            if (!trueAim)
-                res = attacker.stats.RollHit(attacker.EffectiveHitChance, target.stats.DodgeChance + target.dodgeReactBonus);
-            if (res == HitResult.Miss)
-            {
-                ConsumeStrBuffOnHit(attacker);
-                if (target.dodgeReactBonus > 0f) BattleFeedback.Dodge(target); else BattleFeedback.Miss(target);
-                if (target.Model3D != null) target.Model3D.PlayDodge();
-                string missTag = bonus ? " <color=#ffd700>+INCR</color>" : "";
-                return $"<color=#888888>x</color> {attacker.unitName} errou {target.unitName}{missTag}";
-            }
-            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true, defender: target.stats);
-            if (res == HitResult.Critical)
-                rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
-            // Bloqueio (reação): reduz dano recebido
-            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
-            {
-                int beforeBlock = rolled;
-                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
-                BattleFeedback.Block(target, beforeBlock - rolled);
-            }
-            rolled = SpellResolver.StoneSkin(target, rolled, physical: true);
-            target.TakeDamage(rolled, res == HitResult.Critical);
-            ConsumeStrBuffOnHit(attacker);
+            float perTile = attacker.stats.DamagePerTile * dmgMult
+                          * (power ? T.powerStrikeMult : 1f)
+                          * (freeAim ? T.freeAimDamageMult : 1f);
+            float hitChance = attacker.EffectiveHitChance + (freeAim ? T.freeAimHitBonus : 0f);
+            var lines = new List<string>();
+            bool firstTarget = true;
 
-            string deathTag = "<color=#ff6666>MORTO</color>";
-            string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
-            string icon     = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
-            string tag      = (bonus || res == HitResult.Critical) ? " <color=#ffd700>+INCR</color>" : "";
-            string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
-            string magTag   = (fury ? " <color=#ffb060>FÚRIA</color>" : "") + (trueAim ? " <color=#55ccff>OLHO</color>" : "");
-            if (fury) BattleFeedback.Status(attacker, "Fúria!", new Color(1f, 0.69f, 0.38f));
-            if (trueAim) BattleFeedback.Status(attacker, "Olho certeiro!", new Color(0.33f, 0.80f, 1f));
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}{magTag}  ({hp})";
-        }
-
-        // ---- Tile (posicional, SEM rolagem de acerto) ----
-        // Melee: linha reta do atacante ate o tile clicado, atinge max(1, range-2) tiles.
-        // Ranged: apenas o tile clicado (1 tile). Alcance longo balanceia a falta de AoE.
-        // Se QUALQUER tile atingido contiver inimigo hostil -> acerta (sem dodge).
-        private static string ResolveTileAttack(Unit attacker, Vector2Int tile, IEnumerable<Unit> all)
-        {
-            int afp = attacker.stats.Footprint;
-            int range = attacker.EffectiveAttackRange;
-            if (GridManager.FootprintGap(attacker.anchor, afp, tile, afp) > range)
-                return $"<color=#888888>x</color> {attacker.unitName} fora de alcance";
-
-            // Coleta os tiles atingidos conforme tipo de arma
-            var hitTiles = new List<Vector2Int>();
-            bool isMelee = range <= Tuning.Get().strDamageMaxRange; // melee = alcance curto
-            if (isMelee)
+            foreach (var t in order)
             {
-                int extra = Mathf.Max(1, range - 2); // tiles extras alem do alvo
-                hitTiles = LineTiles(attacker.anchor, tile, extra);
-            }
-            else
-            {
-                hitTiles.Add(tile); // ranged: so o tile clicado
-            }
+                int tiles = tilesOf[t];
+                if (tiles <= 0) continue;
 
-            // Procura inimigo hostil em qualquer tile atingido
-            Unit target = null;
-            foreach (var t in hitTiles)
-            {
-                foreach (var u in all)
+                // Acerto e crítico (o Olho certeiro vale para o alvo do clique, ou o primeiro).
+                HitResult res;
+                bool trueAim = (t == primary || (primary == null && firstTarget)) && SpellResolver.TryTrueAim(attacker, t, out res);
+                if (!trueAim)
                 {
-                    if (u == attacker || u.IsDead || !u.IsHostileTo(attacker)) continue;
-                    if (GridManager.FootprintsOverlap(u.anchor, u.stats.Footprint, t, afp))
-                    { target = u; break; }
+                    if (BattleRng.Roll10000() < Mathf.RoundToInt(attacker.stats.CritChance * 10000f)) res = HitResult.Critical;
+                    else res = BattleRng.Roll10000() < Mathf.RoundToInt(Mathf.Clamp01(hitChance) * 10000f) ? HitResult.Hit : HitResult.Miss;
                 }
-                if (target != null) break;
+                else res = HitResult.Hit;
+                firstTarget = false;
+                if (trueAim) BattleFeedback.Status(attacker, "Olho certeiro!", new Color(0.33f, 0.80f, 1f));
+
+                if (res == HitResult.Miss)
+                {
+                    BattleFeedback.Miss(t);
+                    lines.Add($"<color=#888888>x</color> {attacker.unitName} errou {t.unitName}");
+                    ClearDefense(t);
+                    continue;
+                }
+
+                // Esquiva tira tiles (GDD-020 §4). A reação Esquivar garante; senão rola pela AGI (crítico não se esquiva).
+                int removed = 0;
+                if (t.dodgeReactTiles > 0) removed = t.dodgeReactTiles;
+                else if (res != HitResult.Critical && !trueAim &&
+                         BattleRng.Roll10000() < Mathf.RoundToInt(t.stats.DodgeChance * 10000f))
+                    removed = DodgeTiles(t);
+                removed = Mathf.Min(removed, tiles);
+                int left = tiles - removed;
+                if (removed > 0)
+                {
+                    if (t.Model3D != null) t.Model3D.PlayDodge();
+                    BattleFeedback.Status(t, left == 0 ? "Esquivou!" : $"Esquivou {removed} tile{(removed == 1 ? "" : "s")}", new Color(0.55f, 0.85f, 1f));
+                }
+                if (left <= 0)
+                {
+                    BattleFeedback.Dodge(t);
+                    lines.Add($"<color=#55ccff>↯</color> {t.unitName} esquivou o golpe de {attacker.unitName} ({tiles}/{tiles} tiles)");
+                    ClearDefense(t);
+                    continue;
+                }
+
+                int raw = Mathf.RoundToInt(perTile * left) + aimDmg;
+                if (fury > 0f) raw = Mathf.Max(raw, Mathf.RoundToInt(attacker.stats.DamagePerTile * left * fury) + aimDmg);
+                int rolled = attacker.stats.RollDamage(raw, isPhysical: true, defender: t.stats);
+                if (res == HitResult.Critical) rolled = Mathf.RoundToInt(rolled * F.critDamageMul);
+
+                // Bloquear: soma à defesa fixa; absorver tudo desequilibra o atacante (GDD-020 §8).
+                if (t.blockFlat > 0)
+                {
+                    int before = rolled;
+                    rolled = Mathf.Max(0, rolled - t.blockFlat);
+                    BattleFeedback.Block(t, before - rolled);
+                    if (rolled == 0) Last.AbsorbedAll = true;
+                }
+                rolled = rolled > 0 ? SpellResolver.StoneSkin(t, rolled, physical: true) : 0;
+                if (rolled > 0)
+                {
+                    t.TakeDamage(rolled, res == HitResult.Critical);
+                    Last.AnyHit = true; Last.Hit.Add(t);
+                }
+                ClearDefense(t);
+
+                string hp   = t.IsDead ? "<color=#ff6666>MORTO</color>" : $"{t.currentHP}/{t.stats.MaxHP} HP";
+                string icon = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (power ? "<color=#ffd700>*</color>" : ">");
+                string tags = (freeAim ? " <color=#9fd0ff>MIRA LIVRE</color>" : "")
+                            + (power ? " <color=#ffd700>PODEROSO</color>" : "")
+                            + (aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "")
+                            + (fury > 0f ? " <color=#ffb060>FÚRIA</color>" : "")
+                            + (removed > 0 ? $" <color=#55ccff>−{removed} esquiva</color>" : "");
+                lines.Add($"{icon} {attacker.unitName} -> {t.unitName}: {rolled} ({left} tile{(left == 1 ? "" : "s")}){tags}  ({hp})");
             }
-
-            if (target == null)
-                return $"<color=#888888>x</color> {attacker.unitName} posicao vazia";
-
-            bool bonus = ConsumeBonus(attacker);
-            int  aimDmg = ConsumeAim(attacker) ? Mathf.RoundToInt(attacker.stats.DEX * Tuning.Get().aimDexMultiplier) : 0;
-            // Dano SEM +STR extra (diferente do comportamento anterior)
-            int  dmg   = PowerDamage(attacker, bonus, aimDmg);
-            dmg = SpellResolver.ApplyFury(attacker, dmg, aimDmg);
-
-            // Sem rolagem de dodge — acerto garantido se o tile tem inimigo
-            int rolled = attacker.stats.RollDamage(dmg, isPhysical: true, defender: target.stats);
-            if (attacker.stats.RollCrit()) // critico ainda rola (independente de dodge)
-                rolled = Mathf.RoundToInt(rolled * AttributeStats.Formulas.critDamageMul);
-            bool crit = attacker.stats.RollCritLast;
-            // Bloqueio (reação): reduz dano recebido (ataques de Tile também)
-            if (target.blockFlat > 0)   // bloqueio: redução FIXA (como a dureza do escudo no PF2e)
-            {
-                int beforeBlock = rolled;
-                rolled = Mathf.Max(Tuning.Get().minDamageFloor, rolled - target.blockFlat);
-                BattleFeedback.Block(target, beforeBlock - rolled);
-            }
-            rolled = SpellResolver.StoneSkin(target, rolled, physical: true);
-            target.TakeDamage(rolled, crit);
+            if (fury > 0f) BattleFeedback.Status(attacker, "Fúria!", new Color(1f, 0.69f, 0.38f));
             ConsumeStrBuffOnHit(attacker);
-
-            string deathTag = "<color=#ff6666>MORTO</color>";
-            string hp       = target.IsDead ? deathTag : $"{target.currentHP}/{target.stats.MaxHP} HP";
-            string icon     = crit ? "<color=#ffd700>★</color>" : (bonus ? "<color=#ffd700>*</color>" : ">");
-            string tag      = (bonus || crit) ? " <color=#ffd700>+INCR</color>" : "";
-            string aimTag   = aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "";
-            return $"{icon} {attacker.unitName} -> {target.unitName}: {rolled}{tag}{aimTag}  ({hp})";
+            return lines.Count > 0 ? string.Join("\n", lines) : null;
         }
 
-        /// <summary>Line trace do atacante ate o tile alvo, incluindo 'extra' tiles alem do alvo.</summary>
-        private static List<Vector2Int> LineTiles(Vector2Int from, Vector2Int to, int extra)
-        {
-            var tiles = new List<Vector2Int>();
-            int dx = to.x - from.x;
-            int dy = to.y - from.y;
-            int steps = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
-            if (steps == 0) { tiles.Add(from); return tiles; }
-
-            // Direcao normalizada por passo
-            float stepX = (float)dx / steps;
-            float stepY = (float)dy / steps;
-            Vector2Int last = from;
-            tiles.Add(from);
-            for (int i = 1; i <= steps + extra; i++)
-            {
-                int x = Mathf.RoundToInt(from.x + stepX * i);
-                int y = Mathf.RoundToInt(from.y + stepY * i);
-                var cur = new Vector2Int(x, y);
-                if (cur != last) { tiles.Add(cur); last = cur; }
-            }
-            return tiles;
-        }
+        private static void ClearDefense(Unit t) { t.dodgeReactBonus = 0f; t.dodgeReactTiles = 0; t.blockFlat = 0; }
 
         // ---- Helpers ----
-        private static int BaseDamage(Unit u) => u.stats.PhysicalDamage;
-
-        /// <summary>Dano do golpe: base (× powerStrikeMult no golpe poderoso) + dano da mira.</summary>
+        /// <summary>Dano de um golpe centralizado (base × golpe poderoso) + dano da mira. Usado pela IA e pela HUD.</summary>
         public static int PowerDamage(Unit u, bool power, int aimDmg) =>
-            Mathf.RoundToInt(BaseDamage(u) * (power ? Tuning.Get().powerStrikeMult : 1f)) + aimDmg;
+            Mathf.RoundToInt(u.stats.PhysicalDamage * (power ? Tuning.Get().powerStrikeMult : 1f)) + aimDmg;
 
         private static bool ConsumeBonus(Unit u)
         {

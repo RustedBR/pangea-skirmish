@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace PangeaSkirmish
 {
-    /// <summary>Física gasta Estâmina; Elemental gasta Mana. Nunca os dois (GDD-018).</summary>
+    /// <summary>Física gasta Stamina; Elemental gasta Mana. Nunca os dois (GDD-018).</summary>
     public enum SpellKind { Physical, Elemental }
 
     /// <summary>
@@ -50,7 +50,7 @@ namespace PangeaSkirmish
         public SpellElement[] elements = Array.Empty<SpellElement>();
         [Tooltip("Física: atributo que escala o efeito (STR/AGI/VIT/DEX). Elemental: sempre INT (POT).")]
         public Attr scalesWith = Attr.INT;
-        [Tooltip("Custo em Mana (Elemental) ou Estâmina (Física).")]
+        [Tooltip("Custo em Mana (Elemental) ou Stamina (Física).")]
         public int cost = 2;
         [Tooltip("Ticks base; a DEX encurta como qualquer ação.")]
         public int ticksBase = 2;
@@ -81,6 +81,11 @@ namespace PangeaSkirmish
         [TextArea(2, 4)] public string description = "";
 
         public bool IsPhysical => kind == SpellKind.Physical;
+        /// <summary>GDD-020 §6: magia Física gasta metade Stamina (arredondada para baixo) e o resto em Mana. Elemental: só Mana.</summary>
+        public int StaminaPart => IsPhysical ? cost / 2 : 0;
+        public int ManaPart => cost - StaminaPart;
+        /// <summary>Custo para a UI: "2 Mana + 1 Stamina" ou "4 Mana".</summary>
+        public string CostText => StaminaPart > 0 ? $"{ManaPart} Mana + {StaminaPart} Stamina" : $"{ManaPart} Mana";
         public bool IsPure => elements != null && elements.Length == 1;
         public bool IsPair => elements != null && elements.Length == 2;
         public SpellElement PrimaryElement => (elements != null && elements.Length > 0) ? elements[0] : SpellElement.None;
@@ -127,49 +132,49 @@ namespace PangeaSkirmish
 
         private static readonly SpellDef[] _defaults =
         {
-            // ---- Física (GDD-019 §2): Estâmina, 1 tick de preparo ----
+            // ---- Física (GDD-019 §2, GDD-020 §6): metade Mana, metade Stamina; 1 tick de preparo ----
             P("Fury",      "Fúria",         Attr.STR, 3, 1, SpellEffect.PrepFury,      mult: 2f,
-              desc: "O próximo ataque desta fila causa dano ×2. Não acumula com Golpe poderoso: vale o maior."),
+              desc: "O próximo ataque causa dano ×{mult} em cada tile que pegar. Não soma com Golpe poderoso: vale o maior."),
             P("Leap",      "Salto",         Attr.AGI, 2, 1, SpellEffect.Leap,          mult: 3f, range: -1,
-              desc: "Move até 3× o alcance da andada em linha reta, por cima de obstáculos e ameaças. Sem ataque de oportunidade."),
+              desc: "Salta até {reach} células por cima de obstáculos e ameaças. O salto não provoca oportunidade (começar a conjurar no alcance de alguém provoca)."),
             P("StoneSkin", "Pele de pedra", Attr.VIT, 3, 1, SpellEffect.PrepStoneSkin, mult: 3f,
-              desc: "Até o fim do próximo ponto de decisão, a redução de dano físico é ×3 (teto 90%)."),
+              desc: "Por {skin} ticks, a defesa da VIT conta ×{mult} contra dano físico (VIT 5 → −{skinEx} por golpe)."),
             P("TrueAim",   "Olho certeiro", Attr.DEX, 2, 1, SpellEffect.PrepTrueAim,   crit: 0.30f,
-              desc: "O próximo ataque não pode errar e tem +30% de crítico."),
+              desc: "O próximo ataque não erra e ignora a esquiva natural (a reação Esquivar ainda vale); +{crit}% de crítico."),
 
             // ---- Elemental puras (GDD-019 §3.1): Mana ----
             E("Ember",      "Brasa",          Fire,  2, 2, 4, 0, SpellEffect.Damage, 4, 1.0f, dur: 3, tickDmg: 2, status: "Burning",
-              desc: "Dano de Fogo. Aplica Queimando: 2 de dano por tick por 3 ticks."),
+              desc: "~{amount} de dano de Fogo e Queimando: {tick} de dano por tick por {dur} ticks."),
             E("WaterJet",   "Jato d'água",    Water, 2, 2, 4, 0, SpellEffect.Damage, 3, 0.8f, dur: 4, status: "Soaked",
-              desc: "Dano de Água. Aplica Encharcado: −1 tile de andada por 4 ticks. Apaga Queimando."),
+              desc: "~{amount} de dano de Água e Encharcado: −1 tile de andada por {dur} ticks. Apaga Queimando."),
             E("StoneShard", "Lasca de pedra", Earth, 2, 2, 3, 0, SpellEffect.CancelMove, 3, 0.8f,
-              desc: "Dano de Terra. Se o alvo estava andando neste tick, cancela o movimento restante."),
+              desc: "~{amount} de dano de Terra. Se o alvo estiver andando, cancela o passo seguinte."),
             E("Gust",       "Rajada",         Air,   2, 1, 3, 0, SpellEffect.Push, 2, 0.5f, push: 1,
-              desc: "Dano de Ar. Empurra o alvo 1 tile para longe (2 se POT ≥ 8)."),
+              desc: "~{amount} de dano de Ar e empurra {push} tile para longe (+1 com INT 8 ou mais)."),
             E("ArcaneSight","Visão arcana",   Magic, 1, 1, -1, 0, SpellEffect.Foresight, dur: 6,
-              desc: "Por 6 ticks, vê as filas inimigas até +2 ticks à frente e enxerga unidades ocultas."),
+              desc: "Por {dur} ticks, vê a fila inimiga 2 ticks além do normal."),
 
             // ---- Elemental pares (GDD-019 §3.2): Mana ----
             E("Explosion",  "Explosão",            new[]{ SpellElement.Fire,  SpellElement.Air },   5, 3, 5, 1, SpellEffect.Damage, 6, 1.2f, push: 1,
-              desc: "Dano de Fogo em área. Empurra 1 tile para fora do centro."),
+              desc: "Área {area}: ~{amount} de dano de Fogo em quem estiver inteiro dentro (menos em quem só a ponta pegar). Empurra {push} tile para fora do centro."),
             E("Balm",       "Bálsamo",             new[]{ SpellElement.Water, SpellElement.Earth }, 4, 2, 3, 1, SpellEffect.Heal, 5, 1.0f,
-              desc: "Cura aliados na área. Remove Queimando e Encharcado. Única área que toca aliado."),
+              desc: "Área {area}: cura ~{amount} de vida dos aliados e tira Queimando e Encharcado. É a única área que toca aliados."),
             E("Steam",      "Vapor",               new[]{ SpellElement.Fire,  SpellElement.Water }, 3, 2, 4, 1, SpellEffect.ZoneSteam, dur: 3,
-              desc: "Nuvem por 3 ticks: quem termina o tick dentro tem −20% de acerto e não pode ser alvo de Olho certeiro."),
+              desc: "Área {area} de vapor por {dur} ticks: quem estiver dentro tem −20% de acerto e não pode ser alvo de Olho certeiro."),
             E("Magma",      "Magma",               new[]{ SpellElement.Fire,  SpellElement.Earth }, 4, 3, 3, 1, SpellEffect.ZoneLava, dur: 4, tickDmg: 3,
-              desc: "Tiles viram lava por 4 ticks: 3 de dano por tick a quem está em cima. Não afeta o conjurador."),
+              desc: "Área {area} de lava por {dur} ticks: {tick} de dano por tick em quem pisar nela. Não fere o conjurador."),
             E("Mud",        "Lama",                new[]{ SpellElement.Water, SpellElement.Air },   3, 2, 4, 1, SpellEffect.ZoneMud, dur: 4,
-              desc: "Tiles de lama por 4 ticks: andada = 1 dentro da área."),
+              desc: "Área {area} de lama por {dur} ticks: dentro dela a andada cai para 1 tile."),
             E("Sandstorm",  "Tempestade de areia", new[]{ SpellElement.Earth, SpellElement.Air },   3, 2, 4, 2, SpellEffect.ZoneSandstorm, dur: 3,
-              desc: "Por 3 ticks, ataques à distância que cruzam a área erram 50%."),
+              desc: "Área {area} por {dur} ticks: ataques à distância que cruzam a área erram 50% das vezes."),
             E("ArcaneFlame","Chama arcana",        new[]{ SpellElement.Fire,  SpellElement.Magic }, 4, 2, 5, 0, SpellEffect.Damage, 5, 1.3f, pierce: 0.5f,
-              desc: "Dano de Fogo que ignora metade da armadura. Sem Queimando."),
+              desc: "~{amount} de dano de Fogo que ignora metade da defesa mágica (WIS). Não queima."),
             E("MindTide",   "Maré mental",         new[]{ SpellElement.Water, SpellElement.Magic }, 3, 2, 4, 0, SpellEffect.DrainMana, 2, 0.5f,
-              desc: "Drena Mana do alvo e devolve metade ao conjurador."),
+              desc: "Drena até ~{drain} de Mana do alvo e devolve metade a você."),
             E("Rampart",    "Muralha",             new[]{ SpellElement.Earth, SpellElement.Magic }, 4, 2, 3, 3, SpellEffect.Barrier, 8, 2.0f, dur: 4,
-              desc: "Barreira de 3 tiles por 4 ticks: bloqueia movimento e projéteis. HP = 8 + POT×2."),
+              desc: "Muralha de {wall} células por {dur} ticks, com {amount} de vida: bloqueia passagem e projéteis de todos."),
             E("WindStep",   "Passo do vento",      new[]{ SpellElement.Air,   SpellElement.Magic }, 3, 1, 5, 0, SpellEffect.Teleport,
-              desc: "Teleporta o conjurador até 5 tiles para um tile livre. Sem ataque de oportunidade. (Mover um aliado fica para depois.)"),
+              desc: "Teleporta você para um tile livre a até {reach} células. Não provoca oportunidade ao chegar."),
         };
 
         public static SpellDef[] All()

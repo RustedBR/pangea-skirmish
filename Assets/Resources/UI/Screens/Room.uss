@@ -11,7 +11,14 @@
 .room__field { margin-top: 6px; margin-bottom: 6px; }
 .room__field-label { margin-bottom: 2px; }
 .room__or { -unity-text-align: middle-center; margin-top: 8px; margin-bottom: 6px; }
-.room__loopback { margin-top: 10px; }
+.room__loopback {
+    margin-top: 10px;
+    color: var(--pg-text, rgb(238, 242, 255));
+}
+.room__loopback .unity-toggle__checkmark {
+    background-color: var(--pg-accent, rgb(106, 169, 255));
+}
+.room__loopback:hover { color: var(--pg-text, rgb(238, 242, 255)); }
 .room__status {
     -unity-text-align: middle-center;
     color: var(--pg-gold, rgb(255, 204, 85));
@@ -114,6 +121,13 @@
 
 /* lista de salas (browser) */
 .room__room-list { max-height: 220px; margin-top: 6px; }
+.room__room-empty {
+    color: var(--pg-text-dim, rgb(159, 176, 208));
+    -unity-text-align: middle-center;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    font-size: 13px;
+}
 .room__room-row {
     flex-direction: row;
     align-items: center;

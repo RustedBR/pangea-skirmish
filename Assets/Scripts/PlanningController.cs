@@ -32,9 +32,7 @@ namespace PangeaSkirmish
         // Range preview (alcance destacado no grid). _baseRange é o range da unidade
         // controlada (mostrado em Idle e nos pickings de unidade); ao passar o mouse
         // num inimigo mostramos o range DELE em vermelho e restauramos o base ao sair.
-        private readonly List<Vector2Int> _baseRange = new List<Vector2Int>();
         private bool  _hasBaseRange;
-        private Color _baseRangeColor;
         private Unit  _rangeHoverUnit;
         private readonly List<GameObject> _rangeGhosts = new List<GameObject>(); // overlay de range (não tinge o tile)
 
@@ -124,6 +122,7 @@ namespace PangeaSkirmish
                 else if (slot == 2) Arm(ArmedIntent.Retreat);
             };
             _armed = ArmedIntent.None; _previewUnit = null; _previewCell = null;
+            _hud.SetActionBarItems(BuildActionBar());
             ShowIntentHint();
             SyncButtonStates();
             RefreshSequenceVisuals();
@@ -132,6 +131,7 @@ namespace PangeaSkirmish
 
         public void End()
         {
+            ClearProjection();
             _active = false;
             _mode   = PlanMode.Idle;
             if (_hud != null) _hud.HidePrompt();
@@ -243,8 +243,8 @@ namespace PangeaSkirmish
                 // Aplicar bônus: gasta PAB
                 if (_controlled.remainingBAP < Tuning.Get().staminaPowerStrike)
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Estâmina insuficiente para Golpe Poderoso", _controlled);
-                    _hud.ShowPlanNote("Estâmina insuficiente para o Golpe poderoso");
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Stamina insuficiente para Golpe Poderoso", _controlled);
+                    _hud.ShowPlanNote("Stamina insuficiente para o Golpe poderoso");
                     return;
                 }
                 int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
@@ -379,7 +379,7 @@ namespace PangeaSkirmish
 
             // Concentração agora é um CONTADOR: cada clique adiciona uma (gasta 1 PAB),
             // até acabar o PAB ou a mana projetada encher. Cancela via Desfazer/Limpar.
-            // Concentrar é da Mente: custa tempo, não Estâmina.
+            // Concentrar é da Mente: custa tempo, não Stamina.
             if (!_controlled.CanFit(ActionType.Concentrate))
             {
                 _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
@@ -402,6 +402,148 @@ namespace PangeaSkirmish
             SyncButtonStates();
             RefreshSequenceVisuals();
             _hud.ShowMainMenu(); // ação bônus concluída → volta ao menu inicial
+        }
+
+        // ------------------------------------------------------------------ BARRA DE AÇÕES (GDD-020 §9)
+
+        private static readonly ReactionKind[] DefaultReactionCycle =
+            { ReactionKind.None, ReactionKind.Dodge, ReactionKind.Block, ReactionKind.CounterAttack, ReactionKind.Intercept };
+
+        public static string ReactionName(ReactionKind k)
+        {
+            switch (k)
+            {
+                case ReactionKind.Dodge:         return "Esquivar";
+                case ReactionKind.Block:         return "Bloquear";
+                case ReactionKind.CounterAttack: return "Contra-atacar";
+                case ReactionKind.Intercept:     return "Interpor";
+                default:                         return "Nenhuma";
+            }
+        }
+
+        private List<BattleHUD.ActionBarItem> BuildActionBar()
+        {
+            var T = Tuning.Get();
+            string Ticks(ActionType t) { int d = TickRules.Duration(_controlled, t, false); return $"{d} tick{(d == 1 ? "" : "s")}"; }
+            var w = WeaponCatalog.Get(_controlled.weaponId);
+            return new List<BattleHUD.ActionBarItem>
+            {
+                new BattleHUD.ActionBarItem { Id = "attack", Glyph = "⚔", Key = "4", Name = "Atacar (centralizado)",
+                    Tip = () => $"Clique num inimigo: a forma da arma ({AttackShape.Describe(WeaponCatalog.Get(_controlled.weaponId))}) centraliza nele. " +
+                                $"Dano comum: ~{_controlled.stats.PhysicalDamage} num alvo inteiro. {Ticks(ActionType.Attack)}.",
+                    Enabled = () => _controlled.CanFit(ActionType.Attack),
+                    Active = () => _mode == PlanMode.AttackUnitPicking,
+                    OnClick = _ => OnAttackUnitClick() },
+                new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Key = "5", Name = "Mirar livre",
+                    Tip = () => $"Você posiciona a forma tile a tile. <color=#9fd0ff>+{(T.freeAimDamageMult - 1f) * 100:0}% de dano e +{T.freeAimHitBonus * 100:0}% de acerto</color>; " +
+                                $"pega quem estiver nos tiles (só inimigos). {Ticks(ActionType.Attack)}.",
+                    Enabled = () => _controlled.CanFit(ActionType.Attack),
+                    Active = () => _mode == PlanMode.AttackTilePicking,
+                    OnClick = _ => OnAttackTileClick() },
+                new BattleHUD.ActionBarItem { Id = "spell", Glyph = "◈", Key = "6", Name = "Magia",
+                    Tip = () => $"Abre o catálogo. Física: metade Mana, metade Stamina. Elemental: Mana. Mana {_controlled.AvailableMana}, Stamina {_controlled.remainingBAP}.",
+                    OnClick = _ => _hud.ToggleSpellMenu() },
+                null,
+                new BattleHUD.ActionBarItem { Id = "concentrate", Glyph = "✦", Key = "7", Name = "Concentrar",
+                    Tip = () => $"Parado, recupera <b>+{_controlled.stats.ConcentrateMana} Mana</b>. {Ticks(ActionType.Concentrate)}. Shift: até encher a fila ou a Mana.",
+                    Enabled = () => _controlled.CanFit(ActionType.Concentrate),
+                    Badge = () => _controlled.plannedConcentrations > 0 ? "×" + _controlled.plannedConcentrations : $"{_controlled.currentMana}/{_controlled.stats.MaxMana}",
+                    OnClick = fill => AddRepeat(OnConcentrateClick, ActionType.Concentrate, fill) },
+                new BattleHUD.ActionBarItem { Id = "breathe", Glyph = "❂", Key = "8", Name = "Respirar",
+                    Tip = () => $"Parado, recupera <b>+{T.breatheStamina} Stamina</b>. {Ticks(ActionType.Breathe)}. Shift: até encher a fila ou a Stamina.",
+                    Enabled = () => _controlled.CanFit(ActionType.Breathe),
+                    Badge = () => { int n = CountPlanned(ActionType.Breathe); return n > 0 ? "×" + n : $"{_controlled.currentStamina}/{_controlled.stats.MaxStamina}"; },
+                    OnClick = fill => AddRepeat(OnBreatheClick, ActionType.Breathe, fill) },
+                new BattleHUD.ActionBarItem { Id = "wait", Glyph = "…", Key = "9", Name = "Esperar",
+                    Tip = () => $"Passa {Ticks(ActionType.Wait)} sem agir (a Stamina e a Mana seguem voltando). Shift: até o próximo ponto de decisão.",
+                    Enabled = () => _controlled.CanFit(ActionType.Wait),
+                    Badge = () => { int n = CountPlanned(ActionType.Wait); return n > 0 ? "×" + n : ""; },
+                    OnClick = fill => AddRepeat(OnWaitClick, ActionType.Wait, fill) },
+                null,
+                new BattleHUD.ActionBarItem { Id = "posture", Key = "0", Name = "Postura",
+                    Glyph = "○", GlyphFn = () => PostureRules.Glyph(_controlled.plannedPosture),
+                    Tip = () => PostureTip(),
+                    Badge = () => PostureRules.Name(_controlled.plannedPosture),
+                    Active = () => _controlled.plannedPosture != Posture.Neutral,
+                    OnClick = back => CyclePosture(back ? -1 : +1) },
+                new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "-", Name = "Reação padrão",
+                    Tip = () => $"Usada se o menu de reação esgotar ({T.reactionChoiceTime:0} s). Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
+                                (_controlled.defaultReaction != ReactionKind.None ? $" ({Unit.ReactionCost(_controlled.defaultReaction)} Stamina)" : "") +
+                                ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2.",
+                    Badge = () => ReactionName(_controlled.defaultReaction),
+                    Active = () => _controlled.defaultReaction != ReactionKind.None,
+                    OnClick = back =>
+                    {
+                        int i = System.Array.IndexOf(DefaultReactionCycle, _controlled.defaultReaction);
+                        int n = DefaultReactionCycle.Length;
+                        _controlled.defaultReaction = DefaultReactionCycle[((i < 0 ? 0 : i) + (back ? -1 : 1) + n) % n];
+                    } },
+            };
+        }
+
+        private string PostureTip()
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Bônus de atributo com troca, vale a partir deste plano. Ganho de máximo (Vida, Mana, Stamina) entra também no atual; ao trocar, o atual só é cortado se passar do máximo. Shift volta.\n");
+            foreach (var p in PostureRules.All)
+            {
+                bool cur = p == _controlled.plannedPosture;
+                sb.Append(cur ? "<color=#ffd76a>▶ " : "<color=#9fb3d9>   ").Append(PostureRules.Glyph(p)).Append(' ')
+                  .Append(PostureRules.Name(p)).Append(": ").Append(PostureRules.Effect(p)).Append("</color>\n");
+            }
+            return sb.ToString().TrimEnd();
+        }
+
+        private void CyclePosture(int dir)
+        {
+            int i = System.Array.IndexOf(PostureRules.All, _controlled.plannedPosture);
+            int n = PostureRules.All.Length;
+            _controlled.plannedPosture = PostureRules.All[((i < 0 ? 0 : i) + dir + n) % n];
+            _hud.LogAction($"{_controlled.unitName}: postura {PostureRules.Name(_controlled.plannedPosture)} ({PostureRules.Effect(_controlled.plannedPosture)})", _controlled);
+        }
+
+        private int CountPlanned(ActionType t)
+        {
+            int n = 0;
+            foreach (var a in _controlled.actionSequence) if (a.Type == t) n++;
+            return n;
+        }
+
+        /// <summary>Clique = 1 vez; Shift = repete até não caber mais (fila ou recurso cheio).</summary>
+        private void AddRepeat(System.Action add, ActionType t, bool fill)
+        {
+            int guard = 0;
+            do
+            {
+                int before = _controlled.actionSequence.Count;
+                add();
+                if (_controlled.actionSequence.Count == before) break;
+            } while (fill && _controlled.CanFit(t) && ++guard < 32);
+            _hud.RefreshActionBar();
+        }
+
+        private void OnBreatheClick()
+        {
+            if (!_active || _controlled == null) return;
+            if (!_controlled.CanFit(ActionType.Breathe))
+            { _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para respirar", _controlled); return; }
+            int projected = _controlled.currentStamina - _controlled.PlannedStaminaCost() + CountPlanned(ActionType.Breathe) * Tuning.Get().breatheStamina;
+            if (projected >= _controlled.stats.MaxStamina)
+            { _hud.LogAction($"{_controlled.unitName}: Stamina já cheia", _controlled); return; }
+            _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Breathe, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero });
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
+            SyncButtonStates();
+            RefreshSequenceVisuals();
+        }
+
+        private void OnWaitClick()
+        {
+            if (!_active || _controlled == null) return;
+            if (!_controlled.CanFit(ActionType.Wait)) return;
+            _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Wait, Index = 0, IsBonus = false, BonusStep = Vector2Int.zero });
+            _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
+            SyncButtonStates();
+            RefreshSequenceVisuals();
         }
 
         private void OnIncrementClick()
@@ -428,7 +570,7 @@ namespace PangeaSkirmish
                 var probe = action; probe.IsBonus = true;
                 if (_controlled.remainingBAP < TickRules.StaminaCost(_controlled, probe))
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Estâmina insuficiente", _controlled);
+                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Stamina insuficiente", _controlled);
                     return;
                 }
                 action.IsBonus = true;
@@ -476,7 +618,7 @@ namespace PangeaSkirmish
                 // Aplicar mira: gasta PAB
                 if (_controlled.remainingBAP < Tuning.Get().staminaAim)
                 {
-                    _hud.ShowPlanNote("Estâmina insuficiente para Mirar");
+                    _hud.ShowPlanNote("Stamina insuficiente para Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction
@@ -515,40 +657,66 @@ namespace PangeaSkirmish
             return list;
         }
 
-        private void SetBaseRange(List<Vector2Int> anchors, Color color)
+        // GDD-020 §5: o alcance de ataque é só um CONTORNO vermelho; a área de uma andada é
+        // preenchida em azul. Tudo a partir da posição PLANEJADA (o fantasma), não da atual.
+        private Vector2Int _baseFrom; private int _baseRangeVal; private Color _baseRangeColor; private bool _baseWithMove;
+
+        private void SetBaseRange(Vector2Int from, int range, Color color, bool withMove)
         {
-            _baseRange.Clear();
-            _baseRange.AddRange(anchors);
-            _baseRangeColor = color;
-            _hasBaseRange   = true;
+            _baseFrom = from; _baseRangeVal = range; _baseRangeColor = color; _baseWithMove = withMove;
+            _hasBaseRange = true;
             _rangeHoverUnit = null;
-            ShowRangeGhosts(_baseRange, color);
-            Debug.Log($"[Range] base range: {_baseRange.Count} tiles");
+            ShowRangeOverlay(from, _controlled.stats.Footprint, range, color, withMove ? _controlled : null);
         }
 
         private void ClearBaseRange()
         {
             _hasBaseRange = false;
-            _baseRange.Clear();
             _rangeHoverUnit = null;
             ClearRangeGhosts();
         }
 
         private void RestoreBaseRange()
         {
-            if (_hasBaseRange) ShowRangeGhosts(_baseRange, _baseRangeColor);
-            else               ClearRangeGhosts();
+            if (_hasBaseRange && _controlled != null) ShowRangeOverlay(_baseFrom, _controlled.stats.Footprint, _baseRangeVal, _baseRangeColor, _baseWithMove ? _controlled : null);
+            else ClearRangeGhosts();
         }
 
-        // Range renderizado como OVERLAY de losangos translúcidos (não tinge/transforma o tile).
-        private void ShowRangeGhosts(List<Vector2Int> anchors, Color color)
+        /// <summary>Células que uma unidade em <paramref name="from"/> alcança com um golpe.</summary>
+        private HashSet<Vector2Int> ReachCells(Vector2Int from, int fp, int range)
+        {
+            var set = new HashSet<Vector2Int>();
+            for (int x = from.x - range; x < from.x + fp + range; x++)
+                for (int y = from.y - range; y < from.y + fp + range; y++)
+                {
+                    var c = new Vector2Int(x, y);
+                    if (!_grid.IsAnchorInBounds(c, 1)) continue;
+                    if (GridManager.FootprintGap(from, fp, c, 1) <= range) set.Add(c);
+                }
+            return set;
+        }
+
+        /// <summary>Contorno do alcance (só a borda) e, se <paramref name="mover"/>, a área de uma andada preenchida.</summary>
+        private void ShowRangeOverlay(Vector2Int from, int fp, int range, Color outline, Unit mover)
         {
             ClearRangeGhosts();
-            foreach (var a in anchors)
+            if (mover != null)
             {
-                var center = new Vector2Int(a.x + 1, a.y + 1); // mesmo tile central do HighlightAnchors
-                if (!_grid.IsAnchorInBounds(center, 1)) continue;
-                _rangeGhosts.Add(CreateCellGhost(center, color));
+                var moveCells = new HashSet<Vector2Int>();
+                var reach = _grid.GetReachableAnchors(from, mover.EffectiveMoveStep, fp, BlockerUnits(mover));
+                foreach (var a in reach)
+                    for (int dx = 0; dx < fp; dx++)
+                        for (int dy = 0; dy < fp; dy++) moveCells.Add(new Vector2Int(a.x + dx, a.y + dy));
+                var fill = Tuning.Get().moveFillColor;
+                foreach (var c in moveCells) _rangeGhosts.Add(CreateCellGhost(c, fill));
+            }
+            var cells = ReachCells(from, fp, range);
+            var edge = new Color(outline.r, outline.g, outline.b, Mathf.Max(0.55f, outline.a));
+            foreach (var c in cells)
+            {
+                bool border = !cells.Contains(c + Vector2Int.up) || !cells.Contains(c + Vector2Int.down)
+                           || !cells.Contains(c + Vector2Int.left) || !cells.Contains(c + Vector2Int.right);
+                if (border) _rangeGhosts.Add(CreateCellGhost(c, edge));
             }
         }
 
@@ -580,9 +748,8 @@ namespace PangeaSkirmish
         private void ShowSelfAttackRange()
         {
             if (_controlled == null) return;
-            int fp = _controlled.stats.Footprint;
-            var ring = RangeAnchors(_controlled.plannedAnchor, fp, _controlled.EffectiveAttackRange);
-            SetBaseRange(ring, Tuning.Get().attackRangeColor);
+            SetBaseRange(_controlled.plannedAnchor, _controlled.EffectiveAttackRange, Tuning.Get().attackOutlineColor,
+                         withMove: _mode == PlanMode.Idle && _controlled.remainingAP >= TickRules.Duration(_controlled, ActionType.Move, false));
         }
 
         /// <summary>Nos modos Idle/mira-unidade: hover em inimigo mostra o range DELE em vermelho.</summary>
@@ -596,10 +763,7 @@ namespace PangeaSkirmish
                 if (_rangeHoverUnit != hovered)
                 {
                     _rangeHoverUnit = hovered;
-                    int fp = hovered.stats.Footprint;
-                    var ring = RangeAnchors(hovered.anchor, fp, hovered.EffectiveAttackRange);
-                    ShowRangeGhosts(ring, Tuning.Get().enemyRangeColor);
-                    Debug.Log($"[Range] hover inimigo {hovered.unitName}: alcance {hovered.stats.AttackRange} ({ring.Count} tiles)");
+                    ShowRangeOverlay(hovered.anchor, hovered.stats.Footprint, hovered.EffectiveAttackRange, Tuning.Get().enemyRangeColor, null);
                 }
             }
             else if (_rangeHoverUnit != null)
@@ -714,32 +878,21 @@ namespace PangeaSkirmish
 
         private void EnterAttackTilePicking()
         {
-            ClearRangeGhosts();
+            // Mira livre: qualquer CÉLULA ao alcance (fora do próprio corpo).
             var from = _controlled.plannedAnchor;
+            int fp = _controlled.stats.Footprint;
             _attackable.Clear();
-
-            int fp     = _controlled.stats.Footprint;
-            int budget = _controlled.EffectiveAttackRange + fp;
-            for (int dx = -budget; dx <= budget; dx++)
-            for (int dy = -budget; dy <= budget; dy++)
-            {
-                var a = new Vector2Int(from.x + dx, from.y + dy);
-                if (a == from || !_grid.IsAnchorInBounds(a, fp)) continue;
-                if (GridManager.FootprintGap(from, fp, a, fp) <= _controlled.EffectiveAttackRange)
-                    _attackable.Add(a);
-            }
-
-            _grid.HighlightAnchors(_attackable, ColTileTarget);
-            EnsureCursorGhost();
-            SetCursorGhostColor(ColTileTarget);
+            foreach (var c in ReachCells(from, fp, _controlled.EffectiveAttackRange))
+                if (!GridManager.FootprintsOverlap(from, fp, c, 1)) _attackable.Add(c);
             SetMode(PlanMode.AttackTilePicking);
+            SetBaseRange(from, _controlled.EffectiveAttackRange, Tuning.Get().attackOutlineColor, withMove: false);
         }
 
         private void CommitAttackTile(Vector2Int anchor)
         {
             if (!_attackable.Contains(anchor)) return;
 
-            var atk = new PlannedAttack { Mode = AttackMode.Tile, TargetTile = anchor };
+            var atk = new PlannedAttack { Mode = AttackMode.Tile, TargetTile = anchor };   // célula mirada
             _controlled.plannedAttacks.Add(atk);
 
             _controlled.actionSequence.Add(new ScheduledAction
@@ -750,8 +903,11 @@ namespace PangeaSkirmish
                 BonusStep = Vector2Int.zero
             });
 
-            var ghostColor = Tuning.Get().tileTargetGhostColor; // ciano
-            _pathGhosts.Add(CreateGhostAt(anchor, ghostColor));
+            // marcador invisível para o número da ordem (a forma aparece em RefreshPlannedShapes)
+            var tileMarker = new GameObject("TileAttackMarker");
+            tileMarker.transform.position = _grid.CellToWorld(anchor) + Vector3.up * 0.4f;
+            _pathGhosts.Add(tileMarker);
+            ClearCursorShape();
 
             HideCursorGhost();
             SetMode(PlanMode.Idle);
@@ -917,6 +1073,7 @@ namespace PangeaSkirmish
         /// <summary>Teclas e cliques do Modo Intenção. Devolve true se consumiu o input do frame.</summary>
         private bool HandleIntentInput()
         {
+            if (_hud.HandleActionBarKeys()) return true;
             var kb = Keyboard.current;
             if (kb != null)
             {
@@ -1011,7 +1168,7 @@ namespace PangeaSkirmish
             if (s == null) { Debug.LogWarning($"[Plano] magia desconhecida: {spellId}"); return; }
             if (!_controlled.CanFitSpell(s, out string why))
             {
-                Debug.Log($"[Plano] {_controlled.unitName} não pode conjurar {s.id}: {why} (ticks livres {_controlled.remainingAP}, Mana {_controlled.AvailableMana}, Estâmina {_controlled.remainingBAP})");
+                Debug.Log($"[Plano] {_controlled.unitName} não pode conjurar {s.id}: {why} (ticks livres {_controlled.remainingAP}, Mana {_controlled.AvailableMana}, Stamina {_controlled.remainingBAP})");
                 _hud.ShowPlanNote($"{s.displayName}: {why}"); return;
             }
             if (s.effect != SpellEffect.Leap && (s.range < 0 || s.range == 0))
@@ -1309,6 +1466,7 @@ namespace PangeaSkirmish
                 _lastTargetedUnit.SetTargeted(false);
                 _lastTargetedUnit = null;
             }
+            if (mode != PlanMode.AttackUnitPicking && mode != PlanMode.AttackTilePicking) ClearCursorShape();
             _mode = mode;
             if (mode == PlanMode.Idle)
             {
@@ -1338,6 +1496,13 @@ namespace PangeaSkirmish
                 _hud.GoBack();
                 return;
             }
+
+            // Esc sai da mira de ataque.
+            if ((_mode == PlanMode.AttackUnitPicking || _mode == PlanMode.AttackTilePicking) && Keyboard.current != null
+                && Keyboard.current.escapeKey.wasPressedThisFrame)
+            { SetMode(PlanMode.Idle); ShowSelfAttackRange(); return; }
+            // Teclas da barra de ações valem em qualquer modo (4 Atacar, 5 Mirar livre...).
+            if (_mode != PlanMode.Idle && _hud.HandleActionBarKeys()) return;
 
             // Modo Intenção: um clique monta a fila inteira (GDD-016 §6).
             if (_mode == PlanMode.Idle && HandleIntentInput()) return;
@@ -1372,6 +1537,7 @@ namespace PangeaSkirmish
                         hoveredUnit.SetTargeted(true);
                         _lastTargetedUnit = hoveredUnit;
                     }
+                    ShowCursorShape(AttackShape.Center(hoveredUnit.plannedAnchor, hoveredUnit.stats.Footprint), false);
                     if (Mouse.current.leftButton.wasPressedThisFrame)
                     {
                         CommitAttackUnit(hoveredUnit);
@@ -1382,22 +1548,22 @@ namespace PangeaSkirmish
                     if (_lastTargetedUnit != null) _lastTargetedUnit.SetTargeted(false);
                     _lastTargetedUnit = null;
                     HideCursorGhost();
+                    ClearCursorShape();
                 }
             }
             else if (_mode == PlanMode.AttackTilePicking)
             {
-                var hovered = HitAnchor();
-                bool valid = hovered.HasValue && _attackable.Contains(hovered.Value);
+                // Mira livre (GDD-020 §3): a forma fica na CÉLULA sob o cursor; +25% dano, +15% acerto.
+                var cell = HitCell();
+                bool valid = cell.HasValue && _attackable.Contains(cell.Value);
                 if (valid)
                 {
-                    PlaceGhost(_cursorGhost, hovered.Value);
-                    if (Mouse.current.leftButton.wasPressedThisFrame)
-                    {
-                        CommitAttackTile(hovered.Value);
-                    }
-                }
-                else
                     HideCursorGhost();
+                    ShowCursorShape(cell.Value, true);
+                    if (Mouse.current.leftButton.wasPressedThisFrame && !PointerOverUI())
+                        CommitAttackTile(cell.Value);
+                }
+                else { HideCursorGhost(); ClearCursorShape(); }
             }
             else if (_mode == PlanMode.SpellTilePicking)
             {
@@ -1444,6 +1610,7 @@ namespace PangeaSkirmish
         {
             if (_controlled == null) return;
             _controlled.RecomputeTickBudget();
+            _hud.RefreshActionBar();
             bool hasSequence = _controlled.actionSequence.Count > 0;
             _hud.SetMoveState(
                 canAdd:    _controlled.CanFit(ActionType.Move),
@@ -1551,8 +1718,110 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Renumera os rótulos sobre os ghosts e atualiza a faixa de ordem na HUD.</summary>
+        // ------------------------------------------------------------------ PROJEÇÃO (GDD-020 §5)
+        private readonly List<GameObject> _modelGhosts = new List<GameObject>();
+        private readonly List<GameObject> _planShapeGhosts = new List<GameObject>();
+        private readonly List<GameObject> _cursorShapeGhosts = new List<GameObject>();
+        private readonly List<BattleLabel> _cursorShapeLabels = new List<BattleLabel>();
+        private string _cursorShapeKey;
+
+        /// <summary>Fantasma 3D translúcido em cada parada do caminho; o do destino mais forte.</summary>
+        private void RefreshModelGhosts()
+        {
+            foreach (var g in _modelGhosts) if (g != null) Destroy(g);
+            _modelGhosts.Clear();
+            if (_controlled == null || _controlled.Model3D == null || _grid == null) return;
+            string model = _controlled.Model3D.ModelName;
+            float scale = _controlled.Model3D.ModelScale;
+            int fp = _controlled.stats.Footprint;
+            var stops = new List<Vector2Int>();
+            foreach (var a in _controlled.actionSequence)
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) stops.Add(_controlled.plannedPath[a.Index]);
+            var T = Tuning.Get();
+            var prev = _controlled.anchor;
+            for (int i = 0; i < stops.Count; i++)
+            {
+                var cur = stops[i];
+                var root = new GameObject("ModelGhost").transform;
+                var pos = _grid.AnchorToWorldCenter(cur, fp);
+                var dir = pos - _grid.AnchorToWorldCenter(prev, fp); dir.y = 0f;
+                float yaw = dir.sqrMagnitude > 1e-4f ? Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg : 135f;
+                root.SetPositionAndRotation(pos, Quaternion.Euler(0f, yaw, 0f));
+                root.localScale = Vector3.one * scale;
+                bool last = i == stops.Count - 1;
+                World3D.SpawnGhost(model, root, T.playerTeamColor, last ? T.ghostAlphaFinal : T.ghostAlphaStop);
+                _modelGhosts.Add(root.gameObject);
+                prev = cur;
+            }
+        }
+
+        /// <summary>Tiles que cada ataque já planejado vai pegar, da posição planejada naquele ponto da fila.</summary>
+        private void RefreshPlannedShapes()
+        {
+            foreach (var g in _planShapeGhosts) if (g != null) Destroy(g);
+            _planShapeGhosts.Clear();
+            if (_controlled == null) return;
+            var at = _controlled.anchor;
+            var col = Tuning.Get().shapePreviewColor; col.a *= 0.7f;
+            var w = WeaponCatalog.Get(_controlled.weaponId);
+            int fp = _controlled.stats.Footprint;
+            foreach (var a in _controlled.actionSequence)
+            {
+                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) { at = _controlled.plannedPath[a.Index]; continue; }
+                if (a.Type != ActionType.Attack || a.Index >= _controlled.plannedAttacks.Count) continue;
+                var atk = _controlled.plannedAttacks[a.Index];
+                Vector2Int aim;
+                if (atk.Mode == AttackMode.Tile) aim = atk.TargetTile;
+                else if (atk.TargetUnit != null && !atk.TargetUnit.IsDead) aim = AttackShape.Center(atk.TargetUnit.plannedAnchor, atk.TargetUnit.stats.Footprint);
+                else continue;
+                foreach (var c in AttackShape.Cells(w, AttackShape.Center(at, fp), aim))
+                    if (_grid.IsAnchorInBounds(c, 1)) _planShapeGhosts.Add(CreateCellGhost(c, col));
+            }
+        }
+
+        /// <summary>Prévia sob o cursor: a forma do golpe e quanto cada inimigo dentro dela vai tomar.</summary>
+        private void ShowCursorShape(Vector2Int aim, bool freeAim)
+        {
+            string key = $"{aim.x},{aim.y},{freeAim},{_controlled.plannedAnchor.x},{_controlled.plannedAnchor.y}";
+            if (key == _cursorShapeKey) return;
+            ClearCursorShape();
+            _cursorShapeKey = key;
+            var from = _controlled.plannedAnchor;
+            var w = WeaponCatalog.Get(_controlled.weaponId);
+            var col = Tuning.Get().shapePreviewColor;
+            foreach (var c in AttackShape.Cells(w, AttackShape.Center(from, _controlled.stats.Footprint), aim))
+                if (_grid.IsAnchorInBounds(c, 1)) _cursorShapeGhosts.Add(CreateCellGhost(c, col));
+            foreach (var (u, tiles, dmg) in AttackResolver.Preview(_controlled, from, aim, freeAim, _allUnits))
+            {
+                string txt = $"−{dmg} · {tiles} tile{(tiles == 1 ? "" : "s")}{(freeAim ? " · livre" : "")}";
+                var lbl = BattleLabel.CreateTag(_cam, u.HeadWorld + Vector3.up * 1.1f, txt, Color.white,
+                                                     freeAim ? new Color32(0x1d, 0x4d, 0x8a, 235) : new Color32(0x8a, 0x2a, 0x1d, 235));
+                _cursorShapeLabels.Add(lbl);
+            }
+        }
+
+        private void ClearCursorShape()
+        {
+            _cursorShapeKey = null;
+            foreach (var g in _cursorShapeGhosts) if (g != null) Destroy(g);
+            _cursorShapeGhosts.Clear();
+            foreach (var l in _cursorShapeLabels) if (l != null) l.Dismiss();
+            _cursorShapeLabels.Clear();
+        }
+
+        private void ClearProjection()
+        {
+            foreach (var g in _modelGhosts) if (g != null) Destroy(g);
+            _modelGhosts.Clear();
+            foreach (var g in _planShapeGhosts) if (g != null) Destroy(g);
+            _planShapeGhosts.Clear();
+            ClearCursorShape();
+        }
+
         private void RefreshSequenceVisuals()
         {
+            RefreshModelGhosts();
+            RefreshPlannedShapes();
             // Sincroniza um rótulo numerado por ghost (ordem = ordem de criação = sequência)
             while (_ghostLabels.Count > _pathGhosts.Count)
             {

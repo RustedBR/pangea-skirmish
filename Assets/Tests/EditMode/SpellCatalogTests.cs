@@ -70,7 +70,7 @@ public class SpellCatalogTests
         {
             Assert.Greater(s.cost, 0, $"{s.id}: custo > 0");
             Assert.GreaterOrEqual(s.ticksBase, 1, $"{s.id}: ticks ≥ 1");
-            if (s.IsPhysical) Assert.LessOrEqual(s.cost, 3, $"{s.id}: Estâmina é escassa");
+            if (s.IsPhysical) Assert.LessOrEqual(s.cost, 3, $"{s.id}: Stamina é escassa");
             else Assert.LessOrEqual(s.cost, 5, $"{s.id}: cabe numa Mana de WIS 0 (6)");
         }
     }

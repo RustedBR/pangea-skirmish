@@ -117,6 +117,46 @@ namespace PangeaSkirmish
             }
         }
 
+        private static Shader _ghostShader;
+        private static readonly Dictionary<string, Material> _ghostMats = new Dictionary<string, Material>();
+
+        /// <summary>
+        /// Fantasma translúcido de um modelo (projeção do turno, GDD-020 §5): mesmo corpo, shader
+        /// Pangea/LowPolyGhost, cores da paleta e "team" com a cor do time. Null se faltar o modelo.
+        /// </summary>
+        public static GameObject SpawnGhost(string modelName, Transform parent, Color teamColor, float alpha)
+        {
+            var go = Spawn(modelName, parent);
+            if (go == null) return null;
+            if (_ghostShader == null) _ghostShader = Resources.Load<Shader>("Shaders/PangeaLowPolyGhost");
+            if (_ghostShader == null) _ghostShader = Shader.Find("Pangea/LowPolyGhost");
+            if (_ghostShader == null) return go;
+            foreach (var r in go.GetComponentsInChildren<MeshRenderer>())
+            {
+                var src = r.sharedMaterials;
+                var dst = new Material[src.Length];
+                for (int i = 0; i < src.Length; i++)
+                {
+                    string key = src[i] != null ? src[i].name : "default";
+                    Color c = key == "team" ? teamColor
+                            : (src[i] != null && src[i].HasProperty(BaseColorId) ? src[i].GetColor(BaseColorId) : Color.white);
+                    string mk = $"{ColorUtility.ToHtmlStringRGB(c)}_{Mathf.RoundToInt(alpha * 100)}";
+                    if (!_ghostMats.TryGetValue(mk, out var m) || m == null)
+                    {
+                        m = new Material(_ghostShader) { name = "ghost_" + mk };
+                        m.SetColor(BaseColorId, c);
+                        m.SetFloat("_Alpha", alpha);
+                        _ghostMats[mk] = m;
+                    }
+                    dst[i] = m;
+                }
+                r.sharedMaterials = dst;
+                r.SetPropertyBlock(null);
+                r.sortingOrder = MeshSortingOrder + 10;
+            }
+            return go;
+        }
+
         /// <summary>Material low-poly compartilhado para uma cor nomeada (ex.: "team", "top").</summary>
         private static Material MaterialFor(Material imported)
         {

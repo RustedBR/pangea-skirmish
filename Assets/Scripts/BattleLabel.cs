@@ -157,6 +157,15 @@ namespace PangeaSkirmish
             return label;
         }
 
+        /// <summary>Etiqueta fixa (não anima) com o fundo do tamanho do texto: prévias de dano da mira.</summary>
+        public static BattleLabel CreateTag(Camera cam, Vector3 pos, string text, Color textColor, Color32 bgColor, float scale = 0.85f)
+        {
+            var label = CreateSequence(cam, pos, text, textColor, bgColor);
+            label.transform.localScale = Vector3.one * scale;
+            label.FitBackgroundToText();
+            return label;
+        }
+
         public static BattleLabel CreateSequence(Camera cam, Vector3 pos, string num, Color textColor, Color32 bgColor)
         {
             var go = new GameObject("BattleLabel");
@@ -205,7 +214,9 @@ namespace PangeaSkirmish
         private static Sprite GetBgSprite(Color32 bg, Color32 border)
         {
             var key = (bg, border);
-            if (_bgCache.TryGetValue(key, out var sprite))
+            // Sem recarga de domínio (Enter Play Mode Options) o dicionário estático sobrevive e
+            // guarda sprites cujas texturas já foram destruídas: o chip saía sem fundo.
+            if (_bgCache.TryGetValue(key, out var sprite) && sprite != null && sprite.texture != null)
                 return sprite;
 
             const int W = 64, H = 32;

@@ -67,7 +67,8 @@ public class CharCreationTest
         StringAssert.Contains("Brasa", root.Q<Label>("derived-label").text);
         StringAssert.Contains("Força", hud.AttrHelp(0));
         StringAssert.Contains("Alcance das magias", hud.AttrHelp(4));
-        StringAssert.Contains("Dano por golpe", hud.WeaponHelp());
+        StringAssert.Contains("Dano por tile", hud.WeaponHelp());
+        StringAssert.Contains("Forma", hud.WeaponHelp());
         var row = root.Q<VisualElement>("attr-row-1");
         using (var e = PointerEnterEvent.GetPooled()) { e.target = row; row.SendEvent(e); }
         yield return null;
@@ -85,7 +86,7 @@ public class CharCreationTest
         Assert.AreEqual(PlayerProfile.AttributeBudget, PlayerProfile.Points(hud.Editing), "orçamento fixo todo gasto");
         Assert.IsNull(root.Q<VisualElement>("budget-stepper"), "sem seletor de orçamento");
         Assert.IsTrue(confirm.enabledSelf, "Salvar habilitado com o orçamento exato");
-        StringAssert.Contains("Estâmina", hud.AttrHelp(2), "DEX explica que dá Estâmina");
+        StringAssert.Contains("Stamina", hud.AttrHelp(2), "DEX explica que dá Stamina");
 
         // Confirmar devolve o personagem com a aparência e a arma escolhidas.
         CharacterPreset saved = null;

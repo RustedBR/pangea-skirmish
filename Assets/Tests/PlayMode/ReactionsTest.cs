@@ -6,7 +6,7 @@ using PangeaSkirmish;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-/// <summary>Reações inspiradas no PF2e (GDD-017): Bloquear fixo, Interceptar e Passo reativo.</summary>
+/// <summary>Reações (GDD-020 §8): Bloquear fixo, Interpor qualquer aliado colado, custos por reação.</summary>
 public class ReactionsTest
 {
     private RoundManager _rm;
@@ -60,20 +60,16 @@ public class ReactionsTest
     }
 
     [UnityTest]
-    public IEnumerator Intercept_AllyAdjacentWithMoreHp_TakesTheHitForAWoundedTarget()
+    public IEnumerator Interpose_AnyAdjacentAlly_WithStamina()
     {
         yield return Setup();
-        var hurt = Make("Ferido", Team.Player, new Vector2Int(5, 6), "IronSword");
+        var hurt = Make("Aliado", Team.Player, new Vector2Int(5, 6), "IronSword");
         var guard = Make("Guarda", Team.Player, new Vector2Int(8, 6), "IronSword");
         var foe = Make("Inimigo", Team.Enemy, new Vector2Int(12, 6), "IronSword", str: 6);
-        hurt.currentHP = 3;                       // golpe fatal
-        guard.currentStamina = guard.stats.MaxStamina; guard.remainingReactions = 1;
-
-        var picked = (Unit)Call("FindInterceptor", hurt, foe);
-        Assert.AreSame(guard, picked, "o aliado adjacente com mais vida intercepta");
-
-        hurt.currentHP = hurt.stats.MaxHP;       // sem risco: ninguém se joga na frente
-        Assert.IsNull(Call("FindInterceptor", hurt, foe));
+        guard.currentStamina = guard.stats.MaxStamina;
+        Assert.AreSame(guard, (Unit)Call("FindInterceptor", hurt, foe), "qualquer aliado colado pode interpor, com vida cheia ou não");
+        guard.currentStamina = Unit.ReactionCost(ReactionKind.Intercept) - 1;
+        Assert.IsNull(Call("FindInterceptor", hurt, foe), "sem Stamina para Interpor (2), não interpõe");
     }
 
     [UnityTest]
@@ -83,20 +79,17 @@ public class ReactionsTest
         var hurt = Make("Ferido", Team.Player, new Vector2Int(2, 6), "IronSword");
         var far = Make("Longe", Team.Player, new Vector2Int(14, 6), "IronSword");
         var foe = Make("Inimigo", Team.Enemy, new Vector2Int(12, 12), "IronSword");
-        hurt.currentHP = 3; far.currentStamina = far.stats.MaxStamina; far.remainingReactions = 1;
+        far.currentStamina = far.stats.MaxStamina;
         Assert.IsNull(Call("FindInterceptor", hurt, foe), "longe demais não intercepta");
     }
 
-    [UnityTest]
-    public IEnumerator Step_FindsATileOutsideTheAttackersRange()
+    [Test]
+    public void ReactionCosts_PerKind()
     {
-        yield return Setup();
-        var runner = Make("Veloz", Team.Player, new Vector2Int(5, 6), "IronSword", agi: 6);
-        var beast = Make("Fera", Team.Enemy, new Vector2Int(8, 6), "Claws");    // desarmada: alcance 1
-        Assert.AreEqual(1, beast.stats.AttackRange);
-        var dest = (Vector2Int?)Call("FindStepTile", runner, beast);
-        Assert.IsTrue(dest.HasValue, "há um tile para sair do alcance de uma fera de alcance 1");
-        int gap = GridManager.FootprintGap(dest.Value, runner.stats.Footprint, beast.anchor, beast.stats.Footprint);
-        Assert.Greater(gap, beast.stats.AttackRange);
+        Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.Dodge));
+        Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.Block));
+        Assert.AreEqual(3, Unit.ReactionCost(ReactionKind.CounterAttack));
+        Assert.AreEqual(2, Unit.ReactionCost(ReactionKind.Intercept));
+        Assert.AreEqual(18f, Resources.Load<GameTuning>("GameTuning").reactionChoiceTime, "18 s para decidir a reação");
     }
 }

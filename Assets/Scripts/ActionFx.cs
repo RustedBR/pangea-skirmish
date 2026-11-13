@@ -212,23 +212,24 @@ namespace PangeaSkirmish
         {
             if (grid == null || attacker == null) return;
             int afp = attacker.stats.Footprint;
-            Vector2Int targetAnchor; int tfp;
+            // GDD-020: marca exatamente os tiles que a FORMA da arma pega.
+            Vector2Int aim;
             if (atk.Mode == AttackMode.Unit && atk.TargetUnit != null && !atk.TargetUnit.IsDead)
-            { targetAnchor = atk.TargetUnit.anchor; tfp = atk.TargetUnit.stats.Footprint; }
-            else if (atk.Mode == AttackMode.Tile) { targetAnchor = atk.TargetTile; tfp = afp; }
+                aim = AttackShape.Center(atk.TargetUnit.anchor, atk.TargetUnit.stats.Footprint);
+            else if (atk.Mode == AttackMode.Tile) aim = atk.TargetTile;
             else return;
 
-            var hit = new Color(1f, 0.26f, 0.20f);
-            GroundFlash(grid, FootprintCells(targetAnchor, tfp), hit, 0.9f, 0.72f);
+            var cells = AttackResolver.CellsFor(attacker, aim);
+            Unit tgt = atk.Mode == AttackMode.Unit ? atk.TargetUnit : null;
+            GroundFlash(grid, cells, new Color(1f, 0.26f, 0.20f), 0.9f, 0.72f);
 
             // Trilha: só quando há chão entre os dois (ataque à distância ou de alcance longo).
             var from = attacker.anchor + new Vector2Int(afp / 2, afp / 2);
-            var to = targetAnchor + new Vector2Int(tfp / 2, tfp / 2);
             var trail = new List<Vector2Int>();
-            foreach (var c in SpellField.LineCells(from, to, includeEnds: false))
+            foreach (var c in SpellField.LineCells(from, aim, includeEnds: false))
             {
-                if (GridManager.FootprintsOverlap(attacker.anchor, afp, c, 1)) continue;
-                if (GridManager.FootprintsOverlap(targetAnchor, tfp, c, 1)) continue;
+                if (GridManager.FootprintsOverlap(attacker.anchor, afp, c, 1) || cells.Contains(c)) continue;
+                if (tgt != null && GridManager.FootprintsOverlap(tgt.anchor, tgt.stats.Footprint, c, 1)) continue;   // dentro do alvo não é trilha
                 trail.Add(c);
             }
             if (trail.Count > 0) GroundFlash(grid, trail, new Color(1f, 0.90f, 0.75f), 0.7f, 0.45f);

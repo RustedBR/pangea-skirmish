@@ -57,8 +57,8 @@ public class SpellMenuShot
         hero.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = 0 });
         hero.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = 1 });
         hero.RecomputeTickBudget();
-        Assert.AreEqual(2, hero.reservedMana, "Brasa reserva 2 de Mana");
-        Assert.AreEqual(hero.currentStamina - 3, hero.remainingBAP, "Fúria reserva 3 de Estâmina");
+        Assert.AreEqual(2 + 2, hero.reservedMana, "Brasa reserva 2 de Mana e a Fúria (custo 3, física) 2 de Mana");
+        Assert.AreEqual(hero.currentStamina - 1, hero.remainingBAP, "Fúria reserva 1 de Stamina (metade, arredondada para baixo)");
 
         hud.UpdateTimeline(1, units, u => u == hero);
         hud.SetActionSequence(new List<ActionType> { ActionType.Move, ActionType.Spell, ActionType.Spell },
@@ -70,11 +70,8 @@ public class SpellMenuShot
         root.Query<Label>().ForEach(l => { if (ember == null && l.text.Contains("Brasa")) ember = l; });
         Assert.IsNotNull(ember, "bloco da Brasa na fila do plano");
 
-        // Abre o menu pelo botão "✦ Magia" do painel de intenções.
-        Button spellBtn = null;
-        root.Query<Button>().ForEach(b => { if (spellBtn == null && b.text == BattleHUD.SpellGlyph + " Magia") spellBtn = b; });
-        Assert.IsNotNull(spellBtn, "botão Magia no painel de intenções");
-        using (var e = NavigationSubmitEvent.GetPooled()) { e.target = spellBtn; spellBtn.SendEvent(e); }
+        // Abre o menu (o botão Magia agora fica na barra de ações, GDD-020 §9).
+        hud.ToggleSpellMenu();
         for (int i = 0; i < 3; i++) yield return null;
 
         var menu = root.Q<VisualElement>("spell-menu");
@@ -87,7 +84,7 @@ public class SpellMenuShot
         using (var e = PointerEnterEvent.GetPooled()) { e.target = explosion; explosion.SendEvent(e); }
         yield return null;
         bool hoverShown = false;
-        menu.Query<Label>().ForEach(l => { if (l.text.Contains("Dano de Fogo em área")) hoverShown = true; });
+        menu.Query<Label>().ForEach(l => { if (l.text.Contains("de dano de Fogo em quem estiver inteiro")) hoverShown = true; });
         Assert.IsTrue(hoverShown, "hover escreve o efeito da magia");
         for (int i = 0; i < 2; i++) yield return null;
         yield return new WaitForEndOfFrame();
