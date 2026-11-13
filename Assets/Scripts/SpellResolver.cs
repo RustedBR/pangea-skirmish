@@ -220,6 +220,11 @@ namespace PangeaSkirmish
                     caster.furyReady = s.multiplier;
                     log.Add($"{head}: o próximo ataque causa dano ×{s.multiplier:0.#}");
                     return log;
+                case SpellEffect.PrepCurve:
+                    caster.curveReady = true;
+                    BattleFeedback.Status(caster, "Curva pronta", new Color(0.55f, 0.85f, 1f));
+                    log.Add($"{head}: o próximo ataque à distância segue o alvo e contorna obstáculos");
+                    return log;
                 case SpellEffect.PrepTrueAim:
                     caster.trueAimCrit = Mathf.Max(0.0001f, s.critBonus);
                     log.Add($"{head}: o próximo ataque não erra (+{Mathf.RoundToInt(s.critBonus * 100)}% crítico)");
@@ -244,6 +249,15 @@ namespace PangeaSkirmish
             }
 
             // ---------------- Elemental ----------------
+            // Curva (magia física preparada): a magia segue a unidade mirada e contorna obstáculos.
+            bool curved = caster.curveReady && s.range > 0 && ps.TargetUnit != null && !ps.TargetUnit.IsDead
+                          && (s.effect == SpellEffect.Damage || s.effect == SpellEffect.Push || s.effect == SpellEffect.CancelMove);
+            if (curved)
+            {
+                ps.TargetTile = ps.TargetUnit.anchor;
+                caster.curveReady = false;
+                BattleFeedback.Status(caster, "Curva!", new Color(0.55f, 0.85f, 1f));
+            }
             int fp = caster.stats.Footprint;
             var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
             float potInt = caster.stats.INT;                 // limiares por INT (ex.: Rajada empurra +1 com INT ≥ 8)
@@ -317,7 +331,7 @@ namespace PangeaSkirmish
             if (targets.Count == 0) { log.Add($"{head}: <color=#888888>sem alvo</color>"); return log; }
 
             // Projétil: Muralha no caminho absorve; Tempestade de areia faz errar 50%.
-            if (s.area == 0 && field != null && targets.Count == 1)
+            if (!curved && s.area == 0 && field != null && targets.Count == 1)
             {
                 var t = targets[0];
                 var b = field.BarrierOnLine(caster.anchor, t.anchor);
@@ -351,7 +365,7 @@ namespace PangeaSkirmish
                 // a área conta os tiles dela dentro do quadrado; alvo único pega todos. Esquivar tira tiles.
                 int full = t.stats.Footprint * t.stats.Footprint;
                 int tiles = s.area > 0 ? TilesInArea(t, center, radius) : full;
-                int dodged = Mathf.Min(tiles, t.dodgeReactTiles);
+                int dodged = t.dodgeReactTiles > 0 && !curved ? AttackResolver.DodgeTilesFor(t, tiles) : 0;
                 t.dodgeReactTiles = 0;
                 int left = tiles - dodged;
                 if (left <= 0)

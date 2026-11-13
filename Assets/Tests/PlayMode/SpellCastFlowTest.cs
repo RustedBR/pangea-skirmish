@@ -197,7 +197,7 @@ public class SpellCastFlowTest
         var sword = Make("Guerreiro", Team.Player, new Vector2Int(8, 2), "IronSword", 0, 3);
         sword.stats.STR = 6; 
         int emberDmg = SpellResolver.Amount(mage, ember), swordDmg = sword.stats.PhysicalDamage;
-        Assert.That(emberDmg, Is.InRange(swordDmg * 0.7f, swordDmg * 1.5f), $"Brasa {emberDmg} (com Cajado Arcano ×1,3) vs espada {swordDmg}");
+        Assert.That(emberDmg, Is.InRange(swordDmg * 0.6f, swordDmg * 1.5f), $"Brasa {emberDmg} (com Cajado Arcano ×1,3) vs espada {swordDmg} — a Brasa ainda queima e alcança mais longe");
 
         // Arcos: escalam com a DEX (antes: Arco Longo = 1 de dano fixo).
         var shortBow = Make("ArqCurto", Team.Player, new Vector2Int(8, 8), "ShortBow", 0, 4, dex: 6);

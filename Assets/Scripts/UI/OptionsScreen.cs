@@ -55,6 +55,14 @@ namespace PangeaSkirmish.UI
                 });
             }
 
+            var plate = Root.Q<Slider>("opt-plate");
+            if (plate != null)
+            {
+                plate.lowValue = 0.7f; plate.highValue = 1.6f;
+                plate.value = GameSettings.PlateScale;
+                plate.RegisterValueChangedCallback(evt => GameSettings.PlateScale = evt.newValue);
+            }
+
             if (_resolutionDropdown != null)
             {
                 _resolutionDropdown.RegisterValueChangedCallback(evt => ApplyResolution(evt.newValue));

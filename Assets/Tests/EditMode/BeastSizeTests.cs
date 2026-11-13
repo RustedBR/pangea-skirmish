@@ -16,7 +16,10 @@ public class BeastSizeTests
         var s = BeastAI.BuildPreset(0, 1, 30, BeastAI.BeastSize.Small);
         var l = BeastAI.BuildPreset(0, 1, 30, BeastAI.BeastSize.Large);
         Assert.AreEqual(1, s.stats.Footprint); Assert.AreEqual(4, l.stats.Footprint);
-        Assert.AreEqual(s.stats.STR * 4, l.stats.STR, 2f, "grande é ~4× mais forte (arredondamento)");
+        var mul = Resources.Load<GameTuning>("GameTuning").beastSizeMul;
+        Assert.AreEqual(s.stats.STR * mul.z / mul.x, l.stats.STR, 2f, "grande segue o multiplicador do tuning (arredondamento)");
+        Assert.AreEqual("ClawsLarge", l.weaponId); Assert.AreEqual("Claws", s.weaponId);
+        Assert.AreEqual(3, AttackShape.CenteredTiles(WeaponCatalog.Get("Claws")), "garras: arco 3×1");
         Assert.AreEqual(s.stats.DEX, l.stats.DEX, "mas não mais rápida");
         Assert.AreEqual(2, l.stats.AttackRange);
         StringAssert.StartsWith("Fera Grande", l.presetName);

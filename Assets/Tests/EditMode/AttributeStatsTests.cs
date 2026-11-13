@@ -191,8 +191,8 @@ public class AttributeStatsTests
         int defense = stats.PhysicalDefense;
 
         // Assert
-        // armorBase (0) + VIT (8) × armorPerVIT (0,25) = 2
-        Assert.AreEqual(2, defense);
+        // armorBase (0) + VIT (8) × armorPerVIT (0,5) = 4
+        Assert.AreEqual(4, defense);
     }
 
     [Test]

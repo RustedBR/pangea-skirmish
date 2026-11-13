@@ -407,7 +407,7 @@ namespace PangeaSkirmish
         // ------------------------------------------------------------------ BARRA DE AÇÕES (GDD-020 §9)
 
         private static readonly ReactionKind[] DefaultReactionCycle =
-            { ReactionKind.None, ReactionKind.Dodge, ReactionKind.Block, ReactionKind.CounterAttack, ReactionKind.Intercept };
+            { ReactionKind.None, ReactionKind.Dodge, ReactionKind.Block, ReactionKind.CounterAttack, ReactionKind.Intercept, ReactionKind.TrueAim };
 
         public static string ReactionName(ReactionKind k)
         {
@@ -417,6 +417,7 @@ namespace PangeaSkirmish
                 case ReactionKind.Block:         return "Bloquear";
                 case ReactionKind.CounterAttack: return "Contra-atacar";
                 case ReactionKind.Intercept:     return "Interpor";
+                case ReactionKind.TrueAim:       return "Olho certeiro";
                 default:                         return "Nenhuma";
             }
         }
@@ -469,7 +470,7 @@ namespace PangeaSkirmish
                 new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "-", Name = "Reação padrão",
                     Tip = () => $"Usada se o menu de reação esgotar ({T.reactionChoiceTime:0} s). Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
                                 (_controlled.defaultReaction != ReactionKind.None ? $" ({Unit.ReactionCost(_controlled.defaultReaction)} Stamina)" : "") +
-                                ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2.",
+                                ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2 · Olho certeiro 2 (seu tiro à distância que ia errar).",
                     Badge = () => ReactionName(_controlled.defaultReaction),
                     Active = () => _controlled.defaultReaction != ReactionKind.None,
                     OnClick = back =>

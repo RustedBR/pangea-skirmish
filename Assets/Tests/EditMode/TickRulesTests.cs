@@ -203,10 +203,10 @@ public class TickRulesTests
         AttributeStats.Formulas = T.statFormulas;
         Assert.AreEqual(0f, T.statFormulas.armorPctPerVIT, "sem redução percentual");
         _u.stats.VIT = 8f;
-        Assert.AreEqual(2, _u.stats.PhysicalDefense, "1/4 de defesa por ponto de VIT");
+        Assert.AreEqual(Mathf.RoundToInt(8 * T.statFormulas.armorPerVIT), _u.stats.PhysicalDefense, "defesa fixa por ponto de VIT");
         var atk = new AttributeStats();
         T.statFormulas.damageVariance = 0f;
-        try { Assert.AreEqual(18, atk.RollDamage(20, true, _u.stats), "20 de golpe − 2 de VIT"); }
+        try { Assert.AreEqual(20 - _u.stats.PhysicalDefense, atk.RollDamage(20, true, _u.stats), "20 de golpe − defesa da VIT"); }
         finally { T.statFormulas.damageVariance = Resources.Load<GameTuning>("GameTuning").statFormulas.damageVariance; }
     }
 

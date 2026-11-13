@@ -75,14 +75,17 @@ namespace PangeaSkirmish
             var sz = size ?? BeastSize.Medium;
             int fp = footprintOverride > 0 ? footprintOverride : FootprintOf(sz);
             // Orçamento um pouco abaixo do dos jogadores na camada 1, crescendo por camada.
-            float pts = Mathf.Max(6f, attributeBudget * (0.55f + 0.10f * (layer - 1)));
-            // Multiplicador de FORÇA por tamanho: pequeno = stats de hoje, media ~ 2x, grande ~ 4x.
-            int mul = sz == BeastSize.Small ? 1 : sz == BeastSize.Medium ? 2 : 4;
+            var T = Tuning.Get();
+            float frac = T != null ? T.beastBudgetFrac : 0.4f;
+            float pts = Mathf.Max(6f, attributeBudget * (frac + 0.10f * (layer - 1)));
+            // Multiplicador de FORÇA por tamanho (tuning beastSizeMul; balanceamento 2026-11-13: 1/2/2).
+            var m3 = T != null ? T.beastSizeMul : new Vector3(1f, 2f, 2f);
+            float mul = sz == BeastSize.Small ? m3.x : sz == BeastSize.Medium ? m3.y : m3.z;
             return new CharacterPreset
             {
                 presetName = SizeName(sz) + " " + (index + 1),
                 spritePath = "",
-                weaponId = "Claws", // fora do catálogo de propósito: usa os valores de desarmado
+                weaponId = sz == BeastSize.Large ? "ClawsLarge" : "Claws",   // garras de verdade (WeaponCatalog.BeastClaws)
                 stats = new UnitStatBlock
                 {
                     STR = Mathf.Round(pts * 0.28f * mul), VIT = Mathf.Round(pts * 0.30f * mul),

@@ -55,8 +55,8 @@ namespace PangeaSkirmish
 
         [Header("Defesa / Mitigação")]
         public int armorBase     = 0;
-        [Tooltip("Defesa fixa por ponto de VIT (GDD-020 §7). 0,25 = 1 de defesa a cada 4 de VIT.")]
-        public float armorPerVIT = 0.25f;
+        [Tooltip("Defesa fixa por ponto de VIT (GDD-020 §7). 0,5 = 1 de defesa a cada 2 de VIT (balanceamento 2026-11-13).")]
+        public float armorPerVIT = 0.5f;
         [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT (substitui a armadura fixa: dano alto passa a ser reduzido na mesma proporção).")]
         public float armorPctPerVIT = 0f;
         public float armorPctMax    = 0.6f;
@@ -433,7 +433,7 @@ namespace PangeaSkirmish
     public enum AttackMode { Auto, Unit, Tile }
 
     /// <summary>Reações do rework de Ações Bônus. Disparadas por trigger na fase de ação.</summary>
-    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step, Intercept }
+    public enum ReactionKind { None, CounterAttack, Dodge, Block, Step, Intercept, TrueAim }   // novos no fim (PlanWire usa int)
 
     /// <summary>Ataque planejado pelo jogador (ou IA) com alvo específico ou posição.</summary>
     public struct PlannedAttack

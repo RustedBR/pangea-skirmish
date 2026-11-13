@@ -33,7 +33,8 @@ namespace PangeaSkirmish
         PrepFury,        // próximo ataque: dano ×2 (não acumula com Golpe poderoso)
         Leap,            // move até leapMult × MoveStep em linha reta, ignorando obstáculos e ameaças
         PrepStoneSkin,   // até o fim do próximo ponto de decisão: redução ×3 (teto 90%)
-        PrepTrueAim,     // próximo ataque não erra e +crit
+        PrepTrueAim,     // LEGADO: virou reação (ReactionKind.TrueAim, 2026-11-13)
+        PrepCurve,       // Curva: o próximo ataque à distância segue o alvo e contorna obstáculos
     }
 
     /// <summary>
@@ -139,8 +140,8 @@ namespace PangeaSkirmish
               desc: "Salta até {reach} células por cima de obstáculos e ameaças. O salto não provoca oportunidade (começar a conjurar no alcance de alguém provoca)."),
             P("StoneSkin", "Pele de pedra", Attr.VIT, 3, 1, SpellEffect.PrepStoneSkin, mult: 3f,
               desc: "Por {skin} ticks, a defesa da VIT conta ×{mult} contra dano físico (VIT 5 → −{skinEx} por golpe)."),
-            P("TrueAim",   "Olho certeiro", Attr.DEX, 2, 1, SpellEffect.PrepTrueAim,   crit: 0.30f,
-              desc: "O próximo ataque não erra e ignora a esquiva natural (a reação Esquivar ainda vale); +{crit}% de crítico."),
+            P("Curve",     "Curva",         Attr.AGI, 2, 1, SpellEffect.PrepCurve,
+              desc: "O seu próximo ataque à distância (arma ou magia, inclusive de área) faz curva: segue o alvo se ele se mover ou esquivar, e contorna Muralha, Tempestade de areia e quem estiver no caminho."),
 
             // ---- Elemental puras (GDD-019 §3.1): Mana ----
             E("Ember",      "Brasa",          Fire,  2, 2, 4, 0, SpellEffect.Damage, 4, 1.0f, dur: 3, tickDmg: 2, status: "Burning",

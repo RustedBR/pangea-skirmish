@@ -47,7 +47,7 @@ MonoBehaviour:
     critDamageMul: 1.5
     damageVariance: 0.15
     armorBase: 0
-    armorPerVIT: 0.25
+    armorPerVIT: 0.5
     armorPctPerVIT: 0
     armorPctMax: 0.6
     magicResistBase: 0
@@ -57,7 +57,7 @@ MonoBehaviour:
   weapons:
   - id: Hatchet
     displayName: Machado
-    damage: 3
+    damage: 6
     range: 1
     shape: 2
     shapeWidth: 3
@@ -69,7 +69,7 @@ MonoBehaviour:
     elementAffinity: 1
   - id: IronAxe
     displayName: Machado de Ferro
-    damage: 5
+    damage: 6
     range: 2
     shape: 2
     shapeWidth: 3
@@ -81,7 +81,7 @@ MonoBehaviour:
     elementAffinity: 6
   - id: WoodenSword
     displayName: Espada de Madeira
-    damage: 8
+    damage: 12
     range: 3
     shape: 1
     shapeWidth: 1
@@ -93,7 +93,7 @@ MonoBehaviour:
     elementAffinity: 4
   - id: IronSword
     displayName: Espada de Ferro
-    damage: 6
+    damage: 8
     range: 4
     shape: 2
     shapeWidth: 3
@@ -105,7 +105,7 @@ MonoBehaviour:
     elementAffinity: 3
   - id: WoodenStaff
     displayName: Cajado
-    damage: 6
+    damage: 4
     range: 7
     shape: 1
     shapeWidth: 1
@@ -117,7 +117,7 @@ MonoBehaviour:
     elementAffinity: 2
   - id: Scepter
     displayName: Cetro
-    damage: 5
+    damage: 3
     range: 6
     shape: 3
     shapeWidth: 2
@@ -129,7 +129,7 @@ MonoBehaviour:
     elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
-    damage: 9
+    damage: 15
     range: 8
     shape: 0
     shapeWidth: 1
@@ -141,7 +141,7 @@ MonoBehaviour:
     elementAffinity: 5
   - id: LongBow
     displayName: Arco Longo
-    damage: 28
+    damage: 25
     range: 10
     shape: 0
     shapeWidth: 1
@@ -153,7 +153,7 @@ MonoBehaviour:
     elementAffinity: 5
   - id: ApprenticeWand
     displayName: Varinha
-    damage: 2
+    damage: 4
     range: 5
     shape: 3
     shapeWidth: 2
@@ -165,7 +165,7 @@ MonoBehaviour:
     elementAffinity: 4
   - id: ArcaneStaff
     displayName: Cajado Arcano
-    damage: 6
+    damage: 4
     range: 7
     shape: 1
     shapeWidth: 1
@@ -178,9 +178,9 @@ MonoBehaviour:
   attributeMin: 1
   attributeMax: 20
   agiMax: 20
-  moveTilesBase: 2
+  moveTilesBase: 4
   moveTilesPerAGI: 0.67
-  maxTilesPerMove: 6
+  maxTilesPerMove: 8
   staminaBase: 1
   staminaPerBodyPoint: 0.25
   staminaRegenTicks: 3
@@ -443,6 +443,6 @@ MonoBehaviour:
   reactionChoiceTime: 18
   dodgeReactionPerAGI: 0.09
   blockReductionPerVIT: 0.02
-  blockFlatPerVIT: 0.5
+  blockFlatPerVIT: 0.75
   maxBlockReduction: 0.6
   aooDamageMult: 1

@@ -301,6 +301,12 @@ namespace PangeaSkirmish
             // embaixo de todos os painéis de ação; menus modais sobem ao abrir (BringToFront).
             _inspectPanel?.SendToBack();
 
+            // Placas de vida na tela, presas acima de cada unidade (substituem as barras no mundo).
+            if (GetComponent<UnitPlates>() == null) gameObject.AddComponent<UnitPlates>().Init(r.Q<VisualElement>("root") ?? r);
+
+            var topbar = r.Q<VisualElement>("topbar");
+            if (topbar != null) topbar.style.display = DisplayStyle.None;   // aparece no primeiro SetPhase
+
             // Manter distância / Proteger saíram (GDD-020 §8): a postura virou bônus de atributo.
             foreach (var n in new[] { "btn-intent-4", "btn-intent-5" })
             { var b = r.Q<Button>(n); if (b != null) b.style.display = DisplayStyle.None; }
@@ -481,16 +487,139 @@ namespace PangeaSkirmish
                                     : ratio > Thp.hpBarRedThreshold    ? Thp.hpBarMidColor
                                                                        : Thp.hpBarLowColor;
             }
-            if (_unitHPText != null) _unitHPText.text = $"HP  {u.currentHP} / {s.MaxHP}";
-            if (_apText != null) _apText.text = $"<b>Stamina</b> {u.remainingBAP}/{s.MaxStamina}";
-            var buffs = StatusEffectSystem.Summary(u.statusEffects);
-            if (_unitStatsText != null)
-                _unitStatsText.text =
-                    $"<b>STR</b> {s.STR:0.#}  <b>VIT</b> {s.VIT:0.#}  <b>DEX</b> {s.DEX:0.#}  <b>AGI</b> {s.AGI:0.#}\n" +
-                    $"<b>MOV</b> {s.MoveStep}  <b>INI</b> {s.Initiative}  <b>ATQ</b> {s.PhysicalDamage}  <b>ALC</b> {s.AttackRange}\n" +
-                    $"<b>MANA</b> {u.currentMana}/{s.MaxMana}  <b>CONC</b> {u.plannedConcentrations}{(u.IsDulled ? "  <color=#c080ff>embotado</color>" : "")}" +
-                    (string.IsNullOrEmpty(u.SpellStateSummary()) ? "" : $"\n<color=#c9b8ff>{u.SpellStateSummary()}</color>") +
-                    (string.IsNullOrEmpty(buffs) ? "" : $"\n<color=#FFD700><b>BUFFS</b> {buffs}</color>");
+            if (_unitHPText != null) _unitHPText.text = $"{u.currentHP} / {s.MaxHP}";
+            if (_apText != null) _apText.style.display = DisplayStyle.None;
+            if (_unitStatsText != null) _unitStatsText.style.display = DisplayStyle.None;
+            BuildInspectBody(u);
+        }
+
+        // ── INSPEÇÃO COM ÍCONES (2026-11-13): compacta por padrão, expande para a ficha inteira ──
+        private void OnDestroy()
+        {
+            // A prévia 3D do retrato vive fora da HUD: sem isto ficava órfã na cena.
+            if (_unitPreview != null) Destroy(_unitPreview.gameObject);
+        }
+
+        private static bool _inspectExpanded;
+        private VisualElement _inspectBody;
+        private Button _inspectToggle;
+        private Label _inspectHint;
+        private static readonly Dictionary<string, Texture2D> _iconTex = new Dictionary<string, Texture2D>();
+
+        private static Texture2D IconTex(string name)
+        {
+            if (_iconTex.TryGetValue(name, out var t) && t != null) return t;
+            t = Resources.Load<Texture2D>("UI/Icons/" + name);
+            if (t != null) t.filterMode = FilterMode.Point;
+            _iconTex[name] = t;
+            return t;
+        }
+
+        private VisualElement Chip(string icon, string text, string tip, string cls = "bh-ichip")
+        {
+            var row = new VisualElement(); row.AddToClassList(cls);
+            var img = new VisualElement(); img.AddToClassList("bh-ichip-icon");
+            var tex = IconTex(icon);
+            if (tex != null) img.style.backgroundImage = new StyleBackground(tex);
+            row.Add(img);
+            var lbl = new Label(text) { pickingMode = PickingMode.Ignore }; lbl.AddToClassList("bh-ichip-text");
+            row.Add(lbl);
+            row.RegisterCallback<PointerEnterEvent>(_ => { if (_inspectHint != null) _inspectHint.text = tip; });
+            row.RegisterCallback<PointerLeaveEvent>(_ => { if (_inspectHint != null) _inspectHint.text = ""; });
+            return row;
+        }
+
+        private VisualElement Bar(string icon, float ratio, Color col, string text, string tip)
+        {
+            var row = new VisualElement(); row.AddToClassList("bh-ibar");
+            var img = new VisualElement(); img.AddToClassList("bh-ichip-icon");
+            var tex = IconTex(icon); if (tex != null) img.style.backgroundImage = new StyleBackground(tex);
+            row.Add(img);
+            var bg = new VisualElement(); bg.AddToClassList("bh-ibar-bg");
+            var fill = new VisualElement(); fill.AddToClassList("bh-ibar-fill");
+            fill.style.width = new Length(Mathf.Clamp01(ratio) * 100f, LengthUnit.Percent);
+            fill.style.backgroundColor = col;
+            bg.Add(fill); row.Add(bg);
+            var lbl = new Label(text) { pickingMode = PickingMode.Ignore }; lbl.AddToClassList("bh-ibar-text");
+            row.Add(lbl);
+            row.RegisterCallback<PointerEnterEvent>(_ => { if (_inspectHint != null) _inspectHint.text = tip; });
+            row.RegisterCallback<PointerLeaveEvent>(_ => { if (_inspectHint != null) _inspectHint.text = ""; });
+            return row;
+        }
+
+        private void BuildInspectBody(Unit u)
+        {
+            var content = _inspectPanel?.Q<VisualElement>("inspect-content");
+            if (content == null) return;
+            if (_inspectBody == null)
+            {
+                _inspectBody = new VisualElement { name = "inspect-body" };
+                content.Add(_inspectBody);
+                _inspectHint = new Label("") { name = "inspect-hint", pickingMode = PickingMode.Ignore };
+                _inspectHint.AddToClassList("bh-ihint");
+                content.Add(_inspectHint);
+                _inspectToggle = new Button(() => { _inspectExpanded = !_inspectExpanded; RefreshUnitInfo(); }) { name = "inspect-toggle" };
+                _inspectToggle.AddToClassList("bh-itoggle");
+                _inspectPanel.Add(_inspectToggle);
+            }
+            _inspectToggle.text = _inspectExpanded ? "▴ menos" : "▾ ficha";
+            _inspectBody.Clear();
+            var s = u.stats; var T = Tuning.Get(); var F = AttributeStats.Formulas ?? T.statFormulas;
+
+            // Recursos: Mana em barra, Stamina em barra curta (a Vida já está no topo).
+            _inspectBody.Add(Bar("mana", s.MaxMana > 0 ? (float)u.currentMana / s.MaxMana : 0f, new Color(0.31f, 0.59f, 1f),
+                $"{u.currentMana}/{s.MaxMana}", $"Mana: paga magias Elementais e metade das Físicas. Volta 1 a cada {s.ManaRegenTicks} ticks; Concentrar dá +{s.ConcentrateMana}."));
+            _inspectBody.Add(Bar("stamina", s.MaxStamina > 0 ? (float)u.currentStamina / s.MaxStamina : 0f, new Color(1f, 0.82f, 0.30f),
+                $"{u.currentStamina}/{s.MaxStamina}", $"Stamina: paga reações, golpe poderoso e metade das magias Físicas. Volta 1 a cada {s.StaminaRegenTicks} ticks; Respirar dá +{T.breatheStamina}."));
+
+            // Combate em ícones.
+            var combat = new VisualElement(); combat.AddToClassList("bh-igrid");
+            var w = WeaponCatalog.Get(u.weaponId);
+            combat.Add(Chip("dmg", $"{s.PhysicalDamage}", $"Golpe: {s.DamagePerTile:0.#} por tile × {s.ShapeTiles} tiles ({AttackShape.Describe(w)}) num alvo inteiro."));
+            combat.Add(Chip("range", $"{u.EffectiveAttackRange}", "Alcance da arma em células (uma unidade ocupa 3)."));
+            combat.Add(Chip("hit", $"{u.EffectiveHitChance * 100:0}%", "Chance de acertar (DEX)."));
+            combat.Add(Chip("dodge", $"{s.DodgeChance * 100:0}%", $"Chance de esquiva (AGI); a esquiva tira {AttackResolver.DodgeFrac(u) * 100:0}% dos tiles do golpe."));
+            combat.Add(Chip("def", $"−{s.PhysicalDefense}", $"Defesa física fixa por golpe (VIT × {F.armorPerVIT:0.##}). Bloquear soma {RoundManager.BlockAmount(u)}."));
+            combat.Add(Chip("mdef", $"−{s.MagicDefense}", "Defesa contra magia (WIS)."));
+            if (_inspectExpanded) combat.Add(Chip("move", $"{u.EffectiveMoveStep}", "Células por andada (AGI)."));
+            _inspectBody.Add(combat);
+
+            // Ficha completa: atributos com a postura destacada.
+            if (_inspectExpanded)
+            {
+                var (up, down) = PostureRules.Attrs(u.posture);
+                var attrs = new VisualElement(); attrs.AddToClassList("bh-igrid");
+                void A(string icon, string key, float v, string tip)
+                {
+                    string col = key == up ? "#7fe08a" : key == down ? "#ff8a7a" : "#eef2ff";
+                    attrs.Add(Chip(icon, $"<color={col}>{key} {v:0}</color>", tip));
+                }
+                A("str", "STR", s.STR, "Força: dano por tile das armas de perto, Stamina.");
+                A("vit", "VIT", s.VIT, "Vitalidade: vida, defesa fixa, bloqueio, Stamina.");
+                A("dex", "DEX", s.DEX, "Destreza: ações mais rápidas, acerto, crítico, dano à distância, Stamina.");
+                A("agi", "AGI", s.AGI, "Agilidade: andada, esquiva (fração de tiles), iniciativa.");
+                A("int", "INT", s.INT, "Inteligência: potência e alcance das magias.");
+                A("wis", "WIS", s.WIS, "Sabedoria: Mana, regeneração e defesa mágica.");
+                _inspectBody.Add(attrs);
+            }
+
+            // Estados e postura em ícones.
+            var states = new VisualElement(); states.AddToClassList("bh-igrid");
+            if (u.posture != Posture.Neutral)
+            {
+                string pi = "p_" + u.posture.ToString().ToLowerInvariant();
+                states.Add(Chip(pi, PostureRules.Name(u.posture), $"Postura {PostureRules.Name(u.posture)}: {PostureRules.Effect(u.posture)}.", "bh-ichip bh-ichip--state"));
+            }
+            void St(string icon, string name, string tip) => states.Add(Chip(icon, name, tip, "bh-ichip bh-ichip--state"));
+            if (u.burningTicks > 0) St("burn", $"{u.burningTicks}t", $"Queimando: −{u.burningDamage} por tick.");
+            if (u.soakedTicks > 0) St("soaked", $"{u.soakedTicks}t", "Encharcado: −1 tile de andada. Apaga Queimando.");
+            if (u.stoneSkinTicks > 0) St("stone", $"{u.stoneSkinTicks}t", $"Pele de pedra: defesa da VIT ×{u.stoneSkinMult:0.#}.");
+            if (u.furyReady > 0f) St("fury", "Fúria", $"Próximo golpe ×{u.furyReady:0.#}.");
+            if (u.curveReady) St("eye", "Curva", "Próximo ataque à distância segue o alvo e contorna obstáculos.");
+            if (u.foresightTicks > 0) St("cast", $"{u.foresightTicks}t", "Visão arcana: vê a fila inimiga mais à frente.");
+            if (u.IsDulled) St("dulled", "Embotado", "Pouca Mana: magias com menos alcance.");
+            if (u.IsDead) St("hp", "Morto", "Fora da luta.");
+            if (states.childCount > 0) _inspectBody.Add(states);
         }
 
         // ── BARRA DE TICKS (GDD-016 §7) — substitui o seq-bar de chips fixos ──
@@ -731,7 +860,13 @@ namespace PangeaSkirmish
         }
 
         // ── TEXTOS PÚBLICOS ──
-        public void SetPhase(string s)          { if (_phaseText != null) _phaseText.text = s; }
+        public void SetPhase(string s)
+        {
+            if (_phaseText != null) _phaseText.text = s;
+            // O topo só aparece quando a partida escreve a fase (antes mostrava "Phase/Timer" de exemplo).
+            var top = Root?.Q<VisualElement>("topbar");
+            if (top != null) top.style.display = string.IsNullOrEmpty(s) ? DisplayStyle.None : DisplayStyle.Flex;
+        }
         public void SetTimer(float sec)         { if (_timerText != null) _timerText.text = sec.ToString("0.0") + "s"; }
         public void SetTimerWarning(bool warn)  { if (_timerText != null) _timerText.style.color = warn ? Tuning.Get().timerWarningColor : Tuning.Get().timerNormalColor; }
         public void HideTimer()                 { if (_timerText != null) _timerText.text = ""; }
@@ -1541,10 +1676,11 @@ namespace PangeaSkirmish
             int cost = Unit.ReactionCost(k);
             switch (k)
             {
-                case ReactionKind.Dodge:         return $"{baseText} — tira {AttackResolver.DodgeTiles(u)} tile(s) do golpe · {cost} St";
+                case ReactionKind.Dodge:         return $"{baseText} — tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(u) * 100)}% dos tiles do golpe (1 tile: chance de errar) · {cost} St";
                 case ReactionKind.Block:         return $"{baseText} — −{RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra · {cost} St";
                 case ReactionKind.CounterAttack: return $"{baseText} — golpe da arma; se acertar, interrompe · {cost} St";
                 case ReactionKind.Intercept:     return $"{baseText} — entra na frente e divide os tiles · {cost} St";
+                case ReactionKind.TrueAim:       return $"{baseText} — o tiro que ia errar acerta, +{Tuning.Get().trueAimCritBonus * 100:0}% de crítico · {cost} St";
                 default:                         return baseText;
             }
         }
@@ -1554,6 +1690,7 @@ namespace PangeaSkirmish
             ReactionKind.Dodge         => "↯ Esquivar",
             ReactionKind.Intercept     => "▣ Interpor",
             ReactionKind.Block         => "■ Bloquear",
+            ReactionKind.TrueAim       => "◎ Olho certeiro",
             _ => "?"
         };
 

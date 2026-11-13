@@ -9,8 +9,9 @@ public class ReactionsDefaultsTests
     public void Vit_Defense_IsAQuarter_BlockKeepsItsNumbers()
     {
         var t = Resources.Load<GameTuning>("GameTuning");
-        Assert.AreEqual(0.25f, t.statFormulas.armorPerVIT, 0.0001f, "VIT padrão dá 1/4 da defesa de antes");
-        Assert.AreEqual(0.5f, t.blockFlatPerVIT, 0.0001f, "a reação Bloquear mantém metade da VIT");
+        // Balanceamento do simulador (2026-11-13): 0,5 por VIT e bloqueio 0,75 por VIT.
+        Assert.AreEqual(0.5f, t.statFormulas.armorPerVIT, 0.0001f);
+        Assert.AreEqual(0.75f, t.blockFlatPerVIT, 0.0001f);
     }
 
     [Test]

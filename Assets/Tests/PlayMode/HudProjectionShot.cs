@@ -142,6 +142,24 @@ public class HudProjectionShot
         StringAssert.Contains("5×5", SpellResolver.Describe(hero, SpellCatalog.Get("Explosion")), "área real no texto");
         StringAssert.Contains("Mana + 1 Stamina", SpellCatalog.Get("Fury").CostText);
 
+        // Inspeção com ícones (compacta e expandida) e placas sobre as unidades.
+        hud.ToggleSpellMenu();
+        f1.burningTicks = 2; f1.burningDamage = 4; f1.soakedTicks = 3;
+        hero.SetPosture(Posture.Aggressive); hero.currentMana = 2; hero.currentStamina = 1;
+        hud.ShowUnitInfo(hero);
+        for (int i = 0; i < 3; i++) yield return null;
+        Assert.IsNotNull(root.Q<VisualElement>("inspect-body"), "corpo da inspeção com ícones");
+        Assert.IsTrue(hero.WorldDetailVisible, "selecionada: a placa mostra Mana e Stamina");
+        Assert.IsFalse(f1.WorldDetailVisible, "fera sem hover: só a vida");
+        CollectionAssert.Contains(f1.WorldStateIcons(), "burn");
+        yield return Shot("hud-inspect-compact.png");
+        var toggle = root.Q<Button>("inspect-toggle");
+        using (var e = NavigationSubmitEvent.GetPooled()) { e.target = toggle; toggle.SendEvent(e); }
+        for (int i = 0; i < 3; i++) yield return null;
+        StringAssert.Contains("menos", toggle.text, "expandiu a ficha");
+        yield return Shot("hud-inspect-expanded.png");
+        using (var e = NavigationSubmitEvent.GetPooled()) { e.target = toggle; toggle.SendEvent(e); }
+
         planner.End();
         Object.Destroy(hud.gameObject);
     }

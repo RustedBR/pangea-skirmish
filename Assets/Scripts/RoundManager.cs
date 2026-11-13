@@ -1319,6 +1319,18 @@ namespace PangeaSkirmish
 
                 string log = AttackResolver.ResolveAttack(u, atkEff, _units, guardUnit, guarded);
                 if (AttackResolver.Last.AbsorbedAll && !u.IsDead) u.staggered = true;
+
+                // Reação Olho certeiro (2026-11-13): o SEU golpe à distância ia errar → pode acertar.
+                var missed = AttackResolver.Last.Missed;
+                if (AttackResolver.Last.Ranged && missed != null && missed.Count > 0 && !u.IsDead && u.CanReact(ReactionKind.TrueAim))
+                {
+                    var miss = missed[0];
+                    if (log != null) { _hud.LogAction(log, u); log = null; }
+                    _reactionAttacker = miss;
+                    yield return React(u, new List<ReactionKind> { ReactionKind.TrueAim }, miss);
+                    if (_lastApplied == ReactionKind.TrueAim && !miss.IsDead)
+                        log = AttackResolver.ResolveForcedHit(u, atkEff, _units, miss);
+                }
                 if (log != null)
                 {
                     _hud.LogAction(log, u);
@@ -1374,14 +1386,14 @@ namespace PangeaSkirmish
         /// Se acertar, o provocador fica marcado como interrompido (o passo/magia/reação não segue).
         /// <paramref name="fromAnchor"/>: posição antes do passo (andar), ou a atual (null).
         /// </summary>
-        private IEnumerator Provoke(Unit provoker, string why, Vector2Int? fromAnchor)
+        private IEnumerator Provoke(Unit provoker, string why, Vector2Int? fromAnchor, Unit exclude = null)
         {
             if (provoker == null || provoker.IsDead || _provokedThisTick.Contains(provoker)) yield break;
             var at = fromAnchor ?? provoker.anchor;
             Unit best = null; uint bestId = uint.MaxValue;
             foreach (var e in _units)
             {
-                if (e == provoker || e.IsDead || !e.IsHostileTo(provoker) || !e.CanReact(ReactionKind.CounterAttack)) continue;
+                if (e == provoker || e == exclude || e.IsDead || !e.IsHostileTo(provoker) || !e.CanReact(ReactionKind.CounterAttack)) continue;
                 if (GridManager.FootprintGap(at, provoker.stats.Footprint, e.anchor, e.stats.Footprint) > e.EffectiveAttackRange) continue;
                 uint id = UnitRegistry.GetId(e);
                 if (best == null || e.stats.DEX > best.stats.DEX || (e.stats.DEX == best.stats.DEX && id < bestId)) { best = e; bestId = id; }
@@ -1404,7 +1416,8 @@ namespace PangeaSkirmish
             yield return WaitReaction(reactor, options, trigger);
             var applied = _lastApplied;
             if (applied == ReactionKind.None || applied == ReactionKind.CounterAttack) yield break;
-            yield return Provoke(reactor, "reagiu", null);
+            // Quem provocou a reação (o atacante) já está golpeando: não pune a própria vítima no mesmo tick.
+            yield return Provoke(reactor, "reagiu", null, trigger);
             if (reactor.counterInterrupted)
             {
                 // O golpe cortou a reação: ela não acontece (a Stamina já foi).
@@ -1614,16 +1627,20 @@ namespace PangeaSkirmish
                     }
                     break;
                 case ReactionKind.Dodge:
-                    reactor.dodgeReactTiles = AttackResolver.DodgeTiles(reactor);
+                    reactor.dodgeReactTiles = 1;   // marca a reação; quantos tiles sai é decidido no golpe (fração da AGI)
                     reactor.PlayReactionAnim(ReactionKind.Dodge);
-                    BattleFeedback.Status(reactor, $"Esquiva: −{reactor.dodgeReactTiles} tile{(reactor.dodgeReactTiles == 1 ? "" : "s")}", new Color(0.55f, 0.85f, 1f));
-                    _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquivar! tira {reactor.dodgeReactTiles} tile(s) do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    BattleFeedback.Status(reactor, $"Esquiva: −{Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}%", new Color(0.55f, 0.85f, 1f));
+                    _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquivar! tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}% dos tiles do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
                     reactor.PlayReactionAnim(ReactionKind.Block);
                     BattleFeedback.Status(reactor, $"Escudo erguido (−{reactor.blockFlat})", new Color(1f, 0.86f, 0.40f));
                     _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloquear! −{reactor.blockFlat} de dano; se absorver tudo, desequilibra (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    break;
+                case ReactionKind.TrueAim:
+                    BattleFeedback.Status(reactor, "Olho certeiro!", new Color(0.33f, 0.80f, 1f));
+                    _hud.LogAction($"<color=#55ccff>◎</color> {reactor.unitName}: Olho certeiro! o tiro acerta (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Intercept:
                     _interceptedBy = reactor;    // o golpe divide os tiles do protegido com quem interpôs

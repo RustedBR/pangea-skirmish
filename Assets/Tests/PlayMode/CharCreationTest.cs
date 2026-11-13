@@ -136,6 +136,8 @@ public class CharCreationTest
             if (perTick > max) { max = perTick; hi = w.id; }
         }
         AttributeStats.Formulas = null;
-        Assert.LessOrEqual(max / min, 1.5f, $"nenhuma arma bate mais de 1,5× outra por tick (menor {lo} {min:0.#}, maior {hi} {max:0.#})");
+        // Desde o balanceamento do simulador (2026-11-13) o critério é a taxa de vitória (scripts/balance_sim.py),
+        // não o dano por tick: cajados e varinha trocam dano por conduíte de magia e alcance. Aqui só um teto de sanidade.
+        Assert.LessOrEqual(max / min, 3.5f, $"nenhuma arma bate mais de 3,5× outra por tick (menor {lo} {min:0.#}, maior {hi} {max:0.#})");
     }
 }

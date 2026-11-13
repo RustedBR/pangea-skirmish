@@ -57,8 +57,20 @@ namespace PangeaSkirmish
         public int reactCostBlock = 1;
         public int reactCostCounter = 3;
         public int reactCostIntercept = 2;
-        [Tooltip("Esquiva tira 1 tile do golpe a cada N de AGI (mínimo 1).")]
+        [Tooltip("Legado: tiles por AGI. A esquiva agora tira uma FRAÇÃO dos tiles (dodgeFracPerAGI).")]
         public int dodgeAgiPerTile = 3;
+        [Tooltip("Esquiva (natural ou reação) tira AGI × isto dos tiles do golpe, até dodgeFracCap. Contra golpe de 1 tile vira chance de errar (balanceamento 2026-11-13).")]
+        public float dodgeFracPerAGI = 0.06f;
+        public float dodgeFracCap = 0.6f;
+        [Tooltip("Garras das feras: dano por tile, ticks, forma arco 3×1.")]
+        public int beastClawDamage = 7;
+        public int beastClawTicks = 2;
+        [Tooltip("Feras: fração do orçamento dos jogadores na camada 1 e multiplicador de força por tamanho (pequena, média, grande).")]
+        public float beastBudgetFrac = 0.4f;
+        public Vector3 beastSizeMul = new Vector3(1f, 2f, 2f);
+        [Tooltip("Reação Olho certeiro (ataque à distância que ia errar): custo e bônus de crítico.")]
+        public int reactCostTrueAim = 2;
+        public float trueAimCritBonus = 0.30f;
         [Tooltip("Mira livre (tile a tile): multiplicador de dano e bônus de acerto.")]
         public float freeAimDamageMult = 1.25f;
         public float freeAimHitBonus = 0.15f;
@@ -103,9 +115,9 @@ namespace PangeaSkirmish
         [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
         public float conduitPotBonus = 0.25f;
         [Tooltip("Potência mágica por ponto de INT. Dano/cura = base × spellBaseMult + INT × spellPotPerINT × fator da magia. 3 deixa a Brasa (INT 6) perto de uma espada (STR 6).")]
-        public float spellPotPerINT = 3f;
+        public float spellPotPerINT = 1.5f;
         [Tooltip("Multiplicador do valor base das magias (dano, cura, HP da Muralha).")]
-        public float spellBaseMult = 2f;
+        public float spellBaseMult = 2.25f;
         [Tooltip("Multiplicador do dano por tick (Queimando, Magma).")]
         public float spellTickDamageMult = 2f;
         [Tooltip("Alcance em células = alcance da magia × este valor + INT × spellRangePerINT. Uma unidade ocupa 3 células: sem isto o alcance 3 do Magma era corpo a corpo.")]
@@ -168,16 +180,16 @@ namespace PangeaSkirmish
         // (Machado), alcance (Espada de Ferro), golpe pesado (Machado de Ferro), à distância por
         // DEX (arcos), conduítes que reforçam magia (cajados). Antes o Machado batia 10 em 1 tick.
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet", displayName="Machado", damage=3, range=1, attackTicks=1, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="IronAxe", displayName="Machado de Ferro", damage=5, range=2, attackTicks=3, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=2, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira", damage=8, range=3, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=2, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="IronSword", displayName="Espada de Ferro", damage=6, range=4, attackTicks=2, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado", damage=6, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.1f, spellRangeBonus=0 },
-            new WeaponDef{ id="Scepter", displayName="Cetro", damage=5, range=6, attackTicks=2, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=2, spellPowerMult=1.15f, spellRangeBonus=1 },
-            new WeaponDef{ id="ShortBow", displayName="Arco Curto", damage=9, range=8, attackTicks=1, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="LongBow", displayName="Arco Longo", damage=28, range=10, attackTicks=3, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="ApprenticeWand", displayName="Varinha", damage=2, range=5, attackTicks=1, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=1, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano", damage=6, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.3f, spellRangeBonus=2 },
+            new WeaponDef{ id="Hatchet", displayName="Machado", damage=6, range=1, attackTicks=1, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="IronAxe", displayName="Machado de Ferro", damage=6, range=2, attackTicks=3, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=2, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira", damage=12, range=3, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=2, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="IronSword", displayName="Espada de Ferro", damage=8, range=4, attackTicks=2, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado", damage=4, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.1f, spellRangeBonus=0 },
+            new WeaponDef{ id="Scepter", displayName="Cetro", damage=3, range=6, attackTicks=2, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=2, spellPowerMult=1.15f, spellRangeBonus=1 },
+            new WeaponDef{ id="ShortBow", displayName="Arco Curto", damage=15, range=8, attackTicks=1, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="LongBow", displayName="Arco Longo", damage=25, range=10, attackTicks=3, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="ApprenticeWand", displayName="Varinha", damage=4, range=5, attackTicks=1, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=1, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano", damage=4, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.3f, spellRangeBonus=2 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]
