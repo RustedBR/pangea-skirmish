@@ -61,7 +61,7 @@ namespace PangeaSkirmish
         private int _gameMode = 0;       // 0=TDM, 1=FFA
         private int _budgetValue = PlayerProfile.AttributeBudget;
         private int _maxPlayersValue = 4;
-        private float _planningValue = 15f; // GDD-014: segundos por ponto de decisão
+        private float _planningValue = 60f; // GDD-014: segundos por ponto de decisão
         private bool _inRoom = false;
         private Label _charLabel, _charInfo, _startHint;
         private Button _charPrev, _charNext;
@@ -225,7 +225,7 @@ namespace PangeaSkirmish
             if (_charPrev != null) _charPrev.clicked += () => StepCharacter(-1);
             if (_charNext != null) _charNext.clicked += () => StepCharacter(+1);
             _planMinus.clicked   += () => { _planningValue = Mathf.Max(5f, _planningValue - 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
-            _planPlus.clicked    += () => { _planningValue = Mathf.Min(60f, _planningValue + 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
+            _planPlus.clicked    += () => { _planningValue = Mathf.Min(180f, _planningValue + 5f); _planLabel.text = _planningValue + "s"; SyncConfig(); };
 
             // Max players (host) — padrão 4, editável na sala.
             _maxMinus.clicked += () => { _maxPlayersValue = Mathf.Max(2, _maxPlayersValue - 1); _maxLabel.text = _maxPlayersValue.ToString(); SyncConfig(); };

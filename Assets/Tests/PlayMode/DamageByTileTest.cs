@@ -74,7 +74,7 @@ public class DamageByTileTest
         var tank = Make("Tanque", Team.Enemy, new Vector2Int(10, 10), "Claws", vit: 4);
         int hp = tank.currentHP;
         AttackResolver.ResolveAttack(sword, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = tank }, _units);
-        Assert.AreEqual(6 * 3 - 4, hp - tank.currentHP, "18 − 4 de VIT, uma vez");
+        Assert.AreEqual(6 * 3 - 1, hp - tank.currentHP, "18 − 1 (VIT 4 × 0,25), uma vez");
     }
 
     [UnityTest]

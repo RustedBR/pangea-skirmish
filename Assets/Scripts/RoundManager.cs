@@ -14,7 +14,7 @@ namespace PangeaSkirmish
     /// </summary>
     public class RoundManager : MonoBehaviour
     {
-        public float planningTime = 15f;
+        public float planningTime = 60f;
         public float zoomSize = 5.0f;      // tamanho ortográfico durante o "pequeno zoom"
         // Zoom do enquadramento automático e demais ritmos extras: GameTuning (Tuning.Get()).
 

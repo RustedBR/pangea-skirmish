@@ -55,7 +55,8 @@ namespace PangeaSkirmish
 
         [Header("Defesa / Mitigação")]
         public int armorBase     = 0;
-        public int armorPerVIT   = 1;
+        [Tooltip("Defesa fixa por ponto de VIT (GDD-020 §7). 0,25 = 1 de defesa a cada 4 de VIT.")]
+        public float armorPerVIT = 0.25f;
         [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT (substitui a armadura fixa: dano alto passa a ser reduzido na mesma proporção).")]
         public float armorPctPerVIT = 0f;
         public float armorPctMax    = 0.6f;

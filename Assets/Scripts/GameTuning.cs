@@ -15,11 +15,11 @@ namespace PangeaSkirmish
 
         [Header("═══ COMBATE & REGRAS ═══")]
         [Tooltip("Segundos da fase de Planejamento por round. Menor = jogo mais frenético; maior = mais tempo para pensar.")]
-        public float planningTime = 15f;
+        public float planningTime = 60f;
 
         [Header("═══ SEMI-TURNO POR TICKS (GDD-014) ═══")]
         [Tooltip("Segundos para decidir num ponto de decisão (SP). Em MP vale o planningTime da sala.")]
-        public float decisionTime = 15f;
+        public float decisionTime = 60f;
         [Tooltip("O relógio de decisão PARA enquanto há intenção armada ou prévia na tela, por no máximo este tempo total por ponto de decisão. Em rede, o host espera esse teto a mais.")]
         public float planningPauseBudget = 12f;
         [Tooltip("Janela entre ticks (segundos) para incrementar a próxima ação (golpe poderoso, mirar).")]

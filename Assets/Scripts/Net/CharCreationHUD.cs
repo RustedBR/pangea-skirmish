@@ -272,7 +272,7 @@ namespace PangeaSkirmish
             switch (idx)
             {
                 case 0: return $"<b>STR — Força</b>\nDano por tile das armas corpo a corpo: +{F.dmgPctPerAttr * 100:0.#}% por ponto.\nStamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.\nEscala a magia Física <b>Fúria</b>.";
-                case 1: return $"<b>VIT — Vitalidade</b>\nVida: +{F.hpPerVIT:0.#} por ponto.\nDefesa: −{F.armorPerVIT} de dano físico por ponto, uma vez por golpe.\nBloquear soma metade da VIT. Stamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
+                case 1: return $"<b>VIT — Vitalidade</b>\nVida: +{F.hpPerVIT:0.#} por ponto.\nDefesa: −1 de dano físico a cada {1f / Mathf.Max(0.01f, F.armorPerVIT):0.#} pontos, uma vez por golpe.\nBloquear soma metade da VIT. Stamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
                 case 2: return $"<b>DEX — Destreza</b>\nAções mais rápidas: menos ticks para atacar e conjurar.\nAcerto +{F.hitPerDEX * 100:0.#}% e crítico +{F.critPerDEX * 100:0.#}% por ponto.\nDano por tile das armas à distância (arcos, cajados): +{F.dmgPctPerAttr * 100:0.#}% por ponto.\nStamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
                 case 3: return $"<b>AGI — Agilidade</b>\nTiles por andada (até {T.maxTilesPerMove}).\nEsquiva +{F.dodgePerAGI * 100:0.#}% por ponto; cada esquiva tira 1 tile do golpe a cada {T.dodgeAgiPerTile} de AGI.\nAcima de {T.agiRegenFrom}, a Stamina volta mais rápido.";
                 case 4: return $"<b>INT — Inteligência</b>\nPotência das magias: +{T.spellPotPerINT:0.#} por ponto.\nAlcance das magias: +{T.spellRangePerINT:0.#} célula por ponto.";

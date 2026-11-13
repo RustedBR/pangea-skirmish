@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b9eac3b2ba974e5c84233209a9372b4, type: 3}
   m_Name: GameTuning
   m_EditorClassIdentifier: Assembly-CSharp::PangeaSkirmish.GameTuning
-  planningTime: 8
+  planningTime: 60
   planningGraceSeconds: 2
   bonusConfirmSeconds: 6
   bonusStepSeconds: 3
@@ -47,7 +47,7 @@ MonoBehaviour:
     critDamageMul: 1.5
     damageVariance: 0.15
     armorBase: 0
-    armorPerVIT: 1
+    armorPerVIT: 0.25
     armorPctPerVIT: 0
     armorPctMax: 0.6
     magicResistBase: 0
