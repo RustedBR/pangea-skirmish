@@ -155,8 +155,8 @@ namespace PangeaSkirmish
         {
             var t = Tuning.Get();
             if (isCritical)
-                return CreatePixelNumber(cam, pos, $"-{damage}!", new Color(1f, 0.55f, 0.15f), 0.75f, t.critRiseDuration, 1.9f);
-            return CreatePixelNumber(cam, pos, $"-{damage}", new Color(1f, 0.25f, 0.22f), 0.55f, t.damageRiseDuration);
+                return CreatePixelNumber(cam, pos, $"{damage}!", new Color(1f, 0.55f, 0.15f), 0.75f, t.critRiseDuration, 1.9f);
+            return CreatePixelNumber(cam, pos, $"{damage}", new Color(1f, 0.25f, 0.22f), 0.55f, t.damageRiseDuration);
         }
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace PangeaSkirmish
             if (u == null) return;
             AudioManager.I?.PlayNamed("sfx_heal");
             if (Cam == null || !Application.isPlaying) return;
-            BattleLabel.CreatePixelNumber(Cam, u.HeadWorld, $"+{amount}", new Color(0.35f, 1f, 0.40f), 0.55f, 1.1f, 1.45f, 0.55f);
+            BattleLabel.CreatePixelNumber(Cam, u.HeadWorld, $"{amount}", new Color(0.35f, 1f, 0.40f), 0.55f, 1.1f, 1.45f, 0.55f);
         }
 
         public static void Miss(Unit target) =>
