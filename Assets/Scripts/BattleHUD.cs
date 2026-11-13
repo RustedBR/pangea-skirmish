@@ -302,6 +302,7 @@ namespace PangeaSkirmish
             _inspectPanel?.SendToBack();
 
             // Placas de vida na tela, presas acima de cada unidade (substituem as barras no mundo).
+            TextIcons.Attach();   // símbolos viram sprites em todos os textos
             if (GetComponent<UnitPlates>() == null) gameObject.AddComponent<UnitPlates>().Init(r.Q<VisualElement>("root") ?? r);
 
             var topbar = r.Q<VisualElement>("topbar");
@@ -1272,7 +1273,14 @@ namespace PangeaSkirmish
                         }
                         SpellDef planSpell = (_planSeq[i] == ActionType.Spell && _planSched != null && i < _planSched.Count)
                                            ? TickRules.SpellOf(planUnit, _planSched[i]) : null;
-                        string planText = planSpell != null ? SpellBlockText(planUnit, planSpell) : BlockText(planUnit, _planSeq[i], bonus, aimed, tiles);
+                        Unit planTarget = null;
+                        if (_planSched != null && i < _planSched.Count)
+                        {
+                            int ix = _planSched[i].Index;
+                            if (_planSeq[i] == ActionType.Attack && ix >= 0 && ix < planUnit.plannedAttacks.Count) planTarget = planUnit.plannedAttacks[ix].TargetUnit;
+                            else if (_planSeq[i] == ActionType.Spell && ix >= 0 && ix < planUnit.plannedSpells.Count) planTarget = planUnit.plannedSpells[ix].TargetUnit;
+                        }
+                        string planText = planSpell != null ? SpellBlockText(planUnit, planSpell, planTarget) : BlockText(planUnit, _planSeq[i], bonus, aimed, tiles, planTarget);
                         var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus, planSpell),
                                               $"{idx + 1} {planText}", true);
                         if (planSpell != null && !planSpell.IsPhysical)
@@ -1310,7 +1318,7 @@ namespace PangeaSkirmish
                         foreach (var th in threats) if (th.by == u && q.Type == ActionType.Attack && q.Attack.TargetUnit == th.target) threat = true;
                         SpellDef qSpell = q.Type == ActionType.Spell ? q.Spell.Def : null;
                         bool seen = mine || (foresight && used <= 2);
-                        string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0))
+                        string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell, q.Spell.TargetUnit) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0, q.Type == ActionType.Attack ? q.Attack.TargetUnit : null))
                                      : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? SpellGlyph + " conjurando" : "ocupada";
                         if (seen && !mine) label = "👁 " + label;
                         var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.72f, 0.20f, 0.18f) : TlWait, label, mine || threat);
@@ -1388,12 +1396,14 @@ namespace PangeaSkirmish
             AttackResolver.PowerDamage(u, bonus, aimed ? Mathf.RoundToInt(u.stats.DEX * Tuning.Get().aimDexMultiplier) : 0);
 
         /// <summary>Texto de um bloco: ícone, nome e efeito (tiles que anda, dano esperado).</summary>
-        private static string BlockText(Unit u, ActionType t, bool bonus, bool aimed, int tiles)
+        // Blocos (2026-11-13): ícone + verbo + alvo. O dano previsto fica na janela de incremento e no hover.
+        private static string BlockText(Unit u, ActionType t, bool bonus, bool aimed, int tiles, Unit target = null)
         {
+            string on = target != null ? " " + target.unitName : "";
             switch (t)
             {
                 case ActionType.Move:   return tiles > 0 ? $"→ Andar {tiles}" : bonus ? "→ Passo rápido" : "→ Andar";
-                case ActionType.Attack: return $"{(bonus ? "◆ Golpe" : "⚔ Atacar")}{(aimed ? " ◎" : "")} ~{ExpectedDamage(u, bonus, aimed)}";
+                case ActionType.Attack: return $"{(bonus ? "◆" : "⚔")}{(aimed ? "◎" : "")} {(bonus ? "Golpear" : "Atacar")}{on}";
                 case ActionType.Concentrate: return "✦ Concentrar";
                 default: return "… Esperar";
             }
@@ -1461,13 +1471,10 @@ namespace PangeaSkirmish
         /// <summary>Glifo das magias na HUD. A fonte desenha ✦ como "+" (confunde com "+ 3 livres"); ◈ existe no mesmo bloco de ◆/◎.</summary>
         public const string SpellGlyph = "◈";
 
-        private static string SpellBlockText(Unit u, SpellDef s)
+        private static string SpellBlockText(Unit u, SpellDef s, Unit target = null)
         {
             if (s == null) return SpellGlyph + " Magia";
-            string eff = s.effect == SpellEffect.Damage || s.effect == SpellEffect.CancelMove || s.effect == SpellEffect.Push
-                       ? $" ~{SpellResolver.Amount(u, s)}"
-                       : s.effect == SpellEffect.Heal ? $" +{SpellResolver.Amount(u, s)}" : "";
-            return $"{SpellGlyph} {s.displayName}{eff}";
+            return $"{SpellGlyph} {s.displayName}{(target != null ? " em " + target.unitName : "")}";
         }
 
         /// <summary>Bloco de ação: largura proporcional aos ticks, texto dentro.</summary>
@@ -1500,8 +1507,11 @@ namespace PangeaSkirmish
             clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\(\d+/\d+ HP\)", "");
             clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^(?:[>\s*✦▼↯⚔🛡💥💨~!]|x\s)+", "");
             clean = System.Text.RegularExpressions.Regex.Replace(clean, @"\s{2,}", " ").Trim();
-            // "Fera 1 -> Jogador: 6" vira "→ Jogador −6": cabe até num bloco de 1 tick.
-            clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^.*?->\s*(.*?):\s*(\d+)\b.*$", "→ $1 −$2");
+            // O que aconteceu, no mesmo jeito dos blocos (2026-11-13): ícone + verbo + alvo.
+            // "Maga — Explosão [Fogo] -> Alvo: 26" vira "◈ Explosão em Alvo"; "Fera 1 -> Jogador: 6" vira "⚔ Atacou Jogador".
+            var sm = System.Text.RegularExpressions.Regex.Match(clean, @"—\s*(.+?)\s*\[.*?->\s*(.*?):");
+            if (sm.Success) clean = $"{SpellGlyph} {sm.Groups[1].Value} em {sm.Groups[2].Value}";
+            else clean = System.Text.RegularExpressions.Regex.Replace(clean, @"^.*?->\s*(.*?):\s*(\d+)\b.*$", "⚔ Atacou $1");
             if (clean.Length == 0) return;
             _rowEvents[u] = (clean, Time.unscaledTime);
             ApplyRowEvent(u);
