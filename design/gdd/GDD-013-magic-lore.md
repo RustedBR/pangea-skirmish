@@ -47,7 +47,7 @@ Xaliah e Yorgoth foram os primeiros a jogar **"o jogo"**, ou seja, a teoria dos 
 - **A morte em batalha tem efeito mecânico:**
   - **Visual:** a alma **desce para dentro do planeta**, rumo ao Inferno.
   - **O Inferno fortalece Yorgoth:** cada morte alimenta um medidor global que muda a partida. **[PROPOSTA]** Ele pode escurecer o mapa ou fortalecer efeitos de Sombra.
-  - **A cabeça importa:** golpes na cabeça ou no cérebro atingem a alma. **[PROPOSTA]** Isso pode dar dano extra ou desequilibrar a Estâmina e a Mana.
+  - **A cabeça importa:** golpes na cabeça ou no cérebro atingem a alma. **[PROPOSTA]** Isso pode dar dano extra ou desequilibrar a Stamina e a Mana.
 
 ### Pangea e o Céu **[CANON]**
 
@@ -90,7 +90,7 @@ Dois recursos no lugar da mana única:
 
 | Recurso | Alimenta | Gasto excessivo **[PROPOSTA]** |
 |---------|----------|------------------|
-| **Estâmina** (corpo) | Ataques físicos, magia Física, movimento | Fadiga: menos movimento/força |
+| **Stamina** (corpo) | Ataques físicos, magia Física, movimento | Fadiga: menos movimento/força |
 | **Mana** (mente) | Magias da mente | Embotamento dos sentidos: menos visão/alcance, mira pior |
 
 Ideia central: **quanto mais você conjura com a mente, menos você percebe o mundo**, porque a mente é o lugar dos sentidos. Isso cria uma tensão tática natural (visão × poder) e se encaixa com a câmera e o grid.
@@ -125,7 +125,7 @@ _(nenhuma no momento)_
 
 - **Descer tem peso. Recuar (subir) não tem nenhum.**
 - Isso é o **contrário** de *Made in Abyss*: em Pangea, quem cobra o preço é a descida.
-- **[PROPOSTA]** Cada passo para baixo custa Estâmina (o corpo entra na densidade). Nas camadas fundas custa também Mana (a mente se distorce). Voltar é sempre livre, então recuar é uma escolha tática válida e sem punição.
+- **[PROPOSTA]** Cada passo para baixo custa Stamina (o corpo entra na densidade). Nas camadas fundas custa também Mana (a mente se distorce). Voltar é sempre livre, então recuar é uma escolha tática válida e sem punição.
 
 ### Inspiração: *Made in Abyss* (só referência, sem copiar) **[PROPOSTA]**
 

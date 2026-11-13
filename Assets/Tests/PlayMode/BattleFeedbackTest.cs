@@ -71,11 +71,11 @@ public class BattleFeedbackTest
         var foe  = Spawn("Fera 1", "monster", Team.Enemy, new Vector2Int(8, 3), new Color(0.85f, 0.2f, 0.2f), "");
         for (int i = 0; i < 5; i++) yield return null;
 
-        // Pips de Estâmina: um por ponto, apagam ao gastar.
+        // Pips de Stamina: um por ponto, apagam ao gastar.
         Assert.AreEqual(tank.stats.MaxStamina, tank.WorldStaminaPipsLit);
         tank.currentStamina = 1;
         yield return null;
-        Assert.AreEqual(1, tank.WorldStaminaPipsLit, "pips acompanham a Estâmina");
+        Assert.AreEqual(1, tank.WorldStaminaPipsLit, "pips acompanham a Stamina");
 
         // Barra de conjuração só enquanto conjura Elemental.
         Assert.IsFalse(mage.WorldCastBarVisible);
@@ -159,14 +159,14 @@ public class BattleFeedbackTest
         var far = Spawn("Fera 3", "monster", Team.Enemy, new Vector2Int(15, 2), red, "");
         for (int i = 0; i < 5; i++) yield return null;
 
-        // Corpo a corpo: marca as 9 células do alvo, sem trilha (estão colados).
+        // Corpo a corpo: marca os tiles que a FORMA pega (espada: arco 3), sem trilha (estão colados).
         ActionFx.ResetGroundMarks();
         ActionFx.MarkAttack(_grid, a, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = c });
-        Assert.AreEqual(9, ActionFx.GroundMarks, "alvo 3×3 marcado, sem trilha entre unidades coladas");
+        Assert.AreEqual(3, ActionFx.GroundMarks, "arco 3×1 da espada marcado, sem trilha entre unidades coladas");
         // À distância: alvo + trilha no chão entre os dois.
         ActionFx.ResetGroundMarks();
         ActionFx.MarkAttack(_grid, archer, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = far });
-        Assert.Greater(ActionFx.GroundMarks, 9 + 5, "trilha do disparo até o alvo");
+        Assert.Greater(ActionFx.GroundMarks, 1 + 5, "1 tile do arco + trilha do disparo até o alvo");
         // Magia em área: a área inteira na cor do elemento.
         ActionFx.ResetGroundMarks();
         ActionFx.MarkSpell(_grid, archer, new PlannedSpell { SpellId = "Explosion", TargetTile = d.anchor });

@@ -5,7 +5,7 @@ using PangeaSkirmish;
 [TestFixture]
 public class ArmorTargetTests
 {
-    [SetUp]    public void SetUp()    { AttributeStats.Formulas = new StatFormulas { damageVariance = 0f, armorPctPerVIT = 0.08f, armorPctMax = 0.6f }; }
+    [SetUp]    public void SetUp()    { AttributeStats.Formulas = new StatFormulas { damageVariance = 0f, armorPerVIT = 1 }; }
     [TearDown] public void TearDown() { AttributeStats.Formulas = null; }
 
     [Test]

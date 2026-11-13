@@ -552,6 +552,23 @@ namespace PangeaSkirmish
                 var movesThisSlot   = new List<(Unit u, Vector2Int dest, bool incr)>();
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
                 var spellsThisSlot  = new List<(Unit u, PlannedSpell sp)>();
+                _provokedThisTick.Clear();
+                // Conjurar dentro do alcance de um inimigo provoca o golpe de oportunidade (GDD-020 §8).
+                var castStarts = new List<Unit>();
+                foreach (var u in _units)
+                    if (!u.IsDead && u.queue.Count > 0 && u.queue[0].Type == ActionType.Spell && u.queue[0].Elapsed == 0)
+                        castStarts.Add(u);
+                foreach (var cu in castStarts)
+                {
+                    yield return Provoke(cu, "começou a conjurar", null);
+                    if (cu.counterInterrupted && cu.queue.Count > 0 && cu.queue[0].Type == ActionType.Spell)
+                    {
+                        var q0 = cu.queue[0];
+                        string nm = q0.Spell.Def != null ? q0.Spell.Def.displayName : q0.Spell.SpellId;
+                        _hud.LogAction($"<color=#ff7a6a>✕</color> {cu.unitName}: <b>{nm}</b> cortada pelo golpe de oportunidade", cu);
+                        cu.queue.RemoveAt(0);
+                    }
+                }
                 foreach (var u in _units)
                 {
                     if (u.IsDead || u.queue.Count == 0) continue;
@@ -569,6 +586,13 @@ namespace PangeaSkirmish
                             u.GainMana(regen);
                             if (u.plannedConcentrations > 0) u.plannedConcentrations--;
                             _hud.LogAction($"✦ {u.unitName} concentrou +{regen} Mana", u);
+                            break;
+                        case ActionType.Breathe:
+                            // Respirar: espelho do Concentrar para o Corpo (GDD-020 §9).
+                            int breath = Mathf.Max(0, Tuning.Get().breatheStamina);
+                            u.GainStamina(breath);
+                            BattleFeedback.Status(u, $"+{breath} Stamina", new Color(1f, 0.86f, 0.40f));
+                            _hud.LogAction($"❂ {u.unitName} respirou +{breath} Stamina", u);
                             break;
                         case ActionType.Spell:
                             spellsThisSlot.Add((u, head.Spell));
@@ -650,6 +674,13 @@ namespace PangeaSkirmish
                     // O visual nunca pode impedir a regra de resolver: se falhar, registra e segue.
                     try { ActionFx.MarkSpell(_grid, su, sp); ActionFx.PlaySpell(su, sp, _grid); }
                     catch (System.Exception ex) { Debug.LogError($"[Magia] falha no VISUAL de {sp.SpellId}: {ex}"); }
+                    // Esquivar também vale contra magia (Bloquear não, GDD-020 §8).
+                    foreach (var tgt in SpellResolver.DamageTargets(su, sp, _units))
+                        if (tgt.CanReact(ReactionKind.Dodge))
+                        {
+                            _reactionAttacker = su;
+                            yield return React(tgt, new List<ReactionKind> { ReactionKind.Dodge }, su);
+                        }
                     List<string> spellLines;
                     try { spellLines = SpellResolver.Resolve(su, sp, _units, _grid, _spellField); }
                     catch (System.Exception ex)
@@ -675,6 +706,19 @@ namespace PangeaSkirmish
                 bool interrupted = false;
                 foreach (var u in _units)
                 {
+                    // Golpe de oportunidade que acertou ou bloqueio que absorveu tudo: perde o resto da fila.
+                    if (u.counterInterrupted || u.staggered)
+                    {
+                        if (!u.IsDead && u.queue.Count > 0)
+                        {
+                            _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: {(u.staggered ? "desequilibrado pelo bloqueio" : "interrompido pelo golpe de oportunidade")} — perde o resto da fila", u);
+                            BattleFeedback.Status(u, u.staggered ? "Desequilibrado" : "Interrompido", new Color(1f, 0.48f, 0.42f));
+                            u.queue.Clear();
+                            interrupted = true;
+                        }
+                        u.counterInterrupted = false; u.staggered = false;
+                        continue;
+                    }
                     if (u.IsDead || u.queue.Count == 0 || !u.queue[0].Interrupted) continue;
                     var q = u.queue[0];
                     string nm = q.Spell.Def != null ? q.Spell.Def.displayName : q.Spell.SpellId;
@@ -871,7 +915,7 @@ namespace PangeaSkirmish
                 });
             if (mine != null)
                 _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
-                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Estâmina, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Stamina, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
             while (_windowClosedSeq < seq && guard > 0f)
@@ -908,7 +952,7 @@ namespace PangeaSkirmish
         private IEnumerator AdvanceGlobalTick()
         {
             _globalTick++;
-            // Estâmina volta aos poucos (GDD-016 §3).
+            // Stamina volta aos poucos (GDD-016 §3).
             foreach (var u in _units)
                 if (!u.IsDead && _globalTick % u.stats.StaminaRegenTicks == 0) u.GainStamina(1);
             // Mana volta por tick; a WIS acelera (GDD-019 §4).
@@ -1072,45 +1116,13 @@ namespace PangeaSkirmish
             }
             while (moving > 0) yield return null;
 
-            // ── TRIGGER DE REAÇÃO: Contra-ataque (AoO) ──
-            // Nova regra (feedback do Marcus): o gatilho é MOVER DENTRO do alcance melee
-            // de um inimigo e sair (ou passar por ele) sem atacá-lo — não "já estava
-            // dentro e saiu". Dispara se a unidade 'u' passou por algum tile em alcance
-            // melee de 'e' durante o movimento e não tem ataque planejado contra 'e'.
+            // ── Golpe de oportunidade (GDD-020 §8): andar DENTRO do alcance de um inimigo provoca. ──
+            // Começar o passo já no alcance de alguém é o gatilho (aproximar-se de fora não é).
+            // Um golpe por provocador por tick; só o inimigo de maior DEX golpeia; se acertar, a fila para.
             foreach (var (u, _, _) in toMove)
             {
-                if (u.IsDead) continue;
-                int ufp = u.stats.Footprint;
-
-                // Tiles percorridos NESTE tick (origem → destino). Com ticks, cada waypoint
-                // é um passo próprio; usar o plannedPath inteiro re-dispararia a cada tick.
-                var traversed = new List<Vector2Int>();
-                if (startAnchors.TryGetValue(u, out var fromA)) traversed.Add(fromA);
-                traversed.Add(u.anchor);
-
-                // Regra do Marcus, adaptada aos ticks: o gatilho é ENTRAR andando no alcance
-                // de um inimigo e depois SAIR sem tê-lo atacado. Como agora andar e atacar
-                // caem em pontos de decisão diferentes, a entrada fica lembrada em
-                // u.enteredReach e só a saída dispara — aproximar-se para atacar no
-                // ponto seguinte não é punido. "Já estava dentro (o inimigo veio até mim)
-                // e saí" continua sem gatilho, como antes.
-                bool hasFrom = traversed.Count == 2;
-                foreach (var e in _units)
-                {
-                    if (e == u || e.IsDead || !e.IsHostileTo(u)) continue;
-
-                    bool wasIn = hasFrom && GridManager.FootprintGap(traversed[0], ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
-                    bool isIn  = GridManager.FootprintGap(u.anchor, ufp, e.anchor, e.stats.Footprint) <= e.stats.AttackRange;
-
-                    if (!wasIn && isIn) { u.enteredReach.Add(e); continue; }
-                    if (isIn || !u.enteredReach.Remove(e)) continue; // segue dentro, ou nunca entrou andando
-
-                    if (e.CanReact())
-                    {
-                        _hud.LogAction($"<color=#6aa9ff>↯</color> {e.unitName}: oportunidade contra {u.unitName}!", e);
-                        yield return WaitReaction(e, new List<ReactionKind> { ReactionKind.CounterAttack }, u);
-                    }
-                }
+                if (u.IsDead || !startAnchors.TryGetValue(u, out var fromA) || fromA == u.anchor) continue;
+                yield return Provoke(u, "andou no alcance", fromA);
             }
 
             // Tile effects: unidades atravessaram tiles (fogo, orbe, vento)
@@ -1255,7 +1267,7 @@ namespace PangeaSkirmish
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
                     _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
-                    // Ataque perdido devolve a Estâmina do golpe poderoso / mirar.
+                    // Ataque perdido devolve a Stamina do golpe poderoso / mirar.
                     if (incr) u.GainStamina(Tuning.Get().staminaPowerStrike);
                     if (aimed) u.GainStamina(Tuning.Get().staminaAim);
                     _hud.RefreshUnitInfo();
@@ -1271,30 +1283,42 @@ namespace PangeaSkirmish
                 if (incr && willHit)
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxCritical, AttackAimPos(u, atk));
 
-                // ── Reação rápida sim/não (alvo sob ataque) ──
-                // Interceptar: um aliado adjacente recebe o golpe no lugar de um alvo em risco.
+                // ── Reações de quem está na forma do golpe (GDD-020 §8) ──
                 var atkEff = atk;
                 _reactionAttacker = u;
-                if (attackTarget != null)
+                Vector2Int aimCell;
+                if (atk.Mode == AttackMode.Tile) aimCell = atk.TargetTile;
+                else
                 {
-                    var guard = FindInterceptor(attackTarget, u);
+                    var aimUnit = attackTarget ?? (atk.Mode == AttackMode.Auto ? AttackResolver.FindTargetInRange(u, _units) : null);
+                    aimCell = aimUnit != null ? AttackShape.Center(aimUnit.anchor, aimUnit.stats.Footprint)
+                                              : AttackShape.Center(u.anchor, u.stats.Footprint);
+                }
+                var inShape = AttackResolver.Preview(u, u.anchor, aimCell, atk.Mode == AttackMode.Tile, _units);
+
+                // Interpor: um aliado colado a quem vai ser atingido entra na frente e divide os tiles.
+                Unit guardUnit = null, guarded = null;
+                foreach (var (hitU, _, _) in inShape)
+                {
+                    var g = FindInterceptor(hitU, u);
+                    if (g == null) continue;
                     _interceptedBy = null;
-                    if (guard != null)
-                        yield return WaitReaction(guard, new List<ReactionKind> { ReactionKind.Intercept }, u);
+                    yield return React(g, new List<ReactionKind> { ReactionKind.Intercept }, u);
                     if (_interceptedBy != null)
                     {
-                        var g = _interceptedBy; _interceptedBy = null;
-                        _hud.LogAction($"<color=#ffd700>🛡</color> {g.unitName}: Interceptou o golpe em {attackTarget.unitName}!", g);
-                        atkEff.TargetUnit = g; atkEff.Mode = AttackMode.Unit;
-                        attackTarget = g;
+                        guardUnit = _interceptedBy; guarded = hitU; _interceptedBy = null;
+                        _hud.LogAction($"<color=#ffd700>🛡</color> {guardUnit.unitName}: interpôs-se por {hitU.unitName}!", guardUnit);
+                        break;
                     }
                 }
-                if (attackTarget != null && attackTarget.CanReact())
-                    yield return WaitReaction(attackTarget, DefenseOptions(attackTarget, u), u);
+                foreach (var (hitU, _, _) in inShape)
+                    if (!hitU.IsDead && hitU.CanReact())
+                        yield return React(hitU, DefenseOptions(hitU, u), u);
+                if (guardUnit != null && !guardUnit.IsDead && guardUnit.CanReact())
+                    yield return React(guardUnit, DefenseOptions(guardUnit, u), u);
 
-                string log = AttackResolver.ResolveAttack(u, atkEff, _units);
-                if (attackTarget != null) { attackTarget.dodgeReactBonus = 0f; attackTarget.blockFlat = 0; }
-                if (atk.TargetUnit != null) u.enteredReach.Remove(atk.TargetUnit); // engajou: sair depois não dá AoO
+                string log = AttackResolver.ResolveAttack(u, atkEff, _units, guardUnit, guarded);
+                if (AttackResolver.Last.AbsorbedAll && !u.IsDead) u.staggered = true;
                 if (log != null)
                 {
                     _hud.LogAction(log, u);
@@ -1312,7 +1336,7 @@ namespace PangeaSkirmish
         private Vector3 AttackAimPos(Unit u, PlannedAttack atk)
         {
             if (atk.Mode == AttackMode.Tile)
-                return _grid.AnchorToWorldCenter(atk.TargetTile);
+                return _grid.CellToWorld(atk.TargetTile);
             if (atk.TargetUnit != null && !atk.TargetUnit.IsDead)
                 return atk.TargetUnit.transform.position;
             var nearest = AttackResolver.FindTargetInRange(u, _units);
@@ -1325,23 +1349,73 @@ namespace PangeaSkirmish
             onDone();
         }
 
-        /// <summary>Defesa preferida da unidade (postura por atributo): AGI ≥ VIT → Esquiva; senão Bloqueio.</summary>
-        private ReactionKind PickDefense(Unit u, Unit attacker)
-        {
-            // AGI muito acima da VIT e há tile para sair do alcance: Passo reativo; senão a postura por atributo.
-            if (u.stats.AGI >= u.stats.VIT + 4f && FindStepTile(u, attacker).HasValue) return ReactionKind.Step;
-            return u.stats.AGI >= u.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
-        }
+        /// <summary>Defesa preferida das feras: AGI ≥ VIT → Esquivar; senão Bloquear.</summary>
+        private ReactionKind PickDefense(Unit u, Unit attacker) =>
+            u.stats.AGI >= u.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
         private Unit _reactionAttacker;
         private Unit _interceptedBy;
 
-        /// <summary>Opções do menu de defesa: Esquiva e Bloquear sempre; Passo reativo se há tile para sair do alcance.</summary>
+        /// <summary>Opções de defesa contra arma: Esquivar e Bloquear, as que a Stamina paga.</summary>
         private List<ReactionKind> DefenseOptions(Unit u, Unit attacker)
         {
-            var list = new List<ReactionKind> { ReactionKind.Dodge, ReactionKind.Block };
-            if (FindStepTile(u, attacker).HasValue) list.Add(ReactionKind.Step);
+            var list = new List<ReactionKind>();
+            if (u.CanReact(ReactionKind.Dodge)) list.Add(ReactionKind.Dodge);
+            if (u.CanReact(ReactionKind.Block)) list.Add(ReactionKind.Block);
             return list;
         }
+
+        // ── Golpe de oportunidade (GDD-020 §8) ──
+        private readonly HashSet<Unit> _provokedThisTick = new HashSet<Unit>();
+        private bool _lastCounterHit;
+
+        /// <summary>
+        /// <paramref name="provoker"/> andou, reagiu ou começou a conjurar no alcance de inimigos.
+        /// Um golpe por provocador por tick; só o inimigo de maior DEX (empate: menor id) golpeia.
+        /// Se acertar, o provocador fica marcado como interrompido (o passo/magia/reação não segue).
+        /// <paramref name="fromAnchor"/>: posição antes do passo (andar), ou a atual (null).
+        /// </summary>
+        private IEnumerator Provoke(Unit provoker, string why, Vector2Int? fromAnchor)
+        {
+            if (provoker == null || provoker.IsDead || _provokedThisTick.Contains(provoker)) yield break;
+            var at = fromAnchor ?? provoker.anchor;
+            Unit best = null; uint bestId = uint.MaxValue;
+            foreach (var e in _units)
+            {
+                if (e == provoker || e.IsDead || !e.IsHostileTo(provoker) || !e.CanReact(ReactionKind.CounterAttack)) continue;
+                if (GridManager.FootprintGap(at, provoker.stats.Footprint, e.anchor, e.stats.Footprint) > e.EffectiveAttackRange) continue;
+                uint id = UnitRegistry.GetId(e);
+                if (best == null || e.stats.DEX > best.stats.DEX || (e.stats.DEX == best.stats.DEX && id < bestId)) { best = e; bestId = id; }
+            }
+            if (best == null) yield break;
+            _provokedThisTick.Add(provoker);
+            _hud.LogAction($"<color=#6aa9ff>↯</color> {provoker.unitName} {why} perto de {best.unitName}: oportunidade!", best);
+            _lastCounterHit = false;
+            var savedAttacker = _reactionAttacker;
+            _reactionAttacker = provoker;
+            yield return WaitReaction(best, new List<ReactionKind> { ReactionKind.CounterAttack }, provoker);
+            _reactionAttacker = savedAttacker;
+            if (_lastCounterHit && !provoker.IsDead) provoker.counterInterrupted = true;
+        }
+
+        /// <summary>Reação + o golpe de oportunidade que reagir no alcance de um inimigo provoca.</summary>
+        private IEnumerator React(Unit reactor, List<ReactionKind> options, Unit trigger)
+        {
+            _lastApplied = ReactionKind.None;
+            yield return WaitReaction(reactor, options, trigger);
+            var applied = _lastApplied;
+            if (applied == ReactionKind.None || applied == ReactionKind.CounterAttack) yield break;
+            yield return Provoke(reactor, "reagiu", null);
+            if (reactor.counterInterrupted)
+            {
+                // O golpe cortou a reação: ela não acontece (a Stamina já foi).
+                reactor.counterInterrupted = false;
+                reactor.dodgeReactTiles = 0; reactor.blockFlat = 0;
+                if (applied == ReactionKind.Intercept) _interceptedBy = null;
+                _hud.LogAction($"<color=#ff7a6a>✕</color> {reactor.unitName}: a reação foi cortada", reactor);
+            }
+        }
+        private ReactionKind _lastApplied;
+        private bool _reactionApplied;
 
         /// <summary>Prevê se o ataque vai causar dano (há alvo válido dentro do alcance).</summary>
         private bool WillAttackHit(Unit u, PlannedAttack atk)
@@ -1357,17 +1431,10 @@ namespace PangeaSkirmish
                                                 t.anchor, t.stats.Footprint) <= u.stats.AttackRange;
             }
 
-            // Tile: precisa estar no alcance E ter um inimigo ocupando o tile
-            int afp = u.stats.Footprint;
-            if (GridManager.FootprintGap(u.anchor, afp, atk.TargetTile, afp) > u.stats.AttackRange)
+            // Mira livre: no alcance e com algum inimigo dentro da forma.
+            if (GridManager.FootprintGap(u.anchor, u.stats.Footprint, atk.TargetTile, 1) > u.EffectiveAttackRange)
                 return false;
-            foreach (var other in _units)
-            {
-                if (other == u || other.IsDead || !other.IsHostileTo(u)) continue;
-                if (GridManager.FootprintsOverlap(other.anchor, other.stats.Footprint, atk.TargetTile, afp))
-                    return true;
-            }
-            return false;
+            return AttackResolver.Preview(u, u.anchor, atk.TargetTile, true, _units).Count > 0;
         }
 
 
@@ -1406,9 +1473,11 @@ namespace PangeaSkirmish
         /// </summary>
         private IEnumerator WaitReaction(Unit reactor, List<ReactionKind> options, Unit triggerTarget)
         {
-            if (reactor == null || !reactor.CanReact() || options == null || options.Count == 0)
-                yield break;
+            if (reactor == null || options == null) yield break;
+            options = options.FindAll(k => reactor.CanReact(k));          // só o que a Stamina paga
+            if (options.Count == 0) yield break;
 
+            _reactionApplied = false;
             _pendingReactionChoice = ReactionKind.None;
             _reactionResolved = false;
             bool submitted = false; // dono já enviou RPC (MP)
@@ -1468,12 +1537,14 @@ namespace PangeaSkirmish
             _hud.HideReactionMenu();
             _hud.UpdateBonusTimer(0f);
 
-            var final = _reactionResolved ? _pendingReactionChoice : ReactionKind.None;
+            // Tempo esgotado: vale a reação padrão marcada no plano (GDD-020 §8.1), se couber aqui.
+            var fallback = options.Contains(reactor.defaultReaction) ? reactor.defaultReaction : ReactionKind.None;
+            var final = _reactionResolved ? _pendingReactionChoice : fallback;
 
-            // Se o dono em MP não clicou e o tempo esgotou, ainda assim avisa os outros (senão trava)
+            // Se o dono em MP não clicou e o tempo esgotou, avisa os outros com a padrão (senão trava)
             if (RuntimeMultiplayerSession.IsMultiplayer && isOwner && !submitted)
                 LockstepBattleSync.Instance?.SubmitReactionServerRpc(
-                    UnitRegistry.GetId(reactor), (int)ReactionKind.None);
+                    UnitRegistry.GetId(reactor), (int)final);
 
             // Em SP (ou dono em MP antes do echo), aplica localmente.
             // Em MP non-dono, o RPC (ApplyReactionRemote) já aplicou — não re-aplica (guard em ApplyReaction).
@@ -1485,50 +1556,22 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>
-        /// <summary>Bloquear (PF2e Shield Block): redução FIXA = VIT × fator + dureza da arma.</summary>
+        /// <summary>Bloquear (GDD-020 §8): soma à defesa fixa a dureza da arma/escudo + metade da VIT (blockFlatPerVIT).</summary>
         public static int BlockAmount(Unit u)
         {
             var w = WeaponCatalog.Get(u.weaponId);
             return Mathf.Max(1, Mathf.RoundToInt(u.stats.VIT * Tuning.Get().blockFlatPerVIT) + (w != null ? w.blockHardness : 0));
         }
 
-        /// <summary>
-        /// Passo reativo: até 2 tiles para longe do atacante, parando fora do alcance dele. Sem
-        /// golpe reativo. Null se nenhum tile livre tira o alvo do alcance. Determinístico.
-        /// </summary>
-        private Vector2Int? FindStepTile(Unit u, Unit attacker)
-        {
-            if (u == null || attacker == null || _grid == null) return null;
-            int fp = u.stats.Footprint;
-            var blockers = new List<Unit>();
-            foreach (var o in _units) if (o != u && !o.IsDead) blockers.Add(o);
-            Vector2Int? best = null; int bestGap = GridManager.FootprintGap(u.anchor, fp, attacker.anchor, attacker.stats.Footprint);
-            foreach (var a in _grid.GetReachableAnchors(u.anchor, 2, fp, blockers))
-            {
-                int g = GridManager.FootprintGap(a, fp, attacker.anchor, attacker.stats.Footprint);
-                if (g <= attacker.stats.AttackRange) continue;           // precisa sair do alcance
-                if (g > bestGap || (g == bestGap && best.HasValue && (a.x < best.Value.x || (a.x == best.Value.x && a.y < best.Value.y))))
-                { bestGap = g; best = a; }
-            }
-            return best;
-        }
-
-        /// <summary>
-        /// Interceptar (PF2e Intercept Attack): um aliado ADJACENTE ao alvo, com reação e Estâmina e
-        /// mais vida que ele, recebe o golpe no lugar quando o alvo estaria em risco (golpe fatal
-        /// ou vida abaixo de 40%). Escolhe o de mais vida; empate pelo menor id.
-        /// </summary>
+        /// <summary>Interpor: o aliado colado que entra na frente (GDD-020 §8).</summary>
         private Unit FindInterceptor(Unit target, Unit attacker)
         {
+            // GDD-020 §8: qualquer aliado COLADO ao atacado, com Stamina para Interpor. Mais vida primeiro; empate pelo menor id.
             if (target == null || attacker == null) return null;
-            int expected = attacker.stats.PhysicalDamage;
-            bool atRisk = target.currentHP <= expected || target.currentHP < target.stats.MaxHP * 0.4f;
-            if (!atRisk) return null;
             Unit best = null; uint bestId = uint.MaxValue;
             foreach (var a in _units)
             {
-                if (a == target || a == attacker || a.IsDead || a.IsHostileTo(target) || !a.CanReact()) continue;
-                if (a.currentHP <= target.currentHP) continue;
+                if (a == target || a == attacker || a.IsDead || a.IsHostileTo(target) || !a.CanReact(ReactionKind.Intercept)) continue;
                 if (GridManager.FootprintGap(a.anchor, a.stats.Footprint, target.anchor, target.stats.Footprint) > 1) continue;
                 uint id = UnitRegistry.GetId(a);
                 if (best == null || a.currentHP > best.currentHP || (a.currentHP == best.currentHP && id < bestId)) { best = a; bestId = id; }
@@ -1541,7 +1584,6 @@ namespace PangeaSkirmish
             // AoO sempre prioritário se disponível
             if (options.Contains(ReactionKind.CounterAttack)) return ReactionKind.CounterAttack;
             if (options.Contains(ReactionKind.Intercept)) return ReactionKind.Intercept;
-            if (options.Contains(ReactionKind.Step) && reactor.stats.AGI >= reactor.stats.VIT + 4f) return ReactionKind.Step;
             // Esquiva se AGI > VIT, senão Bloqueio
             if (options.Contains(ReactionKind.Dodge) && options.Contains(ReactionKind.Block))
                 return reactor.stats.AGI >= reactor.stats.VIT ? ReactionKind.Dodge : ReactionKind.Block;
@@ -1552,9 +1594,11 @@ namespace PangeaSkirmish
         private void ApplyReaction(Unit reactor, ReactionKind kind, Unit triggerTarget)
         {
             if (kind == ReactionKind.None) return;
-            // Em MP o RPC pode chegar de volta ao dono (que já aplicou no clique) — ignora se já consumiu.
-            if (reactor.remainingReactions <= 0) return;
-            reactor.ConsumeReaction();
+            // Em MP o RPC pode chegar de volta ao dono (que já aplicou no clique) — uma vez por espera.
+            if (_reactionApplied) return;
+            _reactionApplied = true;
+            _lastApplied = kind;
+            reactor.ConsumeReaction(kind);
             // GDD-014: reagir custa tempo — empurra a fila do reator.
             reactor.DelayQueue(Tuning.Get().reactionTickCost);
 
@@ -1565,40 +1609,27 @@ namespace PangeaSkirmish
                     if (triggerTarget != null)
                     {
                         string log = AttackResolver.ResolveOpportunityStrike(reactor, triggerTarget, _units);
+                        _lastCounterHit = AttackResolver.Last.AnyHit;
                         if (log != null) { _hud.LogAction(log, reactor); _hud.RefreshUnitInfo(); }
                     }
                     break;
                 case ReactionKind.Dodge:
-                    reactor.dodgeReactBonus = Mathf.Clamp01(reactor.stats.AGI * T.dodgeReactionPerAGI);
+                    reactor.dodgeReactTiles = AttackResolver.DodgeTiles(reactor);
                     reactor.PlayReactionAnim(ReactionKind.Dodge);
-                    BattleFeedback.Status(reactor, "Esquiva ágil", new Color(0.55f, 0.85f, 1f));
-                    _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquiva! (+" +
-                        Mathf.RoundToInt(reactor.dodgeReactBonus * 100) + "% dodge)", reactor);
+                    BattleFeedback.Status(reactor, $"Esquiva: −{reactor.dodgeReactTiles} tile{(reactor.dodgeReactTiles == 1 ? "" : "s")}", new Color(0.55f, 0.85f, 1f));
+                    _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquivar! tira {reactor.dodgeReactTiles} tile(s) do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
                     reactor.PlayReactionAnim(ReactionKind.Block);
                     BattleFeedback.Status(reactor, $"Escudo erguido (−{reactor.blockFlat})", new Color(1f, 0.86f, 0.40f));
-                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloqueio! (−{reactor.blockFlat} de dano)", reactor);
+                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloquear! −{reactor.blockFlat} de dano; se absorver tudo, desequilibra (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Intercept:
-                    _interceptedBy = reactor;    // o fluxo do ataque redireciona o golpe
+                    _interceptedBy = reactor;    // o golpe divide os tiles do protegido com quem interpôs
                     reactor.PlayReactionAnim(ReactionKind.Intercept);
-                    BattleFeedback.Status(reactor, "Interceptou!", new Color(1f, 0.86f, 0.40f));
+                    BattleFeedback.Status(reactor, "Interpôs!", new Color(1f, 0.86f, 0.40f));
                     break;
-                case ReactionKind.Step:
-                    {
-                        var dest = FindStepTile(reactor, triggerTarget);
-                        if (dest.HasValue)
-                        {
-                            var from = reactor.anchor;
-                            var stepFrom = reactor.transform.position;
-                            reactor.anchor = dest.Value; reactor.plannedAnchor = dest.Value; reactor.SnapToAnchor();
-                            if (reactor.Model3D != null) reactor.Model3D.PlayLeap(stepFrom, 0.25f);
-                            _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Passo reativo! saiu do alcance", reactor);
-                        }
-                        break;
-                    }
             }
         }
 

@@ -42,9 +42,9 @@ namespace PangeaSkirmish
         public bool hasPlannedBonus;
         /// <summary>Ticks livres na fila deste ponto de decisão (GDD-014; antigo PA).</summary>
         public int remainingAP;
-        /// <summary>Estâmina ainda livre NESTE plano (currentStamina − custo planejado). Antigo PAB.</summary>
+        /// <summary>Stamina ainda livre NESTE plano (currentStamina − custo planejado). Antigo PAB.</summary>
         public int remainingBAP;
-        /// <summary>Estâmina atual: reserva do Corpo, paga ações bônus e reações (GDD-016 §3).</summary>
+        /// <summary>Stamina atual: reserva do Corpo, paga ações bônus e reações (GDD-016 §3).</summary>
         public int currentStamina;
 
         // ── Semi-turno por ticks (GDD-014) ──
@@ -74,7 +74,7 @@ namespace PangeaSkirmish
             reservedMana = PlannedManaCost();
         }
 
-        /// <summary>Estâmina que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
+        /// <summary>Stamina que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
         public int PlannedStaminaCost()
         {
             int c = 0;
@@ -97,15 +97,12 @@ namespace PangeaSkirmish
             if (s == null) { why = "magia desconhecida"; return false; }
             int d = TickRules.Duration(this, ActionType.Spell, false, s);
             if (remainingAP < d) { why = $"sem tick livre ({d} tick{(d == 1 ? "" : "s")})"; return false; }
-            if (s.IsPhysical)
-            {
-                if (remainingBAP < s.cost) { why = $"Estâmina insuficiente ({remainingBAP}/{s.cost})"; return false; }
-            }
-            else if (AvailableMana < s.cost) { why = $"Mana insuficiente ({AvailableMana}/{s.cost})"; return false; }
+            if (s.StaminaPart > 0 && remainingBAP < s.StaminaPart) { why = $"Stamina insuficiente ({remainingBAP}/{s.StaminaPart})"; return false; }
+            if (s.ManaPart > 0 && AvailableMana < s.ManaPart) { why = $"Mana insuficiente ({AvailableMana}/{s.ManaPart})"; return false; }
             return true;
         }
 
-        /// <summary>Recupera Estâmina (regeneração por tick), até o máximo.</summary>
+        /// <summary>Recupera Stamina (regeneração por tick), até o máximo.</summary>
         public void GainStamina(int amount) =>
             currentStamina = Mathf.Clamp(currentStamina + amount, 0, stats.MaxStamina);
 
@@ -117,7 +114,9 @@ namespace PangeaSkirmish
         public void BuildQueueFromPlan()
         {
             queue.Clear();
-            // Compromete a Estâmina do plano (ações bônus). Feito aqui, a partir do plano,
+            // Postura do plano vale desde o primeiro tick (GDD-020 §8.1); antes dos custos, que leem os máximos.
+            SetPosture(plannedPosture);
+            // Compromete a Stamina do plano (ações bônus). Feito aqui, a partir do plano,
             // para valer igual em todas as máquinas do lockstep.
             currentStamina = Mathf.Max(0, currentStamina - PlannedStaminaCost());
             // Mana das magias Elementais também é comprometida aqui (GDD-019 §1: gasta mesmo se interrompida).
@@ -148,13 +147,13 @@ namespace PangeaSkirmish
                 queue.Add(new QueuedAction { Type = ActionType.Wait, Duration = TickRules.Duration(this, ActionType.Wait, false) });
         }
 
-        /// <summary>Custo em Estâmina de um incremento: 0 = golpe poderoso, 1 = mirar.</summary>
+        /// <summary>Custo em Stamina de um incremento: 0 = golpe poderoso, 1 = mirar.</summary>
         public static int IncrementCost(int kind) =>
             kind == 0 ? Tuning.Get().staminaPowerStrike : Tuning.Get().staminaAim;
 
         /// <summary>
         /// A próxima ação da fila (que ainda não começou) pode receber o incremento?
-        /// Só ataques; golpe poderoso uma vez, mirar uma vez; exige Estâmina.
+        /// Só ataques; golpe poderoso uma vez, mirar uma vez; exige Stamina.
         /// </summary>
         public bool CanIncrementNext(int kind)
         {
@@ -192,11 +191,60 @@ namespace PangeaSkirmish
         /// <summary>Redução de dano da reação de Bloqueio (0..1, aplicada no dano final).</summary>
         public int blockFlat;
 
-        public bool CanReact() => currentStamina >= Tuning.Get().staminaReaction && remainingReactions > 0;
-        public void ConsumeReaction()
+        /// <summary>Tiles que a reação Esquivar tira do próximo golpe (garantido, GDD-020 §8).</summary>
+        public int dodgeReactTiles;
+        /// <summary>Golpe de oportunidade acertou: perde o resto da fila no fim do tick.</summary>
+        public bool counterInterrupted;
+        /// <summary>O bloqueio do alvo absorveu o golpe inteiro: perde o resto da fila no fim do tick.</summary>
+        public bool staggered;
+        /// <summary>Postura escolhida no plano; aplicada ao comprometer a fila (vai no PlanWire).</summary>
+        public Posture plannedPosture = Posture.Neutral;
+        /// <summary>Reação usada se o tempo do menu acabar (marcada no plano; None = não reagir).</summary>
+        public ReactionKind defaultReaction = ReactionKind.None;
+
+        /// <summary>Stamina de cada reação (GDD-020 §8). Sem limite de frequência: a Stamina é o limite.</summary>
+        public static int ReactionCost(ReactionKind k)
         {
-            currentStamina   = Mathf.Max(0, currentStamina - Tuning.Get().staminaReaction);
-            remainingReactions = Mathf.Max(0, remainingReactions - 1);
+            var T = Tuning.Get();
+            switch (k)
+            {
+                case ReactionKind.Dodge:         return T.reactCostDodge;
+                case ReactionKind.Block:         return T.reactCostBlock;
+                case ReactionKind.CounterAttack: return T.reactCostCounter;
+                case ReactionKind.Intercept:     return T.reactCostIntercept;
+                default:                         return T.staminaReaction;
+            }
+        }
+        /// <summary>Tem Stamina para alguma reação (a mais barata)?</summary>
+        public bool CanReact() => !IsDead && currentStamina >= Mathf.Min(ReactionCost(ReactionKind.Dodge), ReactionCost(ReactionKind.Block));
+        public bool CanReact(ReactionKind k) => !IsDead && currentStamina >= ReactionCost(k);
+        public void ConsumeReaction(ReactionKind k = ReactionKind.None)
+        {
+            currentStamina = Mathf.Max(0, currentStamina - ReactionCost(k));
+        }
+
+        // ── Postura (GDD-020 §8.1): bônus de atributo com troca, escolhido por ponto de decisão ──
+        public Posture posture = Posture.Neutral;
+
+        /// <summary>
+        /// Troca a postura. Os máximos (Vida, Mana, Stamina) mudam junto: ganho de máximo entra
+        /// também no atual; ao perder máximo, o atual só é cortado se passar do novo máximo.
+        /// Determinístico (só stats + tuning): roda igual em toda máquina.
+        /// </summary>
+        public void SetPosture(Posture p)
+        {
+            if (p == posture || stats == null) return;
+            int hp0 = stats.MaxHP, mp0 = stats.MaxMana, st0 = stats.MaxStamina;
+            PostureRules.Apply(stats, posture, -1);
+            posture = p;
+            PostureRules.Apply(stats, posture, +1);
+            int hp1 = stats.MaxHP, mp1 = stats.MaxMana, st1 = stats.MaxStamina;
+            if (hp1 > hp0 && !IsDead) currentHP += hp1 - hp0;
+            if (mp1 > mp0) currentMana += mp1 - mp0;
+            if (st1 > st0) currentStamina += st1 - st0;
+            currentHP = Mathf.Min(currentHP, hp1);
+            currentMana = Mathf.Min(currentMana, mp1);
+            currentStamina = Mathf.Min(currentStamina, st1);
         }
         public void ResetReactionsForRound() => remainingReactions = 1;
 
@@ -236,12 +284,16 @@ namespace PangeaSkirmish
         public string SpellStateSummary()
         {
             var p = new System.Collections.Generic.List<string>();
-            if (furyReady > 0f) p.Add("Fúria");
-            if (trueAimCrit > 0f) p.Add("Olho certeiro");
-            if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}t");
-            if (burningTicks > 0) p.Add($"Queimando {burningTicks}t");
-            if (soakedTicks > 0) p.Add($"Encharcado {soakedTicks}t");
+            if (posture != Posture.Neutral) p.Add($"Postura {PostureRules.Name(posture)} ({PostureRules.Effect(posture)})");
+            if (furyReady > 0f) p.Add($"Fúria (próximo golpe ×{furyReady:0.#})");
+            if (trueAimCrit > 0f) p.Add("Olho certeiro (próximo golpe não erra)");
+            if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}t (VIT ×{stoneSkinMult:0.#} na defesa)");
+            if (burningTicks > 0) p.Add($"Queimando {burningTicks}t (−{burningDamage}/tick)");
+            if (soakedTicks > 0) p.Add($"Encharcado {soakedTicks}t (−1 andada)");
             if (foresightTicks > 0) p.Add($"Visão arcana {foresightTicks}t");
+            if (dodgeReactTiles > 0) p.Add($"Esquivando (−{dodgeReactTiles} tiles)");
+            if (blockFlat > 0) p.Add($"Bloqueando (−{blockFlat})");
+            if (IsDulled) p.Add("Embotado (pouca Mana: magias com menos alcance)");
             return string.Join(" · ", p);
         }
 
@@ -487,7 +539,7 @@ namespace PangeaSkirmish
         private TextMesh _statusText;
         private string _statusShown = "";
 
-        /// <summary>Quantos pips de Estâmina estão acesos acima da cabeça (testes).</summary>
+        /// <summary>Quantos pips de Stamina estão acesos acima da cabeça (testes).</summary>
         public int WorldStaminaPipsLit { get; private set; }
         /// <summary>A barra de conjuração acima da cabeça está visível? (testes)</summary>
         public bool WorldCastBarVisible => _castBg != null && _castBg.enabled;
@@ -531,7 +583,7 @@ namespace PangeaSkirmish
             MakeBar(_barsRoot, "MpBg", _mpFillY, sz, T.worldBarBgColor, sortBg);
             _mpFill = MakeBar(_barsRoot, "MpFill", _mpFillY, new Vector2(sz.x, sz.y * 0.8f), T.worldMpColor, sortBg + 1);
 
-            // Estâmina: um pip por ponto, abaixo da Mana (dourado = tem, apagado = gasto).
+            // Stamina: um pip por ponto, abaixo da Mana (dourado = tem, apagado = gasto).
             _pipY = _mpFillY - (sz.y + T.worldBarGap);
             int maxPips = Mathf.Clamp(stats.MaxStamina, 0, 10);
             float pipW = Mathf.Min(0.16f, (sz.x - 0.03f * (maxPips - 1)) / Mathf.Max(1, maxPips));
@@ -643,7 +695,7 @@ namespace PangeaSkirmish
                 _hpTrail.enabled = _hpTrailRatio > hpRatio + 0.001f;
             }
 
-            // Estâmina em pips.
+            // Stamina em pips.
             int lit = 0;
             for (int i = 0; i < _staminaPips.Count; i++)
             {
@@ -699,7 +751,9 @@ namespace PangeaSkirmish
             if (trueAimCrit > 0f) p.Add("Olho certeiro");
             if (foresightTicks > 0) p.Add($"Visão {foresightTicks}");
             if (blockFlat > 0) p.Add($"Escudo −{blockFlat}");
+            if (dodgeReactTiles > 0) p.Add($"Esquiva −{dodgeReactTiles}");
             if (IsDulled) p.Add("Embotado");
+            if (posture != Posture.Neutral) p.Add(PostureRules.Glyph(posture) + " " + PostureRules.Name(posture));
             return string.Join(" · ", p);
         }
 
@@ -1287,6 +1341,7 @@ namespace PangeaSkirmish
             remainingAP  = Tuning.Get().maxQueueTicks;
             remainingBAP = currentStamina;
             dodgeReactBonus = 0f;
+            dodgeReactTiles = 0;
             blockFlat       = 0;
         }
 

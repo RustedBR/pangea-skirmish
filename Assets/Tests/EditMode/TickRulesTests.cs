@@ -80,7 +80,7 @@ public class TickRulesTests
 
         _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, IsBonus = true });
         _u.RecomputeTickBudget();
-        Assert.AreEqual(max - _t.staminaPowerStrike, _u.remainingBAP, "golpe poderoso reserva Estâmina no plano");
+        Assert.AreEqual(max - _t.staminaPowerStrike, _u.remainingBAP, "golpe poderoso reserva Stamina no plano");
 
         _u.BuildQueueFromPlan();
         Assert.AreEqual(max - _t.staminaPowerStrike, _u.currentStamina, "o gasto vale ao comprometer a fila");
@@ -161,7 +161,7 @@ public class TickRulesTests
 
         _u.queue[0].Elapsed = 0;
         _u.currentStamina = 0;
-        Assert.IsFalse(_u.TryIncrementNext(1), "sem Estâmina");
+        Assert.IsFalse(_u.TryIncrementNext(1), "sem Stamina");
 
         _u.queue.Clear();
         _u.queue.Add(new QueuedAction { Type = ActionType.Move, Duration = 1 });
@@ -177,7 +177,7 @@ public class TickRulesTests
         int regen6 = _u.stats.StaminaRegenTicks;
         _u.stats.AGI = 12f;
         Assert.AreEqual(_t.maxTilesPerMove, _u.stats.MoveStep, "o teto de andada continua");
-        Assert.Less(_u.stats.StaminaRegenTicks, regen6, "AGI acima de 6 acelera a Estâmina");
+        Assert.Less(_u.stats.StaminaRegenTicks, regen6, "AGI acima de 6 acelera a Stamina");
         Assert.AreEqual(1, _u.stats.StaminaRegenTicks, "AGI 12: 1 ponto por tick");
     }
 
@@ -192,20 +192,22 @@ public class TickRulesTests
     public void Stamina_IsScarce()
     {
         _u.stats.STR = 8f; _u.stats.VIT = 8f; // 16 pontos de corpo
-        Assert.LessOrEqual(_u.stats.MaxStamina, 6, "Estâmina máxima baixo (era 11 com os mesmos pontos)");
+        Assert.LessOrEqual(_u.stats.MaxStamina, 6, "Stamina máxima baixo (era 11 com os mesmos pontos)");
     }
 
     [Test]
-    public void Armor_IsPercentageAndCapped()
+    public void Armor_IsFlat_OnePerVit()
     {
+        // GDD-020 §7: defesa fixa, 1 por ponto de VIT, descontada uma vez no total do golpe.
         var T = Tuning.Get();
         AttributeStats.Formulas = T.statFormulas;
-        _u.stats.VIT = 4f;
-        float r4 = _u.stats.PhysicalReduction;
-        Assert.AreEqual(Mathf.Clamp(4f * T.statFormulas.armorPctPerVIT, 0f, T.statFormulas.armorPctMax), r4, 0.0001f);
-        Assert.Greater(r4, 0.2f, "VIT 4 deve reduzir mais de 20% do dano");
-        _u.stats.VIT = 99f;
-        Assert.AreEqual(T.statFormulas.armorPctMax, _u.stats.PhysicalReduction, 0.0001f, "respeita o teto");
+        Assert.AreEqual(0f, T.statFormulas.armorPctPerVIT, "sem redução percentual");
+        _u.stats.VIT = 5f;
+        Assert.AreEqual(5, _u.stats.PhysicalDefense);
+        var atk = new AttributeStats();
+        T.statFormulas.damageVariance = 0f;
+        try { Assert.AreEqual(15, atk.RollDamage(20, true, _u.stats), "20 de golpe − 5 de VIT"); }
+        finally { T.statFormulas.damageVariance = Resources.Load<GameTuning>("GameTuning").statFormulas.damageVariance; }
     }
 
     [Test]
@@ -217,7 +219,7 @@ public class TickRulesTests
     [Test]
     public void PowerStrike_MultipliesDamage_NotJustTicks()
     {
-        _u.stats.STR = 4f; _u.stats.WeaponDamage = 5;
+        _u.stats.STR = 4f; _u.stats.WeaponDamage = 5; _u.stats.ShapeTiles = 3;   // arma de 3 tiles (GDD-020)
         int b = _u.stats.PhysicalDamage;
         int power = AttackResolver.PowerDamage(_u, true, 0);
         Assert.AreEqual(Mathf.RoundToInt(b * Tuning.Get().powerStrikeMult), power);

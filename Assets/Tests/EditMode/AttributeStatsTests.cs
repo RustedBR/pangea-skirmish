@@ -55,8 +55,8 @@ public class AttributeStatsTests
         int damage = stats.PhysicalDamage;
 
         // Assert
-        // WeaponDamage (5) + STR (3) × dmgPerSTR (1) = 8
-        Assert.AreEqual(8, damage);
+        // GDD-020: dano por tile = 5 × (1 + 3 STR × 6%) = 5,9; desarmado/1 tile → golpe 6
+        Assert.AreEqual(6, damage);
     }
 
     [Test]

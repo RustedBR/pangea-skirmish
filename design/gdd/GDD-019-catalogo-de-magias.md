@@ -15,7 +15,7 @@
 
 | Regra | Valor | Origem |
 |---|---|---|
-| Magia **Física** gasta **Estâmina**; magia **Elemental** gasta **Mana**. Nunca os dois. | — | [CANON] GDD-018 |
+| Magia **Física** gasta **Stamina**; magia **Elemental** gasta **Mana**. Nunca os dois. | — | [CANON] GDD-018 |
 | Duração em ticks de qualquer magia: `max(1, round(base × 10 / (10 + DEX)))` | igual às outras ações | [CANON] |
 | O efeito acontece **no fim** da duração. | — | [CANON] GDD-014 |
 | Conjuração Elemental é **interrompida** se o conjurador tomar dano ≥ 25% do HP máximo durante a duração. A Mana é gasta mesmo assim. | 25% | [PROPOSTA] |
@@ -30,11 +30,11 @@
 
 ---
 
-## 2. Magia Física (Estâmina) **[CANON: 4, uma por atributo]**
+## 2. Magia Física (Stamina) **[CANON: 4, uma por atributo]**
 
 O corpo fazendo o "triplo". Complementa as reações do GDD-017 (que continuam como estão).
 
-| Magia | Atributo | Estâmina | Ticks base | Efeito |
+| Magia | Atributo | Stamina | Ticks base | Efeito |
 |---|---|---|---|---|
 | **Fúria** | STR | 3 | 1 (preparo) | O próximo ataque desta fila causa **dano × 2** (não acumula com Golpe poderoso: vale o maior). |
 | **Salto** | AGI | 2 | 1 | Move até **3 × MoveStep** tiles em linha reta, **ignorando** obstáculos e ameaças (sem ataque de oportunidade). Não termina em tile ocupado. |
@@ -43,7 +43,7 @@ O corpo fazendo o "triplo". Complementa as reações do GDD-017 (que continuam c
 
 Notas:
 - "Preparo" = a magia ocupa 1 tick e marca a unidade com o efeito, que se consome no próximo ataque/ponto. Assim ela entra na fila como qualquer ação.
-- Estâmina atual: base `1 + 0,25 × (STR + VIT)`, regen a cada 3 ticks. Com esses custos, uma unidade com STR+VIT = 12 (4 pontos) usa uma magia Física por ~2 pontos de decisão. **[PROPOSTA]** subir a base para `2 + 0,25 × (STR + VIT)` quando a magia Física entrar.
+- Stamina atual: base `1 + 0,25 × (STR + VIT)`, regen a cada 3 ticks. Com esses custos, uma unidade com STR+VIT = 12 (4 pontos) usa uma magia Física por ~2 pontos de decisão. **[PROPOSTA]** subir a base para `2 + 0,25 × (STR + VIT)` quando a magia Física entrar.
 
 ---
 
@@ -101,7 +101,7 @@ Todas as unidades conhecem as 15 magias (inatas, [CANON]). A diferença vem de:
 
 ## 6. UI (ponte com GDD-018)
 
-- As magias entram no **menu de bloco** como uma aba "Magia" com dois grupos: Física (custo em Estâmina) e Elemental (custo em Mana).
+- As magias entram no **menu de bloco** como uma aba "Magia" com dois grupos: Física (custo em Stamina) e Elemental (custo em Mana).
 - Cada magia mostra: nome, ícones dos elementos que a montam, custo, ticks com a DEX atual, alcance/área.
 - O bloco na barra de ticks usa a cor do elemento principal.
 - Hover em qualquer magia mostra o texto do efeito.
@@ -115,7 +115,7 @@ Todas as unidades conhecem as 15 magias (inatas, [CANON]). A diferença vem de:
 
 ## 8. Ordem de implementação sugerida
 
-1. Renomear Estâmina → **Estâmina** (código, UI, GDDs, tuning).
+1. Renomear Stamina → **Stamina** (código, UI, GDDs, tuning).
 2. Mover DEX para Corpo na ficha e no `Attr`.
 3. Mana: nova fórmula, regen por tick, Concentrar, embotamento.
 4. `SpellDef` + catálogo em `ScriptableObject` (as 15 + 4), com montagem (elementos) explícita.
@@ -135,7 +135,7 @@ Princípio: **o jogador nunca deve ser surpreendido por uma regra**. Tudo que po
 | Conceito | Ícone | Cor | Onde aparece |
 |---|---|---|---|
 | Ameaça (ataque vindo contra a unidade) | ⚠ | laranja | Bloco da fila no tick do impacto |
-| Reação disponível | ↩ | azul | Dentro do bloco ameaçado, com custo em Estâmina |
+| Reação disponível | ↩ | azul | Dentro do bloco ameaçado, com custo em Stamina |
 | Defender (Bloquear/Esquivar ativo) | 🛡 | azul | Bloco da fila e sobre a unidade no mundo |
 | Conjurando (interrompível) | ✦ com barra | roxo | Bloco da fila com borda tracejada |
 | Interrompido | ✦ riscado | vermelho | Bloco da fila + flash sobre a unidade + log |
@@ -148,13 +148,13 @@ A borda **tracejada = pode ser interrompido**, **sólida = não pode**. Essa reg
 - Ao enfileirar uma magia Elemental, o bloco já nasce com borda tracejada e o texto de hover: *"Interrompida se tomar ≥ 25% do HP (X de dano) antes do tick N. A Mana é gasta mesmo assim."* O **X** é calculado com o HP atual.
 - Se há uma ameaça conhecida (⚠) em algum tick **dentro** da duração da conjuração, o bloco mostra um **aviso amarelo**: *"Um ataque pode chegar antes de terminar."* Ameaças só são conhecidas até o tick atual (informação incompleta), então o aviso é parcial e diz isso.
 - Ao enfileirar **Defender**, o bloco mostra o valor concreto: *"Bloquear: −N de dano"* ou *"Esquivar: +P% de desvio"*, com N e P calculados pelos atributos e arma.
-- Reações disponíveis aparecem **dentro** do bloco ameaçado como botões pequenos (↩ Golpe reativo 2, ↩ Esquiva ágil 2…), já com o custo. Sem Estâmina suficiente, aparecem apagadas com o motivo no hover.
+- Reações disponíveis aparecem **dentro** do bloco ameaçado como botões pequenos (↩ Golpe reativo 2, ↩ Esquiva ágil 2…), já com o custo. Sem Stamina suficiente, aparecem apagadas com o motivo no hover.
 
 ### 9.3 Durante: no tick
 
 - Quando um ataque acerta um conjurador no meio da conjuração, o jogo mostra **sobre a unidade** um rótulo curto: *"Interrompido! (12 ≥ 9)"*, com o dano recebido e o limite. O bloco na barra fica riscado em vermelho e os ticks restantes dele são **removidos** da fila (a unidade fica livre e decide no tick seguinte).
 - Quando o dano **não** chega ao limite, um rótulo discreto: *"Manteve a concentração (5 < 9)"*. Isso ensina a regra sem precisar de tutorial.
-- O prompt de reação (sim/não) mostra **o que vai acontecer nos dois casos**: *"Reagir com Esquiva ágil (−2 Estâmina): 65% de desviar. Não reagir: toma 8 de dano."*
+- O prompt de reação (sim/não) mostra **o que vai acontecer nos dois casos**: *"Reagir com Esquiva ágil (−2 Stamina): 65% de desviar. Não reagir: toma 8 de dano."*
 - Defender ativo mostra o escudo 🛡 sobre a unidade durante o tick, e ao resolver, o número reduzido aparece ao lado do dano: *"8 → 3"*.
 
 ### 9.4 Depois: no log de tick
@@ -162,14 +162,14 @@ A borda **tracejada = pode ser interrompido**, **sólida = não pode**. Essa reg
 Cada fileira da barra já tem o texto do que aconteceu (GDD-018). Entradas padronizadas:
 - `Orc ataca Ana (8). Ana bloqueia (−5) → 3.`
 - `Orc ataca Ana (12). Ana estava conjurando Explosão → interrompida (12 ≥ 9). Mana gasta.`
-- `Ana reage: Golpe reativo (−2 Estâmina) → 6 de dano no Orc.`
+- `Ana reage: Golpe reativo (−2 Stamina) → 6 de dano no Orc.`
 - `Ana pula (Salto) por cima do Orc. Sem ataque de oportunidade.`
 
 ### 9.5 Tela de ajuda rápida
 
 Um botão **"?"** na barra de ticks abre um painel de uma página com as três regras, cada uma com o ícone e uma frase:
 1. **Defender** reduz dano (Bloquear: flat por VIT + arma) ou desvia (Esquivar: % por AGI).
-2. **Reações** custam Estâmina e respondem a uma ameaça ⚠ no tick em que ela chega.
+2. **Reações** custam Stamina e respondem a uma ameaça ⚠ no tick em que ela chega.
 3. **Interrupção**: conjuração Elemental (borda tracejada) é cancelada se o conjurador tomar ≥ 25% do HP antes de terminar. Magia Física (borda sólida) nunca é interrompida.
 
 O mesmo painel é a base do tutorial (GDD-018 §4).

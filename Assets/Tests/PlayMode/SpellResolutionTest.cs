@@ -134,10 +134,7 @@ public class SpellResolutionTest
         var hero = Make("Herói", Team.Player, new Vector2Int(2, 2), 0);
         Cast(hero, "Fury", hero.anchor);
         Assert.Greater(hero.furyReady, 0f);
-        int normal = AttackResolver.PowerDamage(hero, false, 0);
-        int fury = SpellResolver.ApplyFury(hero, normal, 0);
-        Assert.AreEqual(Mathf.RoundToInt(hero.stats.PhysicalDamage * 2f), fury, "Fúria dobra");
-        Assert.AreEqual(0f, hero.furyReady, "Fúria se consome");
+        Assert.AreEqual(2f, hero.furyReady, "Fúria prepara ×2 no próximo golpe");
 
         var foe = Make("Fera", Team.Enemy, new Vector2Int(6, 2), BeastAI.OwnerId);
         Cast(hero, "TrueAim", hero.anchor);

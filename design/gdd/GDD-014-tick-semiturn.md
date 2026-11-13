@@ -53,16 +53,16 @@ Bob : [andar][andar][andar][ atacar ][...]
 ## 4. Recursos (ponte com GDD-013) **[PROPOSTA]**
 
 - **PA (pontos de ação)** deixam de existir. O limite passa a ser **tempo**.
-- **Estâmina** (corpo) é gasto em ações físicas pesadas (golpe poderoso, reações) e regenera devagar por tick.
+- **Stamina** (corpo) é gasto em ações físicas pesadas (golpe poderoso, reações) e regenera devagar por tick.
 - **Mana** (mente) fica reservada para a magia nova. A Concentrar continua regenerando Mana.
-- Nesta etapa, a Estâmina entra só como custo de **reação** e de **golpe poderoso**. O balanceamento fino vem depois.
+- Nesta etapa, a Stamina entra só como custo de **reação** e de **golpe poderoso**. O balanceamento fino vem depois.
 
 ## 5. Reação rápida sim/não **[CANON + PROPOSTA]**
 
 - Quando um ataque vai acertar uma unidade, o **dono do defensor** recebe um prompt **"Reagir? [Sim] [Não]"**.
 - **[PROPOSTA]** O prompt dura **3s**. Se o tempo acabar, a resposta é Não.
 - **[PROPOSTA]** O tipo de reação (esquiva ou bloqueio) é escolhido **antes**, na ficha da unidade ou no ponto de decisão. Na hora o jogador só confirma, sem menu.
-- **[PROPOSTA]** Reagir custa Estâmina e **adiciona 1 tick** à fila do defensor.
+- **[PROPOSTA]** Reagir custa Stamina e **adiciona 1 tick** à fila do defensor.
 - Se houver várias reações no mesmo tick, elas são pedidas **em paralelo**, cada jogador responde as suas.
 
 ## 6. Multiplayer (lockstep) **[PROPOSTA]**
@@ -91,6 +91,6 @@ Bob : [andar][andar][andar][ atacar ][...]
 - **PA → ticks.** `remainingAP` passou a significar ticks livres e é recalculado a partir do plano (`Unit.RecomputeTickBudget`).
 - **Fila comprometida:** `Unit.queue` (`QueuedAction`) guarda destino e ataque por valor, então a fila carrega de um ponto de decisão para o outro. Unidades ocupadas não recebem `ResetPlan`, e o `PlanWire.ApplyToUnit` as ignora.
 - **"Round" do código = ponto de decisão.** Status, efeitos de tile e reações renovam a cada `ticksPerRound` (4) ticks globais.
-- **Reação:** a defesa é a postura por atributo (AGI ≥ VIT → Esquiva, senão Bloqueio). A escolha manual da postura fica para depois. O custo continua em **PAB** (Estâmina ainda não existe) e soma `reactionTickCost` à fila.
+- **Reação:** a defesa é a postura por atributo (AGI ≥ VIT → Esquiva, senão Bloqueio). A escolha manual da postura fica para depois. O custo continua em **PAB** (Stamina ainda não existe) e soma `reactionTickCost` à fila.
 - **Linha do tempo:** por enquanto é uma linha no log a cada ponto de decisão. A barra visual no HUD fica pendente.
 - **Ritmo:** pausas reduzidas no `GameTuning.asset`. As animações de ataque do mesmo tick tocam juntas, e o dano resolve em ordem de iniciativa, com desempate por `unitId`.

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace PangeaSkirmish
@@ -25,8 +26,10 @@ namespace PangeaSkirmish
         public float weaponBase = 2f;
         public float dmgPerSTR  = 1f;
         public float dmgPerINT  = 1f;
-        [Tooltip("Armas à distância (que não escalam com STR): dano += DEX × este valor × (ticks da arma ÷ 2). Arma pesada bate mais por disparo.")]
+        [Tooltip("Legado (antes do dano por tile). O dano agora é dano por tile × (1 + atributo × dmgPctPerAttr).")]
         public float dmgPerDEXRanged = 3f;
+        [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) ou DEX (distância) aumenta o dano por tile nesta fração.")]
+        public float dmgPctPerAttr = 0.06f;
 
         [Header("Iniciativa")]
         public float iniPerAGI = 1f;
@@ -108,9 +111,22 @@ namespace PangeaSkirmish
 
         public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT);
         public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS);
-        public int PhysicalDamage => Mathf.RoundToInt((WeaponDamage >= 0 ? WeaponDamage : F.weaponBase)
-            + (strScalesDamage ? STR * F.dmgPerSTR * WeightFactor : 0)
-            + (dexScalesDamage ? DEX * F.dmgPerDEXRanged * WeightFactor : 0));
+        /// <summary>
+        /// GDD-020: dano de CADA tile que o golpe pega no alvo. Dano da arma × (1 + atributo × %):
+        /// STR para corpo a corpo, DEX para distância. A porcentagem não favorece armas largas nem estreitas.
+        /// </summary>
+        public float DamagePerTile
+        {
+            get
+            {
+                float attr = strScalesDamage ? STR : dexScalesDamage ? DEX : 0f;
+                return (WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) * (1f + Mathf.Max(0f, attr) * F.dmgPctPerAttr);
+            }
+        }
+        /// <summary>Tiles que a forma da arma pega num alvo 3×3 quando centralizada nele (clique na unidade).</summary>
+        public int ShapeTiles = 1;
+        /// <summary>Dano de um golpe centralizado num alvo 3×3 (antes de defesa): dano por tile × tiles da forma.</summary>
+        public int PhysicalDamage => Mathf.RoundToInt(DamagePerTile * Mathf.Max(1, ShapeTiles));
 
         /// <summary>Peso da arma: o atributo conta × (ticks ÷ 2). Arma de 1 tick bate metade por golpe, a de 3 bate 1,5×.</summary>
         public float WeightFactor => Mathf.Max(1, AttackTicks) / 2f;
@@ -131,7 +147,7 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
-        /// Ticks entre cada ponto de Estâmina regenerado. A AGI acima de agiRegenFrom acelera:
+        /// Ticks entre cada ponto de Stamina regenerado. A AGI acima de agiRegenFrom acelera:
         /// a andada já está no teto, então o excedente vira fôlego (GDD-016 §13).
         /// </summary>
         public int StaminaRegenTicks
@@ -147,7 +163,7 @@ namespace PangeaSkirmish
         /// <summary>Ticks base do ataque, pelo peso da arma equipada (GDD-016 §2.1).</summary>
         public int AttackTicks = 2;
 
-        /// <summary>Estâmina máxima: reserva do Corpo (GDD-016 §3). STR, VIT e DEX contam; a AGI acelera a regeneração.</summary>
+        /// <summary>Stamina máxima: reserva do Corpo (GDD-016 §3). STR, VIT e DEX contam; a AGI acelera a regeneração.</summary>
         public int MaxStamina
         {
             get
@@ -236,8 +252,15 @@ namespace PangeaSkirmish
     {
         public string id;          // = prefixo do sprite, ex "Hatchet" → HatchetattackNE_0
         public string displayName; // ex "Machado"
-        public int    damage = 3;  // dano base da arma
+        [Tooltip("GDD-020: dano POR TILE que a forma pega no alvo.")]
+        public int    damage = 3;
         public int    range  = 1;  // alcance (tiles)
+        [Tooltip("GDD-020: forma do golpe (quais tiles ele pega). Gira na direção do golpe.")]
+        public AttackShapeKind shape = AttackShapeKind.Single;
+        [Tooltip("Largura da forma (perpendicular ao golpe). Linha/1 tile: 1.")]
+        public int shapeWidth = 1;
+        [Tooltip("Comprimento da forma (na direção do golpe).")]
+        public int shapeLength = 1;
         [Tooltip("Peso da arma em ticks base do ataque: 1 leve, 2 média, 3 pesada. A DEX encurta.")]
         public int    attackTicks = 2;
         [Tooltip("Dureza: quanto dano FIXO o Bloquear absorve com esta arma/escudo (PF2e: Shield Block).")]
@@ -262,6 +285,7 @@ namespace PangeaSkirmish
             if (w != null)
             {
                 stats.WeaponDamage = w.damage;
+                stats.ShapeTiles = AttackShape.CenteredTiles(w);
                 stats.AttackTicks = Mathf.Max(1, w.attackTicks);
                 stats.AttackRange = baseRange + w.range;
                 stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
@@ -270,6 +294,7 @@ namespace PangeaSkirmish
             else
             {
                 stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
+                stats.ShapeTiles = 1;
                 stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
                 stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
                 stats.strScalesDamage = true;
@@ -280,8 +305,8 @@ namespace PangeaSkirmish
 
     // ------------------------------------------------------------------ SEQUÊNCIA DE AÇÕES
 
-    /// <summary>Spell fica por último para manter os casts inteiros do PlanWire (0..3) estáveis.</summary>
-    public enum ActionType { Move, Attack, Concentrate, Wait, Spell }
+    /// <summary>Novos tipos entram no FIM para manter os inteiros do PlanWire estáveis (Spell=4, Breathe=5).</summary>
+    public enum ActionType { Move, Attack, Concentrate, Wait, Spell, Breathe }
 
     /// <summary>Magia planejada (GDD-019): id do catálogo + alvo (unidade ou tile; alcance −1 = sem alvo).</summary>
     public struct PlannedSpell
@@ -338,6 +363,7 @@ namespace PangeaSkirmish
                 case ActionType.Move:        return T.ticksMove;
                 case ActionType.Attack:      return T.ticksUnarmed + (isBonus ? T.ticksPowerStrikeExtra : 0);
                 case ActionType.Concentrate: return T.ticksConcentrate;
+                case ActionType.Breathe:     return T.ticksConcentrate;   // Respirar: espelho do Concentrar
                 case ActionType.Spell:       return T.ticksConcentrate; // sem SpellDef: usa Duration(u, type, bonus, spell)
                 default:                     return T.ticksWait;
             }
@@ -363,7 +389,7 @@ namespace PangeaSkirmish
             return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX))));
         }
 
-        // ---- Custos em Estâmina (GDD-016 §3) ----
+        // ---- Custos em Stamina (GDD-016 §3) ----
         public static int StaminaCost(ScheduledAction a)
         {
             var T = Tuning.Get();
@@ -384,20 +410,20 @@ namespace PangeaSkirmish
             return u.plannedSpells[a.Index].Def;
         }
 
-        /// <summary>Estâmina do plano incluindo magia Física (GDD-019 §2).</summary>
+        /// <summary>Stamina do plano incluindo magia Física (GDD-019 §2).</summary>
         public static int StaminaCost(Unit u, ScheduledAction a)
         {
             int c = StaminaCost(a);
             var s = SpellOf(u, a);
-            if (s != null && s.IsPhysical) c += s.cost;
+            if (s != null) c += s.StaminaPart;
             return c;
         }
 
-        /// <summary>Mana do plano: só magia Elemental (GDD-018: sem mistura).</summary>
+        /// <summary>Mana do plano. Elemental: o custo todo; Física: o resto da metade (GDD-020 §6).</summary>
         public static int ManaCost(Unit u, ScheduledAction a)
         {
             var s = SpellOf(u, a);
-            return (s != null && !s.IsPhysical) ? s.cost : 0;
+            return s != null ? s.ManaPart : 0;
         }
     }
 
@@ -413,6 +439,184 @@ namespace PangeaSkirmish
     {
         public AttackMode    Mode;
         public Unit          TargetUnit; // Mode == Unit
-        public Vector2Int    TargetTile; // Mode == Tile
+        /// <summary>Mode == Tile (mira livre, GDD-020 §3): a CÉLULA mirada (não um anchor 3×3).</summary>
+        public Vector2Int    TargetTile;
+    }
+
+    /// <summary>Posturas (GDD-020 §8.1). Valores fixos: vão no PlanWire como int.</summary>
+    public enum Posture { Neutral, Aggressive, Defensive, Agile, Focused, Concentrated, Serene }
+
+    public static class PostureRules
+    {
+        public static readonly Posture[] All =
+            { Posture.Neutral, Posture.Aggressive, Posture.Defensive, Posture.Agile, Posture.Focused, Posture.Concentrated, Posture.Serene };
+
+        /// <summary>Atributo que a postura aumenta e o que ela diminui ("" = nenhum).</summary>
+        public static (string up, string down) Attrs(Posture p)
+        {
+            switch (p)
+            {
+                case Posture.Aggressive:   return ("STR", "VIT");
+                case Posture.Defensive:    return ("VIT", "AGI");
+                case Posture.Agile:        return ("AGI", "STR");
+                case Posture.Focused:      return ("DEX", "AGI");
+                case Posture.Concentrated: return ("INT", "VIT");
+                case Posture.Serene:       return ("WIS", "STR");
+                default:                   return ("", "");
+            }
+        }
+
+        public static string Name(Posture p)
+        {
+            switch (p)
+            {
+                case Posture.Aggressive:   return "Agressiva";
+                case Posture.Defensive:    return "Defensiva";
+                case Posture.Agile:        return "Ágil";
+                case Posture.Focused:      return "Focada";
+                case Posture.Concentrated: return "Concentrada";
+                case Posture.Serene:       return "Serena";
+                default:                   return "Neutra";
+            }
+        }
+
+        public static string Glyph(Posture p)
+        {
+            switch (p)
+            {
+                case Posture.Aggressive:   return "▲";
+                case Posture.Defensive:    return "■";
+                case Posture.Agile:        return "»";
+                case Posture.Focused:      return "◎";
+                case Posture.Concentrated: return "✶";
+                case Posture.Serene:       return "≈";
+                default:                   return "○";
+            }
+        }
+
+        /// <summary>Texto do efeito com os números do tuning ("+2 STR, −1 VIT").</summary>
+        public static string Effect(Posture p)
+        {
+            var (up, down) = Attrs(p);
+            if (up == "") return "sem bônus";
+            var T = Tuning.Get();
+            return $"+{T.postureBonus} {up}, −{T.posturePenalty} {down}";
+        }
+
+        /// <summary>Soma (sign=+1) ou remove (sign=−1) o efeito da postura nos atributos.</summary>
+        public static void Apply(AttributeStats s, Posture p, int sign)
+        {
+            var (up, down) = Attrs(p);
+            if (up == "") return;
+            var T = Tuning.Get();
+            Add(s, up, sign * T.postureBonus);
+            Add(s, down, -sign * T.posturePenalty);
+        }
+
+        private static void Add(AttributeStats s, string attr, float v)
+        {
+            switch (attr)
+            {
+                case "STR": s.STR += v; break;
+                case "VIT": s.VIT += v; break;
+                case "DEX": s.DEX += v; break;
+                case "AGI": s.AGI += v; break;
+                case "INT": s.INT += v; break;
+                case "WIS": s.WIS += v; break;
+            }
+        }
+    }
+
+    /// <summary>Formas de golpe (GDD-020 §1).</summary>
+    public enum AttackShapeKind { Single, Line, Arc, Square }
+
+    /// <summary>
+    /// Geometria das formas de ataque. A forma é posta sobre a célula mirada e gira na direção
+    /// do golpe (do centro de quem ataca para a mira, em 8 direções). Determinístico: só inteiros.
+    /// </summary>
+    public static class AttackShape
+    {
+        /// <summary>Direção do golpe em 8 direções (diagonal quando os dois eixos são parecidos).</summary>
+        public static Vector2Int Direction(Vector2Int fromCell, Vector2Int toCell)
+        {
+            int dx = toCell.x - fromCell.x, dy = toCell.y - fromCell.y;
+            if (dx == 0 && dy == 0) return Vector2Int.up;
+            int ax = System.Math.Abs(dx), ay = System.Math.Abs(dy);
+            // diagonal se o eixo menor tiver pelo menos metade do maior
+            int sx = System.Math.Sign(dx), sy = System.Math.Sign(dy);
+            if (ax * 2 < ay) sx = 0;
+            else if (ay * 2 < ax) sy = 0;
+            return new Vector2Int(sx, sy);
+        }
+
+        /// <summary>Células que a forma pega, mirada em <paramref name="aim"/>, golpe vindo de <paramref name="fromCell"/>.</summary>
+        public static List<Vector2Int> Cells(WeaponDef w, Vector2Int fromCell, Vector2Int aim)
+        {
+            var kind = w != null ? w.shape : AttackShapeKind.Single;
+            int width = w != null ? Mathf.Max(1, w.shapeWidth) : 1;
+            int length = w != null ? Mathf.Max(1, w.shapeLength) : 1;
+            var d = Direction(fromCell, aim);
+            var p = new Vector2Int(-d.y, d.x);                   // perpendicular
+            var cells = new List<Vector2Int>();
+            switch (kind)
+            {
+                case AttackShapeKind.Single:
+                    cells.Add(aim);
+                    break;
+                case AttackShapeKind.Line:
+                    // centrada na mira ao longo do golpe: linha 3 = atrás, mira, à frente
+                    for (int i = 0; i < length; i++) cells.Add(aim + d * (i - (length - 1) / 2));
+                    break;
+                case AttackShapeKind.Arc:
+                    // fileiras perpendiculares ao golpe; a primeira na mira, as outras para trás (lado de quem ataca)
+                    for (int row = 0; row < length; row++)
+                        for (int k = 0; k < width; k++)
+                            cells.Add(aim - d * row + p * (k - (width - 1) / 2));
+                    break;
+                case AttackShapeKind.Square:
+                    for (int x = 0; x < width; x++)
+                        for (int y = 0; y < length; y++)
+                            cells.Add(aim + new Vector2Int(x - (width - 1) / 2, y - (length - 1) / 2));
+                    break;
+            }
+            // sem repetidas (diagonais podem coincidir)
+            var unique = new List<Vector2Int>();
+            foreach (var c in cells) if (!unique.Contains(c)) unique.Add(c);
+            return unique;
+        }
+
+        /// <summary>Tiles de um footprint dentro das células.</summary>
+        public static int TilesOn(List<Vector2Int> cells, Vector2Int anchor, int fp)
+        {
+            int n = 0;
+            foreach (var c in cells)
+                if (c.x >= anchor.x && c.x < anchor.x + fp && c.y >= anchor.y && c.y < anchor.y + fp) n++;
+            return n;
+        }
+
+        /// <summary>Tiles que a forma pega num alvo 3×3 quando centralizada nele (golpe vindo de baixo).</summary>
+        public static int CenteredTiles(WeaponDef w)
+        {
+            int fp = AttributeStats.DefaultFootprint;
+            var anchor = new Vector2Int(10, 10);
+            var center = anchor + new Vector2Int(fp / 2, fp / 2);
+            return Mathf.Max(1, TilesOn(Cells(w, center + new Vector2Int(0, -6), center), anchor, fp));
+        }
+
+        /// <summary>Centro (célula) de um footprint.</summary>
+        public static Vector2Int Center(Vector2Int anchor, int fp) => anchor + new Vector2Int(fp / 2, fp / 2);
+
+        /// <summary>Texto curto da forma para a UI ("arco 3×1", "linha 3", "1 tile").</summary>
+        public static string Describe(WeaponDef w)
+        {
+            if (w == null) return "1 tile";
+            switch (w.shape)
+            {
+                case AttackShapeKind.Line:   return $"linha {Mathf.Max(1, w.shapeLength)}";
+                case AttackShapeKind.Arc:    return w.shapeLength > 1 ? $"varredura {w.shapeWidth}×{w.shapeLength}" : $"arco {w.shapeWidth}×1";
+                case AttackShapeKind.Square: return $"quadrado {w.shapeWidth}×{w.shapeLength}";
+                default:                     return "1 tile";
+            }
+        }
     }
 }

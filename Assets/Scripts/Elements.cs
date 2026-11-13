@@ -4,7 +4,7 @@ namespace PangeaSkirmish
 {
     /// <summary>
     /// Os seis elementos de Pangea (ver design/gdd/GDD-013-magic-lore.md).
-    /// Físico é conjurado pelo Corpo (Estâmina: STR, VIT, AGI, DEX); os demais pela Mente (Mana: INT, WIS).
+    /// Físico é conjurado pelo Corpo (Stamina: STR, VIT, AGI, DEX); os demais pela Mente (Mana: INT, WIS).
     /// O sistema de conjuração foi removido para ser refeito a partir da lore.
     /// </summary>
     public enum SpellElement { None, Physical, Magic, Fire, Water, Air, Earth }

@@ -98,7 +98,7 @@ public class PlayerProfileTests
         var T = RuntimeTuning.Active;
         var low  = new UnitStatBlock { STR = 4, VIT = 4, DEX = 2, AGI = 4 }.ToAttributeStats();
         var high = new UnitStatBlock { STR = 4, VIT = 4, DEX = 10, AGI = 4 }.ToAttributeStats();
-        Assert.Greater(high.MaxStamina, low.MaxStamina, "DEX é atributo do Corpo: aumenta a Estâmina");
+        Assert.Greater(high.MaxStamina, low.MaxStamina, "DEX é atributo do Corpo: aumenta a Stamina");
         Assert.AreEqual(Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + 18 * T.staminaPerBodyPoint)), high.MaxStamina);
     }
 }

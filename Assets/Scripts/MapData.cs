@@ -146,12 +146,12 @@ namespace PangeaSkirmish
     {
         // Fallback hardcoded das 6 armas, caso GameTuning não carregue.
         private static readonly WeaponDef[] _fallback = {
-            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=4, range=1, attackTicks=1, blockHardness=2 },
-            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=7, range=1, attackTicks=3, blockHardness=2 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=3, range=1, attackTicks=2, blockHardness=3 },
-            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=5, range=1, attackTicks=2, blockHardness=3 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=2, range=2, attackTicks=2, blockHardness=2 },
-            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=3, range=2, attackTicks=2, blockHardness=2 },
+            new WeaponDef{ id="Hatchet",     displayName="Machado",        damage=3, range=1, attackTicks=1, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=2 },
+            new WeaponDef{ id="IronAxe",     displayName="Machado de Ferro",damage=5, range=2, attackTicks=3, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=2, blockHardness=2 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira",damage=8, range=3, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=2, blockHardness=3 },
+            new WeaponDef{ id="IronSword",   displayName="Espada de Ferro", damage=6, range=4, attackTicks=2, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=3 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado",          damage=6, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2 },
+            new WeaponDef{ id="Scepter",     displayName="Cetro",           damage=5, range=6, attackTicks=2, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=2 },
         };
 
         public static WeaponDef[] All()

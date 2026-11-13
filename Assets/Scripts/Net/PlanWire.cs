@@ -53,6 +53,8 @@ namespace PangeaSkirmish
         public bool   hasPlannedBonus;
         public int    concentrations;
         public int    reservedMana;
+        public int    posture;            // GDD-020 §8.1 (Posture)
+        public int    defaultReaction;    // reação usada se o menu esgotar (ReactionKind)
 
         /// <summary>Caminho planejado (posições X serializado em paralelo a pathY).</summary>
         public List<int> pathX = new List<int>();
@@ -78,6 +80,8 @@ namespace PangeaSkirmish
                 hasPlannedBonus      = u.hasPlannedBonus,
                 concentrations       = u.plannedConcentrations,
                 reservedMana         = u.reservedMana,
+                posture              = (int)u.plannedPosture,
+                defaultReaction      = (int)u.defaultReaction,
             };
 
             foreach (var p in u.plannedPath)
@@ -138,6 +142,8 @@ namespace PangeaSkirmish
             u.hasPlannedBonus      = w.hasPlannedBonus;
             u.plannedConcentrations = w.concentrations;
             u.reservedMana         = w.reservedMana;
+            u.plannedPosture       = (Posture)w.posture;
+            u.defaultReaction      = (ReactionKind)w.defaultReaction;
 
             u.plannedPath.Clear();
             int n = Mathf.Min(w.pathX.Count, w.pathY.Count);
