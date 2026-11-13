@@ -933,12 +933,13 @@ namespace PangeaSkirmish
                 string tgt = q.Attack.TargetUnit != null ? $" em {q.Attack.TargetUnit.unitName}" : "";
                 var opts = new List<(string, System.Action)>();
                 bool canP = mine.CanIncrementNext(0), canA = mine.CanIncrementNext(1);
-                if (canP) opts.Add(($"Golpe poderoso: ~{now} → <b>~{Dmg(true, q.IsAimed)}</b> de dano  <color=#9fb3d9>(−{Unit.IncrementCost(0)} Stamina, +1 tick)</color>", () => Submit(0)));
-                if (canA) opts.Add(($"Mirar: ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano e mais acerto  <color=#9fb3d9>(−{Unit.IncrementCost(1)} Stamina)</color>", () => Submit(1)));
+                string Cost(int st, bool tick) => $"<size=12><color=#9fb3d9>{st} Stamina{(tick ? " · +1 tick" : "")}</color></size>";
+                if (canP) opts.Add(($"<b>Golpe poderoso</b>   ~{now} → <b>~{Dmg(true, q.IsAimed)}</b> de dano\n{Cost(Unit.IncrementCost(0), true)}", () => Submit(0)));
+                if (canA) opts.Add(($"<b>Mirar</b>   ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano, mais acerto\n{Cost(Unit.IncrementCost(1), false)}", () => Submit(1)));
                 if (canP && canA && mine.currentStamina >= Unit.IncrementCost(0) + Unit.IncrementCost(1))
-                    opts.Add(($"Os dois: ~{now} → <b>~{Dmg(true, true)}</b> de dano  <color=#9fb3d9>(−{Unit.IncrementCost(0) + Unit.IncrementCost(1)} Stamina, +1 tick)</color>", () => Submit(0, 1)));
+                    opts.Add(($"<b>Os dois</b>   ~{now} → <b>~{Dmg(true, true)}</b> de dano\n{Cost(Unit.IncrementCost(0) + Unit.IncrementCost(1), true)}", () => Submit(0, 1)));
                 opts.Add(("Não incrementar", () => Submit()));
-                _hud.ShowChoice($"◆ {mine.unitName} vai atacar{tgt}: ~{now} de dano. Incrementar? <size=11><color=#9fb3d9>(Stamina {mine.currentStamina})</color></size>", opts.ToArray());
+                _hud.ShowChoiceTitled("INCREMENTAR", $"{mine.unitName} vai atacar{tgt}: ~{now} de dano.\n<size=12><color=#9fb3d9>Stamina {mine.currentStamina}</color></size>", opts.ToArray());
             }
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue

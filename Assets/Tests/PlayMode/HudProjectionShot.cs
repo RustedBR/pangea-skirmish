@@ -131,6 +131,14 @@ public class HudProjectionShot
         yield return Shot("hud-reaction.png");
         hud.HideReactionMenu();
 
+        // Janela de incremento (mesmo lugar da reação), com o dano de agora → depois.
+        hud.ShowChoiceTitled("INCREMENTAR", "Escudeiro vai atacar em Fera 1: ~26 de dano.\n<size=12><color=#9fb3d9>Stamina 5</color></size>",
+            ("<b>Golpe poderoso</b>   ~26 → <b>~39</b> de dano\n<size=12><color=#9fb3d9>2 Stamina · +1 tick</color></size>", null),
+            ("<b>Mirar</b>   ~26 → <b>~31</b> de dano, mais acerto\n<size=12><color=#9fb3d9>1 Stamina</color></size>", null),
+            ("Não incrementar", null));
+        yield return Shot("hud-increment.png");
+        hud.HideReactionMenu();
+
         // Catálogo de magias com a descrição de números reais.
         hud.ToggleSpellMenu();
         for (int i = 0; i < 2; i++) yield return null;

@@ -1710,6 +1710,7 @@ namespace PangeaSkirmish
         private System.Action<ReactionKind> _reactionPick;
         public void ShowReactionMenu(Unit reactor, List<ReactionKind> options, float timer, System.Action<ReactionKind> onPick)
         {
+            var ttl = _reactionMenu?.Q<Label>("reaction-title"); if (ttl != null) ttl.text = "REAGIR";
             _reactionPick = onPick;
             if (_actionTip != null) _actionTip.style.display = DisplayStyle.None;
             if (_reactionText != null)
@@ -1746,9 +1747,13 @@ namespace PangeaSkirmish
             else if (_bonusTimerText != null)
                 _bonusTimerText.text = sec > 0f ? sec.ToString("0.0") + "s" : "";
         }
-        public void ShowChoice(string text, params (string label, System.Action onPick)[] options)
+        public void ShowChoice(string text, params (string label, System.Action onPick)[] options) => ShowChoiceTitled("ESCOLHA", text, options);
+
+        /// <summary>Janela de escolha no canto inferior esquerdo, com título próprio (ex.: INCREMENTAR).</summary>
+        public void ShowChoiceTitled(string title, string text, params (string label, System.Action onPick)[] options)
         {
             _reactionPick = null;
+            var ttl = _reactionMenu?.Q<Label>("reaction-title"); if (ttl != null) ttl.text = title;
             if (_reactionText != null) _reactionText.text = text;
             if (_reactionTimer != null) _reactionTimer.text = "";
             if (_reactionButtons != null)
@@ -1760,6 +1765,7 @@ namespace PangeaSkirmish
                     var act = onPick;
                     var btn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIConfirm); act?.Invoke(); }) { text = label };
                     btn.AddToClassList("pg-button");
+                    btn.AddToClassList("bh-reaction-btn");
                     _reactionButtons.Add(btn);
                 }
             }
