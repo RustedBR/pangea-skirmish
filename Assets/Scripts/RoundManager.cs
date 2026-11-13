@@ -837,6 +837,34 @@ namespace PangeaSkirmish
             _hud.SetPhase($"Camada {Layer} vencida");
             _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
 
+            // Cartas (GDD-021 §7): primeiro cada um escolhe 1 de 3; depois a decisão de descer.
+            Unit mine = null;
+            foreach (var u in _units) if (!BeastAI.Controls(u) && IsLocalUnit(u)) { mine = u; break; }
+            if (mine != null && PlacementSync.Instance != null)
+            {
+                int layer = Layer; uint id = UnitRegistry.GetId(mine);
+                var cards = Equipment.DrawCards(layer, id, mine);
+                var opts = new List<(string, System.Action)>();
+                for (int i = 0; i < cards.Count; i++)
+                {
+                    int idx = i;
+                    opts.Add((Equipment.CardText(cards[i]), () => { PlacementSync.Instance.PickCardServerRpc(layer, id, idx); ShowDescentChoice(); }));
+                }
+                _hud.ShowChoiceTitled("RECOMPENSA", $"Camada {Layer} vencida! {mine.unitName}, escolha 1:", opts.ToArray());
+                return;
+            }
+            ShowDescentChoice();
+        }
+
+        /// <summary>Uma carta foi aplicada (aqui ou em outra máquina): avisa no histórico e atualiza a ficha.</summary>
+        public void OnCardApplied(Unit u, string what)
+        {
+            _hud.LogAction($"<color=#ffd76a>★</color> {u.unitName} pegou <b>{what}</b>", u);
+            _hud.RefreshUnitInfo();
+        }
+
+        private void ShowDescentChoice()
+        {
             string text = $"Camada {Layer} vencida — descer para a camada {Layer + 1}?";
             if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null)
                 _hud.ShowChoice(text,
@@ -1524,7 +1552,9 @@ namespace PangeaSkirmish
             yield return u.MoveToDestination(best);
         }
 
-        public static int DodgeMoveTiles(Unit u) => 1 + Mathf.FloorToInt(u.stats.AGI / Mathf.Max(1f, Tuning.Get().dodgeAgiPerMoveTile));
+        public static int DodgeMoveTiles(Unit u) =>
+            Mathf.Max(1, 1 + Mathf.FloorToInt(u.stats.AGI / Mathf.Max(1f, Tuning.Get().dodgeAgiPerMoveTile))
+                         - u.stats.OverWeight + (Equipment.HasEffect(u, ItemEffect.LightFeet) ? 1 : 0));
 
         private ReactionKind _lastApplied;
         private bool _reactionApplied;
@@ -1707,7 +1737,9 @@ namespace PangeaSkirmish
         public static int BlockAmount(Unit u)
         {
             var w = WeaponCatalog.Get(u.weaponId);
-            return Mathf.Max(1, Mathf.RoundToInt(u.stats.VIT * Tuning.Get().blockFlatPerVIT) + (w != null ? w.blockHardness : 0));
+            var shield = ItemCatalog.Get(u.offhandId);
+            int hard = (w != null ? w.blockHardness : 0) + (shield != null && shield.isShield ? shield.shieldHardness : 0);   // GDD-021 §2.3
+            return Mathf.Max(1, Mathf.RoundToInt(u.stats.VIT * Tuning.Get().blockFlatPerVIT) + hard);
         }
 
         /// <summary>

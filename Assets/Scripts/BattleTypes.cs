@@ -105,6 +105,8 @@ namespace PangeaSkirmish
         private static StatFormulas F => Formulas ?? (Formulas = new StatFormulas());
 
         public int WeaponDamage = -1;
+        // Equipamento (GDD-021): defesa das armaduras e peso acima do limite (preenchidos por Equipment.ApplyTo).
+        public int ArmorPhys, ArmorMag, OverWeight;
         public int AttackRange = 1;
         public bool strScalesDamage = true; // false para armas ranged com range > strDamageMaxRange
         /// <summary>Arma à distância: o dano escala com a DEX (antes não escalava com nada: o Arco Longo batia 1).</summary>
@@ -143,7 +145,8 @@ namespace PangeaSkirmish
             {
                 var T = Tuning.Get();
                 int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
-                return Mathf.Clamp(tiles, 1, Mathf.Max(1, T.maxTilesPerMove));
+                tiles = Mathf.Min(tiles, Mathf.Max(1, T.maxTilesPerMove)) - OverWeight;   // peso acima do limite (GDD-021 §4)
+                return Mathf.Max(1, tiles);
             }
         }
 
@@ -198,12 +201,12 @@ namespace PangeaSkirmish
         public int ManaRegen => Mathf.RoundToInt(F.manaRegenBase + WIS * F.manaRegenPerWIS);
 
         public float HitChance => Mathf.Clamp01(F.baseHitChance + DEX * F.hitPerDEX);
-        public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI);
+        public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI - OverWeight * 0.04f);
         public float CritChance => Mathf.Clamp01(DEX * F.critPerDEX);
-        public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT);
+        public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT) + ArmorPhys;
         /// <summary>Redução percentual do dano físico pela VIT (0..armorPctMax).</summary>
         public float PhysicalReduction => Mathf.Clamp(VIT * F.armorPctPerVIT, 0f, F.armorPctMax);
-        public int MagicDefense => F.magicResistBase + Mathf.RoundToInt(WIS * F.magicResistPerWIS);
+        public int MagicDefense => F.magicResistBase + Mathf.RoundToInt(WIS * F.magicResistPerWIS) + ArmorMag;
 
         public HitResult RollHit(float attackerHitChance, float targetDodgeChance)
         {

@@ -29,12 +29,37 @@
                         </ui:VisualElement>
 
                         <ui:VisualElement class="cc-row">
-                            <ui:Label text="Arma:" class="pg-label--dim cc-row-label" />
+                            <ui:Label text="Mão dir.:" class="pg-label--dim cc-row-label" />
                             <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
                             <ui:Label name="weapon-label" text="Machado" class="cc-value cc-value--wide" />
                             <ui:Button name="weapon-next" text="&gt;" class="pg-button cc-step" />
                         </ui:VisualElement>
                         <ui:Label name="weapon-info" text="" class="cc-weapon-info" />
+                        <ui:VisualElement class="cc-row" name="eq-row-left">
+                            <ui:Label text="Mão esq.:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="eq-prev-left" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="eq-label-left" text="—" class="cc-value cc-value--wide" />
+                            <ui:Button name="eq-next-left" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="cc-row" name="eq-row-head">
+                            <ui:Label text="Cabeça:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="eq-prev-head" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="eq-label-head" text="—" class="cc-value cc-value--wide" />
+                            <ui:Button name="eq-next-head" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="cc-row" name="eq-row-torso">
+                            <ui:Label text="Torso:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="eq-prev-torso" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="eq-label-torso" text="—" class="cc-value cc-value--wide" />
+                            <ui:Button name="eq-next-torso" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+                        <ui:VisualElement class="cc-row" name="eq-row-legs">
+                            <ui:Label text="Pernas:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="eq-prev-legs" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="eq-label-legs" text="—" class="cc-value cc-value--wide" />
+                            <ui:Button name="eq-next-legs" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+                        <ui:Label name="eq-weight" text="" class="cc-weapon-info" />
 
                         <ui:VisualElement name="attrs" class="cc-attrs">
                             <ui:VisualElement class="cc-attr-row" name="attr-row-0">

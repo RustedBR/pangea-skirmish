@@ -71,6 +71,7 @@ namespace PangeaSkirmish
             }
             if (_data.characters == null) _data.characters = new List<CharacterPreset>();
             _data.characters.RemoveAll(c => c == null || c.stats == null);
+            foreach (var c in _data.characters) Equipment.EnsureKit(c);   // GDD-021: personagens antigos ganham o kit da arma
             Debug.Log($"[Perfil] carregado: nome='{_data.playerName}', {_data.characters.Count} personagem(ns), em uso={_data.selected}");
         }
 

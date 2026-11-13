@@ -17,7 +17,18 @@ namespace PangeaSkirmish
         public string modelId = "";
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
-        public string weaponId = ""; // id da arma equipada (setado antes de Init)
+        public string weaponId = ""; // id da arma equipada (setado antes de Init) — mão direita
+        // Equipamento (GDD-021): mão esquerda, cabeça, torso, pernas.
+        public string offhandId = "", headId = "", torsoId = "", legsId = "";
+        private readonly int[] _itemAttrBonus = new int[6];
+
+        /// <summary>Reaplica o equipamento (troca de item na descida do Coop) sem acumular bônus.</summary>
+        public void ReapplyEquipment()
+        {
+            var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+            Equipment.ApplyTo(stats, Equipment.Of(this), tuning, _itemAttrBonus);
+            currentHP = Mathf.Min(currentHP, stats.MaxHP); currentMana = Mathf.Min(currentMana, stats.MaxMana);
+        }
 
         // ---- Campos de identidade MP (Fase 5 — preenchidos no SpawnUnitClientRpc) ----
         // Não usados pela lógica SP. Fase 6 substituirá IsHostileTo usando estes campos.
@@ -475,6 +486,7 @@ namespace PangeaSkirmish
             BuildVisual(resourcePath);
             _model = UnitModel3D.Attach(this, _sr, _footprint, teamColor, resourcePath, _spriteH,
                                         WeaponCatalog.Get(weaponId));
+            if (_model != null) _model.EquipOffhand(offhandId);   // GDD-021: escudo ou 2ª arma na mão esquerda
             RefreshFacing();
             SnapToAnchor();
             StartIdleAnim();
@@ -978,7 +990,7 @@ namespace PangeaSkirmish
             // Dano, peso, alcance e atributo que escala: regra única em WeaponDef.ApplyTo
             // (a criação de personagem mostra os mesmos números).
             var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
-            WeaponDef.ApplyTo(stats, w, tuning);
+            Equipment.ApplyTo(stats, Equipment.Of(this), tuning, _itemAttrBonus);   // GDD-021: mãos, armadura, peso
 
             // Criar overlay apenas se houver arma E o overlay estiver ligado no GameTuning.
             // Os sprites TinyTactics JÁ trazem a arma desenhada e animada nos frames de corpo;

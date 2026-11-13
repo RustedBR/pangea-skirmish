@@ -304,6 +304,13 @@ namespace PangeaSkirmish
         public void HostDescend(int layer)
         {
             if (!IsServer) return;
+            // Cartas (GDD-021 §7): quem não escolheu fica com a primeira, antes de preparar a camada.
+            foreach (var u in _allUnits)
+            {
+                if (u == null || BeastAI.Controls(u)) continue;
+                uint id = UnitRegistry.GetId(u);
+                if (_cardPicked.Add((layer - 1, id))) ApplyCardClientRpc(layer - 1, id, 0);
+            }
             PrepareLayerClientRpc(layer);
 
             // Ocupação calculada no servidor a partir dos pontos de partida (não depende da
@@ -318,6 +325,32 @@ namespace PangeaSkirmish
             }
             SpawnBeastsForCoop(players, layer);
             StartLayerClientRpc(layer);
+        }
+
+        // ── Cartas da descida (GDD-021 §7): cada jogador escolhe 1 de 3; o host repassa para todos ──
+        private readonly HashSet<(int layer, uint unit)> _cardPicked = new HashSet<(int, uint)>();
+
+        [ServerRpc(RequireOwnership = false)]
+        public void PickCardServerRpc(int layer, uint unitId, int index, ServerRpcParams rpc = default)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || u.ownerId != rpc.Receive.SenderClientId || index < 0 || index > 2) return;
+            if (!_cardPicked.Add((layer, unitId))) return;   // já escolheu (ou o host já deu a primeira)
+            ApplyCardClientRpc(layer, unitId, index);
+        }
+
+        [ClientRpc]
+        private void ApplyCardClientRpc(int layer, uint unitId, int index)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null) return;
+            var cards = Equipment.DrawCards(layer, unitId, u);   // mesmo sorteio em toda máquina
+            if (index < 0 || index >= cards.Count) return;
+            Equipment.ApplyCard(u, cards[index]);
+            var c = cards[index];
+            string what = c.IsAttr ? $"+{c.points} {c.attr}" : c.item.displayName;
+            Debug.Log($"[Coop] {u.unitName} pegou a carta {index + 1}: {what}");
+            if (_round != null) _round.OnCardApplied(u, what);
         }
 
         /// <summary>Host: o grupo decidiu recuar com o que conquistou.</summary>
@@ -452,6 +485,10 @@ namespace PangeaSkirmish
             unit.teamId   = team;
             unit.isPlayerCharacter = (ownerId == LocalId);
             unit.weaponId = !string.IsNullOrEmpty(preset.weaponId) ? preset.weaponId : "Hatchet";
+            if (!BeastAI.Controls(unit)) Equipment.EnsureKit(preset);   // feras não usam equipamento (GDD-021 §10)
+            unit.offhandId = preset.offhandId ?? ""; unit.headId = preset.headId ?? "";
+            unit.torsoId = preset.torsoId ?? ""; unit.legsId = preset.legsId ?? "";
+            if (Equipment.IsTwoHanded(unit.weaponId)) unit.offhandId = "";
             if (BeastAI.Controls(unit)) unit.definitionId = "monster"; // usa o modelo 3D da fera
             unit.modelId  = preset.modelId ?? "";                        // aparência escolhida na criação
             unit.stats    = (preset.stats ?? new UnitStatBlock()).ToAttributeStats();

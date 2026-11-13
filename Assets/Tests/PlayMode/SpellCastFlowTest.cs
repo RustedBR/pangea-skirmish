@@ -208,7 +208,7 @@ public class SpellCastFlowTest
         Assert.Greater(longBow.stats.PhysicalDamage, shortBow.stats.PhysicalDamage, "arma pesada bate mais por disparo");
         float shortPerTick = shortBow.stats.PhysicalDamage / (float)TickRules.Duration(shortBow, ActionType.Attack, false);
         float swordPerTick = swordDmg / (float)TickRules.Duration(sword, ActionType.Attack, false);
-        Assert.That(shortPerTick, Is.InRange(swordPerTick * 0.5f, swordPerTick * 1.6f), $"Arco Curto {shortPerTick}/tick vs espada {swordPerTick}/tick");
+        Assert.That(shortPerTick, Is.InRange(swordPerTick * 0.5f, swordPerTick * 1.6f / Tuning.Get().oneHandDamageMult) /* espada de 1 mão bate 80% (GDD-021) */, $"Arco Curto {shortPerTick}/tick vs espada {swordPerTick}/tick");
     }
 
     [TearDown]

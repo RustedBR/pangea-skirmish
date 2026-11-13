@@ -95,7 +95,7 @@ public class DamageByTileTest
         var tank = Make("Tanque", Team.Enemy, new Vector2Int(10, 10), "Claws", vit: 4);
         int hp = tank.currentHP;
         AttackResolver.ResolveAttack(sword, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = tank }, _units);
-        Assert.AreEqual(W("IronSword") * 3 - Mathf.RoundToInt(4 * _t.statFormulas.armorPerVIT), hp - tank.currentHP, "golpe − defesa da VIT 4, uma vez");
+        Assert.AreEqual(Mathf.RoundToInt(W("IronSword") * _t.oneHandDamageMult) * 3 - Mathf.RoundToInt(4 * _t.statFormulas.armorPerVIT), hp - tank.currentHP, "golpe − defesa da VIT 4, uma vez");
     }
 
     [UnityTest]

@@ -30,6 +30,10 @@ namespace PangeaSkirmish
         public int maxQueueTicks = 4;
         [Tooltip("Contra-atacar só com arma de alcance até este valor (corpo a corpo).")]
         public int counterMaxRange = 4;
+        [Tooltip("GDD-021: arma de uma mão dá esta fração do dano por tile (as de duas mãos ficam com 100%).")]
+        public float oneHandDamageMult = 0.8f;
+        [Tooltip("GDD-021: golpe extra da segunda arma (mão esquerda), fração do dano.")]
+        public float offhandDamageMult = 0.5f;
         [Tooltip("Esquivar anda 1 + AGI / este valor tiles.")]
         public float dodgeAgiPerMoveTile = 5f;   // round = 4 ticks, planejado por inteiro (2026-11-13)
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]

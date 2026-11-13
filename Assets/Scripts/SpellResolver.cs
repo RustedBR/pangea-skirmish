@@ -198,7 +198,8 @@ namespace PangeaSkirmish
             if (s.range <= 0) return s.range;
             var T = Tuning.Get();
             var w = WeaponCatalog.Get(u.weaponId);
-            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0);
+            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0)
+                  + (Equipment.HasEffect(u, ItemEffect.Conduit) ? 1 : 0);
             return u.IsDulled ? Mathf.Max(1, r - T.dullRangePenalty) : Mathf.Max(1, r);
         }
 
@@ -384,9 +385,9 @@ namespace PangeaSkirmish
                 string extra = "";
 
                 if (!t.IsDead && s.appliesStatus == "Burning")
-                { t.burningTicks = Mathf.Max(t.burningTicks, s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
+                { t.burningTicks = Mathf.Max(t.burningTicks, Equipment.HasEffect(t, ItemEffect.FireResist) ? Mathf.Max(1, s.durationTicks / 2) : s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
                 if (!t.IsDead && s.appliesStatus == "Soaked")
-                { t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
+                { if (!Equipment.HasEffect(t, ItemEffect.Dry)) t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
                 if (!t.IsDead && s.effect == SpellEffect.CancelMove && t.queue.Count > 0 && t.queue[0].Type == ActionType.Move)
                 { t.queue.RemoveAt(0); extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
                 if (!t.IsDead && s.pushTiles > 0)

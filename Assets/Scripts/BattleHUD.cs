@@ -650,6 +650,36 @@ namespace PangeaSkirmish
             if (_inspectExpanded) combat.Add(Chip("move", $"{u.EffectiveMoveStep}", "Células por andada (AGI)."));
             _inspectBody.Add(combat);
 
+            // Equipamento (GDD-021): os 5 slots, com a borda na cor da raridade; o hover diz o que dá.
+            if (!BeastAI.Controls(u))
+            {
+                var eq = new VisualElement(); eq.AddToClassList("bh-igrid");
+                void Slot(string id, ItemSlot slot)
+                {
+                    var it = ItemCatalog.Get(id); var w = WeaponCatalog.Get(id);
+                    string icon = it != null ? it.Icon : w != null ? "dmg" : slot == ItemSlot.Head ? "helm" : slot == ItemSlot.Torso ? "chest" : slot == ItemSlot.Legs ? "boots" : "dmg";
+                    string name = it != null ? it.displayName : w != null ? w.displayName + (Equipment.IsTwoHanded(w) ? " (2 mãos)" : "") : "—";
+                    string tip = it != null ? $"<b>{it.displayName}</b> · {Equipment.RarityName(it.rarity)}\n{it.Summary()}"
+                               : w != null ? $"<b>{w.displayName}</b> · {Equipment.SlotName(slot)}" + (slot == ItemSlot.LeftHand ? $"\nGolpe extra de {Tuning.Get().offhandDamageMult * 100:0}% junto com o ataque." : "")
+                               : $"{Equipment.SlotName(slot)}: vazio";
+                    var c = Chip(icon, name, tip);
+                    var col = it != null ? Equipment.RarityColor(it.rarity) : Equipment.RarityColor(Rarity.Common);
+                    c.style.borderTopColor = c.style.borderBottomColor = c.style.borderLeftColor = c.style.borderRightColor = col;
+                    if (it == null && w == null) c.style.opacity = 0.45f;
+                    eq.Add(c);
+                }
+                Slot(u.weaponId, ItemSlot.RightHand);
+                if (!Equipment.IsTwoHanded(u.weaponId)) Slot(u.offhandId, ItemSlot.LeftHand);
+                if (_inspectExpanded)
+                {
+                    Slot(u.headId, ItemSlot.Head); Slot(u.torsoId, ItemSlot.Torso); Slot(u.legsId, ItemSlot.Legs);
+                    int wt = Equipment.TotalWeight(Equipment.Of(u)), lim = Equipment.WeightLimit(s.VIT);
+                    eq.Add(Chip("stone", wt > lim ? $"<color=#ff8a7a>{wt}/{lim}</color>" : $"{wt}/{lim}",
+                        $"Peso {wt} de {lim} (2 + VIT/2).{(wt > lim ? $" {wt - lim} acima: −{wt - lim} na andada, na esquiva e no Esquivar." : "")}"));
+                }
+                _inspectBody.Add(eq);
+            }
+
             // Ficha completa: atributos com a postura destacada.
             if (_inspectExpanded)
             {

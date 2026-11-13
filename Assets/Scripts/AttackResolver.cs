@@ -49,8 +49,9 @@ namespace PangeaSkirmish
             Last = new LastStrike { Hit = new List<Unit>(), Missed = new List<Unit>() };
             if (target == null || target.IsDead || !attacker.IsHostileTo(target)) return null;
             // O gatilho já garante o alcance (o provocador estava nele ao andar, reagir ou conjurar).
+            float mult = Tuning.Get().aooDamageMult * (Equipment.HasEffect(attacker, ItemEffect.SharpCounter) ? 1.3f : 1f);
             string log = Strike(attacker, AttackShape.Center(target.anchor, target.stats.Footprint), false, target, all,
-                                Tuning.Get().aooDamageMult, null, null);
+                                mult, null, null);
             return log != null ? "<color=#ff8800>⚔ Oportunidade</color> " + log : null;
         }
 
@@ -63,6 +64,43 @@ namespace PangeaSkirmish
 
         public static string ResolveAttack(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
                                            Unit interceptor = null, Unit protectedUnit = null)
+        {
+            string log = ResolveMainHand(attacker, attack, all, interceptor, protectedUnit);
+            var off = Equipment.OffhandWeapon(attacker.offhandId);
+            if (off == null || log == null || attacker.IsDead) return log;
+            var main = Last;
+            if (main.Hit.Count == 0 && main.Missed.Count == 0) return log;   // o golpe principal não saiu
+
+            // Segunda arma (GDD-021 §2.2): acerta junto, mais fraca, na forma dela e no mesmo ponto.
+            Vector2Int aim;
+            if (AimLock.HasValue) aim = AimLock.Value;
+            else if (attack.Mode == AttackMode.Tile) aim = attack.TargetTile;
+            else
+            {
+                var t = attack.Mode == AttackMode.Unit ? attack.TargetUnit : FindTargetInRange(attacker, all);
+                if (t == null || t.IsDead) return log;
+                aim = AttackShape.Center(t.anchor, t.stats.Footprint);
+            }
+            var T = Tuning.Get();
+            int reach = T.baseAttackRange + off.range;
+            if (GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, aim, 1) > reach) return log;
+
+            var st = attacker.stats;
+            int saveDmg = st.WeaponDamage, saveTiles = st.ShapeTiles; string saveW = attacker.weaponId;
+            attacker.weaponId = off.id;
+            st.WeaponDamage = Mathf.Max(1, Mathf.RoundToInt(off.damage * T.oneHandDamageMult));
+            st.ShapeTiles = AttackShape.CenteredTiles(off);
+            string extra = null;
+            try { extra = Strike(attacker, aim, attack.Mode == AttackMode.Tile, null, all, T.offhandDamageMult, null, null); }
+            finally { attacker.weaponId = saveW; st.WeaponDamage = saveDmg; st.ShapeTiles = saveTiles; }
+            var second = Last;
+            main.Hit.AddRange(second.Hit); main.AnyHit |= second.AnyHit;
+            Last = main;
+            return extra != null ? log + "\n<color=#9fd0ff>2ª arma</color> " + extra : log;
+        }
+
+        private static string ResolveMainHand(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
+                                              Unit interceptor, Unit protectedUnit)
         {
             Last = new LastStrike { Hit = new List<Unit>(), Missed = new List<Unit>() };
             if (AimLock.HasValue && attack.Mode != AttackMode.Tile)

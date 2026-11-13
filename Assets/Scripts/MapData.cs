@@ -70,7 +70,12 @@ namespace PangeaSkirmish
         public string presetName = "Personagem";
         public string spritePath = "";       // resourcePath do sprite escolhido (novo modelo)
         public string classId    = "";       // LEGADO — usado apenas para migração no load; não usar em código novo
-        public string weaponId   = "Hatchet";
+        public string weaponId   = "Hatchet";      // mão direita
+        // Equipamento (GDD-021). Vazio = nada no slot. Presets antigos ganham o kit da arma ao carregar.
+        public string offhandId  = "";             // mão esquerda: arma de 1 mão ou escudo
+        public string headId     = "";
+        public string torsoId    = "";
+        public string legsId     = "";
         /// <summary>Corpo 3D (CharacterLookCatalog). Vazio = automático pela arma. Presets antigos não têm e caem no automático.</summary>
         public string modelId    = "";
         public UnitStatBlock stats = new UnitStatBlock();
