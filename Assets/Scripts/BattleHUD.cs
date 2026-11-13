@@ -438,6 +438,7 @@ namespace PangeaSkirmish
             ApplyEscLevel();
         }
         private VisualElement _inspectToggleIcon;
+        private Label _inspectToggleText;
 
         /// <summary>
         /// Inspeção ao lado da unidade inspecionada (2026-11-13): de preferência à esquerda dela,
@@ -614,13 +615,18 @@ namespace PangeaSkirmish
                 _inspectToggle.AddToClassList("bh-itoggle");
                 _inspectPanel.Add(_inspectToggle);
             }
-            _inspectToggle.text = _inspectExpanded ? "menos" : "ficha";
+            // Ícone e texto como filhos lado a lado (o texto do próprio botão ficava por baixo do ícone).
+            _inspectToggle.text = "";
             if (_inspectToggleIcon == null)
             {
                 _inspectToggleIcon = new VisualElement { pickingMode = PickingMode.Ignore };
                 _inspectToggleIcon.AddToClassList("bh-itoggle-icon");
-                _inspectToggle.Insert(0, _inspectToggleIcon);
+                _inspectToggle.Add(_inspectToggleIcon);
+                _inspectToggleText = new Label { pickingMode = PickingMode.Ignore };
+                _inspectToggleText.AddToClassList("bh-itoggle-text");
+                _inspectToggle.Add(_inspectToggleText);
             }
+            _inspectToggleText.text = _inspectExpanded ? "menos" : "ficha";
             var chev = IconTex(_inspectExpanded ? "chev_up" : "chev_down");
             if (chev != null) _inspectToggleIcon.style.backgroundImage = new StyleBackground(chev);
             _inspectBody.Clear();
@@ -1727,7 +1733,7 @@ namespace PangeaSkirmish
                 {
                     var btn = new Button(() => _reactionPick?.Invoke(opt))
                     {
-                        text = options.Count == 1 ? $"Sim — {ReactionLabelFor(opt, reactor)}" : ReactionLabelFor(opt, reactor)
+                        text = ReactionLabelFor(opt, reactor)
                     };
                     btn.AddToClassList("pg-button");
                     btn.AddToClassList("bh-reaction-btn");
@@ -1787,13 +1793,14 @@ namespace PangeaSkirmish
             if (u == null) return baseText;
             var T = Tuning.Get();
             int cost = Unit.ReactionCost(k);
+            string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#9fb3d9>{effect} · {cost} Stamina</color></size>";
             switch (k)
             {
-                case ReactionKind.Dodge:         return $"{baseText} — tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(u) * 100)}% dos tiles do golpe (1 tile: chance de errar) · {cost} St";
-                case ReactionKind.Block:         return $"{baseText} — −{RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra · {cost} St";
-                case ReactionKind.CounterAttack: return $"{baseText} — golpe da arma; se acertar, interrompe · {cost} St";
-                case ReactionKind.Intercept:     return $"{baseText} — entra na frente e divide os tiles · {cost} St";
-                case ReactionKind.TrueAim:       return $"{baseText} — o tiro que ia errar acerta, +{Tuning.Get().trueAimCritBonus * 100:0}% de crítico · {cost} St";
+                case ReactionKind.Dodge:         return L($"tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(u) * 100)}% dos tiles do golpe (1 tile: chance de errar)");
+                case ReactionKind.Block:         return L($"segura {RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra");
+                case ReactionKind.CounterAttack: return L("golpe da arma; se acertar, interrompe");
+                case ReactionKind.Intercept:     return L("entra na frente e divide os tiles");
+                case ReactionKind.TrueAim:       return L($"o tiro que ia errar acerta, +{Tuning.Get().trueAimCritBonus * 100:0}% de crítico");
                 default:                         return baseText;
             }
         }

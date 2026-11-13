@@ -164,7 +164,7 @@ public class HudProjectionShot
         var toggle = root.Q<Button>("inspect-toggle");
         using (var e = NavigationSubmitEvent.GetPooled()) { e.target = toggle; toggle.SendEvent(e); }
         for (int i = 0; i < 3; i++) yield return null;
-        StringAssert.Contains("menos", toggle.text, "expandiu a ficha");
+        StringAssert.Contains("menos", toggle.Q<Label>().text, "expandiu a ficha");
         yield return Shot("hud-inspect-expanded.png");
         using (var e = NavigationSubmitEvent.GetPooled()) { e.target = toggle; toggle.SendEvent(e); }
 

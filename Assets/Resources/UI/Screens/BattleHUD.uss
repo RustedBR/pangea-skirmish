@@ -326,5 +326,6 @@
 .bh-abtn-icon { position: absolute; left: 50%; top: 6px; width: 22px; height: 22px; translate: -50% 0; -unity-background-scale-mode: scale-to-fit; }
 .bh-intent-keys { display: none; }
 .bh-itoggle { flex-direction: row; align-items: center; }
-.bh-itoggle { padding-left: 16px; }
-.bh-itoggle-icon { position: absolute; left: 4px; top: 4px; width: 9px; height: 9px; -unity-background-scale-mode: scale-to-fit; }
+.bh-itoggle { padding: 0 6px 0 4px; height: 20px; }
+.bh-itoggle-icon { width: 10px; height: 10px; margin-right: 3px; flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
+.bh-itoggle-text { font-size: 10px; color: rgb(189, 217, 255); padding: 0; margin: 0; -unity-text-align: middle-left; }
