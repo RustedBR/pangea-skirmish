@@ -195,7 +195,7 @@
 
 /* REACTION MENU — modal central (aprovado no mockup v4.1) */
 .bh-reaction {
-  position: absolute; left: 50%; top: 50%; translate: -50% -50%;
+  position: absolute; left: 12px; bottom: 40px;   /* canto inferior esquerdo, acima do LOG (2026-11-13) */
   width: 420px; min-height: 140px;
   flex-direction: column; align-items: stretch; gap: 6px; padding: 14px;
   background-color: rgba(8, 12, 30, 0.97); border-color: rgb(106, 134, 200);

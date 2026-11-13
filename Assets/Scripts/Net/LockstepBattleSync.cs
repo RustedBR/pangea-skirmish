@@ -609,18 +609,37 @@ namespace PangeaSkirmish
         private int _openWindowSeq;      // janela aberta no host (0 = fechada)
 
         /// <summary>Host: abre a janela <paramref name="seq"/> e a fecha para todos após <paramref name="seconds"/>.</summary>
-        public void HostOpenIncrementWindow(int seq, float seconds)
+        public void HostOpenIncrementWindow(int seq, float seconds, List<uint> eligible = null)
         {
             if (!IsServer) return;
             _openWindowSeq = seq;
+            _windowPending.Clear();
+            if (eligible != null) foreach (var id in eligible) _windowPending.Add(id);
             StartCoroutine(CloseWindowAfter(seq, seconds));
         }
+        private readonly HashSet<uint> _windowPending = new HashSet<uint>();   // unidades que ainda não decidiram
 
         private IEnumerator CloseWindowAfter(int seq, float seconds)
         {
             yield return new WaitForSeconds(seconds);
-            if (_openWindowSeq == seq) _openWindowSeq = 0;
+            HostCloseWindow(seq);
+        }
+
+        private void HostCloseWindow(int seq)
+        {
+            if (_openWindowSeq != seq) return;   // já fechou (todos decidiram antes do tempo)
+            _openWindowSeq = 0;
             CloseIncrementWindowClientRpc(seq);
+        }
+
+        /// <summary>O dono decidiu o incremento (inclusive "não"): quando todos decidem, a janela fecha já.</summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void IncrementDoneServerRpc(uint unitId, ServerRpcParams rpcParams = default)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || u.ownerId != rpcParams.Receive.SenderClientId || _openWindowSeq == 0) return;
+            _windowPending.Remove(unitId);
+            if (_windowPending.Count == 0) HostCloseWindow(_openWindowSeq);
         }
 
         [ServerRpc(RequireOwnership = false)]

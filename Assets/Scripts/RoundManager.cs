@@ -895,44 +895,61 @@ namespace PangeaSkirmish
             if (sync == null || !AnyIncrementEligible()) yield break;
 
             int seq = ++_windowSeq;
-            float seconds = Mathf.Max(0.5f, Tuning.Get().incrementWindowSeconds);
+            float seconds = Mathf.Max(0.5f, Tuning.Get().reactionChoiceTime);   // mesmo tempo da reação (2026-11-13)
             if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsServer)
-                sync.HostOpenIncrementWindow(seq, seconds);
+            {
+                var eligible = new List<uint>();
+                foreach (var u in _units)
+                    if (!u.IsDead && !BeastAI.Controls(u) && (u.CanIncrementNext(0) || u.CanIncrementNext(1))) eligible.Add(UnitRegistry.GetId(u));
+                sync.HostOpenIncrementWindow(seq, seconds, eligible);
+            }
 
             // Quem tem unidade elegível vê o aviso.
             Unit mine = null;
             foreach (var u in _units) if (!u.IsDead && IsLocalUnit(u) && (u.CanIncrementNext(0) || u.CanIncrementNext(1))) { mine = u; break; }
             float shown = 0f;
-            if (mine != null)
-                _hud.SetIncrementWindow(mine, k =>
-                {
+            // Janela no estilo da reação (2026-11-13): mostra quanto o golpe dá agora e com cada
+            // incremento; um clique escolhe e fecha. Antes era clicar no bloco e apertar 1/2.
+            bool picked = false;
+            void Submit(params int[] kinds)
+            {
+                if (picked) return; picked = true;
+                foreach (var k in kinds)
                     if (mine.CanIncrementNext(k))
                     {
                         sync.SubmitIncrementServerRpc(UnitRegistry.GetId(mine), k);
                         _hud.LogAction($"◆ {mine.unitName}: {(k == 0 ? "golpe poderoso" : "mira")} pedido", mine);
                     }
-                });
+                _hud.HideReactionMenu();
+                sync.IncrementDoneServerRpc(UnitRegistry.GetId(mine));
+            }
             if (mine != null)
-                _hud.ShowIntentBand($"⚡ INCREMENTAR: <b>{mine.unitName}</b>",
-                    $"clique no bloco do ataque  •  [1] Golpe poderoso (−{Unit.IncrementCost(0)} Stamina, +1 tick)   [2] Mirar (−{Unit.IncrementCost(1)})");
+            {
+                var q = mine.queue[0];
+                var T = Tuning.Get();
+                int aimBonus = Mathf.RoundToInt(mine.stats.DEX * T.aimDexMultiplier);
+                int Dmg(bool power, bool aim) => AttackResolver.PowerDamage(mine, power, aim ? aimBonus : 0);
+                int now = Dmg(q.IsBonus, q.IsAimed);
+                string tgt = q.Attack.TargetUnit != null ? $" em {q.Attack.TargetUnit.unitName}" : "";
+                var opts = new List<(string, System.Action)>();
+                bool canP = mine.CanIncrementNext(0), canA = mine.CanIncrementNext(1);
+                if (canP) opts.Add(($"Golpe poderoso: ~{now} → <b>~{Dmg(true, q.IsAimed)}</b> de dano  <color=#9fb3d9>(−{Unit.IncrementCost(0)} Stamina, +1 tick)</color>", () => Submit(0)));
+                if (canA) opts.Add(($"Mirar: ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano e mais acerto  <color=#9fb3d9>(−{Unit.IncrementCost(1)} Stamina)</color>", () => Submit(1)));
+                if (canP && canA && mine.currentStamina >= Unit.IncrementCost(0) + Unit.IncrementCost(1))
+                    opts.Add(($"Os dois: ~{now} → <b>~{Dmg(true, true)}</b> de dano  <color=#9fb3d9>(−{Unit.IncrementCost(0) + Unit.IncrementCost(1)} Stamina, +1 tick)</color>", () => Submit(0, 1)));
+                opts.Add(("Não incrementar", () => Submit()));
+                _hud.ShowChoice($"◆ {mine.unitName} vai atacar{tgt}: ~{now} de dano. Incrementar? <size=11><color=#9fb3d9>(Stamina {mine.currentStamina})</color></size>", opts.ToArray());
+            }
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
             while (_windowClosedSeq < seq && guard > 0f)
             {
                 guard -= Time.deltaTime; shown += Time.deltaTime;
-                if (mine != null && Keyboard.current != null)
-                {
-                    int kind = Keyboard.current.digit1Key.wasPressedThisFrame ? 0
-                             : Keyboard.current.digit2Key.wasPressedThisFrame ? 1 : -1;
-                    if (kind >= 0 && mine.CanIncrementNext(kind))
-                    {
-                        sync.SubmitIncrementServerRpc(UnitRegistry.GetId(mine), kind);
-                        _hud.LogAction($"◆ {mine.unitName}: {(kind == 0 ? "golpe poderoso" : "mira")} pedido", mine);
-                    }
-                }
+                if (mine != null && !picked) _hud.UpdateBonusTimer(Mathf.Max(0f, seconds - shown));
                 yield return null;
             }
-            if (mine != null) { _hud.HideIntentBand(); _hud.SetIncrementWindow(null, null); }
+            if (mine != null && !picked) _hud.HideReactionMenu();
+            _hud.UpdateBonusTimer(0f);
 
             // Aplica, na ordem de chegada (igual em todas as máquinas), o que valeu para esta janela.
             for (int i = 0; i < _pendingIncrements.Count; i++)
