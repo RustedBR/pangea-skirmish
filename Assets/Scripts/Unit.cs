@@ -176,6 +176,16 @@ namespace PangeaSkirmish
             return true;
         }
 
+        /// <summary>
+        /// Custo de reagir (2026-11-13): a fila anda 1 tick. A ação em andamento recomeça do zero;
+        /// se nada estava em andamento, entra 1 tick de espera na frente.
+        /// </summary>
+        public void ReactionPushQueue()
+        {
+            if (queue.Count > 0 && queue[0].Elapsed > 0) { queue[0].Elapsed = 0; return; }
+            queue.Insert(0, new QueuedAction { Type = ActionType.Wait, Duration = 1 });
+        }
+
         /// <summary>Insere uma espera no início da fila (custo de reação).</summary>
         public void DelayQueue(int ticks)
         {

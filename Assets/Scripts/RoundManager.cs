@@ -674,11 +674,19 @@ namespace PangeaSkirmish
                     try { ActionFx.MarkSpell(_grid, su, sp); ActionFx.PlaySpell(su, sp, _grid); }
                     catch (System.Exception ex) { Debug.LogError($"[Magia] falha no VISUAL de {sp.SpellId}: {ex}"); }
                     // Esquivar também vale contra magia (Bloquear não, GDD-020 §8).
+                    List<Vector2Int> spellCells = null;
+                    if (sp.Def != null && sp.Def.area > 0)
+                    {
+                        int r = SpellResolver.AreaRadius(sp.Def), cfp = su.stats.Footprint;
+                        var c = sp.TargetTile + new Vector2Int(cfp / 2, cfp / 2);
+                        spellCells = new List<Vector2Int>();
+                        for (int x = c.x - r; x <= c.x + r; x++) for (int y = c.y - r; y <= c.y + r; y++) spellCells.Add(new Vector2Int(x, y));
+                    }
                     foreach (var tgt in SpellResolver.DamageTargets(su, sp, _units))
                         if (tgt.CanReact(ReactionKind.Dodge))
                         {
                             _reactionAttacker = su;
-                            yield return React(tgt, new List<ReactionKind> { ReactionKind.Dodge }, su);
+                            yield return React(tgt, new List<ReactionKind> { ReactionKind.Dodge }, su, spellCells);
                         }
                     List<string> spellLines;
                     try { spellLines = SpellResolver.Resolve(su, sp, _units, _grid, _spellField); }
@@ -1312,15 +1320,38 @@ namespace PangeaSkirmish
                                               : AttackShape.Center(u.anchor, u.stats.Footprint);
                 }
                 var inShape = AttackResolver.Preview(u, u.anchor, aimCell, atk.Mode == AttackMode.Tile, _units);
+                var shapeCells = AttackResolver.CellsFor(u, aimCell);
 
-                // Interpor: um aliado colado a quem vai ser atingido entra na frente e divide os tiles.
+                // Tiro à distância perto de um inimigo corpo a corpo provoca o contra-ataque; se acertar, cancela o tiro.
+                bool rangedShot = false;
+                foreach (var (hitU, _, _) in inShape)
+                    if (GridManager.FootprintGap(u.anchor, u.stats.Footprint, hitU.anchor, hitU.stats.Footprint) > 1) { rangedShot = true; break; }
+                if (rangedShot)
+                {
+                    yield return Provoke(u, "atirou", null);
+                    if (u.counterInterrupted || u.IsDead)
+                    {
+                        _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: o tiro foi cortado pelo contra-ataque", u);
+                        continue;
+                    }
+                }
+
+                // Interpor (2026-11-13): qualquer aliado que chegue colado ao atingido com uma andada.
                 Unit guardUnit = null, guarded = null;
                 foreach (var (hitU, _, _) in inShape)
                 {
-                    var g = FindInterceptor(hitU, u);
-                    if (g == null) continue;
+                    var gs = FindInterceptors(hitU, u);
+                    if (gs.Count == 0) continue;
                     _interceptedBy = null;
-                    yield return React(g, new List<ReactionKind> { ReactionKind.Intercept }, u);
+                    var gl = new List<(Unit, List<ReactionKind>)>();
+                    foreach (var g in gs) gl.Add((g, new List<ReactionKind> { ReactionKind.Intercept }));
+                    yield return AskReaction(gl, u);
+                    var who = _lastReactor;
+                    if (_lastApplied == ReactionKind.Intercept && who != null)
+                    {
+                        yield return MoveToGuard(who, hitU);
+                        yield return AfterReaction(who, ReactionKind.Intercept, u, null);
+                    }
                     if (_interceptedBy != null)
                     {
                         guardUnit = _interceptedBy; guarded = hitU; _interceptedBy = null;
@@ -1330,11 +1361,14 @@ namespace PangeaSkirmish
                 }
                 foreach (var (hitU, _, _) in inShape)
                     if (!hitU.IsDead && hitU.CanReact())
-                        yield return React(hitU, DefenseOptions(hitU, u), u);
+                        yield return React(hitU, DefenseOptions(hitU, u), u, shapeCells);
                 if (guardUnit != null && !guardUnit.IsDead && guardUnit.CanReact())
-                    yield return React(guardUnit, DefenseOptions(guardUnit, u), u);
+                    yield return React(guardUnit, DefenseOptions(guardUnit, u), u, shapeCells);
 
+                // O golpe fica nos tiles de onde foi mirado: quem esquivou para fora da forma escapa.
+                AttackResolver.AimLock = aimCell;
                 string log = AttackResolver.ResolveAttack(u, atkEff, _units, guardUnit, guarded);
+                AttackResolver.AimLock = null;
                 if (AttackResolver.Last.AbsorbedAll && !u.IsDead) u.staggered = true;
 
                 // Reação Olho certeiro (2026-11-13): o SEU golpe à distância ia errar → pode acertar.
@@ -1407,34 +1441,46 @@ namespace PangeaSkirmish
         {
             if (provoker == null || provoker.IsDead || _provokedThisTick.Contains(provoker)) yield break;
             var at = fromAnchor ?? provoker.anchor;
-            Unit best = null; uint bestId = uint.MaxValue;
+            // Contra-atacar (2026-11-13): só arma corpo a corpo (alcance ≤ counterMaxRange); todos os que
+            // podem recebem a janela e vale o primeiro que confirmar. Ordem: maior DEX, empate menor id.
+            var cands = new List<Unit>();
             foreach (var e in _units)
             {
                 if (e == provoker || e == exclude || e.IsDead || !e.IsHostileTo(provoker) || !e.CanReact(ReactionKind.CounterAttack)) continue;
+                if (!CanCounterWith(e)) continue;
                 if (GridManager.FootprintGap(at, provoker.stats.Footprint, e.anchor, e.stats.Footprint) > e.EffectiveAttackRange) continue;
-                uint id = UnitRegistry.GetId(e);
-                if (best == null || e.stats.DEX > best.stats.DEX || (e.stats.DEX == best.stats.DEX && id < bestId)) { best = e; bestId = id; }
+                cands.Add(e);
             }
-            if (best == null) yield break;
+            if (cands.Count == 0) yield break;
+            cands.Sort((a, b) => a.stats.DEX != b.stats.DEX ? b.stats.DEX.CompareTo(a.stats.DEX) : UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
             _provokedThisTick.Add(provoker);
-            _hud.LogAction($"<color=#6aa9ff>↯</color> {provoker.unitName} {why} perto de {best.unitName}: oportunidade!", best);
+            _hud.LogAction($"<color=#6aa9ff>↯</color> {provoker.unitName} {why} perto de {cands[0].unitName}{(cands.Count > 1 ? $" e mais {cands.Count - 1}" : "")}: oportunidade!", cands[0]);
             _lastCounterHit = false;
             var savedAttacker = _reactionAttacker;
             _reactionAttacker = provoker;
-            yield return WaitReaction(best, new List<ReactionKind> { ReactionKind.CounterAttack }, provoker);
+            var list = new List<(Unit, List<ReactionKind>)>();
+            foreach (var c in cands) list.Add((c, new List<ReactionKind> { ReactionKind.CounterAttack }));
+            yield return AskReaction(list, provoker);
             _reactionAttacker = savedAttacker;
             if (_lastCounterHit && !provoker.IsDead) provoker.counterInterrupted = true;
         }
 
+        /// <summary>Contra-atacar só com arma corpo a corpo (alcance da arma ≤ counterMaxRange).</summary>
+        public static bool CanCounterWith(Unit u) => u != null && u.stats.AttackRange <= Tuning.Get().counterMaxRange;
+
         /// <summary>Reação + o golpe de oportunidade que reagir no alcance de um inimigo provoca.</summary>
-        private IEnumerator React(Unit reactor, List<ReactionKind> options, Unit trigger)
+        private IEnumerator React(Unit reactor, List<ReactionKind> options, Unit trigger, List<Vector2Int> dodgeCells = null)
         {
-            _lastApplied = ReactionKind.None;
-            yield return WaitReaction(reactor, options, trigger);
-            var applied = _lastApplied;
-            if (applied == ReactionKind.None || applied == ReactionKind.CounterAttack) yield break;
+            yield return AskReaction(new List<(Unit, List<ReactionKind>)> { (reactor, options) }, trigger);
+            yield return AfterReaction(_lastReactor, _lastApplied, trigger, dodgeCells);
+        }
+
+        /// <summary>O que vem depois de reagir: golpe de oportunidade de quem está perto, e a esquiva anda.</summary>
+        private IEnumerator AfterReaction(Unit reactor, ReactionKind applied, Unit trigger, List<Vector2Int> dodgeCells)
+        {
+            if (reactor == null || applied == ReactionKind.None || applied == ReactionKind.CounterAttack || applied == ReactionKind.TrueAim) yield break;
             // Quem provocou a reação (o atacante) já está golpeando: não pune a própria vítima no mesmo tick.
-            yield return Provoke(reactor, "reagiu", null, trigger);
+            yield return Provoke(reactor, applied == ReactionKind.Dodge ? "esquivou" : "reagiu", null, trigger);
             if (reactor.counterInterrupted)
             {
                 // O golpe cortou a reação: ela não acontece (a Stamina já foi).
@@ -1442,8 +1488,44 @@ namespace PangeaSkirmish
                 reactor.dodgeReactTiles = 0; reactor.blockFlat = 0;
                 if (applied == ReactionKind.Intercept) _interceptedBy = null;
                 _hud.LogAction($"<color=#ff7a6a>✕</color> {reactor.unitName}: a reação foi cortada", reactor);
+                yield break;
             }
+            if (applied == ReactionKind.Dodge && !reactor.IsDead)
+                yield return DodgeMove(reactor, dodgeCells, trigger);
         }
+
+        /// <summary>
+        /// Esquivar (2026-11-13): sai andando 1 + AGI/5 tiles para o tile livre que deixa menos do corpo
+        /// dentro da forma do golpe (empate: o mais perto). Sem forma (magia de alvo único), se afasta de
+        /// quem lançou e a esquiva tira tiles pela AGI, como antes.
+        /// </summary>
+        private IEnumerator DodgeMove(Unit u, List<Vector2Int> cells, Unit from)
+        {
+            int n = DodgeMoveTiles(u);
+            int fp = u.stats.Footprint;
+            var blockers = new List<Unit>();
+            foreach (var o in _units) if (o != u && !o.IsDead) blockers.Add(o);
+            var reach = _grid.GetReachableAnchors(u.anchor, n, fp, blockers);
+            if (!reach.Contains(u.anchor)) reach.Add(u.anchor);
+            Vector2Int best = u.anchor; int bestIn = int.MaxValue, bestD = int.MaxValue, bestFar = int.MinValue;
+            foreach (var a in reach)
+            {
+                int inside = cells != null ? AttackShape.TilesOn(cells, a, fp) : 0;
+                int d = Mathf.Abs(a.x - u.anchor.x) + Mathf.Abs(a.y - u.anchor.y);
+                int far = from != null ? GridManager.FootprintGap(a, fp, from.anchor, from.stats.Footprint) : 0;
+                bool better = cells != null
+                    ? (inside < bestIn || (inside == bestIn && (d < bestD || (d == bestD && (a.y < best.y || (a.y == best.y && a.x < best.x))))))
+                    : (far > bestFar || (far == bestFar && (d < bestD || (d == bestD && (a.y < best.y || (a.y == best.y && a.x < best.x))))));
+                if (better) { best = a; bestIn = inside; bestD = d; bestFar = far; }
+            }
+            if (cells != null) u.dodgeReactTiles = 0;    // contra a forma, quem decide é onde ele parou
+            if (best == u.anchor) yield break;
+            _hud.LogAction($"<color=#55ccff>↯</color> {u.unitName} esquiva para ({best.x},{best.y})", u);
+            yield return u.MoveToDestination(best);
+        }
+
+        public static int DodgeMoveTiles(Unit u) => 1 + Mathf.FloorToInt(u.stats.AGI / Mathf.Max(1f, Tuning.Get().dodgeAgiPerMoveTile));
+
         private ReactionKind _lastApplied;
         private bool _reactionApplied;
 
@@ -1497,32 +1579,127 @@ namespace PangeaSkirmish
         private ReactionKind _pendingReactionChoice = ReactionKind.None;
         private bool _reactionResolved;
 
-        /// <summary>
-        /// Pausa a fase de ação e espera a DECISÃO do jogador (ou RPC em MP) sobre uma reação.
-        /// triggerTarget: unidade que causou o gatilho (ex.: quem se moveu, para AoO).
-        /// </summary>
-        private IEnumerator WaitReaction(Unit reactor, List<ReactionKind> options, Unit triggerTarget)
-        {
-            if (reactor == null || options == null) yield break;
-            options = options.FindAll(k => reactor.CanReact(k));          // só o que a Stamina paga
-            if (options.Count == 0) yield break;
+        // ── Janela de reação sincronizada (2026-11-13) ──
+        private int _reactSeq, _reactClosedSeq;
+        private readonly HashSet<int> _reactTimedOut = new HashSet<int>();
+        private readonly List<(int seq, uint unit, int kind)> _reactChoices = new List<(int, uint, int)>();
+        private Unit _lastReactor;
 
-            _reactionApplied = false;
-            _pendingReactionChoice = ReactionKind.None;
-            _reactionResolved = false;
-            // IA decide automaticamente: inimigo em SP, ou fera do Coop (igual em toda máquina).
-            if (BeastAI.Controls(reactor)
-                || (!RuntimeMultiplayerSession.IsMultiplayer && reactor.team == Team.Enemy))
+        public void BufferReaction(int seq, uint unitId, int kind) => _reactChoices.Add((seq, unitId, kind));
+        public void OnReactionWindowClosed(int seq, bool timedOut)
+        {
+            _reactClosedSeq = Mathf.Max(_reactClosedSeq, seq);
+            if (timedOut) _reactTimedOut.Add(seq);
+        }
+
+        /// <summary>
+        /// Pergunta a reação a quem pode reagir (uma ou várias unidades). Feras decidem sozinhas; no solo
+        /// a janela é local; em rede o anfitrião abre e fecha a janela para todos e só vale a escolha que
+        /// ele repassar — a primeira que chegar (contra-atacar/interpor com vários candidatos). Se o tempo
+        /// acabar, vale a reação padrão marcada no plano. Resultado em _lastReactor/_lastApplied.
+        /// </summary>
+        private IEnumerator AskReaction(List<(Unit u, List<ReactionKind> opts)> cands, Unit trigger)
+        {
+            _lastApplied = ReactionKind.None; _lastReactor = null; _reactionApplied = false;
+            var list = new List<(Unit u, List<ReactionKind> opts)>();
+            foreach (var (u, o) in cands)
             {
-                ApplyReaction(reactor, AutoPickReaction(reactor, options), triggerTarget);
+                if (u == null || u.IsDead || o == null) continue;
+                var ok = o.FindAll(k => u.CanReact(k));          // só o que a Stamina e o limite do round pagam
+                if (ok.Count > 0) list.Add((u, ok));
+            }
+            if (list.Count == 0) yield break;
+
+            // IA (fera do Coop, ou inimigo no solo): decide igual em toda máquina.
+            foreach (var (u, o) in list)
+                if (BeastAI.Controls(u) || (!RuntimeMultiplayerSession.IsMultiplayer && u.team == Team.Enemy))
+                { DoApply(u, AutoPickReaction(u, o), trigger); yield break; }
+
+            float time = Mathf.Max(1f, Tuning.Get().reactionChoiceTime);
+            var sync = LockstepBattleSync.Instance;
+            bool mp = RuntimeMultiplayerSession.IsMultiplayer && sync != null;
+
+            if (RuntimeMultiplayerSession.IsMultiplayer && sync == null)
+            {
+                // Rede sem a sincronização (testes, queda): sem janela; vale a reação padrão.
+                foreach (var (u, o) in list) if (o.Contains(u.defaultReaction)) { DoApply(u, u.defaultReaction, trigger); break; }
+                yield break;
+            }
+            if (!mp)
+            {
+                // Solo: janela local para a primeira unidade do jogador.
+                var (me, myOpts) = list[0];
+                ReactionKind pick = ReactionKind.None; bool done = false;
+                _hud.ShowReactionMenu(me, myOpts, time, k => { pick = k; done = true; });
+                float t = time;
+                while (!done && t > 0f) { t -= Time.deltaTime; _hud.UpdateBonusTimer(t); yield return null; }
+                _hud.HideReactionMenu(); _hud.UpdateBonusTimer(0f);
+                if (!done && myOpts.Contains(me.defaultReaction)) pick = me.defaultReaction;
+                if (pick != ReactionKind.None) DoApply(me, pick, trigger);
                 yield break;
             }
 
-            // Jogadores (2026-11-13): a reação é PLANEJADA no round e dispara sozinha no primeiro
-            // gatilho que couber. Sem menu nem RPC no meio da resolução: o resultado é o mesmo
-            // em todas as máquinas (o menu interativo causava DESYNC no lockstep).
-            if (options.Contains(reactor.defaultReaction))
-                ApplyReaction(reactor, reactor.defaultReaction, triggerTarget);
+            int seq = ++_reactSeq;
+            if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsServer)
+            {
+                var ids = new List<uint>();
+                foreach (var (u, _) in list) ids.Add(UnitRegistry.GetId(u));
+                sync.HostOpenReactionWindow(seq, time, ids);
+            }
+            Unit mine = null; List<ReactionKind> mineOpts = null;
+            foreach (var (u, o) in list) if (IsLocalUnit(u)) { mine = u; mineOpts = o; break; }
+            bool picked = false;
+            if (mine != null)
+                _hud.ShowReactionMenu(mine, mineOpts, time, k =>
+                {
+                    if (picked) return; picked = true;
+                    sync.SubmitReactionChoiceServerRpc(seq, UnitRegistry.GetId(mine), (int)k);
+                    _hud.HideReactionMenu();
+                });
+            else
+            {
+                _hud.SetWaitingText($"Aguardando {GetPlayerName(list[0].u.ownerId)} decidir a reação...");
+                _hud.ShowWaitingForPlacement();
+            }
+            float left = time, guard = time + 8f;
+            while (_reactClosedSeq < seq && guard > 0f)
+            {
+                left -= Time.deltaTime; guard -= Time.deltaTime;
+                if (mine != null && !picked) _hud.UpdateBonusTimer(Mathf.Max(0f, left));
+                yield return null;
+            }
+            if (mine != null) _hud.HideReactionMenu(); else _hud.HideWaitingForPlacement();
+            _hud.UpdateBonusTimer(0f);
+
+            // Aplica o que o anfitrião repassou (igual em todas as máquinas).
+            int ci = _reactChoices.FindIndex(c => c.seq == seq);
+            if (ci >= 0)
+            {
+                var c = _reactChoices[ci];
+                var ru = UnitRegistry.Get(c.unit);
+                foreach (var (u, o) in list)
+                    if (u == ru && o.Contains((ReactionKind)c.kind)) { DoApply(u, (ReactionKind)c.kind, trigger); break; }
+            }
+            else if (_reactTimedOut.Contains(seq))
+            {
+                foreach (var (u, o) in list)
+                    if (o.Contains(u.defaultReaction)) { DoApply(u, u.defaultReaction, trigger); break; }
+            }
+            _reactChoices.RemoveAll(c => c.seq <= seq);
+            _reactTimedOut.Remove(seq);
+        }
+
+        private void DoApply(Unit u, ReactionKind k, Unit trigger)
+        {
+            if (k == ReactionKind.None) return;
+            ApplyReaction(u, k, trigger);
+            _lastReactor = u;
+        }
+
+        /// <summary>Compatibilidade: uma unidade só.</summary>
+        private IEnumerator WaitReaction(Unit reactor, List<ReactionKind> options, Unit triggerTarget)
+        {
+            yield return AskReaction(new List<(Unit, List<ReactionKind>)> { (reactor, options) }, triggerTarget);
         }
 
         /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>
@@ -1533,20 +1710,45 @@ namespace PangeaSkirmish
             return Mathf.Max(1, Mathf.RoundToInt(u.stats.VIT * Tuning.Get().blockFlatPerVIT) + (w != null ? w.blockHardness : 0));
         }
 
-        /// <summary>Interpor: o aliado colado que entra na frente (GDD-020 §8).</summary>
-        private Unit FindInterceptor(Unit target, Unit attacker)
+        /// <summary>
+        /// Interpor (2026-11-13): aliados que chegam colados ao atingido com UMA andada (alcance de
+        /// movimento). Ordem: mais vida primeiro, empate pelo menor id.
+        /// </summary>
+        private List<Unit> FindInterceptors(Unit target, Unit attacker)
         {
-            // GDD-020 §8: qualquer aliado COLADO ao atacado, com Stamina para Interpor. Mais vida primeiro; empate pelo menor id.
-            if (target == null || attacker == null) return null;
-            Unit best = null; uint bestId = uint.MaxValue;
+            var res = new List<Unit>();
+            if (target == null || attacker == null) return res;
             foreach (var a in _units)
             {
                 if (a == target || a == attacker || a.IsDead || a.IsHostileTo(target) || !a.CanReact(ReactionKind.Intercept)) continue;
-                if (GridManager.FootprintGap(a.anchor, a.stats.Footprint, target.anchor, target.stats.Footprint) > 1) continue;
-                uint id = UnitRegistry.GetId(a);
-                if (best == null || a.currentHP > best.currentHP || (a.currentHP == best.currentHP && id < bestId)) { best = a; bestId = id; }
+                if (GuardSpot(a, target) == null) continue;
+                res.Add(a);
+            }
+            res.Sort((x, y) => x.currentHP != y.currentHP ? y.currentHP.CompareTo(x.currentHP) : UnitRegistry.GetId(x).CompareTo(UnitRegistry.GetId(y)));
+            return res;
+        }
+
+        /// <summary>Tile colado ao protegido que o protetor alcança com uma andada (o mais perto), ou null.</summary>
+        private Vector2Int? GuardSpot(Unit g, Unit target)
+        {
+            int fp = g.stats.Footprint, tfp = target.stats.Footprint;
+            if (GridManager.FootprintGap(g.anchor, fp, target.anchor, tfp) <= 1) return g.anchor;
+            var blockers = new List<Unit>();
+            foreach (var o in _units) if (o != g && !o.IsDead) blockers.Add(o);
+            Vector2Int? best = null; int bestD = int.MaxValue;
+            foreach (var a in _grid.GetReachableAnchors(g.anchor, g.EffectiveMoveStep, fp, blockers))
+            {
+                if (GridManager.FootprintGap(a, fp, target.anchor, tfp) > 1) continue;
+                int d = Mathf.Abs(a.x - g.anchor.x) + Mathf.Abs(a.y - g.anchor.y);
+                if (d < bestD || (d == bestD && best.HasValue && (a.y < best.Value.y || (a.y == best.Value.y && a.x < best.Value.x)))) { best = a; bestD = d; }
             }
             return best;
+        }
+
+        private IEnumerator MoveToGuard(Unit g, Unit target)
+        {
+            var spot = GuardSpot(g, target);
+            if (spot.HasValue && spot.Value != g.anchor) yield return g.MoveToDestination(spot.Value);
         }
 
         private ReactionKind AutoPickReaction(Unit reactor, List<ReactionKind> options)
@@ -1569,8 +1771,9 @@ namespace PangeaSkirmish
             _reactionApplied = true;
             _lastApplied = kind;
             reactor.ConsumeReaction(kind);
-            // GDD-014: reagir custa tempo — empurra a fila do reator.
-            reactor.DelayQueue(Tuning.Get().reactionTickCost);
+            // Reagir custa 1 tick da fila (2026-11-13): a reação acontece na hora, no tick do gatilho;
+            // a ação em andamento recomeça do zero, ou a fila anda 1 tick se nada estava em andamento.
+            reactor.ReactionPushQueue();
 
             var T = Tuning.Get();
             switch (kind)

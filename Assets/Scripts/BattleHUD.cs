@@ -1796,10 +1796,10 @@ namespace PangeaSkirmish
             string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#9fb3d9>{effect} · {cost} Stamina</color></size>";
             switch (k)
             {
-                case ReactionKind.Dodge:         return L($"tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(u) * 100)}% dos tiles do golpe (1 tile: chance de errar)");
+                case ReactionKind.Dodge:         return L($"anda até {RoundManager.DodgeMoveTiles(u)} tile{(RoundManager.DodgeMoveTiles(u) == 1 ? "" : "s")} para fora do golpe");
                 case ReactionKind.Block:         return L($"segura {RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra");
-                case ReactionKind.CounterAttack: return L("golpe da arma; se acertar, interrompe");
-                case ReactionKind.Intercept:     return L("entra na frente e divide os tiles");
+                case ReactionKind.CounterAttack: return L("golpe da arma; se acertar, interrompe a ação dele");
+                case ReactionKind.Intercept:     return L("anda até o aliado, entra na frente e divide os tiles");
                 case ReactionKind.TrueAim:       return L($"o tiro que ia errar acerta, +{Tuning.Get().trueAimCritBonus * 100:0}% de crítico");
                 default:                         return baseText;
             }

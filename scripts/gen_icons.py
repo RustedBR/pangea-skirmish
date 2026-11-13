@@ -871,17 +871,69 @@ kccccccccccckk..
 ................""",
 }
 
-def render(art):
+# ── Identidade visual (2026-11-13): paleta fechada por família ──────────────
+# Cada ícone pertence a uma família; as cores do desenho viram a rampa da família
+# (claro / base / escuro) pela luminância, com o mesmo contorno e luz de cima-esquerda.
+RAMPS = {
+    "attack":  [(255, 196, 170), (232, 76, 61),  (140, 30, 40)],    # vermelho
+    "defense": [(196, 226, 255), (86, 148, 230), (34, 70, 140)],    # azul aço
+    "magic":   [(230, 200, 255), (164, 108, 240), (84, 46, 150)],   # roxo
+    "mana":    [(190, 230, 255), (70, 150, 255),  (28, 64, 150)],   # azul
+    "stamina": [(255, 244, 190), (255, 204, 64),  (176, 112, 20)],  # amarelo
+    "life":    [(255, 190, 190), (232, 64, 72),   (130, 24, 40)],   # vermelho vida
+    "nature":  [(200, 255, 200), (96, 204, 112),  (32, 112, 56)],   # verde
+    "neutral": [(250, 252, 255), (196, 206, 224), (104, 116, 140)], # branco/cinza
+    "fire":    [(255, 236, 160), (255, 140, 40),  (176, 60, 20)],   # fogo
+    "earth":   [(232, 210, 170), (160, 116, 72),  (90, 60, 34)],    # terra
+}
+FAMILY = {
+    "hp": "life", "mana": "mana", "stamina": "stamina",
+    "str": "attack", "dmg": "attack", "power": "stamina", "boom": "fire", "x": "attack", "fury": "attack",
+    "p_aggressive": "attack", "star": "stamina",
+    "vit": "defense", "def": "defense", "mdef": "magic", "dodge": "defense", "p_defensive": "defense",
+    "intercept": "defense", "agi": "nature", "p_agile": "nature", "move": "nature", "check": "nature",
+    "dex": "attack", "hit": "attack", "range": "attack", "p_focused": "attack", "eye": "magic",
+    "int": "magic", "wis": "magic", "cast": "magic", "p_concentrated": "magic", "p_serene": "magic",
+    "p_neutral": "neutral", "burn": "fire", "soaked": "mana", "stone": "earth", "dulled": "neutral",
+    "wait": "stamina", "warn": "stamina", "pencil": "stamina", "wind": "neutral", "r_none": "neutral",
+    "chev_down": "neutral", "chev_up": "neutral", "play": "neutral", "play_l": "neutral",
+    "arrow_r": "neutral", "arrow_l": "neutral", "minus": "neutral", "geq": "neutral",
+}
+OUTLINE = (16, 18, 30, 255)
+
+def stylize(img, name):
+    fam = FAMILY.get(name)
+    if fam is None: return img
+    ramp = RAMPS[fam]
+    w, h = img.size
+    px = img.load()
+    out = img.copy(); po = out.load()
+    def solid(x, y): return 0 <= x < w and 0 <= y < h and px[x, y][3] > 0 and px[x, y][:3] != OUTLINE[:3]
+    for y in range(h):
+        for x in range(w):
+            c = px[x, y]
+            if c[3] == 0: continue
+            if c[:3] == OUTLINE[:3]: po[x, y] = OUTLINE; continue
+            lum = 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]
+            k = 0 if lum > 200 else (1 if lum > 95 else 2)
+            # luz de cima-esquerda, sombra embaixo-direita (borda interna)
+            if k == 1 and not solid(x - 1, y - 1): k = 0
+            elif k == 1 and not solid(x + 1, y + 1): k = 2
+            po[x, y] = ramp[k] + (255,)
+    return out
+
+def render(art, name=None):
     rows = [r for r in art.strip("\n").split("\n")]
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     for y, row in enumerate(rows[:16]):
         for x, ch in enumerate(row[:16]):
             col = PAL.get(ch, PAL["k"] if ch not in PAL else None)
             if col: img.putpixel((x, y), col)
+    img = stylize(img, name)
     return img.resize((16 * SCALE, 16 * SCALE), Image.NEAREST)
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     for name, art in ICONS.items():
-        render(art).save(OUT / f"{name}.png")
+        render(art, name).save(OUT / f"{name}.png")
     print(f"{len(ICONS)} ícones em {OUT}")

@@ -55,10 +55,21 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Resolve um ataque planejado e devolve linha(s) de log; null = sem alvo.</summary>
+        /// <summary>
+        /// Mira travada (2026-11-13): o golpe fica nos tiles de onde foi mirado, mesmo que o alvo
+        /// tenha esquivado para longe. Definida pela resolução do tick em volta de ResolveAttack.
+        /// </summary>
+        public static Vector2Int? AimLock;
+
         public static string ResolveAttack(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
                                            Unit interceptor = null, Unit protectedUnit = null)
         {
             Last = new LastStrike { Hit = new List<Unit>(), Missed = new List<Unit>() };
+            if (AimLock.HasValue && attack.Mode != AttackMode.Tile)
+            {
+                var lt = attack.Mode == AttackMode.Unit ? attack.TargetUnit : FindTargetInRange(attacker, all);
+                return Strike(attacker, AimLock.Value, false, lt != null && !lt.IsDead ? lt : null, all, 1f, interceptor, protectedUnit);
+            }
             switch (attack.Mode)
             {
                 case AttackMode.Tile:
