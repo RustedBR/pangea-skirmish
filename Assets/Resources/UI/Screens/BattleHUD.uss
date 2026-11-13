@@ -94,9 +94,9 @@
   position: absolute; left: 12px; bottom: 150px; width: 250px;
   flex-direction: column; display: none;
 }
-.bh-minilog-content { flex-direction: column; gap: 3px; }
-.bh-minilog-content .bh-log-line { background-color: rgba(18, 26, 56, 0.5); border-radius: 4px; padding: 2px 5px; }
-.bh-minilog-content .bh-log-line-text { font-size: 11px; -unity-text-align: middle-center; }
+.bh-minilog-content { flex-direction: column; gap: 3px; overflow: hidden; }
+.bh-minilog-content .bh-log-line { background-color: rgba(18, 26, 56, 0.5); border-radius: 4px; padding: 2px 5px; min-width: 0; overflow: hidden; }
+.bh-minilog-content .bh-log-line-text { font-size: 11px; -unity-text-align: middle-left; white-space: normal; flex-shrink: 1; min-width: 0; }
 .bh-minilog-content .bh-round-hdr {
   background-color: rgb(26, 41, 87); border-radius: 4px; text-align: center;
   font-size: 10px; color: rgb(189, 217, 255); padding: 2px 4px; margin-top: 2px;
