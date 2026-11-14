@@ -186,6 +186,7 @@ public class SpellCastFlowTest
         yield return Setup();
         var atk   = Make("Espadachim", Team.Player, new Vector2Int(10, 6), "IronSword", 0, 0);
         var dummy = Make("Alvo", Team.Enemy, new Vector2Int(10, 10), "IronSword", 1, 1);
+        dummy.stats.AGI = atk.stats.AGI;   // empate de AGI: o golpe resolve primeiro
         dummy.currentHP = dummy.stats.MaxHP; int hp0 = dummy.currentHP;
         for (int i = 0; i < 3; i++) yield return null;
 
@@ -206,6 +207,36 @@ public class SpellCastFlowTest
         Assume.That(GridManager.FootprintGap(atk.anchor, atk.stats.Footprint, dummy.anchor, dummy.stats.Footprint) > atk.EffectiveAttackRange,
                     "a andada precisa tirar o alvo do alcance para o teste valer");
         Assert.Less(dummy.currentHP, hp0, "o golpe pegou antes de ele sair do alcance");
+    }
+
+    /// <summary>2026-11-14: desempate por AGI — quem anda e tem mais AGI que o atacante sai antes do golpe.</summary>
+    [UnityTest]
+    public IEnumerator AgileTarget_EscapesBeforeAttack_InSameTick()
+    {
+        yield return Setup();
+        var atk   = Make("Espadachim", Team.Player, new Vector2Int(10, 6), "IronSword", 0, 0);
+        var dummy = Make("Alvo", Team.Enemy, new Vector2Int(10, 10), "IronSword", 1, 1);
+        dummy.stats.AGI = atk.stats.AGI + 3;   // mais ágil que quem ataca: sai antes do golpe
+        dummy.currentHP = dummy.stats.MaxHP; int hp0 = dummy.currentHP;
+        for (int i = 0; i < 3; i++) yield return null;
+
+        int d = TickRules.Duration(atk, ActionType.Attack, false);
+        int mv = TickRules.Duration(dummy, ActionType.Move, false), wt = TickRules.Duration(dummy, ActionType.Wait, false);
+        Assume.That(d >= mv && (d - mv) % wt == 0, $"alinhar golpe e andada (golpe {d}, andada {mv}, espera {wt})");
+        atk.plannedAttacks.Add(new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = dummy });
+        atk.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = 0 });
+        atk.RecomputeTickBudget();
+        dummy.ResetPlan();
+        for (int k = 0; k < (d - mv) / wt; k++) dummy.actionSequence.Add(new ScheduledAction { Type = ActionType.Wait });
+        var away = dummy.anchor + new Vector2Int(0, dummy.EffectiveMoveStep);
+        dummy.plannedPath.Add(away); dummy.plannedMoveCount = 1;
+        dummy.actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = 0 });
+        dummy.RecomputeTickBudget();
+
+        yield return Step();
+        Assume.That(GridManager.FootprintGap(atk.anchor, atk.stats.Footprint, dummy.anchor, dummy.stats.Footprint) > atk.EffectiveAttackRange,
+                    "a andada precisa tirar o alvo do alcance para o teste valer");
+        Assert.AreEqual(hp0, dummy.currentHP, "mais ágil: escapou do golpe do mesmo tick");
     }
 
     [UnityTest]
