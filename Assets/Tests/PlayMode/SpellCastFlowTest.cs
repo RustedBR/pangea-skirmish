@@ -150,6 +150,34 @@ public class SpellCastFlowTest
         Assert.AreEqual(start, dummy.anchor, "a magia pegou antes da andada do mesmo tick, que foi cancelada");
     }
 
+    /// <summary>2026-11-14: a esquiva vale no dano já do tile novo, mas o corpo só anda depois, 2× mais rápido.</summary>
+    [UnityTest]
+    public IEnumerator Dodge_DamageFirst_ThenFastStep()
+    {
+        yield return Setup();
+        var foe = Make("Ágil", Team.Enemy, new Vector2Int(10, 10), "IronSword", 1, 0);
+        var atk = Make("Atacante", Team.Player, new Vector2Int(10, 4), "IronSword", 0, 1);
+        foe.stats.AGI = 10;
+        for (int i = 0; i < 3; i++) yield return null;
+        var T = typeof(RoundManager); const BindingFlags F = BindingFlags.NonPublic | BindingFlags.Instance;
+        var startCell = foe.anchor;
+        var startPos = foe.transform.position;
+        var cells = new List<Vector2Int>();
+        for (int x = 9; x <= 13; x++) for (int y = 9; y <= 13; y++) cells.Add(new Vector2Int(x, y));   // golpe em cima dele
+
+        yield return _rm.StartCoroutine((IEnumerator)T.GetMethod("DodgeMove", F).Invoke(_rm, new object[] { foe, cells, atk }));
+        Assert.AreNotEqual(startCell, foe.anchor, "a esquiva escolheu um tile fora do golpe (vale para o dano)");
+        Assert.AreEqual(startPos, foe.transform.position, "mas o corpo ainda não andou: o dano entra primeiro");
+
+        float t0 = Time.time;
+        yield return _rm.StartCoroutine((IEnumerator)T.GetMethod("PlayPendingDodges", F).Invoke(_rm, null));
+        float took = Time.time - t0;
+        Assert.Less(Vector3.Distance(_grid.AnchorToWorldCenter(foe.anchor, foe.stats.Footprint), foe.transform.position), 0.05f, "depois do dano, chegou no tile novo");
+        var tun = Tuning.Get();
+        float normal = Mathf.Max(tun.moveDurationMin, tun.moveDurationBase / Mathf.Max(1f, foe.stats.AGI));
+        Assert.LessOrEqual(took, normal / 2f + 0.1f, $"passo da esquiva 2× mais rápido (levou {took:0.00}s, andada normal {normal:0.00}s)");
+    }
+
     [UnityTest]
     public IEnumerator Magma_CreatesZone_AndBurnsOverTicks()
     {
