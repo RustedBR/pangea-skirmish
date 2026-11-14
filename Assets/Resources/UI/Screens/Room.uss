@@ -224,6 +224,27 @@
 .tuning__slider { width: 120px; }
 .tuning__input { width: 80px; }
 
+/* ---- Cabeçalho de grupo da aba Game (agrupamento visual; 2026-11-14) ---- */
+.tuning__header {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    margin-bottom: 3px;
+    padding: 3px 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(42, 58, 106);
+    border-bottom-style: solid;
+}
+.tuning__hdr-icon { width: 18px; height: 18px; flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
+.tuning__hdr-label {
+    color: var(--pg-text, rgb(238, 242, 255));
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
 /* ---- Layout horizontal canônico (stepper + label) — APROVADO 2026-07-12 ---- */
 /* LINHA HORIZONTAL: label+hint à esquerda, stepper à direita */
 .opt-row {

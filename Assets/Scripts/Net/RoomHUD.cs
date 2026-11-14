@@ -601,135 +601,163 @@ namespace PangeaSkirmish
                                        ?? ScriptableObject.CreateInstance<GameTuning>();
 
             var tuning = RuntimeTuning.Active;
-            bool editable = RuntimeMultiplayerSession.IsHost;
             var fields = typeof(GameTuning).GetFields(System.Reflection.BindingFlags.Public
                                                       | System.Reflection.BindingFlags.Instance);
 
+            string lastHeader = "";
             foreach (var f in fields)
             {
-                // pula tipos complexos que não mapeamos em UI simples (StatFormulas, arrays, etc.)
-                if (f.FieldType == typeof(StatFormulas)
-                    || f.FieldType.IsArray
+                // arrays e listas não mapeamos em UI simples
+                if (f.FieldType.IsArray
                     || (f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition() == typeof(List<>)))
                     continue;
 
-                var row = new VisualElement();
-                row.AddToClassList("tuning__row");
-
-                var label = new Label(PrettyName(f.Name));
-                label.AddToClassList("tuning__label");
-                row.Add(label);
-
-                object val = f.GetValue(tuning);
-
-                if (f.FieldType == typeof(bool))
+                // Metadados de fórmula (dano por atributo, etc.) ficam dentro de statFormulas: exponha-os
+                // como um grupo próprio em vez de pular. É onde mora o dexDmgPctPerAttr (2026-11-14).
+                if (f.FieldType == typeof(StatFormulas))
                 {
-                    var toggle = new Toggle();
-                    toggle.value = (bool)val;
-                    toggle.SetEnabled(editable);
-                    toggle.RegisterValueChangedCallback(evt =>
+                    string hdrF = "Fórmulas de dano";
+                    if (hdrF != lastHeader) { AddTuningHeader(hdrF, "sfx_attack"); lastHeader = hdrF; }
+                    var formulas = (StatFormulas)f.GetValue(tuning);
+                    foreach (var sf in typeof(StatFormulas).GetFields(System.Reflection.BindingFlags.Public
+                                                                      | System.Reflection.BindingFlags.Instance))
                     {
-                        f.SetValue(RuntimeTuning.Active, evt.newValue);
-                        OnTuningChanged();
-                    });
-                    row.Add(toggle);
-                }
-                else if (f.FieldType == typeof(int) || f.FieldType == typeof(float))
-                {
-                    var field = new TextField();
-                    field.value = val.ToString();
-                    field.AddToClassList("tuning__input");
-                    field.SetEnabled(editable);
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        if (f.FieldType == typeof(int))
-                        {
-                            if (int.TryParse(evt.newValue, out int iv)) { f.SetValue(RuntimeTuning.Active, iv); OnTuningChanged(); }
-                        }
-                        else
-                        {
-                            if (float.TryParse(evt.newValue, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float fv))
-                            { f.SetValue(RuntimeTuning.Active, fv); OnTuningChanged(); }
-                        }
-                    });
-                    row.Add(field);
-                }
-                else if (f.FieldType == typeof(Color))
-                {
-                    var field = new TextField();
-                    var c = (Color)val;
-                    field.value = $"{(int)(c.r*255)},{(int)(c.g*255)},{(int)(c.b*255)}";
-                    field.AddToClassList("tuning__input");
-                    field.SetEnabled(editable);
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        var parts = evt.newValue.Split(',');
-                        if (parts.Length == 3
-                            && byte.TryParse(parts[0].Trim(), out byte r)
-                            && byte.TryParse(parts[1].Trim(), out byte g)
-                            && byte.TryParse(parts[2].Trim(), out byte b))
-                        {
-                            f.SetValue(RuntimeTuning.Active, new Color(r/255f, g/255f, b/255f, ((Color)val).a));
-                            OnTuningChanged();
-                        }
-                    });
-                    row.Add(field);
-                }
-                else if (f.FieldType == typeof(Vector2))
-                {
-                    var field = new TextField();
-                    var v = (Vector2)val;
-                    field.value = $"{v.x},{v.y}";
-                    field.AddToClassList("tuning__input");
-                    field.SetEnabled(editable);
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        var parts = evt.newValue.Split(',');
-                        if (parts.Length == 2
-                            && float.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float x)
-                            && float.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float y))
-                        {
-                            f.SetValue(RuntimeTuning.Active, new Vector2(x, y));
-                            OnTuningChanged();
-                        }
-                    });
-                    row.Add(field);
-                }
-                else if (f.FieldType == typeof(string))
-                {
-                    var field = new TextField();
-                    field.value = (string)val;
-                    field.AddToClassList("tuning__input");
-                    field.SetEnabled(editable);
-                    field.RegisterValueChangedCallback(evt =>
-                    {
-                        f.SetValue(RuntimeTuning.Active, evt.newValue);
-                        OnTuningChanged();
-                    });
-                    row.Add(field);
-                }
-                else
-                {
-                    // tipo não mapeado: só mostra o valor (read-only)
-                    var valLabel = new Label(val?.ToString() ?? "—");
-                    valLabel.AddToClassList("tuning__value");
-                    row.Add(valLabel);
+                        if (sf.FieldType.IsArray
+                            || (sf.FieldType.IsGenericType && sf.FieldType.GetGenericTypeDefinition() == typeof(List<>)))
+                            continue;
+                        AddTuningRowField(sf, formulas);
+                    }
+                    continue;
                 }
 
-                // Tooltip estilo BattleHUD (hover 400ms, flip/clamp)
-                string tip = PrettyName(f.Name);
-                var tipAttr = (TooltipAttribute)Attribute.GetCustomAttribute(f, typeof(TooltipAttribute));
-                if (tipAttr != null && !string.IsNullOrEmpty(tipAttr.tooltip))
-                    tip += "\n\n" + tipAttr.tooltip;
-                tip += $"\n\nTipo: {f.FieldType.Name}\nValor: {val}";
-                AttachTuningTooltip(row, tip);
+                // Cabeçalho de grupo via [Header] do GameTuning (agrupamento visual da aba Game).
+                var hAttr = (HeaderAttribute)Attribute.GetCustomAttribute(f, typeof(HeaderAttribute));
+                if (hAttr != null && hAttr.header != lastHeader)
+                {
+                    AddTuningHeader(hAttr.header, TuningGroupIcon(hAttr.header));
+                    lastHeader = hAttr.header;
+                }
 
-                _tuningList.Add(row);
+                AddTuningRowField(f, tuning);
             }
 
             _tuningBuilt = true;
             // a aba principal (Sala) continua sendo a visível
             ShowTab("chat");
+        }
+
+        /// <summary>
+        /// Renderiza UM campo de tuning (do GameTuning ou do StatFormulas) como linha editável,
+        /// com tooltip estilo BattleHUD. Host edita; clientes veem read-only.
+        /// </summary>
+        private void AddTuningRowField(System.Reflection.FieldInfo f, object target)
+        {
+            if (f == null || target == null || _tuningList == null) return;
+            bool editable = RuntimeMultiplayerSession.IsHost;
+            var row = new VisualElement(); row.AddToClassList("tuning__row");
+            var label = new Label(PrettyName(f.Name)); label.AddToClassList("tuning__label");
+            row.Add(label);
+            object val = f.GetValue(target);
+
+            if (f.FieldType == typeof(bool))
+            {
+                var toggle = new Toggle(); toggle.value = (bool)val; toggle.SetEnabled(editable);
+                toggle.RegisterValueChangedCallback(evt => { f.SetValue(target, evt.newValue); OnTuningChanged(); });
+                row.Add(toggle);
+            }
+            else if (f.FieldType == typeof(int) || f.FieldType == typeof(float))
+            {
+                var field = new TextField(); field.value = val.ToString(); field.AddToClassList("tuning__input"); field.SetEnabled(editable);
+                field.RegisterValueChangedCallback(evt =>
+                {
+                    if (f.FieldType == typeof(int))
+                    { if (int.TryParse(evt.newValue, out int iv)) { f.SetValue(target, iv); OnTuningChanged(); } }
+                    else
+                    {
+                        if (float.TryParse(evt.newValue, System.Globalization.NumberStyles.Float,
+                                          System.Globalization.CultureInfo.InvariantCulture, out float fv))
+                        { f.SetValue(target, fv); OnTuningChanged(); }
+                    }
+                });
+                row.Add(field);
+            }
+            else if (f.FieldType == typeof(Color))
+            {
+                var field = new TextField(); var c = (Color)val;
+                field.value = $"{(int)(c.r*255)},{(int)(c.g*255)},{(int)(c.b*255)}";
+                field.AddToClassList("tuning__input"); field.SetEnabled(editable);
+                field.RegisterValueChangedCallback(evt =>
+                {
+                    var parts = evt.newValue.Split(',');
+                    if (parts.Length == 3 && byte.TryParse(parts[0].Trim(), out byte r)
+                        && byte.TryParse(parts[1].Trim(), out byte g) && byte.TryParse(parts[2].Trim(), out byte b))
+                    { f.SetValue(target, new Color(r/255f, g/255f, b/255f, ((Color)val).a)); OnTuningChanged(); }
+                });
+                row.Add(field);
+            }
+            else if (f.FieldType == typeof(Vector2))
+            {
+                var field = new TextField(); var v = (Vector2)val;
+                field.value = $"{v.x},{v.y}";
+                field.AddToClassList("tuning__input"); field.SetEnabled(editable);
+                field.RegisterValueChangedCallback(evt =>
+                {
+                    var parts = evt.newValue.Split(',');
+                    if (parts.Length == 2
+                        && float.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float x)
+                        && float.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float y))
+                    { f.SetValue(target, new Vector2(x, y)); OnTuningChanged(); }
+                });
+                row.Add(field);
+            }
+            else if (f.FieldType == typeof(string))
+            {
+                var field = new TextField(); field.value = (string)val; field.AddToClassList("tuning__input"); field.SetEnabled(editable);
+                field.RegisterValueChangedCallback(evt => { f.SetValue(target, evt.newValue); OnTuningChanged(); });
+                row.Add(field);
+            }
+            else
+            {
+                // tipo nao mapeado: mostra so o valor (read-only)
+                var valLabel = new Label(val?.ToString() ?? "—"); valLabel.AddToClassList("tuning__value");
+                row.Add(valLabel);
+            }
+
+            string tip = PrettyName(f.Name);
+            var tipAttr = (TooltipAttribute)Attribute.GetCustomAttribute(f, typeof(TooltipAttribute));
+            if (tipAttr != null && !string.IsNullOrEmpty(tipAttr.tooltip)) tip += "\n\n" + tipAttr.tooltip;
+            tip += $"\n\nTipo: {f.FieldType.Name}\nValor: {val}";
+            AttachTuningTooltip(row, tip);
+            _tuningList.Add(row);
+        }
+
+        /// <summary>Cabeçalho de grupo da aba Game com ícone: separa as seções do tuning visualmente.</summary>
+        private void AddTuningHeader(string title, string iconSprite)
+        {
+            if (_tuningList == null || string.IsNullOrEmpty(title)) return;
+            var hdr = new VisualElement(); hdr.AddToClassList("tuning__header");
+            var icon = new Image(); icon.AddToClassList("tuning__hdr-icon");
+            var sp = BdragonIcon(iconSprite);
+            if (sp != null) icon.style.backgroundImage = new StyleBackground(sp);
+            hdr.Add(icon);
+            var lbl = new Label(title); lbl.AddToClassList("tuning__hdr-label");
+            hdr.Add(lbl);
+            _tuningList.Add(hdr);
+        }
+
+        /// <summary>Ícone BDragon por título de grupo (fallback: ataque).</summary>
+        private static string TuningGroupIcon(string header)
+        {
+            if (string.IsNullOrEmpty(header)) return "sfx_attack";
+            string h = header.ToLowerInvariant();
+            if (h.Contains("estamin") || h.Contains("stamina")) return "sfx_spell_pick";
+            if (h.Contains("mana")) return "sfx_spell_magic";
+            if (h.Contains("mag") || h.Contains("conjur")) return "sfx_spell_fire";
+            if (h.Contains("def") || h.Contains("rea") || h.Contains("postur")) return "defender";
+            if (h.Contains("camera") || h.Contains("view") || h.Contains("visual")) return "sfx_spell_air";
+            if (h.Contains("grid") || h.Contains("cenario") || h.Contains("mapa")) return "sfx_spell_earth";
+            if (h.Contains("hud") || h.Contains("tema") || h.Contains("label")) return "sfx_spell_water";
+            return "sfx_attack";
         }
 
         private static string PrettyName(string name)

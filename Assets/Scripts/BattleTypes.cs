@@ -28,8 +28,10 @@ namespace PangeaSkirmish
         public float dmgPerINT  = 1f;
         [Tooltip("Legado (antes do dano por tile). O dano agora é dano por tile × (1 + atributo × dmgPctPerAttr).")]
         public float dmgPerDEXRanged = 3f;
-        [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) ou DEX (distância) aumenta o dano por tile nesta fração.")]
+        [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) aumenta o dano por tile nesta fração.")]
         public float dmgPctPerAttr = 0.06f;
+        [Tooltip("GDD-020: DEX (arma de longo alcance) usa esta fração por ponto. Menor que o STR p/ ranged não estourar (balance 2026-11-14).")]
+        public float dexDmgPctPerAttr = 0.04f;
 
         [Header("Iniciativa")]
         public float iniPerAGI = 1f;
@@ -123,7 +125,9 @@ namespace PangeaSkirmish
             get
             {
                 float attr = strScalesDamage ? STR : dexScalesDamage ? DEX : 0f;
-                return (WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) * (1f + Mathf.Max(0f, attr) * F.dmgPctPerAttr);
+                // DEX (ranged) usa seu próprio multiplicador; STR (melee) usa dmgPctPerAttr (GDD-020 §7, balance 2026-11-14).
+                float pct = strScalesDamage ? F.dmgPctPerAttr : F.dexDmgPctPerAttr;
+                return (WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) * (1f + Mathf.Max(0f, attr) * pct);
             }
         }
         /// <summary>Tiles que a forma da arma pega num alvo 3×3 quando centralizada nele (clique na unidade).</summary>
