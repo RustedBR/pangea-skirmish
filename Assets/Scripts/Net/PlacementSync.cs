@@ -105,7 +105,9 @@ namespace PangeaSkirmish
 
             ShowPlacementZone();
             _hud?.SetWaitingText(_myZoneHighlights.Count > 0
-                ? "Clique numa célula destacada para posicionar seu personagem"
+                ? (PointerInput.IsTouch || MobileHUD.Active
+                    ? "Toque numa célula destacada para ver onde fica; toque de novo no mesmo lugar para posicionar"
+                    : "Clique numa célula destacada para posicionar seu personagem")
                 : "ERRO: sem zona de posicionamento (veja o console)");
             Debug.Log($"[PlacementSync] OnGridReady: LocalClientId={LocalId}, grid {_grid.width}x{_grid.height}, zona local = {_myZoneHighlights.Count} celulas");
 

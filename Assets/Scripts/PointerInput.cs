@@ -12,11 +12,18 @@ namespace PangeaSkirmish
     public static class PointerInput
     {
         /// <summary>Raio (px de tela) em que o 2º toque conta como "mesmo ponto".</summary>
-        public const float ConfirmRadius = 40f;
+        public const float ConfirmRadiusBase = 40f;
+        /// <summary>Raio do 2º toque, escalado pela tela: celular tem resolução real alta (2026-11-14).</summary>
+        public static float ConfirmRadius => Mathf.Max(ConfirmRadiusBase, ScreenScale() * 0.06f);
         /// <summary>Tempo máximo entre o 1º e o 2º toque.</summary>
         public const float ConfirmWindow = 3f;
         /// <summary>Movimento a partir do qual um toque vira arrasto (px).</summary>
-        public const float DragThreshold = 14f;
+        public const float DragThresholdBase = 14f;
+        /// <summary>Quanto o dedo anda até virar arrasto. Fixo em 14 px, no celular (~2400 px) qualquer tremida virava arrasto.</summary>
+        public static float DragThreshold => Mathf.Max(DragThresholdBase, ScreenScale() * 0.025f);
+
+        /// <summary>Menor lado da tela em px (base das tolerâncias de toque).</summary>
+        private static float ScreenScale() => Mathf.Max(1f, Mathf.Min(Screen.width, Screen.height));
 
         private static int _frame = -1;
         private static Vector2 _pos;

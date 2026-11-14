@@ -188,6 +188,9 @@ namespace PangeaSkirmish
 
             var transport = go.AddComponent<UnityTransport>();
             transport.UseWebSockets = true;
+            // Celular (2026-11-14): o Chrome do Android pausa a aba num print ou na barra de notificações;
+            // 30 s sem sinal derrubavam a partida. 60 s cobre essas pausas curtas.
+            transport.DisconnectTimeoutMS = 60000;
 
             // NGO 2.x: um NetworkManager criado por AddComponent em runtime NÃO instancia o
             // NetworkConfig (é campo serializado, só preenchido pelo Inspector) — criar na mão.
