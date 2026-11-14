@@ -126,7 +126,7 @@ namespace PangeaSkirmish.UI
         public static string ProgressText(CharacterPreset c) =>
             c == null ? "" :
             $"Nível {PlayerProfile.Level(c)} · XP {c.xp}/{PlayerProfile.XpToNext(PlayerProfile.Level(c))} · Moedas {PlayerProfile.Gold}" +
-            (PlayerProfile.Points(c) < PlayerProfile.BudgetFor(c) ? $"\n<color=#ffd76a>{PlayerProfile.BudgetFor(c) - PlayerProfile.Points(c)} pontos para distribuir (Editar)</color>" : "");
+            (PlayerProfile.Points(c) < PlayerProfile.BudgetFor(c) ? $"\n<color=#96600f>{PlayerProfile.BudgetFor(c) - PlayerProfile.Points(c)} pontos para distribuir (Editar)</color>" : "");
 
         private void RefreshState()
         {

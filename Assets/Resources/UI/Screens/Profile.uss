@@ -1,12 +1,12 @@
 /* Perfil do jogador: nome + personagens salvos (visual base em PangeaTheme.uss). */
 .pf-root { flex-grow: 1; align-items: center; justify-content: center; }
 .pf-panel { width: 820px; max-width: 96%; max-height: 96%; flex-direction: column; align-items: stretch; }
-.pf-notice { color: rgb(255, 204, 85); font-size: 13px; -unity-text-align: middle-center; white-space: normal; min-height: 18px; margin-bottom: 6px; }
+.pf-notice { color: var(--pg-gold, rgb(255, 204, 85)); font-size: 13px; -unity-text-align: middle-center; white-space: normal; min-height: 18px; margin-bottom: 6px; }
 .pf-body { flex-direction: row; flex-grow: 1; flex-shrink: 1; min-height: 200px; }
 .pf-left { flex-grow: 1; flex-basis: 0; margin-right: 14px; min-width: 0; }
 .pf-right { width: 300px; flex-shrink: 0; align-items: stretch; }
 .pf-name { margin: 0; }
-.pf-hint { color: rgb(159, 176, 208); font-size: 11px; margin-top: 3px; }
+.pf-hint { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 11px; margin-top: 3px; }
 .pf-section-gap { margin-top: 12px; }
 .pf-list { flex-grow: 1; flex-shrink: 1; min-height: 110px; }
 .pf-list-buttons { flex-direction: row; margin-top: 6px; }
@@ -14,32 +14,32 @@
 .pf-row {
     flex-direction: row; align-items: center;
     padding: 6px 8px; margin-bottom: 4px;
-    background-color: rgb(26, 41, 87);
+    background-color: var(--pg-inset, rgb(26, 41, 87));
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: rgb(42, 58, 106); border-right-color: rgb(42, 58, 106);
-    border-top-color: rgb(42, 58, 106); border-bottom-color: rgb(42, 58, 106);
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106)); border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-color: var(--pg-panel-border, rgb(42, 58, 106)); border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
     border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
 }
-.pf-row:hover { border-left-color: rgb(106, 169, 255); border-right-color: rgb(106, 169, 255); border-top-color: rgb(106, 169, 255); border-bottom-color: rgb(106, 169, 255); }
+.pf-row:hover { border-left-color: var(--pg-accent, rgb(106, 169, 255)); border-right-color: var(--pg-accent, rgb(106, 169, 255)); border-top-color: var(--pg-accent, rgb(106, 169, 255)); border-bottom-color: var(--pg-accent, rgb(106, 169, 255)); }
 .pf-row--selected {
-    background-color: rgb(41, 61, 117);
-    border-left-color: rgb(189, 217, 255); border-right-color: rgb(189, 217, 255);
-    border-top-color: rgb(189, 217, 255); border-bottom-color: rgb(189, 217, 255);
+    background-color: rgba(46, 92, 170, 0.22);
+    border-left-color: var(--pg-panel-highlight, rgb(189, 217, 255)); border-right-color: var(--pg-panel-highlight, rgb(189, 217, 255));
+    border-top-color: var(--pg-panel-highlight, rgb(189, 217, 255)); border-bottom-color: var(--pg-panel-highlight, rgb(189, 217, 255));
 }
 .pf-row-text { flex-grow: 1; flex-shrink: 1; min-width: 0; }
-.pf-row-name { color: rgb(238, 242, 255); font-size: 14px; -unity-font-style: bold; }
-.pf-row-sub { color: rgb(159, 176, 208); font-size: 11px; }
-.pf-row-tag { color: rgb(90, 209, 138); font-size: 11px; -unity-font-style: bold; flex-shrink: 0; margin-left: 8px; }
-.pf-empty { color: rgb(159, 176, 208); font-size: 12px; white-space: normal; -unity-text-align: middle-center; padding: 14px; }
+.pf-row-name { color: var(--pg-text, rgb(238, 242, 255)); font-size: 14px; -unity-font-style: bold; }
+.pf-row-sub { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 11px; }
+.pf-row-tag { color: var(--pg-ok, rgb(90, 209, 138)); font-size: 11px; -unity-font-style: bold; flex-shrink: 0; margin-left: 8px; }
+.pf-empty { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 12px; white-space: normal; -unity-text-align: middle-center; padding: 14px; }
 .pf-preview {
     height: 230px; align-self: center; width: 230px;
     background-color: rgb(10, 18, 41);
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: rgb(120, 160, 220); border-right-color: rgb(120, 160, 220);
-    border-top-color: rgb(120, 160, 220); border-bottom-color: rgb(120, 160, 220);
+    border-left-color: var(--pg-panel-highlight, rgb(120, 160, 220)); border-right-color: var(--pg-panel-highlight, rgb(120, 160, 220));
+    border-top-color: var(--pg-panel-highlight, rgb(120, 160, 220)); border-bottom-color: var(--pg-panel-highlight, rgb(120, 160, 220));
     border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;
 }
-.pf-sel-name { color: rgb(238, 242, 255); font-size: 16px; -unity-font-style: bold; -unity-text-align: middle-center; margin-top: 8px; }
-.pf-sel-info { color: rgb(205, 217, 235); font-size: 12px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
+.pf-sel-name { color: var(--pg-text, rgb(238, 242, 255)); font-size: 16px; -unity-font-style: bold; -unity-text-align: middle-center; margin-top: 8px; }
+.pf-sel-info { color: var(--pg-text-dim, rgb(205, 217, 235)); font-size: 12px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
 .pf-footer { flex-direction: row; justify-content: center; margin-top: 12px; flex-shrink: 0; }
 .pf-footer-btn { min-width: 150px; margin-left: 8px; margin-right: 8px; }

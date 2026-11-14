@@ -386,7 +386,7 @@ namespace PangeaSkirmish
             HookUiPointerDown();
             if (!PointerInput.Available) return false;
             Vector2 screen = PointerInput.Position;
-            Vector2 local = RuntimePanelUtils.ScreenToPanel(Root.panel, screen);
+            Vector2 local = UIHelper.ScreenToPanel(Root.panel, screen);
             // O menu de bloco fica ACIMA da barra, fora da área dela: o Pick não o enxerga.
             if (_incPopup != null && _incPopup.worldBound.Contains(local)) return true;
             // O mesmo toque que a HUD consumiu não pode vazar para o mapa (o menu some ao clicar).

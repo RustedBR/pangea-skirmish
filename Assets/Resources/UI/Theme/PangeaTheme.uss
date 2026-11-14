@@ -299,3 +299,75 @@
 .pg-toggle .unity-toggle__checkmark {
     background-color: var(--pg-accent, rgb(106, 169, 255));
 }
+
+
+/* ============================================================================
+   IDENTIDADE (GDD-025, 2026-11-14): pergaminho e tinta sobre o azul.
+   - HUD de batalha e tudo que flutua sobre o jogo: azul (variáveis de .pg-theme).
+   - Menus e fichas (.pg-panel): pergaminho. O painel redefine as variáveis --pg-*,
+     então tudo dentro dele (texto, cartões, campos) muda de pele sem regra por tela.
+   Texturas geradas por scripts/gen_ui.py.
+   ============================================================================ */
+.pg-panel {
+    /* superfícies */
+    --pg-panel-bg: rgb(238, 225, 192);
+    --pg-panel-bg-2: rgb(34, 48, 96);          /* botão: selo de tinta azul */
+    --pg-chip-bg: rgb(50, 70, 132);            /* botão em hover / faixa de seção */
+    --pg-panel-border: rgb(150, 124, 88);      /* filete sépia */
+    --pg-panel-highlight: rgb(58, 52, 70);     /* contorno a tinta */
+    --pg-inset: rgba(160, 128, 78, 0.18);
+    /* tinta */
+    --pg-text: rgb(36, 40, 70);
+    --pg-text-dim: rgb(98, 96, 112);
+    --pg-on-ink: rgb(244, 234, 208);           /* texto sobre botão/faixa azul */
+    /* TODO(human): escolha os acentos do pergaminho (ver pedido no chat). */
+    --pg-accent: rgb(46, 92, 170);
+    --pg-gold: rgb(150, 96, 16);
+    --pg-danger: rgb(168, 44, 44);
+    --pg-ok: rgb(34, 116, 70);
+
+    background-color: rgba(0, 0, 0, 0);
+    background-image: resource('UI/Theme/paper');
+    -unity-slice-left: 24; -unity-slice-right: 24; -unity-slice-top: 24; -unity-slice-bottom: 24;
+    border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;
+    padding: 18px;
+}
+
+/* Faixa de seção: fita azul com letra creme (igual ao título das janelas da HUD). */
+.pg-section, .pg-panel .pg-section {
+    background-color: rgb(34, 48, 96);
+    color: rgb(244, 234, 208);
+    letter-spacing: 1px;
+}
+
+/* Cartões, listas e campos: rebaixo no pergaminho. */
+.pg-panel .pg-card, .pg-panel .pg-list {
+    background-color: rgba(0, 0, 0, 0);
+    background-image: resource('UI/Theme/paper_inset');
+    -unity-slice-left: 10; -unity-slice-right: 10; -unity-slice-top: 10; -unity-slice-bottom: 10;
+    border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;
+}
+.pg-panel .pg-input, .pg-panel .pg-dropdown,
+.pg-panel .unity-base-text-field__input, .pg-panel .unity-base-popup-field__input {
+    background-color: rgba(255, 250, 235, 0.55);
+    color: var(--pg-text);
+    border-left-color: var(--pg-panel-border); border-right-color: var(--pg-panel-border);
+    border-top-color: var(--pg-panel-border); border-bottom-color: var(--pg-panel-border);
+}
+
+/* Botões no pergaminho: selo azul, letra creme. */
+.pg-panel .pg-button { color: var(--pg-on-ink); }
+.pg-panel .pg-button:disabled { opacity: 0.45; }
+.pg-panel .pg-button--primary {
+    background-color: var(--pg-accent); color: var(--pg-on-ink);
+    border-left-color: var(--pg-panel-highlight); border-right-color: var(--pg-panel-highlight);
+    border-top-color: var(--pg-panel-highlight); border-bottom-color: var(--pg-panel-highlight);
+}
+.pg-panel .pg-button--primary:hover { background-color: rgb(66, 116, 200); color: rgb(255, 250, 235); }
+.pg-panel .pg-button--danger {
+    background-color: rgb(120, 34, 38); color: var(--pg-on-ink);
+    border-left-color: rgb(70, 20, 24); border-right-color: rgb(70, 20, 24);
+    border-top-color: rgb(70, 20, 24); border-bottom-color: rgb(70, 20, 24);
+}
+.pg-panel .pg-button--danger:hover { background-color: rgb(160, 46, 50); }
+.pg-panel .pg-toggle { color: var(--pg-text); }

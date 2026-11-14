@@ -47,6 +47,16 @@ namespace PangeaSkirmish.UI
             return false;
         }
 
+        /// <summary>
+        /// Posição de tela (pixels, origem embaixo à esquerda, como o Input System entrega) → posição no
+        /// painel da UI Toolkit (unidades do painel, origem em cima à esquerda). Único ponto de conversão:
+        /// passar pixels crus para Pick/worldBound erra a escala no celular e espelha o Y. (2026-11-14)
+        /// </summary>
+        public static Vector2 ScreenToPanel(IPanel panel, Vector2 screenPos)
+        {
+            return RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPos.x, Screen.height - screenPos.y));
+        }
+
         public static bool IsPositionOverClickableUI(Vector2 screenPos)
         {
             var docs = UnityEngine.Object.FindObjectsOfType<UIDocument>();
@@ -55,7 +65,7 @@ namespace PangeaSkirmish.UI
                 if (doc == null || !doc.enabled || doc.rootVisualElement == null) continue;
                 var panel = doc.rootVisualElement.panel;
                 if (panel == null) continue;
-                var ele = panel.Pick(screenPos);
+                var ele = panel.Pick(ScreenToPanel(panel, screenPos));
                 if (ele == null) continue;
                 if (ele is Button || ele is Toggle) return true;
                 // classes de botão do tema (pg-button, bh-menu-btn, etc.)
