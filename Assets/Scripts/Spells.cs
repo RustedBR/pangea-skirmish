@@ -134,11 +134,11 @@ namespace PangeaSkirmish
         private static readonly SpellDef[] _defaults =
         {
             // ---- Física (GDD-019 §2, GDD-020 §6): metade Mana, metade Stamina; 1 tick de preparo ----
-            P("Fury",      "Fúria",         Attr.STR, 3, 1, SpellEffect.PrepFury,      mult: 2f,
+            P("Fury",      "Fúria",         Attr.STR, 2, 1, SpellEffect.PrepFury,      mult: 2.5f,
               desc: "O próximo ataque causa dano ×{mult} em cada tile que pegar. Não soma com Golpe poderoso: vale o maior."),
-            P("Leap",      "Salto",         Attr.AGI, 2, 1, SpellEffect.Leap,          mult: 3f, range: -1,
+            P("Leap",      "Salto",         Attr.AGI, 3, 1, SpellEffect.Leap,          mult: 2f, range: -1,
               desc: "Salta até {reach} células por cima de obstáculos e ameaças. O salto não provoca oportunidade (começar a conjurar no alcance de alguém provoca)."),
-            P("StoneSkin", "Pele de pedra", Attr.VIT, 3, 1, SpellEffect.PrepStoneSkin, mult: 3f,
+            P("StoneSkin", "Pele de pedra", Attr.VIT, 2, 1, SpellEffect.PrepStoneSkin, mult: 5f,
               desc: "Por {skin} ticks, a defesa da VIT conta ×{mult} contra dano físico (VIT 5 → −{skinEx} por golpe)."),
             P("Curve",     "Curva",         Attr.AGI, 2, 1, SpellEffect.PrepCurve,
               desc: "O seu próximo ataque à distância (arma ou magia, inclusive de área) faz curva: segue o alvo se ele se mover ou esquivar, e contorna Muralha, Tempestade de areia e quem estiver no caminho."),

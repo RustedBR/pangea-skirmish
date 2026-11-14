@@ -89,7 +89,7 @@ public class ReactionsTest
     [Test]
     public void ReactionCosts_PerKind()
     {
-        Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.Dodge));
+        Assert.AreEqual(2, Unit.ReactionCost(ReactionKind.Dodge), "esquivar ficou mais cara que bloquear (2026-11-14)");
         Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.Block));
         Assert.AreEqual(3, Unit.ReactionCost(ReactionKind.CounterAttack));
         Assert.AreEqual(2, Unit.ReactionCost(ReactionKind.Intercept));

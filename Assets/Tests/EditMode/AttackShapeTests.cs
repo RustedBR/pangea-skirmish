@@ -82,12 +82,13 @@ public class AttackShapeTests
     [Test]
     public void PhysicalSpell_SplitsCost_StaminaRoundsDown()
     {
-        var fury = SpellCatalog.Get("Fury");
-        Assert.AreEqual(3, fury.cost);
-        Assert.AreEqual(1, fury.StaminaPart);
-        Assert.AreEqual(2, fury.ManaPart);
+        // Custo ímpar: a Stamina arredonda para baixo (Salto custa 3 desde o rebalance de 2026-11-14).
         var leap = SpellCatalog.Get("Leap");
-        Assert.AreEqual(1, leap.StaminaPart); Assert.AreEqual(1, leap.ManaPart);
+        Assert.AreEqual(3, leap.cost);
+        Assert.AreEqual(1, leap.StaminaPart);
+        Assert.AreEqual(2, leap.ManaPart);
+        var fury = SpellCatalog.Get("Fury");
+        Assert.AreEqual(1, fury.StaminaPart); Assert.AreEqual(1, fury.ManaPart);
         var ember = SpellCatalog.Get("Ember");
         Assert.AreEqual(0, ember.StaminaPart); Assert.AreEqual(ember.cost, ember.ManaPart);
     }
