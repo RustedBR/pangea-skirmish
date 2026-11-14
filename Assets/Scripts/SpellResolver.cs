@@ -154,7 +154,7 @@ namespace PangeaSkirmish
         {
             var w = WeaponCatalog.Get(u.weaponId);
             float conduit = (w != null && !s.IsPhysical) ? Mathf.Max(0.1f, w.spellPowerMult) : 1f;   // cajados reforçam magia
-            return Mathf.RoundToInt((s.baseAmount * Tuning.Get().spellBaseMult + Pot(u) * s.potFactor) * conduit);
+            return Mathf.RoundToInt((s.baseAmount * Tuning.Get().spellBaseMult + Pot(u) * s.potFactor) * conduit * Tuning.Get().spellValueMult);
         }
 
         /// <summary>
@@ -183,7 +183,23 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Dano por tick (Queimando, Magma) já com o multiplicador do tuning.</summary>
-        public static int TickDamage(SpellDef s) => Mathf.RoundToInt(s.tickDamage * Tuning.Get().spellTickDamageMult);
+        public static int TickDamage(SpellDef s) => Mathf.RoundToInt(s.tickDamage * Tuning.Get().spellTickDamageMult * Tuning.Get().spellValueMult);
+
+        /// <summary>Magia de dano mirada num tile (sem travar numa unidade) = mira livre: ganha o mesmo bônus
+        /// de dano do ataque livre (2026-11-14). Física, cura, zonas e movimento não.</summary>
+        public static bool IsFreeAim(PlannedSpell ps)
+        {
+            var s = ps.Def;
+            return s != null && !s.IsPhysical && ps.TargetUnit == null && s.range > 0
+                && (s.effect == SpellEffect.Damage || s.effect == SpellEffect.Push || s.effect == SpellEffect.CancelMove);
+        }
+
+        /// <summary>Valor da magia já com o bônus de mira livre (o que a resolução usa).</summary>
+        public static int AmountFor(Unit u, PlannedSpell ps)
+        {
+            int a = Amount(u, ps.Def);
+            return IsFreeAim(ps) ? Mathf.RoundToInt(a * Tuning.Get().freeAimDamageMult) : a;
+        }
 
         /// <summary>Raio da área em células da grade (uma unidade ocupa 3).</summary>
         public static int AreaRadius(SpellDef s) => s.area <= 0 ? 0 : Mathf.Max(1, Mathf.RoundToInt(s.area * Tuning.Get().spellAreaMult));
@@ -262,7 +278,7 @@ namespace PangeaSkirmish
             int fp = caster.stats.Footprint;
             var center = AimCenter(caster, ps);
             float potInt = caster.stats.INT;                 // limiares por INT (ex.: Rajada empurra +1 com INT ≥ 8)
-            int amount = Amount(caster, s);
+            int amount = AmountFor(caster, ps);   // + bônus de mira livre (tile, sem trava)
             int radius = AreaRadius(s);
 
             switch (s.effect)

@@ -696,7 +696,12 @@ namespace PangeaSkirmish
                 }
                 if (anySpellFx) yield return new WaitForSeconds(Tuning.Get().spellFxPause);
 
-                movesThisSlot.RemoveAll(m => m.u.moveCancelledThisTick || m.u.IsDead);   // Lasca de pedra / morreu na magia
+                // Ataques também resolvem ANTES das andadas do mesmo tick (2026-11-14), como magias e reações:
+                // ordem do tick = magias → ataques → andadas. Quem ia sair toma o golpe onde estava.
+                if (attacksThisSlot.Count > 0)
+                    yield return ResolveAttackSlot(attacksThisSlot);
+
+                movesThisSlot.RemoveAll(m => m.u.moveCancelledThisTick || m.u.IsDead);   // Lasca de pedra / morreu na magia ou no golpe
                 var beforeAnchor = new Dictionary<Unit, Vector2Int>();
                 if (movesThisSlot.Count > 0)
                 {
@@ -722,8 +727,6 @@ namespace PangeaSkirmish
                     int tiles = burstMoves[u];                    burstMoves.Remove(u);
                 }
 
-                if (attacksThisSlot.Count > 0)
-                    yield return ResolveAttackSlot(attacksThisSlot);
 
 
                 yield return PlayPendingDodges();   // garantia: nenhuma esquiva fica sem andar na tela

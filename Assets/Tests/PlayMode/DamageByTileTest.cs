@@ -219,7 +219,9 @@ public class DamageByTileTest
         var full = Make("Inteiro", Team.Enemy, new Vector2Int(12, 12), "Claws", vit: 15);   // vida para não morrer (VIT não reduz magia)
         var ex = SpellCatalog.Get("Explosion");
         Assert.Greater(ex.area, 0);
-        int amount = SpellResolver.Amount(mage, ex);
+        // Mirada num tile = mira livre: +25% (2026-11-14). AmountFor já soma o bônus.
+        int amount = SpellResolver.AmountFor(mage, new PlannedSpell { SpellId = "Explosion", TargetTile = full.anchor });
+        Assert.Greater(amount, SpellResolver.Amount(mage, ex), "magia de área mirada num tile ganha o bônus de mira livre");
         int hp = full.currentHP;
         // Centro da área no centro da fera (a mira usa o anchor do tile + fp/2).
         SpellResolver.Resolve(mage, new PlannedSpell { SpellId = "Explosion", TargetTile = full.anchor }, _units, _grid, null);
