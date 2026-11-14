@@ -69,6 +69,16 @@ namespace PangeaSkirmish
         /// <summary>Esc ou botão "Voltar" da HUD.</summary>
         public static bool BackThisFrame { get { Tick(); return _back; } }
 
+        /// <summary>Há um 1º toque esperando o 2º (prévia aberta)? Usado pelo botão ✓ do celular.</summary>
+        public static bool HasPendingTap => Time.unscaledTime - _lastTapTime <= ConfirmWindow;
+
+        /// <summary>Botão ✓ (2026-11-14): confirma o 1º toque sem precisar acertar o mesmo ponto de novo.</summary>
+        public static void RequestConfirm() { if (HasPendingTap) _confirmRequested = true; }
+        private static bool _confirmRequested;
+
+        /// <summary>Overlay da HUD de toque (IMGUI): toques em cima dele não contam como toque no mundo.</summary>
+        public static System.Func<Vector2, bool> IsOverOverlay;
+
         /// <summary>Chamado pelo botão "Voltar" da HUD de toque.</summary>
         public static void RequestBack() => _backRequested = true;
 
@@ -92,6 +102,11 @@ namespace PangeaSkirmish
 
             EnsureHooked();
             TickTouch();   // garante uma amostra mesmo sem onAfterUpdate (ex.: testes)
+            if (_confirmRequested)
+            {
+                _confirmRequested = false;
+                if (HasPendingTap) { _accClick = true; _accActive = true; _pos = _lastTapPos; _lastTapTime = -99f; }
+            }
             if (_accActive || _accClick)
             {
                 _available = true;
@@ -168,7 +183,9 @@ namespace PangeaSkirmish
 
             // count == 0 && wasDown → o dedo saiu agora.
             _touchDown = false;
-            if (!_dragging && !_multi)
+            bool overOverlay = (IsOverOverlay != null && IsOverOverlay(_lastUpPos))
+                               || PangeaSkirmish.UI.UIHelper.IsPositionOverClickableUI(_lastUpPos);   // botão da UI não é toque no mundo
+            if (!_dragging && !_multi && !overOverlay)
             {
                 Vector2 pos = _lastUpPos;
                 _pos = pos;

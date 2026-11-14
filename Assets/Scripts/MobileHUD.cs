@@ -17,9 +17,22 @@ namespace PangeaSkirmish
         public static bool Active { get; private set; }
 
         /// <summary>Resolução de referência da UI no celular: menor = UI maior.</summary>
-        private static readonly Vector2Int MobileReference = new Vector2Int(1280, 720);
+        private static readonly Vector2Int MobileReference = new Vector2Int(1120, 630);   // 2026-11-14: UI maior no toque
 
-        private Rect _backRect, _fullRect;
+        private Rect _backRect, _fullRect, _confirmRect;
+
+        private void OnEnable()
+        {
+            // Toques nos botões desta HUD não viram toque no mundo (não trocam a prévia aberta).
+            PointerInput.IsOverOverlay = p =>
+            {
+                var gp = new Vector2(p.x, Screen.height - p.y);
+                return _backRect.Contains(gp) || (!Screen.fullScreen && _fullRect.Contains(gp))
+                    || (PointerInput.HasPendingTap && _confirmRect.Contains(gp));
+            };
+        }
+
+        private void OnDisable() { PointerInput.IsOverOverlay = null; }
         private GUIStyle _btn, _overlay;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -93,7 +106,18 @@ namespace PangeaSkirmish
 
             Vector2 p = PointerInput.Position;
             var gp = new Vector2(p.x, Screen.height - p.y);   // IMGUI tem y para baixo
-            PointerOver = _backRect.Contains(gp) || (!Screen.fullScreen && _fullRect.Contains(gp));
+            // ✓ Confirmar (2026-11-14): aparece enquanto um 1º toque espera o 2º; confirma sem mirar de novo.
+            bool pending = PointerInput.HasPendingTap;
+            float cw = h * 3.2f, ch = h * 1.3f;
+            _confirmRect = new Rect(Screen.width - cw - m, Screen.height * 0.5f - ch * 0.5f, cw, ch);
+            if (pending)
+            {
+                var old = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(0.35f, 0.9f, 0.5f);
+                if (GUI.Button(_confirmRect, "✓ Confirmar", _btn)) PointerInput.RequestConfirm();
+                GUI.backgroundColor = old;
+            }
+            PointerOver = _backRect.Contains(gp) || (!Screen.fullScreen && _fullRect.Contains(gp)) || (pending && _confirmRect.Contains(gp));
         }
     }
 }

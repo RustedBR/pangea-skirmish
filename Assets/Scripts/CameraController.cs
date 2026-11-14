@@ -425,13 +425,18 @@ namespace PangeaSkirmish
 
         // ── Loop ──
 
+        /// <summary>Último instante (unscaled) em que o jogador arrastou ou deu zoom (HUD esconde a inspeção).</summary>
+        public static float LastManualMoveTime = -99f;
+
         private void LateUpdate()
         {
             if (_cam == null) return;
 
             if (_viewRotateCooldown > 0f) _viewRotateCooldown -= Time.deltaTime;
 
-            bool hadManualInput = HandleManualPan() || HandleZoom() || HandleViewRotate();
+            bool moved = HandleManualPan() | HandleZoom();
+            if (moved) LastManualMoveTime = Time.unscaledTime;
+            bool hadManualInput = moved || HandleViewRotate();
 
             // Se houve input manual, ativa modo Manual e reinicia timer
             if (hadManualInput && _mode == CameraMode.Auto)
