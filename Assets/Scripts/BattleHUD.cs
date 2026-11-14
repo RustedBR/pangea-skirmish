@@ -148,7 +148,11 @@ namespace PangeaSkirmish
             hover.style.color = new Color(0.80f, 0.86f, 1f); hover.style.minHeight = 34;
 
             var scroll = new ScrollView(ScrollViewMode.Vertical);
-            scroll.style.maxHeight = Mathf.Max(220f, Screen.height - 180f);
+            // Altura em unidades do PAINEL (a UI é escalada; Screen.height em px estourava o topo). 2026-11-14.
+            float rootH = Root != null ? Root.layout.height : float.NaN, rootW = Root != null ? Root.layout.width : float.NaN;
+            float below = (_ticksBar != null ? _ticksBar.worldBound.height : 0f) + 4f + ActionBarClearance();
+            scroll.style.maxHeight = float.IsNaN(rootH) ? 300f : Mathf.Max(140f, rootH - below - 170f);
+            if (!float.IsNaN(rootW)) { ps.maxWidth = Mathf.Min(900f, rootW - 24f); ps.minWidth = Mathf.Min(700f, rootW - 24f); }
             var cols = new VisualElement(); cols.style.flexDirection = FlexDirection.Row;
             void Group(string title, string resName, int have, System.Func<SpellDef, bool> pick)
             {
@@ -226,6 +230,8 @@ namespace PangeaSkirmish
 
         protected override void Bind()
         {
+            // Celular (2026-11-14): classe para layout de toque (intenções à esquerda, botões maiores).
+            if (MobileHUD.Active) Root?.AddToClassList("bh-mobile");
             var r = Root;
             _phaseText        = r.Q<Label>("phase-text");
             _timerText        = r.Q<Label>("timer-text");
@@ -458,6 +464,10 @@ namespace PangeaSkirmish
         /// </summary>
         private void LateUpdate()
         {
+            // Inspeção some enquanto o jogador move a câmera e volta quando ela para (2026-11-14).
+            if (_inspectPanel != null)
+                _inspectPanel.style.visibility = Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f
+                    ? Visibility.Hidden : Visibility.Visible;
             if (_inspectPanel == null || _inspectedUnit == null || _inspectPanel.resolvedStyle.display != DisplayStyle.Flex) return;
             var cam = Camera.main; var panel = _inspectPanel.panel; var parent = _inspectPanel.parent;
             if (cam == null || panel == null || parent == null) return;

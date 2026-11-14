@@ -329,3 +329,13 @@
 .bh-itoggle { padding: 0 6px 0 4px; height: 20px; }
 .bh-itoggle-icon { width: 10px; height: 10px; margin-right: 3px; flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
 .bh-itoggle-text { font-size: 10px; color: rgb(189, 217, 255); padding: 0; margin: 0; -unity-text-align: middle-left; }
+
+/* CELULAR (2026-11-14): classe .bh-mobile no root quando MobileHUD está ativo.
+   Intenções à esquerda (perto do polegar), botões maiores; histórico vai para a direita. */
+.bh-mobile .bh-intents { left: 12px; right: auto; bottom: 12px; width: 300px; gap: 7px; }
+.bh-mobile .bh-intent-btn { height: 50px; font-size: 18px; }
+.bh-mobile .bh-intents-actions .bh-intent-btn { height: 54px; }
+.bh-mobile .bh-minilog { left: auto; right: 12px; bottom: 12px; }
+.bh-mobile .bh-minilog-content .bh-log-line-text { font-size: 14px; }
+.bh-mobile .bh-mp-waiting-text { font-size: 24px; }
+.bh-mobile .bh-abtn { width: 64px; height: 60px; }

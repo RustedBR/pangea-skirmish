@@ -55,7 +55,7 @@ namespace PangeaSkirmish
         private enum ArmedIntent { None, Charge, HitAndRun, Retreat }
         private ArmedIntent _armed = ArmedIntent.None;
         // ── Modo Livre: cada clique ACRESCENTA um passo (GDD-016 §6) ──
-        private bool _freeMode;
+        private bool _freeMode = true;   // 2026-11-14: o planejamento começa no modo livre
         private int _retargetIdx = -1;      // índice (na sequência) do bloco de andar cujo destino será trocado
         private float _lastEnemyClickTime; private Unit _lastEnemyClicked;
         public bool FreeMode => _freeMode;
@@ -92,6 +92,7 @@ namespace PangeaSkirmish
             if (!_active) return;
 
             _mode = PlanMode.Idle;
+            _hud?.SetFreeModeLabel(_freeMode);   // botão do modo livre mostra o estado (começa ligado)
             _controlled.SetSelected(true);
             foreach (var u in _allUnits) u.SetAttackMarked(false); // limpa marcas de alvo do round anterior
             EnsureCursorGhost();

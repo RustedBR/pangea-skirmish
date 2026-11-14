@@ -86,4 +86,18 @@ public class PointerInputTouchTest : InputTestFixture
         Assert.IsTrue(PointerInput.ClickThisFrame, "2º toque dentro do raio escalado confirma");
         Assert.Greater(PointerInput.ConfirmRadius, PointerInput.ConfirmRadiusBase - 0.01f);
     }
+
+    /// <summary>2026-11-14: o botão ✓ do celular confirma o 1º toque sem precisar acertar o mesmo ponto.</summary>
+    [UnityTest]
+    public IEnumerator ConfirmButton_ClicksAtFirstTap()
+    {
+        PointerInput.RequestConfirm(); yield return null;
+        Assert.IsFalse(PointerInput.ClickThisFrame, "sem 1º toque, o ✓ não faz nada");
+        yield return Tap(new Vector2(420, 260));
+        Assert.IsTrue(PointerInput.HasPendingTap);
+        PointerInput.RequestConfirm(); yield return null;
+        Assert.IsTrue(PointerInput.ClickThisFrame, "✓ vira o clique");
+        Assert.AreEqual(new Vector2(420, 260), PointerInput.Position, "no ponto do 1º toque");
+        Assert.IsFalse(PointerInput.HasPendingTap, "e consome a prévia");
+    }
 }
