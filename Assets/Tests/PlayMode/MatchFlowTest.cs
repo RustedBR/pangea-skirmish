@@ -208,6 +208,16 @@ public class MatchFlowTest
         Assert.Less(mine.currentHP, mine.stats.MaxHP, "descer cura só parte");
         Assert.Greater(mine.currentHP, 1);
 
+        // Descanso separado (2026-11-14): cura, passa o tempo e deixa somar pontos de nível na unidade.
+        mine.currentHP = 1;
+        ps.HostRest(3);
+        yield return WaitFor(() => DayNight.Current == DayNight.Night, 5f, "descanso vira noite");
+        Assert.AreEqual(mine.stats.MaxHP, mine.currentHP, "descanso cura tudo");
+        float str = mine.stats.STR;
+        ps.RestAttrServerRpc(UnitRegistry.GetId(mine), (int)Attr.STR);
+        yield return WaitFor(() => mine.stats.STR > str, 3f, "+1 STR na unidade");
+        Assert.AreEqual(str + 1f, mine.stats.STR, 0.001f);
+
         boot.Shutdown();
         yield return null;
         var empty = SceneManager.CreateScene("RestTestEmpty");

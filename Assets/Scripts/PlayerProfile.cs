@@ -154,10 +154,31 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Grava um personagem: index &lt; 0 cria um novo; senão substitui. Devolve o índice final (−1 se recusado).</summary>
+        /// <summary>Até este nível o personagem é editável à vontade; acima, só ganha pontos (2026-11-14).</summary>
+        public const int FreeEditMaxLevel = 2;
+        public static bool IsLocked(CharacterPreset p) => Level(p) > FreeEditMaxLevel;
+
+        /// <summary>Personagem acima do nível 2: só pode SOMAR pontos; arma, itens, aparência, nome e
+        /// atributos já gastos ficam. Devolve o motivo do bloqueio, ou "" se a troca vale.</summary>
+        public static string WhyEditBlocked(CharacterPreset old, CharacterPreset neu)
+        {
+            if (old == null || neu == null || !IsLocked(old)) return "";
+            if (Level(neu) != Level(old)) return "o nível não muda na edição";
+            if (neu.weaponId != old.weaponId || (neu.offhandId ?? "") != (old.offhandId ?? "") || (neu.headId ?? "") != (old.headId ?? "")
+                || (neu.torsoId ?? "") != (old.torsoId ?? "") || (neu.legsId ?? "") != (old.legsId ?? "")
+                || (neu.modelId ?? "") != (old.modelId ?? "") || neu.presetName != old.presetName)
+                return $"acima do nível {FreeEditMaxLevel} só dá para adicionar pontos";
+            var a = old.stats; var b = neu.stats;
+            if (b.STR < a.STR || b.VIT < a.VIT || b.DEX < a.DEX || b.AGI < a.AGI || b.INT < a.INT || b.WIS < a.WIS)
+                return "pontos já gastos não voltam";
+            return "";
+        }
+
         public static int Put(int index, CharacterPreset preset)
         {
             if (!IsValid(preset)) return -1;
             var d = Data;
+            if (index >= 0 && index < d.characters.Count && WhyEditBlocked(d.characters[index], preset) != "") return -1;
             if (index >= 0 && index < d.characters.Count) d.characters[index] = preset;
             else
             {

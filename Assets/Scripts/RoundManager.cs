@@ -553,6 +553,23 @@ namespace PangeaSkirmish
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
                 var spellsThisSlot  = new List<(Unit u, PlannedSpell sp)>();
                 _provokedThisTick.Clear();
+                // A magia paga Mana/Stamina no tick em que começa (2026-11-14): Concentrar/Respirar antes
+                // dela já contam. Sem recurso na hora (ex.: drenado), a magia falha e sai da fila.
+                foreach (var u in _units)
+                {
+                    if (u.IsDead || u.queue.Count == 0) continue;
+                    var q = u.queue[0];
+                    if (q.Type != ActionType.Spell || q.Elapsed > 0 || q.Paid) continue;
+                    var d = q.Spell.Def;
+                    if (d != null && (u.currentMana < d.ManaPart || u.currentStamina < d.StaminaPart))
+                    {
+                        _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: sem recurso para <b>{d.displayName}</b> (Mana {u.currentMana}/{d.ManaPart}, Stamina {u.currentStamina}/{d.StaminaPart})", u);
+                        u.queue.RemoveAt(0);
+                        continue;
+                    }
+                    if (d != null) { u.currentMana -= d.ManaPart; u.currentStamina -= d.StaminaPart; }
+                    q.Paid = true;
+                }
                 // Conjurar dentro do alcance de um inimigo provoca o golpe de oportunidade (GDD-020 §8).
                 var castStarts = new List<Unit>();
                 foreach (var u in _units)
@@ -966,16 +983,77 @@ namespace PangeaSkirmish
                 $"{head}\n{(ps.Stash.Count == 0 ? "O baú está vazio." : "Toque num item para equipar (troca) ou vender.")}", opts.ToArray());
         }
 
+        // ── Descanso (2026-11-14): cada um soma os pontos de nível na ficha, na unidade e no perfil ──
+        private bool _restedThisLayer;
+
+        /// <summary>Todas as máquinas: o grupo descansou. Abre a ficha DESCANSO de quem joga aqui.</summary>
+        public void OnRested(int layer)
+        {
+            _restedThisLayer = true;
+            _lootView = LootView.Closed;
+            _hud.Log($"<color=#8fd18f>☾ Descanso.</color> Vida e Mana cheias, caídos de pé. Agora é {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current).ToLower()}.");
+            _hud.RefreshUnitInfo();
+            ShowRestMenu();
+        }
+
+        private static float StatOf(UnitStatBlock s, Attr a) => a switch
+        {
+            Attr.STR => s.STR, Attr.VIT => s.VIT, Attr.DEX => s.DEX, Attr.AGI => s.AGI, Attr.INT => s.INT, _ => s.WIS
+        };
+
+        private static void AddStat(UnitStatBlock s, Attr a)
+        {
+            switch (a)
+            {
+                case Attr.STR: s.STR++; break; case Attr.VIT: s.VIT++; break; case Attr.DEX: s.DEX++; break;
+                case Attr.AGI: s.AGI++; break; case Attr.INT: s.INT++; break; default: s.WIS++; break;
+            }
+        }
+
+        private void ShowRestMenu()
+        {
+            var mine = LocalPlayerUnit();
+            var p = PlayerProfile.Selected;
+            var ps = PlacementSync.Instance;
+            if (mine == null || p == null || ps == null) { ShowDescentChoice(); return; }
+            int free = PlayerProfile.BudgetFor(p) - PlayerProfile.Points(p);
+            var opts = new List<(string, System.Action)>();
+            if (free > 0)
+                foreach (Attr a in System.Enum.GetValues(typeof(Attr)))
+                {
+                    var attr = a;
+                    if (StatOf(p.stats, attr) >= CharacterConfig.AttrMax) continue;
+                    opts.Add(($"+1 {attr}  <size=12>(agora {StatOf(p.stats, attr):0})</size>", () =>
+                    {
+                        AddStat(p.stats, attr);       // perfil: o ponto fica no personagem
+                        PlayerProfile.Save();
+                        ps.RestAttrServerRpc(UnitRegistry.GetId(mine), (int)attr);   // unidade: vale já na próxima camada
+                        ShowRestMenu();
+                    }));
+                }
+            opts.Add(("<b>Pronto</b>", () => ShowDescentChoice()));
+            _hud.ShowChoiceTitled("DESCANSO",
+                $"{p.presetName} · nível {PlayerProfile.Level(p)} · XP {p.xp}/{PlayerProfile.XpToNext(PlayerProfile.Level(p))}\n" +
+                (free > 0 ? $"<color=#ffd76a>{free} ponto{(free == 1 ? "" : "s")} para somar</color>" : "Sem pontos novos para somar."),
+                opts.ToArray());
+        }
+
         private void ShowDescentChoice()
         {
             int t = DayNight.Current, next = (t + 1) % 3;
             string text = $"Camada {Layer} vencida — {DayNight.Icon(t)} {DayNight.Name(t)}. Descer para a camada {Layer + 1}?";
             if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null)
-                _hud.ShowChoice(text,
-                    ("Descer  <size=12>(cura 30%)</size>", () => PlacementSync.Instance.HostDescend(Layer + 1)),
-                    ($"Descansar e descer  <size=12>(cura tudo; vira {DayNight.Name(next).ToLower()}{(next == DayNight.Night ? ": feras +30%" : next == DayNight.Dusk ? ": feras +15%" : "")})</size>",
-                        () => PlacementSync.Instance.HostDescend(Layer + 1, rest: true)),
-                    ("Recuar", () => PlacementSync.Instance.HostRetreat(Layer)));
+            {
+                var opts = new List<(string, System.Action)>
+                {
+                    ($"Descer  <size=12>({(_restedThisLayer ? "descansados" : "cura 30%")})</size>", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                };
+                if (!_restedThisLayer)
+                    opts.Add(($"Descansar  <size=12>(cura tudo e somar pontos de nível; vira {DayNight.Name(next).ToLower()}{(next == DayNight.Night ? ": feras +30%" : next == DayNight.Dusk ? ": feras +15%" : "")})</size>",
+                              () => PlacementSync.Instance.HostRest(Layer)));
+                opts.Add(("Recuar", () => PlacementSync.Instance.HostRetreat(Layer)));
+                _hud.ShowChoice(text, opts.ToArray());
+            }
             else
                 _hud.ShowChoice(text + "\nAguardando o anfitrião decidir...");
         }
@@ -986,6 +1064,7 @@ namespace PangeaSkirmish
             Layer = layer;
             _awaitingDescent = false;
             _lootView = LootView.Closed;
+            _restedThisLayer = false;
             _hud.HideReactionMenu();
             _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto. {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current)}.");
             StartCoroutine(StartRound());

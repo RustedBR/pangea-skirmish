@@ -458,6 +458,43 @@ namespace PangeaSkirmish
                 _round.OnLootChanged(u, $"deixou {ItemCatalog.Get(cur)?.displayName} para o grupo");
         }
 
+        // ── Descanso (2026-11-14): cura tudo, passa o tempo e abre a ficha para somar os pontos de nível ──
+        /// <summary>Host: o grupo descansa (uma vez por camada vencida). A descida segue depois, por HostDescend.</summary>
+        public void HostRest(int layer)
+        {
+            if (!IsServer) return;
+            _timeOfDay = (_timeOfDay + 1) % 3;
+            RestClientRpc(layer, _timeOfDay);
+        }
+
+        [ClientRpc]
+        private void RestClientRpc(int layer, int timeOfDay)
+        {
+            DayNight.Set(timeOfDay);
+            foreach (var u in _allUnits)
+                if (u != null && !BeastAI.Controls(u)) u.RestoreForNextLayer(1f, 1f, 1f);
+            if (_round != null) _round.OnRested(layer);
+        }
+
+        /// <summary>Jogador soma 1 ponto de nível num atributo durante o descanso; todos aplicam.
+        /// Os pontos vêm do perfil de quem pede (a máquina dele já conferiu que sobram).</summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void RestAttrServerRpc(uint unitId, int attr, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out _) || attr < 0 || attr > 5) return;
+            RestAttrClientRpc(unitId, attr);
+        }
+
+        [ClientRpc]
+        private void RestAttrClientRpc(uint unitId, int attr)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null) return;
+            Equipment.AddAttr(u.stats, (Attr)attr, 1f);
+            u.ReapplyEquipment();
+            if (_round != null) _round.OnLootChanged(u, $"somou +1 {(Attr)attr} no descanso");
+        }
+
         /// <summary>Pontos de atributo médios das unidades de jogador (orçamento das feras).</summary>
         private float GroupAveragePoints()
         {

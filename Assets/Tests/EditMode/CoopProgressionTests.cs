@@ -64,4 +64,20 @@ public class CoopProgressionTests
         Assert.Greater(DayNight.BeastMult(DayNight.Night), DayNight.BeastMult(DayNight.Dusk));
         Assert.Greater(DayNight.BeastMult(DayNight.Dusk), 1f);
     }
+
+    [Test]
+    public void AboveLevel2_OnlyAddsPoints()
+    {
+        var lvl2 = Char(2.5f, 2);
+        var free = PlayerProfile.Clone(lvl2); free.weaponId = "ShortBow"; free.stats.STR -= 0.5f; free.stats.VIT += 0.5f;
+        Assert.AreEqual("", PlayerProfile.WhyEditBlocked(lvl2, free), "nível 2: edição livre");
+
+        var lvl3 = Char(2.5f, 3); lvl3.weaponId = "IronSword"; lvl3.presetName = "Veterano";
+        var add = PlayerProfile.Clone(lvl3); add.stats.STR += 5f;
+        Assert.AreEqual("", PlayerProfile.WhyEditBlocked(lvl3, add), "somar pontos vale");
+        var respec = PlayerProfile.Clone(lvl3); respec.stats.STR -= 1f; respec.stats.VIT += 1f;
+        StringAssert.Contains("não voltam", PlayerProfile.WhyEditBlocked(lvl3, respec));
+        var swap = PlayerProfile.Clone(lvl3); swap.weaponId = "ShortBow";
+        StringAssert.Contains("só dá para adicionar", PlayerProfile.WhyEditBlocked(lvl3, swap));
+    }
 }

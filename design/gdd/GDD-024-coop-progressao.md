@@ -50,6 +50,10 @@ numa sala com todos os pontos gastos.
    tira um item seu para outro pegar; Vender paga a quem vendeu. O host guarda o baú oficial
    e valida cada pedido (`PlacementSync.Loot*ServerRpc`); itens valem durante a descida, como as cartas.
 
-## Fora do escopo
+## Ajustes de 2026-11-14
 
-- Subir de nível no meio da descida (os pontos novos valem na próxima partida).
+- **Descanso separado da descida:** "Descansar" (uma vez por camada vencida) cura tudo, passa o
+  tempo e abre a ficha DESCANSO, onde cada um soma os pontos de nível — na unidade (vale já na
+  próxima camada, sincronizado pelo host) e no personagem do perfil. Depois o host escolhe Descer ou Recuar.
+- **Personagem acima do nível 2 não é mais editado:** só ganha pontos. Arma, itens, aparência, nome
+  e pontos já gastos ficam (`PlayerProfile.WhyEditBlocked`, conferido também ao salvar).
