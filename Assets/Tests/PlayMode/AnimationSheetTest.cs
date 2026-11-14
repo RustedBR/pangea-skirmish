@@ -4,6 +4,7 @@ using NUnit.Framework;
 using PangeaSkirmish;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// Folha de quadros (GDD-025, frente 2): grava docs/anim/&lt;ator&gt;-&lt;animação&gt;.png com 10 quadros
@@ -100,12 +101,26 @@ public class AnimViewerTest
         Assert.IsNotNull(slow, "botão de câmera lenta");
         using (var e = UnityEngine.UIElements.NavigationSubmitEvent.GetPooled()) { e.target = slow; slow.SendEvent(e); }
         yield return null;
-        Assert.AreEqual(0.25f, Time.timeScale, 0.001f, "câmera lenta");
-        StringAssert.Contains("IronSword/attack", viewer.AllNotesText() + PlayerPrefs.GetString("pangea.animnotes.v1", ""));
+        bool slowLit = slow.ClassListContains("pg-button--primary");
+        Debug.Log($"[AnimViewerTest] timeScale={Time.timeScale} destaque025={slowLit}");
+        for (int i = 0; i < 6; i++) yield return null;
+        yield return new WaitForEndOfFrame();
+        var shot = ScreenCapture.CaptureScreenshotAsTexture();
+        File.WriteAllBytes(Path.Combine(Application.dataPath, "..", "docs", "anim-viewer.png"), shot.EncodeToPNG());
+        Object.Destroy(shot);
+        float slowScale = Time.timeScale;
+        string notes = viewer.AllNotesText();
 
+        // Fecha ANTES de conferir: uma falha aqui não pode deixar os outros testes em câmera lenta.
         Object.Destroy(viewer.gameObject);
         yield return null; yield return null;
-        Assert.AreEqual(1f, Time.timeScale, 0.001f, "fechar devolve o tempo normal");
+        float after = Time.timeScale;
+        Time.timeScale = 1f; Time.captureDeltaTime = 0f;
+        Assert.AreEqual(0.25f, slowScale, 0.001f, "câmera lenta");
+        Assert.IsTrue(slowLit, "o botão da velocidade escolhida fica destacado");
+        StringAssert.Contains("IronSword/attack", notes, "a nota fica guardada por ator e animação");
+        StringAssert.Contains("braço sobe rápido demais", notes);
+        Assert.AreEqual(1f, after, 0.001f, "fechar devolve o tempo normal");
         Assert.IsNull(Object.FindFirstObjectByType<AnimationStage>(), "palco destruído junto");
         if (backup.Length > 0) PlayerPrefs.SetString("pangea.animnotes.v1", backup); else PlayerPrefs.DeleteKey("pangea.animnotes.v1");
     }

@@ -84,6 +84,10 @@ namespace PangeaSkirmish.UI
                 b.AddToClassList("pg-button"); b.style.width = 130;
                 views.Add(b); _viewBtns.Add(b);
             }
+            // Sem transição de cor nos botões desta tela: ela segue o tempo do jogo, que aqui fica
+            // lento ou parado, e o destaque do botão escolhido ficaria atrasado ou congelado.
+            var instant = new StyleList<TimeValue>(new List<TimeValue> { new TimeValue(0f) });
+            r.Query<Button>().ForEach(b => b.style.transitionDuration = instant);
             SelectActor(0);
         }
 
@@ -181,6 +185,7 @@ namespace PangeaSkirmish.UI
         /// <summary>Todas as notas num texto só (o que vai para o Claude).</summary>
         public string AllNotesText()
         {
+            SaveNote();   // inclui o que está no campo agora, mesmo sem ter saído dele
             var sb = new StringBuilder("# Notas de animação\n\n");
             if (_book.notes.Count == 0) sb.Append("(sem notas)\n");
             foreach (var n in _book.notes) sb.Append("## ").Append(n.key).Append('\n').Append(n.text).Append("\n\n");
