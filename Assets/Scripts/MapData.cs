@@ -79,6 +79,9 @@ namespace PangeaSkirmish
         /// <summary>Corpo 3D (CharacterLookCatalog). Vazio = automático pela arma. Presets antigos não têm e caem no automático.</summary>
         public string modelId    = "";
         public UnitStatBlock stats = new UnitStatBlock();
+        // Progressão (GDD-024). 0 = sem nível gravado (preset antigo): o perfil migra ao carregar.
+        public int level = 0;
+        public int xp = 0;
     }
 
     // Personagem selecionado no menu principal para usar na batalha default.

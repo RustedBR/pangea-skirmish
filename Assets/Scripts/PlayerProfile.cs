@@ -10,6 +10,8 @@ namespace PangeaSkirmish
         public string playerName = "";
         public List<CharacterPreset> characters = new List<CharacterPreset>();
         public int selected = 0;
+        /// <summary>Dinheiro do jogador (GDD-024): feras abatidas e itens vendidos; a loja troca por XP.</summary>
+        public int gold = 0;
     }
 
     /// <summary>
@@ -20,7 +22,49 @@ namespace PangeaSkirmish
     /// </summary>
     public static class PlayerProfile
     {
-        public const int AttributeBudget = 30;
+        /// <summary>Pontos de um personagem novo (GDD-024: eram 30). Cada nível soma PointsPerLevel.</summary>
+        public const int AttributeBudget = 15;
+        public const int PointsPerLevel = 5;
+        /// <summary>XP para passar do nível N: XpPerLevel × N (linear; recompensas crescem com a camada).</summary>
+        public const int XpPerLevel = 20;
+        /// <summary>Loja: moedas por 1 de XP.</summary>
+        public const int GoldPerXp = 2;
+
+        public static int Level(CharacterPreset p) => p == null ? 1 : Mathf.Max(1, p.level);
+        /// <summary>Pontos que este personagem tem para distribuir no nível dele.</summary>
+        public static int BudgetFor(CharacterPreset p) => AttributeBudget + PointsPerLevel * (Level(p) - 1);
+        public static int XpToNext(int level) => XpPerLevel * Mathf.Max(1, level);
+
+        /// <summary>Soma XP e sobe de nível quantas vezes couber. Devolve quantos níveis subiu.</summary>
+        public static int AddXp(CharacterPreset p, int amount)
+        {
+            if (p == null || amount <= 0) return 0;
+            p.level = Level(p);
+            p.xp += amount;
+            int ups = 0;
+            while (p.xp >= XpToNext(p.level)) { p.xp -= XpToNext(p.level); p.level++; ups++; }
+            return ups;
+        }
+
+        public static int Gold => Data.gold;
+        public static void AddGold(int amount) { Data.gold = Mathf.Max(0, Data.gold + amount); }
+
+        /// <summary>Loja: gasta moedas e dá XP ao personagem (GoldPerXp moedas por 1 XP). Devolve os níveis ganhos.</summary>
+        public static int BuyXp(CharacterPreset p, int xp)
+        {
+            int cost = xp * GoldPerXp;
+            if (p == null || xp <= 0 || Data.gold < cost) return -1;
+            Data.gold -= cost;
+            return AddXp(p, xp);
+        }
+
+        /// <summary>Personagens de antes do GDD-024 (sem nível) entram no nível em que os pontos cabem: 30 → 4.</summary>
+        public static void MigrateLevel(CharacterPreset c)
+        {
+            if (c == null || c.level > 0) return;
+            int pts = Points(c);
+            c.level = Mathf.Max(1, Mathf.CeilToInt((pts - AttributeBudget) / (float)PointsPerLevel) + 1);
+        }
         public const int MaxCharacters = 12;
         public const int MaxNameLength = 20;
         private const string Key = "pangea.profile.v1";
@@ -71,7 +115,7 @@ namespace PangeaSkirmish
             }
             if (_data.characters == null) _data.characters = new List<CharacterPreset>();
             _data.characters.RemoveAll(c => c == null || c.stats == null);
-            foreach (var c in _data.characters) Equipment.EnsureKit(c);   // GDD-021: personagens antigos ganham o kit da arma
+            foreach (var c in _data.characters) { Equipment.EnsureKit(c); MigrateLevel(c); }   // GDD-021: personagens antigos ganham o kit da arma
             Debug.Log($"[Perfil] carregado: nome='{_data.playerName}', {_data.characters.Count} personagem(ns), em uso={_data.selected}");
         }
 
@@ -149,7 +193,9 @@ namespace PangeaSkirmish
         {
             if (p == null || p.stats == null) return "personagem vazio";
             int pts = Points(p);
-            if (pts != AttributeBudget) return $"usa {pts} pontos (o orçamento é {AttributeBudget})";
+            int budget = BudgetFor(p);
+            if (pts < budget) return $"tem {budget - pts} ponto{(budget - pts == 1 ? "" : "s")} para distribuir";
+            if (pts > budget) return $"usa {pts} pontos (o nível {Level(p)} tem {budget})";
             float min = CharacterConfig.AttrMin, max = CharacterConfig.AttrMax;
             var s = p.stats;
             foreach (float v in new[] { s.STR, s.VIT, s.DEX, s.AGI, s.INT, s.WIS })

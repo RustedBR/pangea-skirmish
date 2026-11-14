@@ -300,10 +300,15 @@ namespace PangeaSkirmish
         // =========================================================================
         private const float LayerHealFraction = 0.30f, LayerManaFraction = 0.50f, LayerReviveFraction = 0.25f;
 
-        /// <summary>Host: o grupo decidiu descer. Prepara as unidades, cria as feras e inicia a camada.</summary>
-        public void HostDescend(int layer)
+        /// <summary>Hora do dia na descida (GDD-024): 0 dia, 1 entardecer, 2 noite. Só o host decide; vai no RPC.</summary>
+        private int _timeOfDay;
+
+        /// <summary>Host: o grupo decidiu descer. Prepara as unidades, cria as feras e inicia a camada.
+        /// <paramref name="rest"/>: descansar antes (cura tudo, o tempo avança um passo).</summary>
+        public void HostDescend(int layer, bool rest = false)
         {
             if (!IsServer) return;
+            if (rest) _timeOfDay = (_timeOfDay + 1) % 3;
             // Cartas (GDD-021 §7): quem não escolheu fica com a primeira, antes de preparar a camada.
             foreach (var u in _allUnits)
             {
@@ -311,7 +316,7 @@ namespace PangeaSkirmish
                 uint id = UnitRegistry.GetId(u);
                 if (_cardPicked.Add((layer - 1, id))) ApplyCardClientRpc(layer - 1, id, 0);
             }
-            PrepareLayerClientRpc(layer);
+            PrepareLayerClientRpc(layer, rest, _timeOfDay);
 
             // Ocupação calculada no servidor a partir dos pontos de partida (não depende da
             // ordem de execução do RPC acima).
@@ -353,6 +358,119 @@ namespace PangeaSkirmish
             if (_round != null) _round.OnCardApplied(u, what);
         }
 
+        // ── Baú do grupo (GDD-024 etapa B): o host guarda a cópia oficial e valida; todos aplicam na mesma ordem ──
+        /// <summary>Itens do grupo nesta máquina (espelho; muda só pelos ClientRpc abaixo).</summary>
+        public readonly List<string> Stash = new List<string>();
+        private readonly List<string> _hostStash = new List<string>();
+
+        /// <summary>Host: camada vencida → gera drops + baú e manda para todos.</summary>
+        public void HostGenerateLoot(int layer)
+        {
+            if (!IsServer) return;
+            int killed = 0, players = 0, seed = 0;
+            foreach (var u in _allUnits)
+            {
+                if (u == null) continue;
+                if (BeastAI.Controls(u)) { if (u.IsDead) killed++; seed = unchecked(seed * 17 + (int)UnitRegistry.GetId(u)); }
+                else players++;
+            }
+            var items = Loot.Generate(layer, killed, players, seed);
+            if (layer <= 1) _hostStash.Clear();
+            _hostStash.AddRange(items);
+            LootClientRpc(layer, string.Join(",", items));
+        }
+
+        [ClientRpc]
+        private void LootClientRpc(int layer, string csv)
+        {
+            if (layer <= 1) Stash.Clear();
+            if (!string.IsNullOrEmpty(csv)) Stash.AddRange(csv.Split(','));
+            if (_round != null) _round.OnLootChanged(null, $"baú da camada {layer}: {(string.IsNullOrEmpty(csv) ? 0 : csv.Split(',').Length)} itens");
+        }
+
+        private bool OwnsUnit(uint unitId, ulong sender, out Unit u)
+        {
+            u = UnitRegistry.Get(unitId);
+            return u != null && !BeastAI.Controls(u) && u.ownerId == sender;
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void LootTakeServerRpc(uint unitId, int index, string itemId, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out var u)) return;
+            if (index < 0 || index >= _hostStash.Count || _hostStash[index] != itemId) return;   // alguém pegou antes
+            if (!Loot.CanEquip(u, ItemCatalog.Get(itemId), out _)) return;
+            string old = Loot.Current(u, ItemCatalog.Get(itemId).slot);
+            _hostStash.RemoveAt(index);
+            if (ItemCatalog.Get(old) != null) _hostStash.Add(old);
+            LootTakeClientRpc(unitId, index, itemId);
+        }
+
+        [ClientRpc]
+        private void LootTakeClientRpc(uint unitId, int index, string itemId)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || index < 0 || index >= Stash.Count || Stash[index] != itemId) return;
+            if (Loot.Take(u, Stash, index) && _round != null)
+                _round.OnLootChanged(u, $"pegou {ItemCatalog.Get(itemId)?.displayName}");
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void LootSellServerRpc(uint unitId, int index, string itemId, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out _)) return;
+            if (index < 0 || index >= _hostStash.Count || _hostStash[index] != itemId) return;
+            _hostStash.RemoveAt(index);
+            LootSellClientRpc(unitId, index, itemId);
+        }
+
+        [ClientRpc]
+        private void LootSellClientRpc(uint unitId, int index, string itemId)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (index < 0 || index >= Stash.Count || Stash[index] != itemId) return;
+            int price = Loot.Sell(Stash, index);
+            // As moedas vão para o perfil de quem vendeu (só na máquina dele).
+            if (u != null && u.ownerId == NetworkManager.Singleton.LocalClientId)
+            {
+                PlayerProfile.AddGold(price);
+                PlayerProfile.Save();
+            }
+            if (_round != null) _round.OnLootChanged(u, $"vendeu {ItemCatalog.Get(itemId)?.displayName} por {price} moedas");
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void LootLeaveServerRpc(uint unitId, int slot, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out var u)) return;
+            string cur = Loot.Current(u, (ItemSlot)slot);
+            if (ItemCatalog.Get(cur) == null) return;
+            _hostStash.Add(cur);
+            LootLeaveClientRpc(unitId, slot);
+        }
+
+        [ClientRpc]
+        private void LootLeaveClientRpc(uint unitId, int slot)
+        {
+            var u = UnitRegistry.Get(unitId);
+            string cur = u != null ? Loot.Current(u, (ItemSlot)slot) : "";
+            if (Loot.Leave(u, (ItemSlot)slot, Stash) && _round != null)
+                _round.OnLootChanged(u, $"deixou {ItemCatalog.Get(cur)?.displayName} para o grupo");
+        }
+
+        /// <summary>Pontos de atributo médios das unidades de jogador (orçamento das feras).</summary>
+        private float GroupAveragePoints()
+        {
+            float sum = 0f; int n = 0;
+            foreach (var u in _allUnits)
+            {
+                if (u == null || BeastAI.Controls(u)) continue;
+                var s = u.stats;
+                sum += s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS; n++;
+            }
+            return n > 0 ? sum / n : PlayerProfile.AttributeBudget;
+        }
+
         /// <summary>Host: o grupo decidiu recuar com o que conquistou.</summary>
         public void HostRetreat(int layersCleared)
         {
@@ -361,8 +479,9 @@ namespace PangeaSkirmish
         }
 
         [ClientRpc]
-        private void PrepareLayerClientRpc(int layer)
+        private void PrepareLayerClientRpc(int layer, bool rest, int timeOfDay)
         {
+            DayNight.Set(timeOfDay);
             // Feras mortas saem de cena; jogadores voltam ao ponto de partida com cura parcial.
             for (int i = _allUnits.Count - 1; i >= 0; i--)
             {
@@ -374,6 +493,7 @@ namespace PangeaSkirmish
                     _allUnits.RemoveAt(i);
                     Destroy(u.gameObject);
                 }
+                else if (rest) u.RestoreForNextLayer(1f, 1f, 1f);   // descanso (GDD-024): tudo de volta
                 else u.RestoreForNextLayer(LayerHealFraction, LayerManaFraction, LayerReviveFraction);
             }
             Debug.Log($"[PlacementSync] Coop: preparando camada {layer} ({_allUnits.Count} unidades de jogadores)");
@@ -399,7 +519,8 @@ namespace PangeaSkirmish
         {
             if (!IsServer || _grid == null) return;
             int count = Mathf.Max(1, Mathf.Max(1, playerCount) + layer - 1); // camada 1: uma fera por jogador
-            int budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
+            // GDD-024: as feras acompanham os pontos médios do grupo (níveis) e ficam mais fortes à noite.
+            int budget = Mathf.RoundToInt(GroupAveragePoints() * DayNight.BeastMult(_timeOfDay));
             int w = _grid.width, h = _grid.height;
             int spawned = 0;
 

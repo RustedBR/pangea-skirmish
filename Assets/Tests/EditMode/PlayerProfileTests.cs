@@ -28,6 +28,7 @@ public class PlayerProfileTests
     private static CharacterPreset Make(string name, float str = 5, float wis = 5) => new CharacterPreset
     {
         presetName = name, weaponId = "IronSword", modelId = "Tank",
+        level = 4,   // 30 pontos = nível 4 (GDD-024: 15 + 5 por nível)
         stats = new UnitStatBlock { STR = str, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = wis, Footprint = 3, AttackRange = 4 }
     };
 

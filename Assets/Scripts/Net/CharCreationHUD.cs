@@ -64,7 +64,9 @@ namespace PangeaSkirmish
                 headId = "LeatherHelm", torsoId = "LeatherVest", legsId = "LeatherBoots", offhandId = "Hatchet",
                 stats      = new UnitStatBlock
                 {
-                    STR = each, VIT = each, DEX = each, AGI = each, INT = each, WIS = each,
+                    // 15 pontos (GDD-024): 2 em cada e o resto em STR, VIT e AGI.
+                    STR = each + (_budget - each * 6 > 0 ? 1 : 0), VIT = each + (_budget - each * 6 > 1 ? 1 : 0),
+                    DEX = each, AGI = each + (_budget - each * 6 > 2 ? 1 : 0), INT = each, WIS = each,
                     Footprint = 3,
                     // AttackRange vem da arma (não 0 — senão a unidade nasce sem alcance)
                     AttackRange = WeaponCatalog.Get("Hatchet")?.range ?? 1
@@ -372,6 +374,7 @@ namespace PangeaSkirmish
                 weaponId   = p.weaponId,
                 offhandId  = p.offhandId ?? "", headId = p.headId ?? "", torsoId = p.torsoId ?? "", legsId = p.legsId ?? "",
                 modelId    = p.modelId ?? "",
+                level      = PlayerProfile.Level(p), xp = p.xp,
                 stats      = new UnitStatBlock
                 {
                     STR = p.stats.STR, VIT = p.stats.VIT,
@@ -388,6 +391,7 @@ namespace PangeaSkirmish
             _weaponIdx = 0;
             for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
 
+            _budget = PlayerProfile.BudgetFor(_editing);   // GDD-024: o nível dá mais pontos
             if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
             SyncSprite();
             SyncWeapon();

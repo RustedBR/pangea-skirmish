@@ -11,7 +11,7 @@ namespace PangeaSkirmish
     public class RoomConfigData
     {
         /// <summary>0 = PvP Times, 1 = PvP Todos contra todos, 2 = Coop (ver GameModes).</summary>
-        public int gameMode = 0;
+        public int gameMode = GameModes.Coop;   // GDD-024: Coop é o padrão
         /// <summary>Orçamento de atributos: fixo (PlayerProfile.AttributeBudget), igual em toda sala.</summary>
         public int attributeBudget = PlayerProfile.AttributeBudget;
         public float planningTime = 60f; // GDD-014: tempo de um ponto de decisão
