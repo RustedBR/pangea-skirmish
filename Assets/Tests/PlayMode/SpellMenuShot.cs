@@ -57,7 +57,7 @@ public class SpellMenuShot
         hero.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = 0 });
         hero.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = 1 });
         hero.RecomputeTickBudget();
-        Assert.AreEqual(2 + 1, hero.reservedMana, "Brasa reserva 2 de Mana e a Fúria (custo 2, física) 1 de Mana");
+        Assert.AreEqual(2 + 1, hero.PlannedManaCost(), "Brasa custa 2 de Mana e a Fúria (custo 2, física) 1 de Mana");
         Assert.AreEqual(hero.currentStamina - 1, hero.remainingBAP, "Fúria reserva 1 de Stamina (metade, arredondada para baixo)");
 
         hud.UpdateTimeline(1, units, u => u == hero);

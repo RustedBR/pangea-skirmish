@@ -232,6 +232,8 @@ namespace PangeaSkirmish
         }
 
         public const float PowerMult = 1.5f;
+        /// <summary>Potência nas físicas: multiplicador da Fúria/Pele de pedra ×1,3.</summary>
+        public const float PhysicalPowerMult = 1.3f;
         public const int EffectTicks = 2;
         /// <summary>Células a mais de alcance de conjuração.</summary>
         public const int RangeCells = 2;
@@ -242,9 +244,12 @@ namespace PangeaSkirmish
             if (s == null) return false;
             switch (b)
             {
-                case SpellBoost.Power:  return s.baseAmount > 0f || s.potFactor > 0f || s.tickDamage > 0;
-                case SpellBoost.Effect: return s.durationTicks > 0;
-                case SpellBoost.Range:  return s.range > 0 && s.effect != SpellEffect.Leap;
+                // Físicas (2026-11-14): Potência sobe o multiplicador (Fúria, Pele de pedra), Alcance o Salto,
+                // Efeito a duração da Pele de pedra.
+                case SpellBoost.Power:  return s.baseAmount > 0f || s.potFactor > 0f || s.tickDamage > 0
+                                            || (s.IsPhysical && s.multiplier > 1f && s.effect != SpellEffect.Leap);
+                case SpellBoost.Effect: return s.durationTicks > 0 || s.effect == SpellEffect.PrepStoneSkin;
+                case SpellBoost.Range:  return (s.range > 0 && s.effect != SpellEffect.Leap) || s.effect == SpellEffect.Leap;
                 case SpellBoost.Area:   return s.area > 0;
                 case SpellBoost.Quick:  return s.ticksBase > 1;
             }
@@ -253,9 +258,9 @@ namespace PangeaSkirmish
 
         public static string Label(SpellBoost b) => b switch
         {
-            SpellBoost.Power  => $"Potência: dano/cura ×{PowerMult:0.#} (+1 tick)",
+            SpellBoost.Power  => $"Potência: dano/cura ×{PowerMult:0.#}, físicas ×{PhysicalPowerMult:0.#} (+1 tick)",
             SpellBoost.Effect => $"Efeito: +{EffectTicks} ticks de duração",
-            SpellBoost.Range  => $"Alcance: +{RangeCells} células",
+            SpellBoost.Range  => $"Alcance: +{RangeCells} células (Salto: +1 andada)",
             SpellBoost.Area   => "Área: +1 de raio",
             SpellBoost.Quick  => "Rápida: −1 tick de conjuração",
             _ => ""
@@ -274,11 +279,15 @@ namespace PangeaSkirmish
                 switch (b)
                 {
                     case SpellBoost.Power:
+                        if (s.IsPhysical && s.multiplier > 1f) d.multiplier = s.multiplier * PhysicalPowerMult;
                         d.baseAmount *= PowerMult; d.potFactor *= PowerMult;
                         d.tickDamage = Mathf.RoundToInt(d.tickDamage * PowerMult);
                         d.ticksBase += 1;
                         break;
                     case SpellBoost.Effect: d.durationTicks += EffectTicks; break;
+                    case SpellBoost.Range when s.effect == SpellEffect.Leap:
+                        d.multiplier += 1f;   // Salto: +1 andada de alcance
+                        break;
                     case SpellBoost.Range:
                         // Reach = range × spellRangeMult + ...: soma em unidades de range.
                         d.range += Mathf.Max(1, Mathf.RoundToInt(RangeCells / Mathf.Max(0.01f, Tuning.Get().spellRangeMult)));

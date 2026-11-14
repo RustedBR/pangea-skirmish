@@ -171,7 +171,8 @@ public class SpellCastFlowTest
 
         // Limpar funciona com plano só de magia.
         Add("Ember"); Add("Gust");
-        Assert.AreEqual(4, mage.reservedMana);
+        Assert.AreEqual(4, mage.PlannedManaCost(), "custo das duas magias");
+        Assert.AreEqual(mage.currentMana - mage.ProjectedManaEnd, mage.reservedMana, "reserva = custo menos o que volta durante o plano (2026-11-14)");
         P.GetMethod("OnClearClick", F).Invoke(planner, null);
         Assert.AreEqual(0, mage.actionSequence.Count, "Limpar funciona com plano só de magia");
         Assert.AreEqual(0, mage.plannedSpells.Count);

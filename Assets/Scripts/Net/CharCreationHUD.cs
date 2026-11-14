@@ -168,10 +168,13 @@ namespace PangeaSkirmish
         // =========================================================================
         // Lógica de atributos
         // =========================================================================
+        /// <summary>Personagem travado (nível &gt; 2): o mínimo de cada atributo é o que já tinha. Null = livre.</summary>
+        private float[] _floor;
+
         private void StepAttr(int idx, float delta)
         {
             float[] vals = GetAttrArray();
-            float min = CharacterConfig.AttrMin;
+            float min = _floor != null ? Mathf.Max(CharacterConfig.AttrMin, _floor[idx]) : CharacterConfig.AttrMin;
             float max = CharacterConfig.AttrMax;
 
             float newVal = Mathf.Clamp(vals[idx] + delta, min, max);
@@ -362,6 +365,18 @@ namespace PangeaSkirmish
             ApplyPreset(p);
             var title = Root?.Q<Label>("cc-title");
             if (title != null) title.text = "Editar Personagem";
+            if (PlayerProfile.IsLocked(p))
+            {
+                // Acima do nível 2 (2026-11-14): só somar pontos; o resto fica travado.
+                _floor = GetAttrArray();
+                if (title != null) title.text = $"{p.presetName} — nível {PlayerProfile.Level(p)}: só adicionar pontos";
+                var r = Root;
+                foreach (var n in new[] { "sprite-prev", "sprite-next", "weapon-prev", "weapon-next",
+                                          "eq-prev-left", "eq-next-left", "eq-prev-head", "eq-next-head",
+                                          "eq-prev-torso", "eq-next-torso", "eq-prev-legs", "eq-next-legs" })
+                    r?.Q<Button>(n)?.SetEnabled(false);
+                _nameInput?.SetEnabled(false);
+            }
         }
 
         /// <summary>Deep-copy de um preset para o estado em edição, atualizando a UI.</summary>

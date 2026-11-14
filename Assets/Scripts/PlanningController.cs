@@ -448,12 +448,12 @@ namespace PangeaSkirmish
                 new BattleHUD.ActionBarItem { Id = "concentrate", Glyph = "✦", Icon = "mana", Key = "7", Name = "Concentrar",
                     Tip = () => $"Parado, recupera <b>+{_controlled.stats.ConcentrateMana} Mana</b>. {Ticks(ActionType.Concentrate)}. Shift: até encher a fila ou a Mana.",
                     Enabled = () => _controlled.CanFit(ActionType.Concentrate),
-                    Badge = () => _controlled.plannedConcentrations > 0 ? "×" + _controlled.plannedConcentrations : $"{_controlled.currentMana}/{_controlled.stats.MaxMana}",
+                    Badge = () => _controlled.plannedConcentrations > 0 ? "×" + _controlled.plannedConcentrations : $"{_controlled.ProjectedManaEnd}/{_controlled.stats.MaxMana}",
                     OnClick = fill => AddRepeat(OnConcentrateClick, ActionType.Concentrate, fill) },
                 new BattleHUD.ActionBarItem { Id = "breathe", Glyph = "❂", Icon = "stamina", Key = "8", Name = "Respirar",
                     Tip = () => $"Parado, recupera <b>+{T.breatheStamina} Stamina</b>. {Ticks(ActionType.Breathe)}. Shift: até encher a fila ou a Stamina.",
                     Enabled = () => _controlled.CanFit(ActionType.Breathe),
-                    Badge = () => { int n = CountPlanned(ActionType.Breathe); return n > 0 ? "×" + n : $"{_controlled.currentStamina}/{_controlled.stats.MaxStamina}"; },
+                    Badge = () => { int n = CountPlanned(ActionType.Breathe); return n > 0 ? "×" + n : $"{_controlled.ProjectedStaminaEnd}/{_controlled.stats.MaxStamina}"; },
                     OnClick = fill => AddRepeat(OnBreatheClick, ActionType.Breathe, fill) },
                 new BattleHUD.ActionBarItem { Id = "wait", Glyph = "…", Icon = "wait", Key = "9", Name = "Esperar",
                     Tip = () => $"Passa {Ticks(ActionType.Wait)} sem agir (a Stamina e a Mana seguem voltando). Shift: até o próximo ponto de decisão.",
@@ -988,6 +988,7 @@ namespace PangeaSkirmish
             }
 
             _controlled.actionSequence.RemoveAt(_controlled.actionSequence.Count - 1);
+            _controlled.RecomputePlannedAnchor();   // desfazer um Salto volta a posição planejada
 
             if (_mode == PlanMode.MovePicking) SetMode(PlanMode.Idle);
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
@@ -1300,7 +1301,7 @@ namespace PangeaSkirmish
             { _hud.ShowPlanNote($"{s.displayName}: escolha um lugar livre"); return; }
             AppendSpell(s, target, anchor);
             _pendingSpell = null;
-            HideCursorGhost();
+            HideCursorGhost(); ClearCursorShape();
             SetMode(PlanMode.Idle);
         }
 
@@ -1308,6 +1309,7 @@ namespace PangeaSkirmish
         {
             _controlled.plannedSpells.Add(new PlannedSpell { SpellId = s.id, Boosts = s.boosts, TargetUnit = target, TargetTile = tile });
             _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = _controlled.plannedSpells.Count - 1 });
+            _controlled.RecomputePlannedAnchor();   // Salto/Passo do vento: o resto do plano parte do destino
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             _hud.LogAction($"✦ {_controlled.unitName} planejou <b>{s.displayName}</b> [{s.MontageText()}]{(target != null ? " em " + target.unitName : "")}", _controlled);
             SyncButtonStates();
@@ -1351,13 +1353,7 @@ namespace PangeaSkirmish
             RebuildPlanVisuals();
         }
 
-        private void RecomputePlannedAnchor()
-        {
-            var pos = _controlled.anchor;
-            foreach (var a in _controlled.actionSequence)
-                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) pos = _controlled.plannedPath[a.Index];
-            _controlled.plannedAnchor = pos;
-        }
+        private void RecomputePlannedAnchor() => _controlled.RecomputePlannedAnchor();   // conta Salto/Passo do vento
 
         private Vector2Int PositionBefore(int seqIdx)
         {
@@ -1366,6 +1362,11 @@ namespace PangeaSkirmish
             {
                 var a = _controlled.actionSequence[i];
                 if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) pos = _controlled.plannedPath[a.Index];
+                else if (a.Type == ActionType.Spell && a.Index < _controlled.plannedSpells.Count)
+                {
+                    var dst = Unit.SpellMoveDest(_controlled.plannedSpells[a.Index]);
+                    if (dst.HasValue) pos = dst.Value;
+                }
             }
             return pos;
         }
@@ -1470,7 +1471,10 @@ namespace PangeaSkirmish
                     var sp = _controlled.plannedSpells[a.Index];
                     var def = sp.Def;
                     if (def != null && def.range >= 0)
-                        _pathGhosts.Add(CreateGhostAt(sp.TargetTile, ElementInfo.Color(def.PrimaryElement)));
+                    {
+                        if (sp.TargetUnit != null || def.area > 0) _pathGhosts.Add(new GameObject("SpellAimMarker"));   // células reais em RefreshPlannedShapes
+                        else _pathGhosts.Add(CreateGhostAt(sp.TargetTile, ElementInfo.Color(def.PrimaryElement)));
+                    }
                 }
                 else if (a.Type == ActionType.Attack && a.Index < _controlled.plannedAttacks.Count)
                 {
@@ -1568,7 +1572,7 @@ namespace PangeaSkirmish
             { _retargetIdx = -1; ShowIntentHint(); return; }
             if (_mode == PlanMode.SpellTilePicking && PointerInput.BackThisFrame)
             {
-                _pendingSpell = null; HideCursorGhost(); SetMode(PlanMode.Idle); ShowIntentHint(); return;
+                _pendingSpell = null; HideCursorGhost(); ClearCursorShape(); SetMode(PlanMode.Idle); ShowIntentHint(); return;
             }
             if (_mode == PlanMode.Idle && PointerInput.BackThisFrame)
             {
@@ -1656,12 +1660,14 @@ namespace PangeaSkirmish
                 bool valid = hovered.HasValue && (_attackable.Contains(hovered.Value) || (overUnit != null && hovered.Value == overUnit.anchor));
                 if (valid)
                 {
-                    PlaceGhost(_cursorGhost, hovered.Value);
+                    bool moves = _pendingSpell.effect == SpellEffect.Leap || _pendingSpell.effect == SpellEffect.Teleport;
+                    if (moves) PlaceGhost(_cursorGhost, hovered.Value);
+                    else ShowSpellCursorCells(hovered.Value, overUnit);
                     if (PointerInput.ClickThisFrame && !_hud.IsPointerOverUI()) CommitSpellTile(hovered.Value, overUnit);
                 }
                 else
                 {
-                    HideCursorGhost();
+                    HideCursorGhost(); ClearCursorShape();
                     // Clique fora do alcance não é silencioso: diz o porquê e mantém a mira aberta.
                     if (PointerInput.ClickThisFrame && !_hud.IsPointerOverUI() && _pendingSpell != null)
                         _hud.ShowPlanNote($"{_pendingSpell.displayName}: fora de alcance ({SpellResolver.Reach(_controlled, _pendingSpell)} células a partir de onde você vai estar). Esc cancela.");
@@ -1804,17 +1810,34 @@ namespace PangeaSkirmish
         private string _cursorShapeKey;
 
         /// <summary>Fantasma 3D translúcido em cada parada do caminho; o do destino mais forte.</summary>
+        private BattleLabel _planResourceLabel;
+
+        private void ClearPlanResourceLabel()
+        {
+            if (_planResourceLabel != null) _planResourceLabel.Dismiss();
+            _planResourceLabel = null;
+        }
+
+        /// <summary>Rótulo com Mana e Stamina no fim do plano, sobre o fantasma final (ou a unidade). 2026-11-14.</summary>
+        private void ShowPlanResourceLabel(Vector3 world)
+        {
+            ClearPlanResourceLabel();
+            if (_controlled == null || _controlled.actionSequence.Count == 0 || _cam == null) return;
+            var s = _controlled.stats;
+            string txt = $"fim do plano · Mana {_controlled.ProjectedManaEnd}/{s.MaxMana} · Stamina {_controlled.ProjectedStaminaEnd}/{s.MaxStamina}";
+            _planResourceLabel = BattleLabel.CreateTag(_cam, world, txt, Color.white, new Color32(0x1d, 0x2d, 0x5a, 225));
+        }
+
         private void RefreshModelGhosts()
         {
             foreach (var g in _modelGhosts) if (g != null) Destroy(g);
             _modelGhosts.Clear();
+            ClearPlanResourceLabel();
             if (_controlled == null || _controlled.Model3D == null || _grid == null) return;
             string model = _controlled.Model3D.ModelName;
             float scale = _controlled.Model3D.ModelScale;
             int fp = _controlled.stats.Footprint;
-            var stops = new List<Vector2Int>();
-            foreach (var a in _controlled.actionSequence)
-                if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) stops.Add(_controlled.plannedPath[a.Index]);
+            var stops = _controlled.PlannedStops();   // andadas e Salto/Passo do vento
             var T = Tuning.Get();
             var prev = _controlled.anchor;
             for (int i = 0; i < stops.Count; i++)
@@ -1831,6 +1854,9 @@ namespace PangeaSkirmish
                 _modelGhosts.Add(root.gameObject);
                 prev = cur;
             }
+            var labelAt = stops.Count > 0 ? _grid.AnchorToWorldCenter(stops[stops.Count - 1], fp) + Vector3.up * 2.6f
+                                          : _controlled.HeadWorld + Vector3.up * 1.6f;
+            ShowPlanResourceLabel(labelAt);
         }
 
         /// <summary>Tiles que cada ataque já planejado vai pegar, da posição planejada naquele ponto da fila.</summary>
@@ -1846,6 +1872,22 @@ namespace PangeaSkirmish
             foreach (var a in _controlled.actionSequence)
             {
                 if (a.Type == ActionType.Move && a.Index < _controlled.plannedPath.Count) { at = _controlled.plannedPath[a.Index]; continue; }
+                if (a.Type == ActionType.Spell && a.Index < _controlled.plannedSpells.Count)
+                {
+                    var sp = _controlled.plannedSpells[a.Index];
+                    var dst = Unit.SpellMoveDest(sp);
+                    if (dst.HasValue) { at = dst.Value; continue; }
+                    var def = sp.Def;
+                    // Magia com alvo travado ou de área: as células que a resolução vai usar (2026-11-14).
+                    if (def != null && def.range >= 0 && (sp.TargetUnit != null || def.area > 0))
+                    {
+                        var sc = ElementInfo.Color(def.PrimaryElement); sc.a = 0.55f;
+                        Vector2Int? tAnchor = sp.TargetUnit != null ? sp.TargetUnit.plannedAnchor : (Vector2Int?)null;
+                        foreach (var c in SpellResolver.PreviewCells(_controlled, sp, tAnchor))
+                            if (_grid.IsAnchorInBounds(c, 1)) _planShapeGhosts.Add(CreateCellGhost(c, sc));
+                    }
+                    continue;
+                }
                 if (a.Type != ActionType.Attack || a.Index >= _controlled.plannedAttacks.Count) continue;
                 var atk = _controlled.plannedAttacks[a.Index];
                 Vector2Int aim;
@@ -1878,6 +1920,21 @@ namespace PangeaSkirmish
             }
         }
 
+        /// <summary>Mira de magia: pinta as células que ela vai pegar (alvo travado = o corpo do alvo; área = o quadrado).</summary>
+        private void ShowSpellCursorCells(Vector2Int tile, Unit locked)
+        {
+            if (_pendingSpell == null) return;
+            var sp = new PlannedSpell { SpellId = _pendingSpell.id, Boosts = _pendingSpell.boosts, TargetTile = tile, TargetUnit = locked };
+            string key = $"spell:{_pendingSpell.id}:{_pendingSpell.boosts}:{tile.x},{tile.y}:{(locked != null ? locked.unitName : "")}";
+            if (key == _cursorShapeKey) return;
+            ClearCursorShape();
+            HideCursorGhost();
+            _cursorShapeKey = key;
+            var col = ElementInfo.Color(_pendingSpell.PrimaryElement); col.a = 0.75f;
+            foreach (var c in SpellResolver.PreviewCells(_controlled, sp))
+                if (_grid.IsAnchorInBounds(c, 1)) _cursorShapeGhosts.Add(CreateCellGhost(c, col));
+        }
+
         private void ClearCursorShape()
         {
             _cursorShapeKey = null;
@@ -1889,6 +1946,7 @@ namespace PangeaSkirmish
 
         private void ClearProjection()
         {
+            ClearPlanResourceLabel();
             foreach (var g in _modelGhosts) if (g != null) Destroy(g);
             _modelGhosts.Clear();
             foreach (var g in _planShapeGhosts) if (g != null) Destroy(g);

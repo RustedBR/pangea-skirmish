@@ -81,8 +81,80 @@ namespace PangeaSkirmish
         public void RecomputeTickBudget()
         {
             remainingAP  = Tuning.Get().maxQueueTicks - PlannedTicks();
-            remainingBAP = currentStamina - PlannedStaminaCost();
-            reservedMana = PlannedManaCost();
+            var p = ProjectPlan();
+            // Custos imediatos (golpe poderoso, mirar, passo) saem no começo: valem pelo ponto mais baixo da fila.
+            remainingBAP = p.staminaLow;
+            ProjectedStaminaEnd = p.staminaEnd;
+            ProjectedManaEnd = p.manaEnd;
+            reservedMana = currentMana - p.manaEnd;   // AvailableMana = Mana no fim do plano
+        }
+
+        /// <summary>Destino de uma magia que move quem conjura (Salto, Passo do vento); null nas outras.</summary>
+        public static Vector2Int? SpellMoveDest(PlannedSpell sp)
+        {
+            var d = sp.Def;
+            return d != null && (d.effect == SpellEffect.Leap || d.effect == SpellEffect.Teleport) ? sp.TargetTile : (Vector2Int?)null;
+        }
+
+        /// <summary>Paradas do plano na ordem: cada andada e cada magia de movimento.</summary>
+        public List<Vector2Int> PlannedStops()
+        {
+            var stops = new List<Vector2Int>();
+            foreach (var a in actionSequence)
+            {
+                if (a.Type == ActionType.Move && a.Index < plannedPath.Count) stops.Add(plannedPath[a.Index]);
+                else if (a.Type == ActionType.Spell && a.Index < plannedSpells.Count)
+                {
+                    var dst = SpellMoveDest(plannedSpells[a.Index]);
+                    if (dst.HasValue) stops.Add(dst.Value);
+                }
+            }
+            return stops;
+        }
+
+        /// <summary>Posição no fim do plano, contando Salto/Passo do vento (2026-11-14).</summary>
+        public void RecomputePlannedAnchor()
+        {
+            var stops = PlannedStops();
+            plannedAnchor = stops.Count > 0 ? stops[stops.Count - 1] : anchor;
+        }
+
+        /// <summary>Mana/Stamina no fim do plano (projeção do planejamento, 2026-11-14).</summary>
+        public int ProjectedManaEnd { get => actionSequence.Count == 0 ? currentMana : _projMana; private set => _projMana = value; }
+        public int ProjectedStaminaEnd { get => actionSequence.Count == 0 ? currentStamina : _projStamina; private set => _projStamina = value; }
+        private int _projMana, _projStamina;
+
+        /// <summary>
+        /// Simula o plano tick a tick como o jogo resolve: custos imediatos (golpe poderoso, mirar, passo)
+        /// no começo; cada magia paga ao começar; Concentrar/Respirar devolvem ao terminar; regeneração
+        /// natural conta só o mínimo garantido (1 a cada N ticks decorridos). Devolve o fim, o ponto mais
+        /// baixo e se algum pagamento faltou.
+        /// </summary>
+        public (int manaEnd, int staminaEnd, int manaLow, int staminaLow, bool ok) ProjectPlan()
+        {
+            int maxM = stats.MaxMana, maxS = stats.MaxStamina;
+            int mana = currentMana, st = currentStamina;
+            foreach (var a in actionSequence) st -= TickRules.StaminaCost(a);   // imediatos (não-magia)
+            int lowM = mana, lowS = st, t = 0, regM = 0, regS = 0;
+            bool ok = st >= 0;
+            int rm = Mathf.Max(1, stats.ManaRegenTicks), rs = Mathf.Max(1, stats.StaminaRegenTicks);
+            foreach (var a in actionSequence)
+            {
+                var s = TickRules.SpellOf(this, a);
+                if (s != null)
+                {
+                    mana -= s.ManaPart; st -= s.StaminaPart;
+                    if (mana < 0 || st < 0) ok = false;
+                }
+                lowM = Mathf.Min(lowM, mana); lowS = Mathf.Min(lowS, st);
+                t += TickRules.Duration(this, a);
+                int gm = maxM > 0 ? t / rm - regM : 0, gs = t / rs - regS;
+                regM += gm; regS += gs;
+                mana = Mathf.Min(maxM, mana + gm); st = Mathf.Min(maxS, st + gs);
+                if (a.Type == ActionType.Concentrate) mana = Mathf.Min(maxM, mana + stats.ConcentrateMana);
+                if (a.Type == ActionType.Breathe) st = Mathf.Min(maxS, st + Mathf.Max(0, Tuning.Get().breatheStamina));
+            }
+            return (mana, st, lowM, lowS, ok);
         }
 
         /// <summary>Stamina que o plano atual gasta (derivado do plano: igual em toda máquina).</summary>
@@ -108,7 +180,7 @@ namespace PangeaSkirmish
             if (s == null) { why = "magia desconhecida"; return false; }
             int d = TickRules.Duration(this, ActionType.Spell, false, s);
             if (remainingAP < d) { why = $"sem tick livre ({d} tick{(d == 1 ? "" : "s")})"; return false; }
-            if (s.StaminaPart > 0 && remainingBAP < s.StaminaPart) { why = $"Stamina insuficiente ({remainingBAP}/{s.StaminaPart})"; return false; }
+            if (s.StaminaPart > 0 && ProjectedStaminaEnd < s.StaminaPart) { why = $"Stamina insuficiente ({ProjectedStaminaEnd}/{s.StaminaPart})"; return false; }
             if (s.ManaPart > 0 && AvailableMana < s.ManaPart) { why = $"Mana insuficiente ({AvailableMana}/{s.ManaPart})"; return false; }
             return true;
         }
@@ -129,9 +201,11 @@ namespace PangeaSkirmish
             SetPosture(plannedPosture);
             // Compromete a Stamina do plano (ações bônus). Feito aqui, a partir do plano,
             // para valer igual em todas as máquinas do lockstep.
-            currentStamina = Mathf.Max(0, currentStamina - PlannedStaminaCost());
-            // Mana das magias Elementais também é comprometida aqui (GDD-019 §1: gasta mesmo se interrompida).
-            currentMana = Mathf.Max(0, currentMana - PlannedManaCost());
+            int upfront = 0;
+            foreach (var a in actionSequence) upfront += TickRules.StaminaCost(a);
+            currentStamina = Mathf.Max(0, currentStamina - upfront);
+            // Magias pagam no tick em que começam (RoundManager), não aqui: assim Concentrar/Respirar
+            // antes delas contam (2026-11-14). Ainda gasta mesmo se interrompida (GDD-019 §1).
             reservedMana = 0;
             foreach (var a in actionSequence)
             {

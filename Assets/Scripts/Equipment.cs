@@ -194,7 +194,7 @@ namespace PangeaSkirmish
             stats.OverWeight = Mathf.Max(0, TotalWeight(l) - WeightLimit(stats.VIT));
         }
 
-        static void AddAttr(AttributeStats s, Attr a, float d)
+        public static void AddAttr(AttributeStats s, Attr a, float d)
         {
             switch (a)
             {

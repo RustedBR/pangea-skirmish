@@ -231,7 +231,7 @@ namespace PangeaSkirmish
                     log.Add($"{head}: o próximo ataque não erra (+{Mathf.RoundToInt(s.critBonus * 100)}% crítico)");
                     return log;
                 case SpellEffect.PrepStoneSkin:
-                    caster.stoneSkinTicks = Mathf.Max(1, Tuning.Get().ticksPerRound);
+                    caster.stoneSkinTicks = Mathf.Max(1, Tuning.Get().ticksPerRound) + Mathf.Max(0, s.durationTicks);   // + incremento Efeito
                     caster.stoneSkinMult = s.multiplier;
                     BattleFeedback.Status(caster, "Pele de pedra", new Color(0.86f, 0.80f, 0.70f));
                     log.Add($"{head}: redução de dano ×{s.multiplier:0.#} por {caster.stoneSkinTicks} ticks");
@@ -260,7 +260,7 @@ namespace PangeaSkirmish
                 BattleFeedback.Status(caster, "Curva!", new Color(0.55f, 0.85f, 1f));
             }
             int fp = caster.stats.Footprint;
-            var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
+            var center = AimCenter(caster, ps);
             float potInt = caster.stats.INT;                 // limiares por INT (ex.: Rajada empurra +1 com INT ≥ 8)
             int amount = Amount(caster, s);
             int radius = AreaRadius(s);
@@ -473,6 +473,39 @@ namespace PangeaSkirmish
 
         // ---------------------------------------------------------------- helpers
 
+        /// <summary>
+        /// Centro da magia (2026-11-14). Alvo travado numa unidade: o centro DELA, onde estiver
+        /// (o tamanho é o do alvo, não o de quem conjura). Mirada num tile: o tile + metade de quem conjura.
+        /// </summary>
+        public static Vector2Int AimCenter(Unit caster, PlannedSpell ps, Vector2Int? targetAnchor = null)
+        {
+            if (ps.TargetUnit != null && !ps.TargetUnit.IsDead)
+                return AttackShape.Center(targetAnchor ?? ps.TargetUnit.anchor, ps.TargetUnit.stats.Footprint);
+            int fp = caster != null ? caster.stats.Footprint : AttributeStats.DefaultFootprint;
+            return ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
+        }
+
+        /// <summary>Células que a magia vai pegar, para a prévia na grade: a área em volta do centro,
+        /// ou o corpo inteiro do alvo travado (alvo único pega todos os tiles dele).</summary>
+        public static List<Vector2Int> PreviewCells(Unit caster, PlannedSpell ps, Vector2Int? targetAnchor = null)
+        {
+            var cells = new List<Vector2Int>();
+            var s = ps.Def;
+            if (s == null) return cells;
+            var c = AimCenter(caster, ps, targetAnchor);
+            if (s.area > 0)
+            {
+                int r = AreaRadius(s);
+                for (int dx = -r; dx <= r; dx++) for (int dy = -r; dy <= r; dy++) cells.Add(new Vector2Int(c.x + dx, c.y + dy));
+                return cells;
+            }
+            Vector2Int a; int fp;
+            if (ps.TargetUnit != null && !ps.TargetUnit.IsDead) { a = targetAnchor ?? ps.TargetUnit.anchor; fp = ps.TargetUnit.stats.Footprint; }
+            else { a = ps.TargetTile; fp = caster != null ? caster.stats.Footprint : AttributeStats.DefaultFootprint; }
+            for (int x = 0; x < fp; x++) for (int y = 0; y < fp; y++) cells.Add(new Vector2Int(a.x + x, a.y + y));
+            return cells;
+        }
+
         private static bool InArea(Unit u, Vector2Int center, int r) =>
             GridManager.FootprintGap(u.anchor, u.stats.Footprint, center, 1) <= r;
 
@@ -493,7 +526,7 @@ namespace PangeaSkirmish
             var s = ps.Def;
             if (s == null) return targets;
             int fp = caster.stats.Footprint;
-            var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
+            var center = AimCenter(caster, ps);
             if (s.area > 0)
             {
                 int radius = AreaRadius(s);

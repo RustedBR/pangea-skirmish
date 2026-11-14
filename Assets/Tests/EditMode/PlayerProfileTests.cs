@@ -57,18 +57,25 @@ public class PlayerProfileTests
         Assert.AreEqual(PlayerProfile.AttributeBudget, new RoomConfigData().attributeBudget, "a sala usa o mesmo orçamento");
     }
 
+    /// <summary>Personagem novo de 15 pontos (nível 1): editável à vontade.</summary>
+    private static CharacterPreset Small(string name) => new CharacterPreset
+    {
+        presetName = name, weaponId = "IronSword", modelId = "Tank", level = 1,
+        stats = new UnitStatBlock { STR = 3, VIT = 3, DEX = 3, AGI = 2, INT = 2, WIS = 2, Footprint = 3, AttackRange = 4 }
+    };
+
     [Test]
     public void SeveralCharacters_SelectEditRemove()
     {
         PlayerProfile.SetName("A");
-        PlayerProfile.Put(-1, Make("Um"));
-        PlayerProfile.Put(-1, Make("Dois"));
-        PlayerProfile.Put(-1, Make("Três"));
+        PlayerProfile.Put(-1, Small("Um"));
+        PlayerProfile.Put(-1, Small("Dois"));
+        PlayerProfile.Put(-1, Small("Três"));
         Assert.AreEqual(3, PlayerProfile.Count);
         Assert.AreEqual("Três", PlayerProfile.Selected.presetName, "o recém-criado fica em uso");
         PlayerProfile.Select(0);
         Assert.AreEqual("Um", PlayerProfile.Selected.presetName);
-        Assert.AreEqual(1, PlayerProfile.Put(1, Make("Dois editado")), "editar substitui no lugar");
+        Assert.AreEqual(1, PlayerProfile.Put(1, Small("Dois editado")), "editar substitui no lugar (nível 1: livre)");
         Assert.AreEqual(3, PlayerProfile.Count);
         Assert.AreEqual("Dois editado", PlayerProfile.Selected.presetName);
         PlayerProfile.Remove(1);
