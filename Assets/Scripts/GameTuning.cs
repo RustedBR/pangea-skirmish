@@ -126,6 +126,8 @@ namespace PangeaSkirmish
         public float spellPotPerINT = 1.5f;
         [Tooltip("Multiplicador do valor base das magias (dano, cura, HP da Muralha).")]
         public float spellBaseMult = 2.25f;
+        [Tooltip("Multiplicador geral do valor das magias (dano, cura, muralha, dano por tick). Rebalance 2026-11-14: 0,75.")]
+        public float spellValueMult = 0.75f;
         [Tooltip("Multiplicador do dano por tick (Queimando, Magma).")]
         public float spellTickDamageMult = 2f;
         [Tooltip("Alcance em células = alcance da magia × este valor + INT × spellRangePerINT. Uma unidade ocupa 3 células: sem isto o alcance 3 do Magma era corpo a corpo.")]

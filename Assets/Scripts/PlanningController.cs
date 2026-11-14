@@ -437,7 +437,7 @@ namespace PangeaSkirmish
                     OnClick = _ => OnAttackUnitClick() },
                 new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Icon = "hit", Key = "5", Name = "Mirar livre",
                     Tip = () => $"Você posiciona a forma tile a tile. <color=#9fd0ff>+{(T.freeAimDamageMult - 1f) * 100:0}% de dano e +{T.freeAimHitBonus * 100:0}% de acerto</color>; " +
-                                $"pega quem estiver nos tiles (só inimigos). {Ticks(ActionType.Attack)}.",
+                                $"pega quem estiver nos tiles (só inimigos). {Ticks(ActionType.Attack)}. Magia de dano mirada num tile (sem travar na unidade) também ganha o +{(T.freeAimDamageMult - 1f) * 100:0}%.",
                     Enabled = () => _controlled.CanFit(ActionType.Attack),
                     Active = () => _mode == PlanMode.AttackTilePicking,
                     OnClick = _ => OnAttackTileClick() },
