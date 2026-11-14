@@ -1514,6 +1514,25 @@ namespace PangeaSkirmish
             StartIdleAnim();
         }
 
+        /// <summary>
+        /// Esquiva (2026-11-14): a posição lógica já mudou (o dano foi calculado de lá); agora o corpo
+        /// anda de <paramref name="fromCell"/> até ela, <paramref name="speedMult"/>× mais rápido que uma andada.
+        /// </summary>
+        public IEnumerator AnimateMoveFrom(Vector2Int fromCell, float speedMult)
+        {
+            var dest = anchor;
+            if (dest == fromCell || IsDead) yield break;
+            StopIdleAnim();
+            var tuning = RuntimeTuning.Active ?? Resources.Load<GameTuning>("GameTuning");
+            float moveBase = tuning != null ? tuning.moveDurationBase : 0.9f;
+            float moveMin  = tuning != null ? tuning.moveDurationMin : 0.18f;
+            float k = Mathf.Max(1f, speedMult);
+            float duration = Mathf.Max(moveMin / k, moveBase / Mathf.Max(1f, stats.AGI) / k);
+            anchor = fromCell;
+            yield return MoveSegment(dest, duration);
+            StartIdleAnim();
+        }
+
         public IEnumerator MoveToDestination(Vector2Int dest)
         {
             StopIdleAnim();

@@ -687,6 +687,7 @@ namespace PangeaSkirmish
                     }
                     foreach (var line in spellLines)
                         _hud.LogAction(line, su);
+                    yield return PlayPendingDodges();   // o dano da magia entrou: agora quem esquivou anda
                     var sdef = sp.Def;
                     if (sdef != null && (sdef.effect == SpellEffect.Leap || sdef.effect == SpellEffect.Teleport) && su.Model3D != null
                         && su.transform.position != castFrom && sdef.effect == SpellEffect.Leap)
@@ -725,6 +726,7 @@ namespace PangeaSkirmish
                     yield return ResolveAttackSlot(attacksThisSlot);
 
 
+                yield return PlayPendingDodges();   // garantia: nenhuma esquiva fica sem andar na tela
                 yield return AdvanceGlobalTick();
                 foreach (var line in SpellResolver.TickEffects(_units, _spellField)) _hud.LogAction(line, null);
 
@@ -1608,6 +1610,7 @@ namespace PangeaSkirmish
                     else if (willHit)
                         _camCtrl?.Shake(Tfx.shakeDurationNormal, Tfx.shakeMagnitudeNormal);
                 }
+                yield return PlayPendingDodges();   // o dano entrou: agora quem esquivou anda
             }
             yield return new WaitForSeconds(postActionPause);
         }
@@ -1737,7 +1740,26 @@ namespace PangeaSkirmish
             if (cells != null) u.dodgeReactTiles = 0;    // contra a forma, quem decide é onde ele parou
             if (best == u.anchor) yield break;
             _hud.LogAction($"<color=#55ccff>↯</color> {u.unitName} esquiva para ({best.x},{best.y})", u);
-            yield return u.MoveToDestination(best);
+            // Dano primeiro (2026-11-14): a posição lógica muda já (o golpe é calculado de lá), mas o corpo
+            // fica parado; depois do dano, PlayPendingDodges anima o passo 2× mais rápido.
+            _pendingDodges.Add((u, u.anchor));
+            u.anchor = best;
+        }
+
+        /// <summary>Esquivas que já valeram no dano e ainda não andaram na tela.</summary>
+        private readonly List<(Unit u, Vector2Int from)> _pendingDodges = new List<(Unit, Vector2Int)>();
+        public const float DodgeAnimSpeed = 2f;
+
+        /// <summary>Depois do dano: quem esquivou anda até o tile novo, todos juntos, 2× mais rápido.</summary>
+        private IEnumerator PlayPendingDodges()
+        {
+            if (_pendingDodges.Count == 0) yield break;
+            var list = new List<(Unit u, Vector2Int from)>(_pendingDodges);
+            _pendingDodges.Clear();
+            var running = new List<Coroutine>();
+            foreach (var (u, from) in list)
+                if (u != null && !u.IsDead) running.Add(u.StartCoroutine(u.AnimateMoveFrom(from, DodgeAnimSpeed)));
+            foreach (var c in running) yield return c;
         }
 
         public static int DodgeMoveTiles(Unit u) =>
