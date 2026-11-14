@@ -32,7 +32,7 @@ Frente 3 do backlog (2026-11-14). Expande o GDD-015 (Coop) e o GDD-021 (equipame
 | Descansar | cura 100%, Mana 100%, reanima com 100%; o tempo avança um passo |
 | Drop de fera | 8% de chance de item da raridade da camada |
 | Baú | 1 item por personagem + 1, raridade da camada |
-| Venda | comum 5, incomum 12, raro 25 moedas |
+| Venda | comum 5, raro 12, épico 25 moedas |
 
 Recompensas por camada crescem linearmente (5 × camada), e o custo do nível também (20 × N):
 o ritmo de níveis por camada fica estável.
@@ -45,8 +45,10 @@ numa sala com todos os pontos gastos.
 
 1. **Etapa A (este PR):** pontos 15 + 5/nível, XP e dinheiro salvos no personagem/perfil,
    recompensas no Coop, feras pelo grupo, descanso com dia/noite, loja de XP no perfil.
-2. **Etapa B:** drops das feras, baú, tela do fim da camada com os itens do grupo
-   (pegar/vender/trocar) e sincronização em rede.
+2. **Etapa B (feita):** drops das feras, baú, tela ITENS DO GRUPO entre as cartas e a decisão
+   de descer. Pegar equipa e devolve o item antigo ao baú (é assim que o grupo troca); Deixar
+   tira um item seu para outro pegar; Vender paga a quem vendeu. O host guarda o baú oficial
+   e valida cada pedido (`PlacementSync.Loot*ServerRpc`); itens valem durante a descida, como as cartas.
 
 ## Fora do escopo
 

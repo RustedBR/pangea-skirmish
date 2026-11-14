@@ -839,7 +839,10 @@ namespace PangeaSkirmish
             AwardCoop(cleared: true);
             _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
 
-            // Cartas (GDD-021 §7): primeiro cada um escolhe 1 de 3; depois a decisão de descer.
+            // Loot (GDD-024 etapa B): o host gera drops + baú e manda para todos.
+            if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null) PlacementSync.Instance.HostGenerateLoot(Layer);
+
+            // Cartas (GDD-021 §7): primeiro cada um escolhe 1 de 3; depois os itens do grupo; depois descer.
             Unit mine = null;
             foreach (var u in _units) if (!BeastAI.Controls(u) && IsLocalUnit(u)) { mine = u; break; }
             if (mine != null && PlacementSync.Instance != null)
@@ -850,7 +853,7 @@ namespace PangeaSkirmish
                 for (int i = 0; i < cards.Count; i++)
                 {
                     int idx = i;
-                    opts.Add((Equipment.CardText(cards[i]), () => { PlacementSync.Instance.PickCardServerRpc(layer, id, idx); ShowDescentChoice(); }));
+                    opts.Add((Equipment.CardText(cards[i]), () => { PlacementSync.Instance.PickCardServerRpc(layer, id, idx); ShowLootMenu(); }));
                 }
                 _hud.ShowChoiceTitled("RECOMPENSA", $"Camada {Layer} vencida! {mine.unitName}, escolha 1:", opts.ToArray());
                 return;
@@ -891,6 +894,78 @@ namespace PangeaSkirmish
             _hud.RefreshUnitInfo();
         }
 
+        // ── Itens do grupo (GDD-024 etapa B): pegar (troca com o que usava), vender, deixar ──
+        private enum LootView { Closed, List, Item, Mine }
+        private LootView _lootView = LootView.Closed;
+        private int _lootIndex;
+
+        private Unit LocalPlayerUnit()
+        {
+            foreach (var u in _units) if (!BeastAI.Controls(u) && IsLocalUnit(u)) return u;
+            return null;
+        }
+
+        /// <summary>Baú mudou (aqui ou em outra máquina): registra e redesenha o menu aberto.</summary>
+        public void OnLootChanged(Unit who, string what)
+        {
+            if (who != null) _hud.LogAction($"<color=#ffd76a>⬢</color> {who.unitName} {what}", who);
+            else _hud.Log($"<color=#ffd76a>⬢</color> {what}");
+            _hud.RefreshUnitInfo();
+            if (_lootView == LootView.Item) _lootView = LootView.List;   // o item pode ter saído do baú
+            if (_lootView != LootView.Closed) ShowLootMenu(_lootView);
+        }
+
+        private void ShowLootMenu() => ShowLootMenu(LootView.List);
+
+        private void ShowLootMenu(LootView view)
+        {
+            var ps = PlacementSync.Instance;
+            var mine = LocalPlayerUnit();
+            if (ps == null || mine == null || !_awaitingDescent) { _lootView = LootView.Closed; ShowDescentChoice(); return; }
+            _lootView = view;
+            uint id = UnitRegistry.GetId(mine);
+            var opts = new List<(string, System.Action)>();
+            string head = $"{mine.unitName} · <color=#ffd76a>{PlayerProfile.Gold} moedas</color>";
+
+            if (view == LootView.Item && _lootIndex < ps.Stash.Count)
+            {
+                int idx = _lootIndex; string itemId = ps.Stash[idx];
+                var it = ItemCatalog.Get(itemId);
+                var cur = ItemCatalog.Get(Loot.Current(mine, it.slot));
+                if (Loot.CanEquip(mine, it, out string why))
+                    opts.Add(($"Equipar{(cur != null ? $"  <size=12>(o seu {cur.displayName} vai para o grupo)</size>" : "")}",
+                              () => ps.LootTakeServerRpc(id, idx, itemId)));
+                else opts.Add(($"<color=#9fb3d9>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
+                opts.Add(($"Vender  <size=12>+{Loot.SellPrice(it)} moedas</size>", () => ps.LootSellServerRpc(id, idx, itemId)));
+                opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
+                _hud.ShowChoiceTitled("ITENS DO GRUPO", $"{head}\n{Loot.Describe(it)}", opts.ToArray());
+                return;
+            }
+            if (view == LootView.Mine)
+            {
+                foreach (var s in new[] { ItemSlot.Head, ItemSlot.Torso, ItemSlot.Legs, ItemSlot.LeftHand })
+                {
+                    var it = ItemCatalog.Get(Loot.Current(mine, s));
+                    if (it == null) continue;
+                    var slot = s;
+                    opts.Add(($"Deixar {Loot.Describe(it)}", () => ps.LootLeaveServerRpc(id, (int)slot)));
+                }
+                opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
+                _hud.ShowChoiceTitled("DEIXAR PARA O GRUPO", $"{head}\nO item sai de você e fica no baú para outro pegar.", opts.ToArray());
+                return;
+            }
+
+            for (int i = 0; i < ps.Stash.Count; i++)
+            {
+                int idx = i;
+                opts.Add((Loot.Describe(ItemCatalog.Get(ps.Stash[i])), () => { _lootIndex = idx; ShowLootMenu(LootView.Item); }));
+            }
+            opts.Add(("Deixar um item meu para o grupo…", () => ShowLootMenu(LootView.Mine)));
+            opts.Add(("<b>Pronto</b>", () => { _lootView = LootView.Closed; ShowDescentChoice(); }));
+            _hud.ShowChoiceTitled("ITENS DO GRUPO",
+                $"{head}\n{(ps.Stash.Count == 0 ? "O baú está vazio." : "Toque num item para equipar (troca) ou vender.")}", opts.ToArray());
+        }
+
         private void ShowDescentChoice()
         {
             int t = DayNight.Current, next = (t + 1) % 3;
@@ -910,6 +985,7 @@ namespace PangeaSkirmish
         {
             Layer = layer;
             _awaitingDescent = false;
+            _lootView = LootView.Closed;
             _hud.HideReactionMenu();
             _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto. {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current)}.");
             StartCoroutine(StartRound());

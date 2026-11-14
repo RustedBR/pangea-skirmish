@@ -358,6 +358,106 @@ namespace PangeaSkirmish
             if (_round != null) _round.OnCardApplied(u, what);
         }
 
+        // ── Baú do grupo (GDD-024 etapa B): o host guarda a cópia oficial e valida; todos aplicam na mesma ordem ──
+        /// <summary>Itens do grupo nesta máquina (espelho; muda só pelos ClientRpc abaixo).</summary>
+        public readonly List<string> Stash = new List<string>();
+        private readonly List<string> _hostStash = new List<string>();
+
+        /// <summary>Host: camada vencida → gera drops + baú e manda para todos.</summary>
+        public void HostGenerateLoot(int layer)
+        {
+            if (!IsServer) return;
+            int killed = 0, players = 0, seed = 0;
+            foreach (var u in _allUnits)
+            {
+                if (u == null) continue;
+                if (BeastAI.Controls(u)) { if (u.IsDead) killed++; seed = unchecked(seed * 17 + (int)UnitRegistry.GetId(u)); }
+                else players++;
+            }
+            var items = Loot.Generate(layer, killed, players, seed);
+            if (layer <= 1) _hostStash.Clear();
+            _hostStash.AddRange(items);
+            LootClientRpc(layer, string.Join(",", items));
+        }
+
+        [ClientRpc]
+        private void LootClientRpc(int layer, string csv)
+        {
+            if (layer <= 1) Stash.Clear();
+            if (!string.IsNullOrEmpty(csv)) Stash.AddRange(csv.Split(','));
+            if (_round != null) _round.OnLootChanged(null, $"baú da camada {layer}: {(string.IsNullOrEmpty(csv) ? 0 : csv.Split(',').Length)} itens");
+        }
+
+        private bool OwnsUnit(uint unitId, ulong sender, out Unit u)
+        {
+            u = UnitRegistry.Get(unitId);
+            return u != null && !BeastAI.Controls(u) && u.ownerId == sender;
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void LootTakeServerRpc(uint unitId, int index, string itemId, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out var u)) return;
+            if (index < 0 || index >= _hostStash.Count || _hostStash[index] != itemId) return;   // alguém pegou antes
+            if (!Loot.CanEquip(u, ItemCatalog.Get(itemId), out _)) return;
+            string old = Loot.Current(u, ItemCatalog.Get(itemId).slot);
+            _hostStash.RemoveAt(index);
+            if (ItemCatalog.Get(old) != null) _hostStash.Add(old);
+            LootTakeClientRpc(unitId, index, itemId);
+        }
+
+        [ClientRpc]
+        private void LootTakeClientRpc(uint unitId, int index, string itemId)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (u == null || index < 0 || index >= Stash.Count || Stash[index] != itemId) return;
+            if (Loot.Take(u, Stash, index) && _round != null)
+                _round.OnLootChanged(u, $"pegou {ItemCatalog.Get(itemId)?.displayName}");
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void LootSellServerRpc(uint unitId, int index, string itemId, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out _)) return;
+            if (index < 0 || index >= _hostStash.Count || _hostStash[index] != itemId) return;
+            _hostStash.RemoveAt(index);
+            LootSellClientRpc(unitId, index, itemId);
+        }
+
+        [ClientRpc]
+        private void LootSellClientRpc(uint unitId, int index, string itemId)
+        {
+            var u = UnitRegistry.Get(unitId);
+            if (index < 0 || index >= Stash.Count || Stash[index] != itemId) return;
+            int price = Loot.Sell(Stash, index);
+            // As moedas vão para o perfil de quem vendeu (só na máquina dele).
+            if (u != null && u.ownerId == NetworkManager.Singleton.LocalClientId)
+            {
+                PlayerProfile.AddGold(price);
+                PlayerProfile.Save();
+            }
+            if (_round != null) _round.OnLootChanged(u, $"vendeu {ItemCatalog.Get(itemId)?.displayName} por {price} moedas");
+        }
+
+        [ServerRpc(RequireOwnership = false)]
+        public void LootLeaveServerRpc(uint unitId, int slot, ServerRpcParams rpc = default)
+        {
+            if (!OwnsUnit(unitId, rpc.Receive.SenderClientId, out var u)) return;
+            string cur = Loot.Current(u, (ItemSlot)slot);
+            if (ItemCatalog.Get(cur) == null) return;
+            _hostStash.Add(cur);
+            LootLeaveClientRpc(unitId, slot);
+        }
+
+        [ClientRpc]
+        private void LootLeaveClientRpc(uint unitId, int slot)
+        {
+            var u = UnitRegistry.Get(unitId);
+            string cur = u != null ? Loot.Current(u, (ItemSlot)slot) : "";
+            if (Loot.Leave(u, (ItemSlot)slot, Stash) && _round != null)
+                _round.OnLootChanged(u, $"deixou {ItemCatalog.Get(cur)?.displayName} para o grupo");
+        }
+
         /// <summary>Pontos de atributo médios das unidades de jogador (orçamento das feras).</summary>
         private float GroupAveragePoints()
         {

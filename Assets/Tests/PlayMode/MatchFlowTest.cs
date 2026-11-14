@@ -172,6 +172,29 @@ public class MatchFlowTest
         float dayBeasts = BeastPoints();
         Assert.Greater(dayBeasts, 0f);
 
+        // Baú do grupo (GDD-024 etapa B): gerar, pegar (troca), deixar e vender, tudo pelo host.
+        uint myId = UnitRegistry.GetId(mine);
+        ps.HostGenerateLoot(1);
+        yield return WaitFor(() => ps.Stash.Count >= 2, 3f, "baú com 1 item por jogador + 1");
+        int before = ps.Stash.Count;
+        int pick = ps.Stash.FindIndex(id => ItemCatalog.Get(id) != null && Loot.CanEquip(mine, ItemCatalog.Get(id), out _));
+        Assert.GreaterOrEqual(pick, 0);
+        var taken = ItemCatalog.Get(ps.Stash[pick]);
+        string had = Loot.Current(mine, taken.slot);
+        ps.LootTakeServerRpc(myId, pick, taken.id);
+        yield return WaitFor(() => Loot.Current(mine, taken.slot) == taken.id, 3f, "item equipado");
+        Assert.AreEqual(before - 1 + (ItemCatalog.Get(had) != null ? 1 : 0), ps.Stash.Count, "o item antigo volta para o baú");
+        ps.LootLeaveServerRpc(myId, (int)taken.slot);
+        yield return WaitFor(() => Loot.Current(mine, taken.slot) == "", 3f, "deixou o item");
+        Assert.Contains(taken.id, ps.Stash);
+        int gold = PlayerProfile.Gold, idx = ps.Stash.IndexOf(taken.id), n = ps.Stash.Count;
+        ps.LootSellServerRpc(myId, idx, taken.id);
+        yield return WaitFor(() => ps.Stash.Count == n - 1, 3f, "vendeu");
+        Assert.AreEqual(gold + Loot.SellPrice(taken), PlayerProfile.Gold, "moedas para quem vendeu");
+        ps.LootSellServerRpc(myId, n + 5, taken.id);   // pedido velho, fora do baú: o host recusa
+        for (int i = 0; i < 5; i++) yield return null;
+        Assert.AreEqual(n - 1, ps.Stash.Count);
+
         mine.currentHP = 1;
         ps.HostDescend(2, rest: true);
         yield return WaitFor(() => DayNight.Current == DayNight.Dusk, 5f, "descanso vira entardecer");
