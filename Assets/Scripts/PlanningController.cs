@@ -1195,12 +1195,58 @@ namespace PangeaSkirmish
         // ---------------------------------------------------------------- MAGIA (GDD-019)
         private SpellDef _pendingSpell;
 
-        /// <summary>Jogador escolheu uma magia no menu da HUD: sem alvo → entra direto; com alvo → escolhe tile.</summary>
+        /// <summary>Jogador escolheu uma magia no menu da HUD: primeiro os incrementos (GDD-023),
+        /// depois sem alvo → entra direto; com alvo → escolhe tile.</summary>
         private void OnSpellPick(string spellId)
         {
             if (!_active || _controlled == null) return;
             var s = SpellCatalog.Get(spellId);
             if (s == null) { Debug.LogWarning($"[Plano] magia desconhecida: {spellId}"); return; }
+            if (!_controlled.CanFitSpell(s, out string why0))
+            {
+                _hud.ShowPlanNote($"{s.displayName}: {why0}"); return;
+            }
+            bool anyBoost = false;
+            foreach (var b in SpellBoosts.All) if (SpellBoosts.Allowed(s, b)) { anyBoost = true; break; }
+            if (anyBoost) ShowSpellBoostMenu(s, 0);
+            else ContinueSpellPick(s);
+        }
+
+        /// <summary>Menu de incrementos da magia: cada toque liga/desliga um incremento; "Conjurar" segue para o alvo.</summary>
+        private void ShowSpellBoostMenu(SpellDef baseDef, int flags)
+        {
+            var cur = SpellBoosts.Apply(baseDef, flags);
+            var opts = new List<(string, System.Action)>();
+            foreach (var b in SpellBoosts.All)
+            {
+                if (!SpellBoosts.Allowed(baseDef, b)) continue;
+                var bb = b;
+                bool on = (flags & (int)b) != 0;
+                opts.Add(($"{(on ? "<color=#7CFC9A>✓</color>" : "○")} {SpellBoosts.Label(b)}  <size=12><color=#9fb3d9>{SpellBoosts.Cost(b)} Mana</color></size>", () =>
+                {
+                    int next = flags ^ (int)bb;
+                    if (!on && !_controlled.CanFitSpell(SpellBoosts.Apply(baseDef, next), out string why))
+                        _hud.ShowPlanNote($"{SpellBoosts.Label(bb)}: {why}");
+                    else flags = next;
+                    ShowSpellBoostMenu(baseDef, flags);
+                }));
+            }
+            opts.Add(($"<b>Conjurar</b>  <size=12><color=#9fb3d9>{cur.CostText} · {cur.ticksBase} tick{(cur.ticksBase == 1 ? "" : "s")}</color></size>", () =>
+            {
+                _hud.HideReactionMenu();
+                ContinueSpellPick(cur);
+            }));
+            opts.Add(("Cancelar", () => _hud.HideReactionMenu()));
+            string amount = (baseDef.baseAmount > 0f || baseDef.potFactor > 0f) ? $" · ~{SpellResolver.Amount(_controlled, cur)}" : "";
+            _hud.ShowChoiceTitled("INCREMENTAR MAGIA",
+                $"<b>{baseDef.displayName}</b>{amount} · alcance {SpellResolver.Reach(_controlled, cur)}\n<size=12><color=#9fb3d9>Mana livre {_controlled.AvailableMana}</color></size>",
+                opts.ToArray());
+        }
+
+        /// <summary>Segue com a magia (já com incrementos): sem alvo entra direto; com alvo abre a mira.</summary>
+        private void ContinueSpellPick(SpellDef s)
+        {
+            if (!_active || _controlled == null || s == null) return;
             if (!_controlled.CanFitSpell(s, out string why))
             {
                 Debug.Log($"[Plano] {_controlled.unitName} não pode conjurar {s.id}: {why} (ticks livres {_controlled.remainingAP}, Mana {_controlled.AvailableMana}, Stamina {_controlled.remainingBAP})");
@@ -1260,7 +1306,7 @@ namespace PangeaSkirmish
 
         private void AppendSpell(SpellDef s, Unit target, Vector2Int tile)
         {
-            _controlled.plannedSpells.Add(new PlannedSpell { SpellId = s.id, TargetUnit = target, TargetTile = tile });
+            _controlled.plannedSpells.Add(new PlannedSpell { SpellId = s.id, Boosts = s.boosts, TargetUnit = target, TargetTile = tile });
             _controlled.actionSequence.Add(new ScheduledAction { Type = ActionType.Spell, Index = _controlled.plannedSpells.Count - 1 });
             _controlled.RecomputeTickBudget(); _hud.UpdateAPDisplay(_controlled);
             _hud.LogAction($"✦ {_controlled.unitName} planejou <b>{s.displayName}</b> [{s.MontageText()}]{(target != null ? " em " + target.unitName : "")}", _controlled);
