@@ -300,10 +300,15 @@ namespace PangeaSkirmish
         // =========================================================================
         private const float LayerHealFraction = 0.30f, LayerManaFraction = 0.50f, LayerReviveFraction = 0.25f;
 
-        /// <summary>Host: o grupo decidiu descer. Prepara as unidades, cria as feras e inicia a camada.</summary>
-        public void HostDescend(int layer)
+        /// <summary>Hora do dia na descida (GDD-024): 0 dia, 1 entardecer, 2 noite. Só o host decide; vai no RPC.</summary>
+        private int _timeOfDay;
+
+        /// <summary>Host: o grupo decidiu descer. Prepara as unidades, cria as feras e inicia a camada.
+        /// <paramref name="rest"/>: descansar antes (cura tudo, o tempo avança um passo).</summary>
+        public void HostDescend(int layer, bool rest = false)
         {
             if (!IsServer) return;
+            if (rest) _timeOfDay = (_timeOfDay + 1) % 3;
             // Cartas (GDD-021 §7): quem não escolheu fica com a primeira, antes de preparar a camada.
             foreach (var u in _allUnits)
             {
@@ -311,7 +316,7 @@ namespace PangeaSkirmish
                 uint id = UnitRegistry.GetId(u);
                 if (_cardPicked.Add((layer - 1, id))) ApplyCardClientRpc(layer - 1, id, 0);
             }
-            PrepareLayerClientRpc(layer);
+            PrepareLayerClientRpc(layer, rest, _timeOfDay);
 
             // Ocupação calculada no servidor a partir dos pontos de partida (não depende da
             // ordem de execução do RPC acima).
@@ -353,6 +358,19 @@ namespace PangeaSkirmish
             if (_round != null) _round.OnCardApplied(u, what);
         }
 
+        /// <summary>Pontos de atributo médios das unidades de jogador (orçamento das feras).</summary>
+        private float GroupAveragePoints()
+        {
+            float sum = 0f; int n = 0;
+            foreach (var u in _allUnits)
+            {
+                if (u == null || BeastAI.Controls(u)) continue;
+                var s = u.stats;
+                sum += s.STR + s.VIT + s.DEX + s.AGI + s.INT + s.WIS; n++;
+            }
+            return n > 0 ? sum / n : PlayerProfile.AttributeBudget;
+        }
+
         /// <summary>Host: o grupo decidiu recuar com o que conquistou.</summary>
         public void HostRetreat(int layersCleared)
         {
@@ -361,8 +379,9 @@ namespace PangeaSkirmish
         }
 
         [ClientRpc]
-        private void PrepareLayerClientRpc(int layer)
+        private void PrepareLayerClientRpc(int layer, bool rest, int timeOfDay)
         {
+            DayNight.Set(timeOfDay);
             // Feras mortas saem de cena; jogadores voltam ao ponto de partida com cura parcial.
             for (int i = _allUnits.Count - 1; i >= 0; i--)
             {
@@ -374,6 +393,7 @@ namespace PangeaSkirmish
                     _allUnits.RemoveAt(i);
                     Destroy(u.gameObject);
                 }
+                else if (rest) u.RestoreForNextLayer(1f, 1f, 1f);   // descanso (GDD-024): tudo de volta
                 else u.RestoreForNextLayer(LayerHealFraction, LayerManaFraction, LayerReviveFraction);
             }
             Debug.Log($"[PlacementSync] Coop: preparando camada {layer} ({_allUnits.Count} unidades de jogadores)");
@@ -399,7 +419,8 @@ namespace PangeaSkirmish
         {
             if (!IsServer || _grid == null) return;
             int count = Mathf.Max(1, Mathf.Max(1, playerCount) + layer - 1); // camada 1: uma fera por jogador
-            int budget = RuntimeMultiplayerSession.CurrentConfig.attributeBudget;
+            // GDD-024: as feras acompanham os pontos médios do grupo (níveis) e ficam mais fortes à noite.
+            int budget = Mathf.RoundToInt(GroupAveragePoints() * DayNight.BeastMult(_timeOfDay));
             int w = _grid.width, h = _grid.height;
             int spawned = 0;
 

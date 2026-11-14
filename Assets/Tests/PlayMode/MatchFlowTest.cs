@@ -27,6 +27,7 @@ public class MatchFlowTest
     private static CharacterPreset Preset(string name, float str = 5) => new CharacterPreset
     {
         presetName = name, weaponId = "IronSword", modelId = "Tank",
+        level = 4,   // 30 pontos = nível 4 (GDD-024)
         stats = new UnitStatBlock { STR = str, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5, Footprint = 3, AttackRange = 4 }
     };
 
@@ -131,6 +132,70 @@ public class MatchFlowTest
         if (string.IsNullOrEmpty(backup)) PlayerPrefs.DeleteKey(Key); else PlayerPrefs.SetString(Key, backup);
         PlayerPrefs.Save();
         PlayerProfile.ResetForTests(false);
+        yield return null;
+    }
+
+    /// <summary>GDD-024: descansar cura tudo e passa o tempo; descer sem descanso cura parte e mantém a hora.
+    /// As feras acompanham os pontos do grupo.</summary>
+    [UnityTest]
+    public IEnumerator Coop_RestHealsAll_AndAdvancesTime()
+    {
+        LogAssert.ignoreFailingMessages = true;
+        string backup = PlayerPrefs.GetString(Key, "");
+        var tuning = Resources.Load<GameTuning>("GameTuning");
+        RuntimeTuning.Active = tuning; AttributeStats.Formulas = tuning.statFormulas;
+        PlayerProfile.ResetForTests(true);
+        PlayerProfile.SetName("Anfitrião");
+        PlayerProfile.Put(-1, Preset("Escudeiro"));
+        RuntimeMultiplayerSession.PlayerName = PlayerProfile.Name;
+
+        var boot = NetBootstrap.EnsureExists();
+        boot.HostLoopback();
+        yield return WaitFor(() => RoomManager.Instance != null && PlacementSync.Instance != null, 5f, "rede de pé");
+        var room = RoomManager.Instance;
+        room.SetConfigServerRpc(new RoomConfigNet { GameMode = GameModes.Coop, AttributeBudget = PlayerProfile.AttributeBudget, PlanningTime = 15f, MaxPlayers = 4 });
+        yield return null;
+        room.SubmitCharacterServerRpc(JsonUtility.ToJson(Preset("Escudeiro")));
+        yield return WaitFor(() => room.Slots.Count > 0 && room.Slots[0].ReadyChar, 3f, "personagem aceito");
+        room.AdvancePhaseServerRpc();
+        yield return WaitFor(() => SceneManager.GetActiveScene().name == "Battle" && Grid() != null, 15f, "cena Battle");
+        var ps = PlacementSync.Instance;
+        yield return WaitFor(() => Field<System.Collections.Generic.List<Vector2Int>>(ps, "_myZoneHighlights").Count > 0, 5f, "zona");
+        ps.PlaceUnitServerRpc(4, 12);
+        yield return WaitFor(() => UnitRegistry.AllUnits.Count(u => u != null) >= 2, 8f, "batalha");
+        var mine = UnitRegistry.AllUnits.First(u => u != null && u.isPlayerCharacter);
+        Assert.AreEqual(DayNight.Day, DayNight.Current, "a partida começa de dia");
+
+        // Feras pelo grupo: 30 pontos (nível 4) → orçamento dos 30.
+        float BeastPoints() => UnitRegistry.AllUnits.Where(u => u != null && BeastAI.Controls(u))
+            .Sum(u => u.stats.STR + u.stats.VIT + u.stats.DEX + u.stats.AGI + u.stats.INT + u.stats.WIS);
+        float dayBeasts = BeastPoints();
+        Assert.Greater(dayBeasts, 0f);
+
+        mine.currentHP = 1;
+        ps.HostDescend(2, rest: true);
+        yield return WaitFor(() => DayNight.Current == DayNight.Dusk, 5f, "descanso vira entardecer");
+        for (int i = 0; i < 10; i++) yield return null;
+        Assert.AreEqual(mine.stats.MaxHP, mine.currentHP, "descanso cura tudo");
+
+        mine.currentHP = 1;
+        ps.HostDescend(3);
+        for (int i = 0; i < 10; i++) yield return null;
+        Assert.AreEqual(DayNight.Dusk, DayNight.Current, "descer sem descansar não passa o tempo");
+        Assert.Less(mine.currentHP, mine.stats.MaxHP, "descer cura só parte");
+        Assert.Greater(mine.currentHP, 1);
+
+        boot.Shutdown();
+        yield return null;
+        var empty = SceneManager.CreateScene("RestTestEmpty");
+        SceneManager.SetActiveScene(empty);
+        yield return SceneManager.UnloadSceneAsync("Battle");
+        foreach (var o in Object.FindObjectsByType<Unit>(FindObjectsSortMode.None)) Object.Destroy(o.gameObject);
+        if (NetBootstrap.Instance != null) Object.Destroy(NetBootstrap.Instance.gameObject);
+        if (string.IsNullOrEmpty(backup)) PlayerPrefs.DeleteKey(Key); else PlayerPrefs.SetString(Key, backup);
+        PlayerPrefs.Save();
+        PlayerProfile.ResetForTests(false);
+        DayNight.Reset();
         yield return null;
     }
 

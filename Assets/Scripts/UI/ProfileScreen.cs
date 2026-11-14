@@ -39,6 +39,9 @@ namespace PangeaSkirmish.UI
             _editBtn     = r.Q<Button>("btn-edit");
             _deleteBtn   = r.Q<Button>("btn-delete");
             _continueBtn = r.Q<Button>("btn-continue");
+            _progress    = r.Q<Label>("sel-progress");
+            _trainBtn    = r.Q<Button>("btn-train");
+            if (_trainBtn != null) _trainBtn.clicked += Train;
 
             if (_nameInput != null)
             {
@@ -104,6 +107,27 @@ namespace PangeaSkirmish.UI
             RefreshState();
         }
 
+        // ── Progressão e loja (GDD-024) ──
+        private Label _progress;
+        private Button _trainBtn;
+        /// <summary>XP comprado por clique na loja.</summary>
+        public const int TrainXp = 5;
+
+        private void Train()
+        {
+            var c = PlayerProfile.Selected;
+            int ups = PlayerProfile.BuyXp(c, TrainXp);
+            if (ups < 0) return;
+            PlayerProfile.Save();
+            if (_notice != null && ups > 0) _notice.text = $"{c.presetName} subiu para o nível {c.level}! Edite para distribuir +{ups * PlayerProfile.PointsPerLevel} pontos.";
+            Rebuild();
+        }
+
+        public static string ProgressText(CharacterPreset c) =>
+            c == null ? "" :
+            $"Nível {PlayerProfile.Level(c)} · XP {c.xp}/{PlayerProfile.XpToNext(PlayerProfile.Level(c))} · Moedas {PlayerProfile.Gold}" +
+            (PlayerProfile.Points(c) < PlayerProfile.BudgetFor(c) ? $"\n<color=#ffd76a>{PlayerProfile.BudgetFor(c) - PlayerProfile.Points(c)} pontos para distribuir (Editar)</color>" : "");
+
         private void RefreshState()
         {
             var c = PlayerProfile.Selected;
@@ -116,6 +140,13 @@ namespace PangeaSkirmish.UI
 
             if (_selName != null) _selName.text = c != null ? c.presetName : "—";
             if (_selInfo != null) _selInfo.text = c != null ? Sheet(c) : "Sem personagem em uso.";
+            if (_progress != null) _progress.text = ProgressText(c);
+            if (_trainBtn != null)
+            {
+                int cost = TrainXp * PlayerProfile.GoldPerXp;
+                _trainBtn.text = $"Treinar: {cost} moedas → {TrainXp} XP";
+                _trainBtn.SetEnabled(c != null && PlayerProfile.Gold >= cost);
+            }
 
             if (_preview == null) return;
             if (c == null || !World3D.Has("Character") || !IsVisible)

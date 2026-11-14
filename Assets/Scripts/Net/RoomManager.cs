@@ -137,7 +137,7 @@ namespace PangeaSkirmish
                 NetworkVariableWritePermission.Server);
 
             _config = new NetworkVariable<RoomConfigNet>(
-                new RoomConfigNet { GameMode = 0, AttributeBudget = PlayerProfile.AttributeBudget, PlanningTime = 60f, MaxPlayers = 8 },
+                new RoomConfigNet { GameMode = GameModes.Coop, AttributeBudget = PlayerProfile.AttributeBudget, PlanningTime = 60f, MaxPlayers = 8 },
                 NetworkVariableReadPermission.Everyone,
                 NetworkVariableWritePermission.Server);
         }

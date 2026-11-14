@@ -108,6 +108,7 @@ namespace PangeaSkirmish
             Unit.OnDamageTaken -= SpawnDamageLabel;
             Unit.OnDamageTaken += SpawnDamageLabel;
             _screenFlash = ScreenFlash.Create(hud.Document);
+            DayNight.Reset();   // GDD-024: toda partida começa de dia
 
             // Indicador de modo câmera
             if (_camCtrl != null)
@@ -770,11 +771,11 @@ namespace PangeaSkirmish
                 if (GameModes.IsCoop)
                 {
                     int alive = CountAliveTeams(out int survivingTeam);
-                    if (alive == 0)     { GameOver($"Derrota! Ninguém saiu vivo da camada {Layer}."); yield break; }
+                    if (alive == 0)     { AwardCoop(cleared: false); GameOver($"Derrota! Ninguém saiu vivo da camada {Layer}."); yield break; }
                     if (alive == 1)
                     {
                         if (survivingTeam == BeastAI.TeamId)
-                            GameOver($"Derrota! As feras venceram na camada {Layer}.");
+                            { AwardCoop(cleared: false); GameOver($"Derrota! As feras venceram na camada {Layer}."); }
                         else
                             LayerCleared();
                         yield break;
@@ -835,6 +836,7 @@ namespace PangeaSkirmish
                 PlayerPrefs.Save();
             }
             _hud.SetPhase($"Camada {Layer} vencida");
+            AwardCoop(cleared: true);
             _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
 
             // Cartas (GDD-021 §7): primeiro cada um escolhe 1 de 3; depois a decisão de descer.
@@ -856,6 +858,32 @@ namespace PangeaSkirmish
             ShowDescentChoice();
         }
 
+        // ── Progressão (GDD-024): XP e dinheiro vão para o personagem do perfil desta máquina ──
+        public const int XpPerBeast = 5, XpPerLayer = 15, GoldPerBeast = 3;
+
+        /// <summary>Recompensa da camada: cada fera abatida dá XP e dinheiro × camada; vencer dá XP × camada.
+        /// Linear na camada, como o custo do nível (PlayerProfile.XpToNext).</summary>
+        public static (int xp, int gold) CoopReward(int layer, int beastsKilled, bool cleared)
+        {
+            int l = Mathf.Max(1, layer);
+            return (beastsKilled * XpPerBeast * l + (cleared ? XpPerLayer * l : 0), beastsKilled * GoldPerBeast * l);
+        }
+
+        private void AwardCoop(bool cleared)
+        {
+            if (!GameModes.IsCoop) return;
+            int killed = 0;
+            foreach (var u in _units) if (BeastAI.Controls(u) && u.IsDead) killed++;
+            var (xp, gold) = CoopReward(Layer, killed, cleared);
+            var p = PlayerProfile.Selected;
+            if (p == null || (xp <= 0 && gold <= 0)) return;
+            int ups = PlayerProfile.AddXp(p, xp);
+            PlayerProfile.AddGold(gold);
+            PlayerProfile.Save();
+            _hud.Log($"<color=#ffd76a>★</color> {p.presetName}: +{xp} XP, +{gold} moedas ({killed} fera{(killed == 1 ? "" : "s")})" +
+                     (ups > 0 ? $" — <b>subiu para o nível {p.level}!</b> +{ups * PlayerProfile.PointsPerLevel} pontos para distribuir no perfil" : ""));
+        }
+
         /// <summary>Uma carta foi aplicada (aqui ou em outra máquina): avisa no histórico e atualiza a ficha.</summary>
         public void OnCardApplied(Unit u, string what)
         {
@@ -865,10 +893,13 @@ namespace PangeaSkirmish
 
         private void ShowDescentChoice()
         {
-            string text = $"Camada {Layer} vencida — descer para a camada {Layer + 1}?";
+            int t = DayNight.Current, next = (t + 1) % 3;
+            string text = $"Camada {Layer} vencida — {DayNight.Icon(t)} {DayNight.Name(t)}. Descer para a camada {Layer + 1}?";
             if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null)
                 _hud.ShowChoice(text,
-                    ("Descer", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                    ("Descer  <size=12>(cura 30%)</size>", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                    ($"Descansar e descer  <size=12>(cura tudo; vira {DayNight.Name(next).ToLower()}{(next == DayNight.Night ? ": feras +30%" : next == DayNight.Dusk ? ": feras +15%" : "")})</size>",
+                        () => PlacementSync.Instance.HostDescend(Layer + 1, rest: true)),
                     ("Recuar", () => PlacementSync.Instance.HostRetreat(Layer)));
             else
                 _hud.ShowChoice(text + "\nAguardando o anfitrião decidir...");
@@ -880,7 +911,7 @@ namespace PangeaSkirmish
             Layer = layer;
             _awaitingDescent = false;
             _hud.HideReactionMenu();
-            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto.");
+            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto. {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current)}.");
             StartCoroutine(StartRound());
         }
 
