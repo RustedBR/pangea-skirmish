@@ -652,6 +652,50 @@ namespace PangeaSkirmish
                     yield return FrameGroup(actors);
                 }
 
+                foreach (var u in _units) { u.pendingMoveThisTick = false; u.moveCancelledThisTick = false; }
+                foreach (var m in movesThisSlot) m.u.pendingMoveThisTick = true;
+                // Magias que terminam neste tick (GDD-019) resolvem ANTES das andadas do mesmo tick
+                // (2026-11-14): quem ia sair do lugar toma o dano onde estava, e o visual bate com o dano. Ordem por unitId, como o resto do lockstep.
+                bool anySpellFx = false;
+                foreach (var (su, sp) in spellsThisSlot)
+                {
+                    if (su.IsDead) continue;
+                    // Visual primeiro (lê posições de antes do efeito); o Salto anima de onde saiu.
+                    var castFrom = su.transform.position;
+                    Debug.Log($"[Magia] {su.unitName} resolve {sp.SpellId} em ({sp.TargetTile.x},{sp.TargetTile.y}) alvo={(sp.TargetUnit != null ? sp.TargetUnit.unitName : "—")} de ({su.anchor.x},{su.anchor.y})");
+                    // O visual nunca pode impedir a regra de resolver: se falhar, registra e segue.
+                    try { ActionFx.MarkSpell(_grid, su, sp); ActionFx.PlaySpell(su, sp, _grid); }
+                    catch (System.Exception ex) { Debug.LogError($"[Magia] falha no VISUAL de {sp.SpellId}: {ex}"); }
+                    // Esquivar também vale contra magia (Bloquear não, GDD-020 §8).
+                    List<Vector2Int> spellCells = null;
+                    if (sp.Def != null && sp.Def.area > 0)
+                    {
+                        spellCells = SpellResolver.PreviewCells(su, sp);   // mesmo centro da resolução
+                    }
+                    foreach (var tgt in SpellResolver.DamageTargets(su, sp, _units))
+                        if (tgt.CanReact(ReactionKind.Dodge))
+                        {
+                            _reactionAttacker = su;
+                            yield return React(tgt, new List<ReactionKind> { ReactionKind.Dodge }, su, spellCells);
+                        }
+                    List<string> spellLines;
+                    try { spellLines = SpellResolver.Resolve(su, sp, _units, _grid, _spellField); }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"[Magia] falha ao RESOLVER {sp.SpellId} de {su.unitName}: {ex}");
+                        spellLines = new List<string> { $"<color=#ff7a6a>✕</color> {su.unitName}: {sp.SpellId} falhou (ver LOG)" };
+                    }
+                    foreach (var line in spellLines)
+                        _hud.LogAction(line, su);
+                    var sdef = sp.Def;
+                    if (sdef != null && (sdef.effect == SpellEffect.Leap || sdef.effect == SpellEffect.Teleport) && su.Model3D != null
+                        && su.transform.position != castFrom && sdef.effect == SpellEffect.Leap)
+                        su.Model3D.PlayLeap(castFrom, 0.5f);
+                    anySpellFx = true;
+                }
+                if (anySpellFx) yield return new WaitForSeconds(Tuning.Get().spellFxPause);
+
+                movesThisSlot.RemoveAll(m => m.u.moveCancelledThisTick || m.u.IsDead);   // Lasca de pedra / morreu na magia
                 var beforeAnchor = new Dictionary<Unit, Vector2Int>();
                 if (movesThisSlot.Count > 0)
                 {
@@ -680,48 +724,6 @@ namespace PangeaSkirmish
                 if (attacksThisSlot.Count > 0)
                     yield return ResolveAttackSlot(attacksThisSlot);
 
-                // Magias que terminam neste tick (GDD-019). Ordem por unitId, como o resto do lockstep.
-                bool anySpellFx = false;
-                foreach (var (su, sp) in spellsThisSlot)
-                {
-                    if (su.IsDead) continue;
-                    // Visual primeiro (lê posições de antes do efeito); o Salto anima de onde saiu.
-                    var castFrom = su.transform.position;
-                    Debug.Log($"[Magia] {su.unitName} resolve {sp.SpellId} em ({sp.TargetTile.x},{sp.TargetTile.y}) alvo={(sp.TargetUnit != null ? sp.TargetUnit.unitName : "—")} de ({su.anchor.x},{su.anchor.y})");
-                    // O visual nunca pode impedir a regra de resolver: se falhar, registra e segue.
-                    try { ActionFx.MarkSpell(_grid, su, sp); ActionFx.PlaySpell(su, sp, _grid); }
-                    catch (System.Exception ex) { Debug.LogError($"[Magia] falha no VISUAL de {sp.SpellId}: {ex}"); }
-                    // Esquivar também vale contra magia (Bloquear não, GDD-020 §8).
-                    List<Vector2Int> spellCells = null;
-                    if (sp.Def != null && sp.Def.area > 0)
-                    {
-                        int r = SpellResolver.AreaRadius(sp.Def), cfp = su.stats.Footprint;
-                        var c = sp.TargetTile + new Vector2Int(cfp / 2, cfp / 2);
-                        spellCells = new List<Vector2Int>();
-                        for (int x = c.x - r; x <= c.x + r; x++) for (int y = c.y - r; y <= c.y + r; y++) spellCells.Add(new Vector2Int(x, y));
-                    }
-                    foreach (var tgt in SpellResolver.DamageTargets(su, sp, _units))
-                        if (tgt.CanReact(ReactionKind.Dodge))
-                        {
-                            _reactionAttacker = su;
-                            yield return React(tgt, new List<ReactionKind> { ReactionKind.Dodge }, su, spellCells);
-                        }
-                    List<string> spellLines;
-                    try { spellLines = SpellResolver.Resolve(su, sp, _units, _grid, _spellField); }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogError($"[Magia] falha ao RESOLVER {sp.SpellId} de {su.unitName}: {ex}");
-                        spellLines = new List<string> { $"<color=#ff7a6a>✕</color> {su.unitName}: {sp.SpellId} falhou (ver LOG)" };
-                    }
-                    foreach (var line in spellLines)
-                        _hud.LogAction(line, su);
-                    var sdef = sp.Def;
-                    if (sdef != null && (sdef.effect == SpellEffect.Leap || sdef.effect == SpellEffect.Teleport) && su.Model3D != null
-                        && su.transform.position != castFrom && sdef.effect == SpellEffect.Leap)
-                        su.Model3D.PlayLeap(castFrom, 0.5f);
-                    anySpellFx = true;
-                }
-                if (anySpellFx) yield return new WaitForSeconds(Tuning.Get().spellFxPause);
 
                 yield return AdvanceGlobalTick();
                 foreach (var line in SpellResolver.TickEffects(_units, _spellField)) _hud.LogAction(line, null);

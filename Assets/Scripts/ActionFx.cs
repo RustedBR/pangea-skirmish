@@ -246,16 +246,13 @@ namespace PangeaSkirmish
             if (s.IsPhysical && s.effect != SpellEffect.Leap) return;
             int fp = caster.stats.Footprint;
             Color col = ElementInfo.Color(s.PrimaryElement);
-            var center = ps.TargetTile + new Vector2Int(fp / 2, fp / 2);
-            var cells = new List<Vector2Int>();
             if (s.effect == SpellEffect.Barrier) return;                       // a própria Muralha já marca o chão
-            if (s.area > 0)
-            {
-                int r = SpellResolver.AreaRadius(s);
-                for (int dx = -r; dx <= r; dx++)
-                for (int dy = -r; dy <= r; dy++) cells.Add(center + new Vector2Int(dx, dy));
-            }
-            else cells.AddRange(FootprintCells(ps.TargetTile, fp));
+            // Mesmo centro e células da resolução (2026-11-14): alvo travado = onde ele está agora.
+            bool moves = s.effect == SpellEffect.Leap || s.effect == SpellEffect.Teleport;
+            var center = moves ? ps.TargetTile + new Vector2Int(fp / 2, fp / 2) : SpellResolver.AimCenter(caster, ps);
+            var cells = new List<Vector2Int>();
+            if (moves) cells.AddRange(FootprintCells(ps.TargetTile, fp));
+            else cells.AddRange(SpellResolver.PreviewCells(caster, ps));
             // 2,4 s para magias (pedido 2026-11-13).
             float dur = Tuning.Get().spellMarkSeconds;
             GroundFlash(grid, cells, col, dur, 0.75f);
@@ -319,7 +316,10 @@ namespace PangeaSkirmish
             }
 
             int fp = caster.stats.Footprint;
-            Vector3 target = grid.AnchorToWorldCenter(ps.TargetTile, fp);
+            // Alvo travado: o projétil vai até a unidade, onde ela estiver (2026-11-14).
+            Vector3 target = ps.TargetUnit != null && !ps.TargetUnit.IsDead && s.effect != SpellEffect.Leap && s.effect != SpellEffect.Teleport
+                ? grid.AnchorToWorldCenter(ps.TargetUnit.anchor, ps.TargetUnit.stats.Footprint)
+                : grid.AnchorToWorldCenter(ps.TargetTile, fp);
             string proj = ModelFor(s.PrimaryElement);
             string second = s.IsPair ? ModelFor(s.elements[1]) : null;
             Color? tint = proj == "SpellOrb" ? col : (Color?)null;

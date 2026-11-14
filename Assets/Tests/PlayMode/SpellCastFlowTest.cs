@@ -122,6 +122,34 @@ public class SpellCastFlowTest
         Assert.IsFalse(mage.IsBusy, "a maga fica livre depois de conjurar");
     }
 
+    /// <summary>2026-11-14: no mesmo tick, a magia resolve ANTES da andada. Lasca de pedra travada num alvo
+    /// que terminaria de andar nesse tick: ele toma o dano onde estava e não sai do lugar.</summary>
+    [UnityTest]
+    public IEnumerator SpellLandsBeforeMove_InSameTick()
+    {
+        yield return Setup();
+        var mage  = Make("Maga", Team.Player, new Vector2Int(4, 10), "ArcaneStaff", 0, 0);
+        var dummy = Make("Alvo", Team.Enemy, new Vector2Int(9, 10), "IronSword", 1, 2);
+        dummy.currentHP = dummy.stats.MaxHP; int hp0 = dummy.currentHP;
+        mage.currentMana = mage.stats.MaxMana;
+        for (int i = 0; i < 3; i++) yield return null;
+
+        int d = TickRules.Duration(mage, ActionType.Spell, false, SpellCatalog.Get("StoneShard"));
+        int mv = TickRules.Duration(dummy, ActionType.Move, false), wt = TickRules.Duration(dummy, ActionType.Wait, false);
+        Assume.That(d >= mv && (d - mv) % wt == 0, $"alinhar andada e magia (magia {d}, andada {mv}, espera {wt})");
+        PlanSpell(mage, "StoneShard", dummy.anchor, dummy);
+        dummy.ResetPlan();
+        for (int k = 0; k < (d - mv) / wt; k++) dummy.actionSequence.Add(new ScheduledAction { Type = ActionType.Wait });
+        var start = dummy.anchor;
+        dummy.plannedPath.Add(start + new Vector2Int(0, 2)); dummy.plannedMoveCount = 1;
+        dummy.actionSequence.Add(new ScheduledAction { Type = ActionType.Move, Index = 0 });
+        dummy.RecomputeTickBudget();
+
+        yield return Step();
+        Assert.Less(dummy.currentHP, hp0, "a Lasca acertou");
+        Assert.AreEqual(start, dummy.anchor, "a magia pegou antes da andada do mesmo tick, que foi cancelada");
+    }
+
     [UnityTest]
     public IEnumerator Magma_CreatesZone_AndBurnsOverTicks()
     {
