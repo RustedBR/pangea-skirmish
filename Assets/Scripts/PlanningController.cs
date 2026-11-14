@@ -1128,7 +1128,7 @@ namespace PangeaSkirmish
             }
 
             // Só o botão esquerdo: o direito já é o arrasto da câmera.
-            bool left = Mouse.current.leftButton.wasPressedThisFrame;
+            bool left = PointerInput.ClickThisFrame;
             if (!left || PointerOverUI()) return false;
 
             bool shift = kb != null && kb.shiftKey.isPressed;
@@ -1515,26 +1515,23 @@ namespace PangeaSkirmish
 
         private void Update()
         {
-            if (!_active || Mouse.current == null) return;
+            if (!_active || !PointerInput.Available) return;
 
             // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)
-            if (_retargetIdx >= 0 && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_retargetIdx >= 0 && PointerInput.BackThisFrame)
             { _retargetIdx = -1; ShowIntentHint(); return; }
-            if (_mode == PlanMode.SpellTilePicking && Keyboard.current != null
-                && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_mode == PlanMode.SpellTilePicking && PointerInput.BackThisFrame)
             {
                 _pendingSpell = null; HideCursorGhost(); SetMode(PlanMode.Idle); ShowIntentHint(); return;
             }
-            if (_mode == PlanMode.Idle && Keyboard.current != null
-                && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_mode == PlanMode.Idle && PointerInput.BackThisFrame)
             {
                 _hud.GoBack();
                 return;
             }
 
             // Esc sai da mira de ataque.
-            if ((_mode == PlanMode.AttackUnitPicking || _mode == PlanMode.AttackTilePicking) && Keyboard.current != null
-                && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if ((_mode == PlanMode.AttackUnitPicking || _mode == PlanMode.AttackTilePicking) && PointerInput.BackThisFrame)
             { SetMode(PlanMode.Idle); ShowSelfAttackRange(); return; }
             // Teclas da barra de ações valem em qualquer modo (4 Atacar, 5 Mirar livre...).
             if (_mode != PlanMode.Idle && _hud.HandleActionBarKeys()) return;
@@ -1553,7 +1550,7 @@ namespace PangeaSkirmish
                 if (valid) PlaceGhost(_cursorGhost, hovered.Value);
                 else       HideCursorGhost();
 
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                if (PointerInput.ClickThisFrame)
                 {
                     var clicked = HitAnchor();
                     if (clicked.HasValue && _reachable.Contains(clicked.Value))
@@ -1573,7 +1570,7 @@ namespace PangeaSkirmish
                         _lastTargetedUnit = hoveredUnit;
                     }
                     ShowCursorShape(AttackShape.Center(hoveredUnit.plannedAnchor, hoveredUnit.stats.Footprint), false);
-                    if (Mouse.current.leftButton.wasPressedThisFrame)
+                    if (PointerInput.ClickThisFrame)
                     {
                         CommitAttackUnit(hoveredUnit);
                     }
@@ -1595,7 +1592,7 @@ namespace PangeaSkirmish
                 {
                     HideCursorGhost();
                     ShowCursorShape(cell.Value, true);
-                    if (Mouse.current.leftButton.wasPressedThisFrame && !PointerOverUI())
+                    if (PointerInput.ClickThisFrame && !PointerOverUI())
                         CommitAttackTile(cell.Value);
                 }
                 else { HideCursorGhost(); ClearCursorShape(); }
@@ -1614,13 +1611,13 @@ namespace PangeaSkirmish
                 if (valid)
                 {
                     PlaceGhost(_cursorGhost, hovered.Value);
-                    if (Mouse.current.leftButton.wasPressedThisFrame && !_hud.IsPointerOverUI()) CommitSpellTile(hovered.Value, overUnit);
+                    if (PointerInput.ClickThisFrame && !_hud.IsPointerOverUI()) CommitSpellTile(hovered.Value, overUnit);
                 }
                 else
                 {
                     HideCursorGhost();
                     // Clique fora do alcance não é silencioso: diz o porquê e mantém a mira aberta.
-                    if (Mouse.current.leftButton.wasPressedThisFrame && !_hud.IsPointerOverUI() && _pendingSpell != null)
+                    if (PointerInput.ClickThisFrame && !_hud.IsPointerOverUI() && _pendingSpell != null)
                         _hud.ShowPlanNote($"{_pendingSpell.displayName}: fora de alcance ({SpellResolver.Reach(_controlled, _pendingSpell)} células a partir de onde você vai estar). Esc cancela.");
                 }
             }
@@ -1631,7 +1628,7 @@ namespace PangeaSkirmish
                 if (valid)
                 {
                     PlaceGhost(_cursorGhost, hovered.Value);
-                    if (Mouse.current.leftButton.wasPressedThisFrame)
+                    if (PointerInput.ClickThisFrame)
                         CommitQuickStep(hovered.Value);
                 }
                 else
@@ -1916,8 +1913,8 @@ namespace PangeaSkirmish
 
         private Unit HitUnitWithCollider()
         {
-            if (Mouse.current == null || _cam == null) return null;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            if (!PointerInput.Available || _cam == null) return null;
+            Vector2 screen = PointerInput.Position;
             // Migração XY→XZ: raycast 3D do mouse contra as unidades (colliders 3D).
             var u = Unit.PickAtWorld(_cam, screen);
             // No picking de ataque só inimigos vivos do time oposto são alvos.
@@ -1929,7 +1926,7 @@ namespace PangeaSkirmish
         private Vector2Int? HitCell()
         {
             if (_cam == null) return null;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            Vector2 screen = PointerInput.Position;
             // Migração XY→XZ (2026-07-20): raycast no plano y=0 (ScreenToGround),
             // NÃO ScreenToWorldPoint (2D, plano Z=0 que não existe mais).
             Vector3 world;

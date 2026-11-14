@@ -406,7 +406,7 @@ namespace PangeaSkirmish
         /// </summary>
         private void HandleInspectClick()
         {
-            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
+            if (!PointerInput.Available || !PointerInput.ClickThisFrame) return;
             if (_planner != null && _planner.IsPicking) return; // o planner usa o clique
             if (_hud != null && _hud.IsPromptVisible) return;    // escolha de passo bônus
             if (PointerOverUI()) return;
@@ -424,8 +424,8 @@ namespace PangeaSkirmish
 
         private Unit UnitUnderMouse()
         {
-            if (_cam == null || Mouse.current == null) return null;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            if (_cam == null || !PointerInput.Available) return null;
+            Vector2 screen = PointerInput.Position;
             var world = RaycastGround(screen);
             // Seleção por collider 3D (migração XY→XZ): raycast do mouse contra as unidades.
             return Unit.PickAtWorld(_cam, screen);
@@ -1582,8 +1582,8 @@ namespace PangeaSkirmish
 
         private Vector2Int? HitAnchorFromMouse()
         {
-            if (Mouse.current == null) return null;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            if (!PointerInput.Available) return null;
+            Vector2 screen = PointerInput.Position;
             var world = RaycastGround(screen);
             var cell = _grid.WorldToCell(world);
             return new Vector2Int(cell.x - 1, cell.y - 1);
@@ -1918,12 +1918,12 @@ namespace PangeaSkirmish
                 }
                 else ghost.SetActive(false);
 
-                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                if (PointerInput.Available && PointerInput.ClickThisFrame)
                 {
                     var h = HitAnchorFromMouse();
                     if (h.HasValue && reachable.Contains(h.Value)) chosen = h.Value;
                 }
-                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                if (PointerInput.BackThisFrame)
                     skip = true;
 
                 yield return null;

@@ -18,8 +18,8 @@ namespace PangeaSkirmish.UI
         /// </summary>
         public static bool IsPointerOverClickableUI()
         {
-            if (Mouse.current == null) return false;
-            var pos = Mouse.current.position.ReadValue();
+            if (!PointerInput.Available) return false;
+            var pos = PointerInput.Position;
             return IsPositionOverClickableUI(pos);
         }
 

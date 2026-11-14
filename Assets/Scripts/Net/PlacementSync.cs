@@ -516,9 +516,9 @@ namespace PangeaSkirmish
             if (!_gridReady || _placementDone) return;
             if (!RuntimeMultiplayerSession.IsMultiplayer) return;
             if (_grid == null || _cam == null) return;
-            if (Mouse.current == null) return;
+            if (!PointerInput.Available) return;
 
-            Vector2 screen = Mouse.current.position.ReadValue();
+            Vector2 screen = PointerInput.Position;
             // Migração XY→XZ (2026-07-20): raycast no plano y=0 (ScreenToGround),
             // NÃO ScreenToWorldPoint (2D, plano Z=0 que não existe mais).
             Vector3 world;
@@ -539,7 +539,7 @@ namespace PangeaSkirmish
                     _grid.HighlightAnchors(_myZoneHighlights, _grid.highlightColor);
             }
 
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (PointerInput.ClickThisFrame)
             {
                 Debug.Log($"[PlacementSync] clique em {cell} — naZona={_myZoneHighlights.Contains(cell)}");
                 if (_myZoneHighlights.Contains(cell))
