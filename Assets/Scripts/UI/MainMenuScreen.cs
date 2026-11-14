@@ -30,6 +30,14 @@ namespace PangeaSkirmish.UI
             if (pf != null) pf.clicked += () => OnProfile?.Invoke();
             var opt = Root.Q<Button>("btn-options");
             if (opt != null) opt.clicked += () => OnOptions?.Invoke();
+            // Visualizador de animações (GDD-025): abre por cima do menu e volta para ele.
+            var anim = Root.Q<Button>("btn-anim");
+            if (anim != null) anim.clicked += () =>
+            {
+                var viewer = Spawn<AnimViewerScreen>("AnimViewerScreen");
+                SetVisible(false);
+                viewer.OnBack = () => { Destroy(viewer.gameObject); SetVisible(true); };
+            };
             var quit = Root.Q<Button>("btn-quit");
             if (quit != null) quit.clicked += () => OnQuit?.Invoke();
             RefreshProfile();
