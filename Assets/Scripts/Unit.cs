@@ -619,8 +619,7 @@ namespace PangeaSkirmish
                 if (_hoverFrame == Time.frameCount) return _hovered;
                 _hoverFrame = Time.frameCount; _hovered = null;
                 var cam = Camera.main;
-                var mouse = UnityEngine.InputSystem.Mouse.current;
-                if (cam != null && mouse != null) _hovered = PickAtWorld(cam, mouse.position.ReadValue());
+                if (cam != null && PointerInput.Available) _hovered = PickAtWorld(cam, PointerInput.Position);
                 return _hovered;
             }
         }

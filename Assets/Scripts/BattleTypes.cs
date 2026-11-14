@@ -318,7 +318,9 @@ namespace PangeaSkirmish
         public string     SpellId;
         public Unit       TargetUnit;
         public Vector2Int TargetTile;
-        public SpellDef   Def => SpellCatalog.Get(SpellId);
+        /// <summary>Incrementos escolhidos ao planejar (flags de SpellBoost, GDD-023).</summary>
+        public int        Boosts;
+        public SpellDef   Def => SpellBoosts.Apply(SpellCatalog.Get(SpellId), Boosts);
     }
 
     /// <summary>

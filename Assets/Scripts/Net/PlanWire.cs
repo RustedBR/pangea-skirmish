@@ -24,6 +24,7 @@ namespace PangeaSkirmish
     public class SpellWire
     {
         public string spellId;
+        public int    boosts;
         public uint   targetUnitId;
         public int    targetTileX;
         public int    targetTileY;
@@ -106,6 +107,7 @@ namespace PangeaSkirmish
                 w.spells.Add(new SpellWire
                 {
                     spellId      = sp.SpellId,
+                    boosts       = sp.Boosts,
                     targetUnitId = sp.TargetUnit != null ? UnitRegistry.GetId(sp.TargetUnit) : 0u,
                     targetTileX  = sp.TargetTile.x,
                     targetTileY  = sp.TargetTile.y,
@@ -168,6 +170,7 @@ namespace PangeaSkirmish
                     u.plannedSpells.Add(new PlannedSpell
                     {
                         SpellId    = sw.spellId,
+                        Boosts     = sw.boosts,
                         TargetUnit = sw.targetUnitId != 0 ? UnitRegistry.Get(sw.targetUnitId) : null,
                         TargetTile = new Vector2Int(sw.targetTileX, sw.targetTileY),
                     });

@@ -58,7 +58,7 @@ namespace PangeaSkirmish
         private IVisualElementScheduledItem _pendingTip;
 
         // ---- Estado ----------------------------------------------------------
-        private int _gameMode = 0;       // 0=TDM, 1=FFA
+        private int _gameMode = GameModes.Coop;   // GDD-024: a sala abre no Coop (0=TDM, 1=FFA)
         private int _budgetValue = PlayerProfile.AttributeBudget;
         private int _maxPlayersValue = 4;
         private float _planningValue = 60f; // GDD-014: segundos por ponto de decisão

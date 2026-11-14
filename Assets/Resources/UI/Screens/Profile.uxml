@@ -26,6 +26,8 @@
                     <ui:VisualElement name="preview" class="pf-preview" />
                     <ui:Label name="sel-name" text="" class="pf-sel-name" />
                     <ui:Label name="sel-info" text="" class="pf-sel-info" />
+                    <ui:Label name="sel-progress" text="" class="pf-sel-info" />
+                    <ui:Button name="btn-train" text="Treinar" class="pg-button pf-list-btn" />
                 </ui:VisualElement>
             </ui:VisualElement>
 

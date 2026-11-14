@@ -27,6 +27,7 @@ public class MatchFlowTest
     private static CharacterPreset Preset(string name, float str = 5) => new CharacterPreset
     {
         presetName = name, weaponId = "IronSword", modelId = "Tank",
+        level = 4,   // 30 pontos = nível 4 (GDD-024)
         stats = new UnitStatBlock { STR = str, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5, Footprint = 3, AttackRange = 4 }
     };
 
@@ -131,6 +132,93 @@ public class MatchFlowTest
         if (string.IsNullOrEmpty(backup)) PlayerPrefs.DeleteKey(Key); else PlayerPrefs.SetString(Key, backup);
         PlayerPrefs.Save();
         PlayerProfile.ResetForTests(false);
+        yield return null;
+    }
+
+    /// <summary>GDD-024: descansar cura tudo e passa o tempo; descer sem descanso cura parte e mantém a hora.
+    /// As feras acompanham os pontos do grupo.</summary>
+    [UnityTest]
+    public IEnumerator Coop_RestHealsAll_AndAdvancesTime()
+    {
+        LogAssert.ignoreFailingMessages = true;
+        string backup = PlayerPrefs.GetString(Key, "");
+        var tuning = Resources.Load<GameTuning>("GameTuning");
+        RuntimeTuning.Active = tuning; AttributeStats.Formulas = tuning.statFormulas;
+        PlayerProfile.ResetForTests(true);
+        PlayerProfile.SetName("Anfitrião");
+        PlayerProfile.Put(-1, Preset("Escudeiro"));
+        RuntimeMultiplayerSession.PlayerName = PlayerProfile.Name;
+
+        var boot = NetBootstrap.EnsureExists();
+        boot.HostLoopback();
+        yield return WaitFor(() => RoomManager.Instance != null && PlacementSync.Instance != null, 5f, "rede de pé");
+        var room = RoomManager.Instance;
+        room.SetConfigServerRpc(new RoomConfigNet { GameMode = GameModes.Coop, AttributeBudget = PlayerProfile.AttributeBudget, PlanningTime = 15f, MaxPlayers = 4 });
+        yield return null;
+        room.SubmitCharacterServerRpc(JsonUtility.ToJson(Preset("Escudeiro")));
+        yield return WaitFor(() => room.Slots.Count > 0 && room.Slots[0].ReadyChar, 3f, "personagem aceito");
+        room.AdvancePhaseServerRpc();
+        yield return WaitFor(() => SceneManager.GetActiveScene().name == "Battle" && Grid() != null, 15f, "cena Battle");
+        var ps = PlacementSync.Instance;
+        yield return WaitFor(() => Field<System.Collections.Generic.List<Vector2Int>>(ps, "_myZoneHighlights").Count > 0, 5f, "zona");
+        ps.PlaceUnitServerRpc(4, 12);
+        yield return WaitFor(() => UnitRegistry.AllUnits.Count(u => u != null) >= 2, 8f, "batalha");
+        var mine = UnitRegistry.AllUnits.First(u => u != null && u.isPlayerCharacter);
+        Assert.AreEqual(DayNight.Day, DayNight.Current, "a partida começa de dia");
+
+        // Feras pelo grupo: 30 pontos (nível 4) → orçamento dos 30.
+        float BeastPoints() => UnitRegistry.AllUnits.Where(u => u != null && BeastAI.Controls(u))
+            .Sum(u => u.stats.STR + u.stats.VIT + u.stats.DEX + u.stats.AGI + u.stats.INT + u.stats.WIS);
+        float dayBeasts = BeastPoints();
+        Assert.Greater(dayBeasts, 0f);
+
+        // Baú do grupo (GDD-024 etapa B): gerar, pegar (troca), deixar e vender, tudo pelo host.
+        uint myId = UnitRegistry.GetId(mine);
+        ps.HostGenerateLoot(1);
+        yield return WaitFor(() => ps.Stash.Count >= 2, 3f, "baú com 1 item por jogador + 1");
+        int before = ps.Stash.Count;
+        int pick = ps.Stash.FindIndex(id => ItemCatalog.Get(id) != null && Loot.CanEquip(mine, ItemCatalog.Get(id), out _));
+        Assert.GreaterOrEqual(pick, 0);
+        var taken = ItemCatalog.Get(ps.Stash[pick]);
+        string had = Loot.Current(mine, taken.slot);
+        ps.LootTakeServerRpc(myId, pick, taken.id);
+        yield return WaitFor(() => Loot.Current(mine, taken.slot) == taken.id, 3f, "item equipado");
+        Assert.AreEqual(before - 1 + (ItemCatalog.Get(had) != null ? 1 : 0), ps.Stash.Count, "o item antigo volta para o baú");
+        ps.LootLeaveServerRpc(myId, (int)taken.slot);
+        yield return WaitFor(() => Loot.Current(mine, taken.slot) == "", 3f, "deixou o item");
+        Assert.Contains(taken.id, ps.Stash);
+        int gold = PlayerProfile.Gold, idx = ps.Stash.IndexOf(taken.id), n = ps.Stash.Count;
+        ps.LootSellServerRpc(myId, idx, taken.id);
+        yield return WaitFor(() => ps.Stash.Count == n - 1, 3f, "vendeu");
+        Assert.AreEqual(gold + Loot.SellPrice(taken), PlayerProfile.Gold, "moedas para quem vendeu");
+        ps.LootSellServerRpc(myId, n + 5, taken.id);   // pedido velho, fora do baú: o host recusa
+        for (int i = 0; i < 5; i++) yield return null;
+        Assert.AreEqual(n - 1, ps.Stash.Count);
+
+        mine.currentHP = 1;
+        ps.HostDescend(2, rest: true);
+        yield return WaitFor(() => DayNight.Current == DayNight.Dusk, 5f, "descanso vira entardecer");
+        for (int i = 0; i < 10; i++) yield return null;
+        Assert.AreEqual(mine.stats.MaxHP, mine.currentHP, "descanso cura tudo");
+
+        mine.currentHP = 1;
+        ps.HostDescend(3);
+        for (int i = 0; i < 10; i++) yield return null;
+        Assert.AreEqual(DayNight.Dusk, DayNight.Current, "descer sem descansar não passa o tempo");
+        Assert.Less(mine.currentHP, mine.stats.MaxHP, "descer cura só parte");
+        Assert.Greater(mine.currentHP, 1);
+
+        boot.Shutdown();
+        yield return null;
+        var empty = SceneManager.CreateScene("RestTestEmpty");
+        SceneManager.SetActiveScene(empty);
+        yield return SceneManager.UnloadSceneAsync("Battle");
+        foreach (var o in Object.FindObjectsByType<Unit>(FindObjectsSortMode.None)) Object.Destroy(o.gameObject);
+        if (NetBootstrap.Instance != null) Object.Destroy(NetBootstrap.Instance.gameObject);
+        if (string.IsNullOrEmpty(backup)) PlayerPrefs.DeleteKey(Key); else PlayerPrefs.SetString(Key, backup);
+        PlayerPrefs.Save();
+        PlayerProfile.ResetForTests(false);
+        DayNight.Reset();
         yield return null;
     }
 

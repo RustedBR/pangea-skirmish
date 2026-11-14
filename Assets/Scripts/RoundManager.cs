@@ -108,6 +108,7 @@ namespace PangeaSkirmish
             Unit.OnDamageTaken -= SpawnDamageLabel;
             Unit.OnDamageTaken += SpawnDamageLabel;
             _screenFlash = ScreenFlash.Create(hud.Document);
+            DayNight.Reset();   // GDD-024: toda partida começa de dia
 
             // Indicador de modo câmera
             if (_camCtrl != null)
@@ -406,7 +407,7 @@ namespace PangeaSkirmish
         /// </summary>
         private void HandleInspectClick()
         {
-            if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
+            if (!PointerInput.Available || !PointerInput.ClickThisFrame) return;
             if (_planner != null && _planner.IsPicking) return; // o planner usa o clique
             if (_hud != null && _hud.IsPromptVisible) return;    // escolha de passo bônus
             if (PointerOverUI()) return;
@@ -424,8 +425,8 @@ namespace PangeaSkirmish
 
         private Unit UnitUnderMouse()
         {
-            if (_cam == null || Mouse.current == null) return null;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            if (_cam == null || !PointerInput.Available) return null;
+            Vector2 screen = PointerInput.Position;
             var world = RaycastGround(screen);
             // Seleção por collider 3D (migração XY→XZ): raycast do mouse contra as unidades.
             return Unit.PickAtWorld(_cam, screen);
@@ -770,11 +771,11 @@ namespace PangeaSkirmish
                 if (GameModes.IsCoop)
                 {
                     int alive = CountAliveTeams(out int survivingTeam);
-                    if (alive == 0)     { GameOver($"Derrota! Ninguém saiu vivo da camada {Layer}."); yield break; }
+                    if (alive == 0)     { AwardCoop(cleared: false); GameOver($"Derrota! Ninguém saiu vivo da camada {Layer}."); yield break; }
                     if (alive == 1)
                     {
                         if (survivingTeam == BeastAI.TeamId)
-                            GameOver($"Derrota! As feras venceram na camada {Layer}.");
+                            { AwardCoop(cleared: false); GameOver($"Derrota! As feras venceram na camada {Layer}."); }
                         else
                             LayerCleared();
                         yield break;
@@ -835,9 +836,13 @@ namespace PangeaSkirmish
                 PlayerPrefs.Save();
             }
             _hud.SetPhase($"Camada {Layer} vencida");
+            AwardCoop(cleared: true);
             _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
 
-            // Cartas (GDD-021 §7): primeiro cada um escolhe 1 de 3; depois a decisão de descer.
+            // Loot (GDD-024 etapa B): o host gera drops + baú e manda para todos.
+            if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null) PlacementSync.Instance.HostGenerateLoot(Layer);
+
+            // Cartas (GDD-021 §7): primeiro cada um escolhe 1 de 3; depois os itens do grupo; depois descer.
             Unit mine = null;
             foreach (var u in _units) if (!BeastAI.Controls(u) && IsLocalUnit(u)) { mine = u; break; }
             if (mine != null && PlacementSync.Instance != null)
@@ -848,12 +853,38 @@ namespace PangeaSkirmish
                 for (int i = 0; i < cards.Count; i++)
                 {
                     int idx = i;
-                    opts.Add((Equipment.CardText(cards[i]), () => { PlacementSync.Instance.PickCardServerRpc(layer, id, idx); ShowDescentChoice(); }));
+                    opts.Add((Equipment.CardText(cards[i]), () => { PlacementSync.Instance.PickCardServerRpc(layer, id, idx); ShowLootMenu(); }));
                 }
                 _hud.ShowChoiceTitled("RECOMPENSA", $"Camada {Layer} vencida! {mine.unitName}, escolha 1:", opts.ToArray());
                 return;
             }
             ShowDescentChoice();
+        }
+
+        // ── Progressão (GDD-024): XP e dinheiro vão para o personagem do perfil desta máquina ──
+        public const int XpPerBeast = 5, XpPerLayer = 15, GoldPerBeast = 3;
+
+        /// <summary>Recompensa da camada: cada fera abatida dá XP e dinheiro × camada; vencer dá XP × camada.
+        /// Linear na camada, como o custo do nível (PlayerProfile.XpToNext).</summary>
+        public static (int xp, int gold) CoopReward(int layer, int beastsKilled, bool cleared)
+        {
+            int l = Mathf.Max(1, layer);
+            return (beastsKilled * XpPerBeast * l + (cleared ? XpPerLayer * l : 0), beastsKilled * GoldPerBeast * l);
+        }
+
+        private void AwardCoop(bool cleared)
+        {
+            if (!GameModes.IsCoop) return;
+            int killed = 0;
+            foreach (var u in _units) if (BeastAI.Controls(u) && u.IsDead) killed++;
+            var (xp, gold) = CoopReward(Layer, killed, cleared);
+            var p = PlayerProfile.Selected;
+            if (p == null || (xp <= 0 && gold <= 0)) return;
+            int ups = PlayerProfile.AddXp(p, xp);
+            PlayerProfile.AddGold(gold);
+            PlayerProfile.Save();
+            _hud.Log($"<color=#ffd76a>★</color> {p.presetName}: +{xp} XP, +{gold} moedas ({killed} fera{(killed == 1 ? "" : "s")})" +
+                     (ups > 0 ? $" — <b>subiu para o nível {p.level}!</b> +{ups * PlayerProfile.PointsPerLevel} pontos para distribuir no perfil" : ""));
         }
 
         /// <summary>Uma carta foi aplicada (aqui ou em outra máquina): avisa no histórico e atualiza a ficha.</summary>
@@ -863,12 +894,87 @@ namespace PangeaSkirmish
             _hud.RefreshUnitInfo();
         }
 
+        // ── Itens do grupo (GDD-024 etapa B): pegar (troca com o que usava), vender, deixar ──
+        private enum LootView { Closed, List, Item, Mine }
+        private LootView _lootView = LootView.Closed;
+        private int _lootIndex;
+
+        private Unit LocalPlayerUnit()
+        {
+            foreach (var u in _units) if (!BeastAI.Controls(u) && IsLocalUnit(u)) return u;
+            return null;
+        }
+
+        /// <summary>Baú mudou (aqui ou em outra máquina): registra e redesenha o menu aberto.</summary>
+        public void OnLootChanged(Unit who, string what)
+        {
+            if (who != null) _hud.LogAction($"<color=#ffd76a>⬢</color> {who.unitName} {what}", who);
+            else _hud.Log($"<color=#ffd76a>⬢</color> {what}");
+            _hud.RefreshUnitInfo();
+            if (_lootView == LootView.Item) _lootView = LootView.List;   // o item pode ter saído do baú
+            if (_lootView != LootView.Closed) ShowLootMenu(_lootView);
+        }
+
+        private void ShowLootMenu() => ShowLootMenu(LootView.List);
+
+        private void ShowLootMenu(LootView view)
+        {
+            var ps = PlacementSync.Instance;
+            var mine = LocalPlayerUnit();
+            if (ps == null || mine == null || !_awaitingDescent) { _lootView = LootView.Closed; ShowDescentChoice(); return; }
+            _lootView = view;
+            uint id = UnitRegistry.GetId(mine);
+            var opts = new List<(string, System.Action)>();
+            string head = $"{mine.unitName} · <color=#ffd76a>{PlayerProfile.Gold} moedas</color>";
+
+            if (view == LootView.Item && _lootIndex < ps.Stash.Count)
+            {
+                int idx = _lootIndex; string itemId = ps.Stash[idx];
+                var it = ItemCatalog.Get(itemId);
+                var cur = ItemCatalog.Get(Loot.Current(mine, it.slot));
+                if (Loot.CanEquip(mine, it, out string why))
+                    opts.Add(($"Equipar{(cur != null ? $"  <size=12>(o seu {cur.displayName} vai para o grupo)</size>" : "")}",
+                              () => ps.LootTakeServerRpc(id, idx, itemId)));
+                else opts.Add(($"<color=#9fb3d9>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
+                opts.Add(($"Vender  <size=12>+{Loot.SellPrice(it)} moedas</size>", () => ps.LootSellServerRpc(id, idx, itemId)));
+                opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
+                _hud.ShowChoiceTitled("ITENS DO GRUPO", $"{head}\n{Loot.Describe(it)}", opts.ToArray());
+                return;
+            }
+            if (view == LootView.Mine)
+            {
+                foreach (var s in new[] { ItemSlot.Head, ItemSlot.Torso, ItemSlot.Legs, ItemSlot.LeftHand })
+                {
+                    var it = ItemCatalog.Get(Loot.Current(mine, s));
+                    if (it == null) continue;
+                    var slot = s;
+                    opts.Add(($"Deixar {Loot.Describe(it)}", () => ps.LootLeaveServerRpc(id, (int)slot)));
+                }
+                opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
+                _hud.ShowChoiceTitled("DEIXAR PARA O GRUPO", $"{head}\nO item sai de você e fica no baú para outro pegar.", opts.ToArray());
+                return;
+            }
+
+            for (int i = 0; i < ps.Stash.Count; i++)
+            {
+                int idx = i;
+                opts.Add((Loot.Describe(ItemCatalog.Get(ps.Stash[i])), () => { _lootIndex = idx; ShowLootMenu(LootView.Item); }));
+            }
+            opts.Add(("Deixar um item meu para o grupo…", () => ShowLootMenu(LootView.Mine)));
+            opts.Add(("<b>Pronto</b>", () => { _lootView = LootView.Closed; ShowDescentChoice(); }));
+            _hud.ShowChoiceTitled("ITENS DO GRUPO",
+                $"{head}\n{(ps.Stash.Count == 0 ? "O baú está vazio." : "Toque num item para equipar (troca) ou vender.")}", opts.ToArray());
+        }
+
         private void ShowDescentChoice()
         {
-            string text = $"Camada {Layer} vencida — descer para a camada {Layer + 1}?";
+            int t = DayNight.Current, next = (t + 1) % 3;
+            string text = $"Camada {Layer} vencida — {DayNight.Icon(t)} {DayNight.Name(t)}. Descer para a camada {Layer + 1}?";
             if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null)
                 _hud.ShowChoice(text,
-                    ("Descer", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                    ("Descer  <size=12>(cura 30%)</size>", () => PlacementSync.Instance.HostDescend(Layer + 1)),
+                    ($"Descansar e descer  <size=12>(cura tudo; vira {DayNight.Name(next).ToLower()}{(next == DayNight.Night ? ": feras +30%" : next == DayNight.Dusk ? ": feras +15%" : "")})</size>",
+                        () => PlacementSync.Instance.HostDescend(Layer + 1, rest: true)),
                     ("Recuar", () => PlacementSync.Instance.HostRetreat(Layer)));
             else
                 _hud.ShowChoice(text + "\nAguardando o anfitrião decidir...");
@@ -879,8 +985,9 @@ namespace PangeaSkirmish
         {
             Layer = layer;
             _awaitingDescent = false;
+            _lootView = LootView.Closed;
             _hud.HideReactionMenu();
-            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto.");
+            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto. {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current)}.");
             StartCoroutine(StartRound());
         }
 
@@ -1582,8 +1689,8 @@ namespace PangeaSkirmish
 
         private Vector2Int? HitAnchorFromMouse()
         {
-            if (Mouse.current == null) return null;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            if (!PointerInput.Available) return null;
+            Vector2 screen = PointerInput.Position;
             var world = RaycastGround(screen);
             var cell = _grid.WorldToCell(world);
             return new Vector2Int(cell.x - 1, cell.y - 1);
@@ -1918,12 +2025,12 @@ namespace PangeaSkirmish
                 }
                 else ghost.SetActive(false);
 
-                if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+                if (PointerInput.Available && PointerInput.ClickThisFrame)
                 {
                     var h = HitAnchorFromMouse();
                     if (h.HasValue && reachable.Contains(h.Value)) chosen = h.Value;
                 }
-                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                if (PointerInput.BackThisFrame)
                     skip = true;
 
                 yield return null;
