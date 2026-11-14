@@ -121,8 +121,8 @@ public class DamageByTileTest
         yield return Setup();
         var axe = Make("Machado", Team.Player, new Vector2Int(10, 6), "IronAxe", str: 0);
         var foe = Make("Ágil", Team.Enemy, new Vector2Int(10, 10), "Claws", agi: 6);
-        // Esquiva por fração (balanceamento 2026-11-13): AGI 6 × 6% = 36% dos tiles → 2 de 6.
-        Assert.AreEqual(0.36f, AttackResolver.DodgeFrac(foe), 0.001f);
+        // Esquiva por fração (rebalance 2026-11-14): AGI 6 × 5% = 30% dos tiles → 2 de 6.
+        Assert.AreEqual(0.30f, AttackResolver.DodgeFrac(foe), 0.001f);
         foe.dodgeReactTiles = 1;
         int hp = foe.currentHP;
         AttackResolver.ResolveAttack(axe, new PlannedAttack { Mode = AttackMode.Unit, TargetUnit = foe }, _units);

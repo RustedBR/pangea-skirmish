@@ -61,15 +61,15 @@ namespace PangeaSkirmish
 
         [Header("Reações e posturas (GDD-020 §8)")]
         [Tooltip("Stamina de cada reação. Sem limite de frequência: a Stamina é o limite.")]
-        public int reactCostDodge = 1;
+        public int reactCostDodge = 2;          // rebalance 2026-11-14: esquivar forte demais (era 1)
         public int reactCostBlock = 1;
         public int reactCostCounter = 3;
         public int reactCostIntercept = 2;
         [Tooltip("Legado: tiles por AGI. A esquiva agora tira uma FRAÇÃO dos tiles (dodgeFracPerAGI).")]
         public int dodgeAgiPerTile = 3;
         [Tooltip("Esquiva (natural ou reação) tira AGI × isto dos tiles do golpe, até dodgeFracCap. Contra golpe de 1 tile vira chance de errar (balanceamento 2026-11-13).")]
-        public float dodgeFracPerAGI = 0.06f;
-        public float dodgeFracCap = 0.6f;
+        public float dodgeFracPerAGI = 0.05f;   // era 0.06
+        public float dodgeFracCap = 0.5f;        // era 0.6
         [Tooltip("Garras das feras: dano por tile, ticks, forma arco 3×1.")]
         public int beastClawDamage = 7;
         public int beastClawTicks = 2;
@@ -77,8 +77,8 @@ namespace PangeaSkirmish
         public float beastBudgetFrac = 0.4f;
         public Vector3 beastSizeMul = new Vector3(1f, 2f, 2f);
         [Tooltip("Reação Olho certeiro (ataque à distância que ia errar): custo e bônus de crítico.")]
-        public int reactCostTrueAim = 2;
-        public float trueAimCritBonus = 0.30f;
+        public int reactCostTrueAim = 1;         // rebalance 2026-11-14: quase não valia (era 2)
+        public float trueAimCritBonus = 0.60f;   // era 0.30
         [Tooltip("Mira livre (tile a tile): multiplicador de dano e bônus de acerto.")]
         public float freeAimDamageMult = 1.25f;
         public float freeAimHitBonus = 0.15f;
@@ -716,7 +716,7 @@ namespace PangeaSkirmish
         [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]
-        public float aooDamageMult        = 1.0f;
+        public float aooDamageMult        = 0.6f;   // rebalance 2026-11-14: contra-ataque forte demais (era 1.0)
     }
 
     /// <summary>

@@ -445,4 +445,4 @@ MonoBehaviour:
   blockReductionPerVIT: 0.02
   blockFlatPerVIT: 0.75
   maxBlockReduction: 0.6
-  aooDamageMult: 1
+  aooDamageMult: 0.6

@@ -134,19 +134,19 @@ public class SpellResolutionTest
         var hero = Make("Herói", Team.Player, new Vector2Int(2, 2), 0);
         Cast(hero, "Fury", hero.anchor);
         Assert.Greater(hero.furyReady, 0f);
-        Assert.AreEqual(2f, hero.furyReady, "Fúria prepara ×2 no próximo golpe");
+        Assert.AreEqual(2.5f, hero.furyReady, "Fúria prepara ×2,5 no próximo golpe");
 
         var foe = Make("Fera", Team.Enemy, new Vector2Int(6, 2), BeastAI.OwnerId);
         Cast(hero, "Curve", hero.anchor);
         Assert.IsTrue(hero.curveReady, "Curva preparada para o próximo ataque à distância");
         Assert.IsNull(SpellCatalog.Get("TrueAim"), "Olho certeiro saiu do catálogo: virou reação");
-        Assert.AreEqual(2, Unit.ReactionCost(ReactionKind.TrueAim));
+        Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.TrueAim));
 
         Cast(foe, "StoneSkin", foe.anchor);
         Assert.Greater(foe.stoneSkinTicks, 0);
         Assert.LessOrEqual(SpellResolver.StoneSkin(foe, 20, physical: true), 20);
 
-        var dest = hero.anchor + new Vector2Int(0, 6);
+        var dest = hero.anchor + new Vector2Int(0, Mathf.Min(6, SpellResolver.Reach(hero, SpellCatalog.Get("Leap"))));   // salto ×2 MoveStep (2026-11-14)
         Cast(hero, "Leap", dest);
         Assert.AreEqual(dest, hero.anchor, "Salto pousa no destino");
     }
