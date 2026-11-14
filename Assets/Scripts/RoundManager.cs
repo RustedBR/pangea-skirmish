@@ -580,9 +580,12 @@ namespace PangeaSkirmish
                     q.Paid = true;
                 }
                 // Conjurar dentro do alcance de um inimigo provoca o golpe de oportunidade (GDD-020 §8).
+                // EXCETO magias FÍSICAS (2026-11-14, regra do Marcus): conjurar uma magia física é ataque,
+                // não conjuração — não provoca oportunidade.
                 var castStarts = new List<Unit>();
                 foreach (var u in _units)
-                    if (!u.IsDead && u.queue.Count > 0 && u.queue[0].Type == ActionType.Spell && u.queue[0].Elapsed == 0)
+                    if (!u.IsDead && u.queue.Count > 0 && u.queue[0].Type == ActionType.Spell && u.queue[0].Elapsed == 0
+                        && (u.queue[0].Spell.Def == null || !u.queue[0].Spell.Def.IsPhysical))
                         castStarts.Add(u);
                 foreach (var cu in castStarts)
                 {
