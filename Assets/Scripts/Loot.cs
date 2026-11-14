@@ -111,6 +111,43 @@ namespace PangeaSkirmish
             return price;
         }
 
+        /// <summary>
+        /// O que o item faz e o que muda em relação ao que a unidade usa no mesmo slot (2026-11-14).
+        /// Linhas de diferença: "+2 defesa", "−1 peso"; verde = melhor, vermelho = pior.
+        /// </summary>
+        public static string Details(ItemDef it, ItemDef current)
+        {
+            if (it == null) return "";
+            var sb = new System.Text.StringBuilder(it.Summary());
+            if (current == null) { sb.Append("\n<size=12>Você não usa nada neste slot.</size>"); return sb.ToString(); }
+            if (current.id == it.id) { sb.Append("\n<size=12>Igual ao que você já usa.</size>"); return sb.ToString(); }
+            var diff = new List<string>();
+            void D(string name, int now, int was, bool lowerIsBetter = false)
+            {
+                int d = now - was;
+                if (d == 0) return;
+                bool good = lowerIsBetter ? d < 0 : d > 0;
+                diff.Add($"<color=#{(good ? "227446" : "a82c2c")}>{(d > 0 ? "+" : "−")}{Mathf.Abs(d)} {name}</color>");
+            }
+            D("defesa", it.physDef, current.physDef);
+            D("defesa mágica", it.magDef, current.magDef);
+            D("bloqueio", it.shieldHardness, current.shieldHardness);
+            D("peso", it.weight, current.weight, lowerIsBetter: true);
+            if (it.attrBonus != current.attrBonus || it.attr != current.attr)
+            {
+                if (current.attrBonus > 0) diff.Add($"<color=#a82c2c>perde +{current.attrBonus} {current.attr}</color>");
+                if (it.attrBonus > 0) diff.Add($"<color=#227446>ganha +{it.attrBonus} {it.attr}</color>");
+            }
+            if (it.effect != current.effect)
+            {
+                if (current.effect != ItemEffect.None) diff.Add($"<color=#a82c2c>perde {Equipment.EffectName(current.effect)}</color>");
+                if (it.effect != ItemEffect.None) diff.Add($"<color=#227446>ganha {Equipment.EffectName(it.effect)}</color>");
+            }
+            sb.Append($"\n<size=12>No lugar de {current.displayName} ({current.Summary()}):</size>\n");
+            sb.Append(diff.Count > 0 ? string.Join(" · ", diff) : "sem diferença nos números");
+            return sb.ToString();
+        }
+
         public static string Describe(ItemDef it) =>
             it == null ? "—" : $"{it.displayName} <size=12><color=#{ColorUtility.ToHtmlStringRGB(Equipment.RarityColor(it.rarity))}>{Equipment.RarityName(it.rarity)} · {Equipment.SlotName(it.slot, it.isShield)}</color></size>";
     }

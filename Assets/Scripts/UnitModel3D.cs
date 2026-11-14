@@ -340,6 +340,9 @@ namespace PangeaSkirmish
         /// <summary>Escala do modelo em mundo (para dimensionar efeitos).</summary>
         public float ModelScale => _scale;
 
+        /// <summary>Para onde o modelo olha, em mundo (palco de animação: posiciona alvo e câmeras).</summary>
+        public Vector3 Forward => _root != null ? _root.forward : Vector3.forward;
+
         /// <summary>Cabeça em mundo: onde mora a alma.</summary>
         public Vector3 HeadWorld3D => _head != null ? _head.position + Vector3.up * 0.15f * _scale : transform.position + Vector3.up * 0.8f * _scale;
 

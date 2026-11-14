@@ -35,7 +35,7 @@ namespace PangeaSkirmish
         {
             if (!Begin(self, grid) || target == null || target.IsDead) return false;
             var blockers = Blockers(self, units);
-            Vector2Int home = endAt ?? self.anchor;
+            Vector2Int home = endAt ?? self.PlanStartAnchor;
 
             // Guarda tempo para o golpe: aproximar sem conseguir bater não é "golpear e recuar".
             int atkCost = TickRules.Duration(self, ActionType.Attack, false);

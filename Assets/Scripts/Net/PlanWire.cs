@@ -136,7 +136,8 @@ namespace PangeaSkirmish
             if (u == null) return;
             // GDD-014: unidade ocupada mantém a fila comprometida (carry-over). Toda máquina
             // calcula IsBusy igual (mesma simulação), então ignorar aqui é determinístico.
-            if (u.IsBusy) return;
+            // (2026-11-14) ocupada também planeja: o plano novo entra DEPOIS da fila que veio do round anterior.
+            if (!u.CanPlanThisRound) return;
 
             u.plannedMoveCount     = w.plannedMoveCount;
             u.plannedAnchor        = new Vector2Int(w.plannedAnchorX, w.plannedAnchorY);

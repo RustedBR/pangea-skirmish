@@ -843,24 +843,26 @@ namespace PangeaSkirmish
         // ── NAVEGAÇÃO CASCATA (removida; no-ops de compatibilidade) ──
         public void ShowMainMenu() { }
         /// <summary>
-        /// Esc vai limpando a tela, uma parte por vez (2026-11-13): 1º Histórico, 2º inspeção,
-        /// 3º as unidades dos outros na barra de ticks; o 4º mostra tudo de novo.
+        /// Esc alterna o quanto a tela mostra (2026-11-14). Padrão (0): só a inspeção — o histórico e as
+        /// ações das outras unidades ficam escondidos. 1: mostra tudo. 2: esconde também a inspeção.
         /// </summary>
         public void GoBack()
         {
-            _escLevel = (_escLevel + 1) % 4;
+            _escLevel = (_escLevel + 1) % 3;
             ApplyEscLevel();
             RebuildTickRows();
-            string[] msg = { "Mostrando tudo", "Histórico escondido (Esc)", "Inspeção escondida (Esc)", "Barra de ticks: só você (Esc mostra tudo)" };
+            string[] msg = { "Só a inspeção (Esc mostra tudo)", "Mostrando tudo: histórico e ações das outras unidades (Esc)", "Tudo escondido (Esc volta ao padrão)" };
             ShowPlanNote(msg[_escLevel]);
         }
+        /// <summary>O histórico e as linhas das outras unidades aparecem? (só no nível "mostrando tudo")</summary>
+        public static bool ShowsOthers => _escLevel == 1;
         private static int _escLevel;
         public static int EscLevel => _escLevel;
 
         private void ApplyEscLevel()
         {
-            if (_miniLog != null && _escLevel >= 1) _miniLog.style.display = DisplayStyle.None;
-            else if (_miniLog != null && _escLevel == 0 && _inspectedUnit != null) _miniLog.style.display = DisplayStyle.Flex;
+            if (_miniLog != null && _escLevel != 1) _miniLog.style.display = DisplayStyle.None;
+            else if (_miniLog != null && _inspectedUnit != null) _miniLog.style.display = DisplayStyle.Flex;
             if (_inspectPanel != null && _escLevel >= 2) _inspectPanel.style.display = DisplayStyle.None;
             else if (_inspectPanel != null && _inspectedUnit != null) _inspectPanel.style.display = DisplayStyle.Flex;
         }
@@ -1330,7 +1332,7 @@ namespace PangeaSkirmish
                 if (u == null || u.IsDead) continue;
                 bool mine = _tlIsMine != null && _tlIsMine(u);
                 bool isPlanRow = planning && u == planUnit;
-                if (_escLevel >= 3 && !mine && !isPlanRow) continue;   // Esc: só as minhas unidades
+                if (!ShowsOthers && !mine && !isPlanRow) continue;   // padrão: só as minhas unidades (Esc mostra todas)
 
                 var row = new VisualElement { pickingMode = PickingMode.Ignore };
                 row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Stretch;
@@ -1352,7 +1354,16 @@ namespace PangeaSkirmish
                 if (isPlanRow)
                 {
                     // Plano em edição: blocos clicáveis (mesmo clique de antes p/ golpe poderoso e passo rápido).
-                    Vector2Int prevPos = planUnit.anchor;
+                    Vector2Int prevPos = planUnit.PlanStartAnchor;
+                    // O que veio do round anterior aparece primeiro, travado: o plano novo começa depois.
+                    if (planUnit.carriedTicks > 0)
+                    {
+                        int cd = Mathf.Min(planUnit.carriedTicks, maxTicks);
+                        var carried = MakeSegment(cd, TlWait, "em andamento", true);
+                        carried.tooltip = "Ação que atravessou o round: termina primeiro, e o seu plano novo entra depois dela.";
+                        track.Add(carried);
+                        used += cd;
+                    }
                     for (int i = 0; i < _planSeq.Count && used < maxTicks; i++)
                     {
                         int idx = i;
