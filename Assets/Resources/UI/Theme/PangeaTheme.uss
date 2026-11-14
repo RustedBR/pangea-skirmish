@@ -310,7 +310,7 @@
    ============================================================================ */
 .pg-panel {
     /* superfícies */
-    --pg-panel-bg: rgb(238, 225, 192);
+    --pg-panel-bg: rgb(212, 191, 146);
     --pg-panel-bg-2: rgb(34, 48, 96);          /* botão: selo de tinta azul */
     --pg-chip-bg: rgb(50, 70, 132);            /* botão em hover / faixa de seção */
     --pg-panel-border: rgb(150, 124, 88);      /* filete sépia */
@@ -320,7 +320,7 @@
     --pg-text: rgb(36, 40, 70);
     --pg-text-dim: rgb(98, 96, 112);
     --pg-on-ink: rgb(244, 234, 208);           /* texto sobre botão/faixa azul */
-    /* TODO(human): escolha os acentos do pergaminho (ver pedido no chat). */
+    /* acentos sobre o pergaminho */
     --pg-accent: rgb(46, 92, 170);
     --pg-gold: rgb(150, 96, 16);
     --pg-danger: rgb(168, 44, 44);
@@ -328,7 +328,8 @@
 
     background-color: rgba(0, 0, 0, 0);
     background-image: resource('UI/Theme/paper');
-    -unity-slice-left: 24; -unity-slice-right: 24; -unity-slice-top: 24; -unity-slice-bottom: 24;
+    -unity-slice-left: 8; -unity-slice-right: 8; -unity-slice-top: 8; -unity-slice-bottom: 8;
+    -unity-slice-scale: 2px; -unity-slice-type: tiled;   /* pixel art em 2×, miolo repetido */
     border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;
     padding: 18px;
 }
@@ -344,7 +345,8 @@
 .pg-panel .pg-card, .pg-panel .pg-list {
     background-color: rgba(0, 0, 0, 0);
     background-image: resource('UI/Theme/paper_inset');
-    -unity-slice-left: 10; -unity-slice-right: 10; -unity-slice-top: 10; -unity-slice-bottom: 10;
+    -unity-slice-left: 4; -unity-slice-right: 4; -unity-slice-top: 4; -unity-slice-bottom: 4;
+    -unity-slice-scale: 2px;
     border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;
 }
 .pg-panel .pg-input, .pg-panel .pg-dropdown,
