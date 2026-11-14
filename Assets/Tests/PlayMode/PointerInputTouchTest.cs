@@ -70,4 +70,20 @@ public class PointerInputTouchTest : InputTestFixture
         yield return null;
         Assert.IsFalse(PointerInput.ClickThisFrame, "pinça não vira toque");
     }
+
+    /// <summary>2026-11-14: celular tem resolução real alta; um tremor de dedo de ~20 px não pode virar arrasto,
+    /// e o 2º toque a ~50 px do 1º ainda confirma (antes: 14 px e 40 px fixos).</summary>
+    [UnityTest]
+    public IEnumerator HighResPhone_SmallJitterIsStillATap()
+    {
+        Assume.That(Mathf.Min(Screen.width, Screen.height) >= 600, "tela do teste pequena demais para medir a escala");
+        BeginTouch(1, new Vector2(300, 300)); yield return null; _ = PointerInput.Position;
+        MoveTouch(1, new Vector2(300 + PointerInput.DragThreshold * 0.8f, 300)); yield return null; _ = PointerInput.Position;
+        EndTouch(1, new Vector2(300 + PointerInput.DragThreshold * 0.8f, 300)); yield return null;
+        Assert.IsFalse(PointerInput.Dragging, "tremor abaixo do limite não vira arrasto");
+        var second = new Vector2(300 + PointerInput.ConfirmRadius * 0.9f, 300);
+        yield return Tap(second, 2);
+        Assert.IsTrue(PointerInput.ClickThisFrame, "2º toque dentro do raio escalado confirma");
+        Assert.Greater(PointerInput.ConfirmRadius, PointerInput.ConfirmRadiusBase - 0.01f);
+    }
 }

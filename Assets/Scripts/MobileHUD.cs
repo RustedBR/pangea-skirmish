@@ -19,7 +19,7 @@ namespace PangeaSkirmish
         /// <summary>Resolução de referência da UI no celular: menor = UI maior.</summary>
         private static readonly Vector2Int MobileReference = new Vector2Int(1280, 720);
 
-        private Rect _backRect;
+        private Rect _backRect, _fullRect;
         private GUIStyle _btn, _overlay;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -42,6 +42,18 @@ namespace PangeaSkirmish
             // Performance: celular roda a 30 fps no nível de qualidade mais baixo.
             Application.targetFrameRate = 30;
             QualitySettings.SetQualityLevel(0, true);
+        }
+
+        private bool _askedFullscreen;
+
+        private void Update()
+        {
+            // 1º toque pede tela cheia (o navegador só aceita a partir de um gesto do usuário).
+            if (!_askedFullscreen && PointerInput.IsTouch && !Screen.fullScreen)
+            {
+                _askedFullscreen = true;
+                Screen.fullScreen = true;
+            }
         }
 
         private void EnsureStyles()
@@ -72,13 +84,16 @@ namespace PangeaSkirmish
             }
 
             float h = _btn.fontSize * 2.6f, w = h * 2.6f, m = h * 0.3f;
-            // Canto inferior esquerdo, acima do botão de LOG.
-            _backRect = new Rect(m, Screen.height - h - m - h * 0.9f, w, h);
+            // Canto superior esquerdo (2026-11-14): embaixo ele cobria os avisos e o LOG.
+            _backRect = new Rect(m, m, w, h);
             if (GUI.Button(_backRect, "← Voltar", _btn)) PointerInput.RequestBack();
+            // Tela cheia: a barra do navegador e os botões do Android roubam espaço.
+            _fullRect = new Rect(m * 2 + w, m, h, h);
+            if (!Screen.fullScreen && GUI.Button(_fullRect, "⛶", _btn)) Screen.fullScreen = true;
 
             Vector2 p = PointerInput.Position;
             var gp = new Vector2(p.x, Screen.height - p.y);   // IMGUI tem y para baixo
-            PointerOver = _backRect.Contains(gp);
+            PointerOver = _backRect.Contains(gp) || (!Screen.fullScreen && _fullRect.Contains(gp));
         }
     }
 }
