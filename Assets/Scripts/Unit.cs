@@ -119,6 +119,10 @@ namespace PangeaSkirmish
             plannedAnchor = stops.Count > 0 ? stops[stops.Count - 1] : anchor;
         }
 
+        /// <summary>Andada termina neste tick (marcado pelo RoundManager antes das magias) e se uma
+        /// Lasca de pedra a cancelou. Zerados a cada tick.</summary>
+        [System.NonSerialized] public bool pendingMoveThisTick, moveCancelledThisTick;
+
         /// <summary>Mana/Stamina no fim do plano (projeção do planejamento, 2026-11-14).</summary>
         public int ProjectedManaEnd { get => actionSequence.Count == 0 ? currentMana : _projMana; private set => _projMana = value; }
         public int ProjectedStaminaEnd { get => actionSequence.Count == 0 ? currentStamina : _projStamina; private set => _projStamina = value; }

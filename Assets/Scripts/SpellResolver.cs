@@ -388,8 +388,14 @@ namespace PangeaSkirmish
                 { t.burningTicks = Mathf.Max(t.burningTicks, Equipment.HasEffect(t, ItemEffect.FireResist) ? Mathf.Max(1, s.durationTicks / 2) : s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
                 if (!t.IsDead && s.appliesStatus == "Soaked")
                 { if (!Equipment.HasEffect(t, ItemEffect.Dry)) t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
-                if (!t.IsDead && s.effect == SpellEffect.CancelMove && t.queue.Count > 0 && t.queue[0].Type == ActionType.Move)
-                { t.queue.RemoveAt(0); extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
+                if (!t.IsDead && s.effect == SpellEffect.CancelMove)
+                {
+                    // A andada que termina neste tick também para: a magia resolve antes dela (2026-11-14).
+                    bool any = t.moveCancelledThisTick == false && t.pendingMoveThisTick;
+                    t.moveCancelledThisTick = true;
+                    if (t.queue.Count > 0 && t.queue[0].Type == ActionType.Move) { t.queue.RemoveAt(0); any = true; }
+                    if (any) { extra += " · movimento cancelado"; BattleFeedback.Status(t, "Movimento cancelado", new Color(0.80f, 0.70f, 0.55f)); }
+                }
                 if (!t.IsDead && s.pushTiles > 0)
                 {
                     int pushN = s.pushTiles + ((s.effect == SpellEffect.Push && potInt >= 8f) ? 1 : 0);
@@ -535,11 +541,13 @@ namespace PangeaSkirmish
             }
             else
             {
-                Unit t = UnitAt(ps.TargetTile, fp, all);
-                // Alvo por unidade (GDD-018 UX 1): se saiu do tile mas segue ao alcance, a magia o segue.
-                if (t == null && ps.TargetUnit != null && !ps.TargetUnit.IsDead &&
+                // Alvo travado (GDD-018 UX 1; 2026-11-14): a magia segue a unidade enquanto ela estiver ao
+                // alcance, mesmo que outra pise no tile mirado. Sem trava (ou fora de alcance): quem estiver no tile.
+                Unit t = null;
+                if (ps.TargetUnit != null && !ps.TargetUnit.IsDead &&
                     GridManager.FootprintGap(caster.anchor, fp, ps.TargetUnit.anchor, ps.TargetUnit.stats.Footprint) <= Reach(caster, s))
                     t = ps.TargetUnit;
+                if (t == null && ps.TargetUnit == null) t = UnitAt(ps.TargetTile, fp, all);
                 if (t != null && t != caster && t.IsHostileTo(caster)) targets.Add(t);
             }
             return targets;
