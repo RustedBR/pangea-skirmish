@@ -525,7 +525,14 @@ namespace PangeaSkirmish
 
         private bool HandleZoom()
         {
-            if (Mouse.current == null) return false;
+            // Pinça (GDD-022): abrir os dedos aproxima.
+            float pinch = PointerInput.PinchDelta;
+            if (Mathf.Abs(pinch) > 0.5f)
+            {
+                _targetSize = Mathf.Clamp(_targetSize * (1f - pinch / Mathf.Max(1, Screen.height) * 2f), zoomMin, zoomMax);
+                return true;
+            }
+            if (Mouse.current == null || PointerInput.IsTouch) return false;
             // Em UI Toolkit o EventSystem.IsPointerOverGameObject() dispara para qualquer
             // Canvas UGUI (mesmo vazio do HUD), bloqueando o zoom no combate. Checamos o
             // UIDocument real: só bloqueia se o ponteiro estiver sobre um botão clicável.
@@ -542,21 +549,22 @@ namespace PangeaSkirmish
 
         private bool HandleManualPan()
         {
-            if (Mouse.current == null) return false;
+            if (!PointerInput.Available) return false;
 
             float worldPerPixel = (_curSize * 2f) / Mathf.Max(1, Screen.height);
 
             // Arraste com botão direito (migração XY→XZ: _curXY = (X mundo, Z mundo))
-            if (enableDragPan && Mouse.current.rightButton.isPressed)
+            // Botão direito arrastando, ou 1–2 dedos arrastando (GDD-022).
+            if (enableDragPan && PointerInput.Dragging)
             {
-                Vector2 d = Mouse.current.delta.ReadValue();
+                Vector2 d = PointerInput.DragDelta;
                 // d.x → X mundo, d.y → Z mundo (mundo XZ sob câmera 45°).
                 _targetXY = ClampCenter(_targetXY + new Vector2(-d.x, -d.y * World3D.GroundStretch) * worldPerPixel * dragSpeed);
                 return true;
             }
 
             // Edge-pan
-            if (enableEdgePan && Application.isFocused)
+            if (enableEdgePan && Application.isFocused && !PointerInput.IsTouch && Mouse.current != null)
             {
                 Vector2 m = Mouse.current.position.ReadValue();
                 bool inside = m.x > 1f && m.y > 1f && m.x < Screen.width - 1f && m.y < Screen.height - 1f;

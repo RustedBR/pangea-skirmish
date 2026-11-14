@@ -233,6 +233,17 @@ namespace PangeaSkirmish
             _compassRose      = r.Q<VisualElement>("compass-rose");
             _compassLabels    = new[] { r.Q<Label>("compass-n"), r.Q<Label>("compass-e"),
                                         r.Q<Label>("compass-s"), r.Q<Label>("compass-w") };
+            // Toque/clique na bússola gira a vista (GDD-022): metade esquerda = anti-horário, direita = horário.
+            var compass = r.Q<VisualElement>("compass");
+            if (compass != null)
+            {
+                compass.pickingMode = PickingMode.Position;
+                compass.RegisterCallback<ClickEvent>(e =>
+                {
+                    var cam = FindAnyObjectByType<CameraController>();
+                    if (cam != null) cam.CycleView(e.localPosition.x > compass.layout.width * 0.5f);
+                });
+            }
 
             // Minilog + inspeção (substituem log fixo e painel de status)
             _miniLog          = r.Q<VisualElement>("mini-log");
@@ -364,11 +375,11 @@ namespace PangeaSkirmish
 
         public bool IsPointerOverUI()
         {
-            if (GameLog.PointerOver) return true;          // painel/botão de LOG (IMGUI) por cima do jogo
+            if (GameLog.PointerOver || MobileHUD.PointerOver) return true;          // painel/botão de LOG (IMGUI) por cima do jogo
             if (Root == null || Root.panel == null) return false;
             HookUiPointerDown();
-            if (Mouse.current == null) return false;
-            Vector2 screen = Mouse.current.position.ReadValue();
+            if (!PointerInput.Available) return false;
+            Vector2 screen = PointerInput.Position;
             Vector2 local = RuntimePanelUtils.ScreenToPanel(Root.panel, screen);
             // O menu de bloco fica ACIMA da barra, fora da área dela: o Pick não o enxerga.
             if (_incPopup != null && _incPopup.worldBound.Contains(local)) return true;
