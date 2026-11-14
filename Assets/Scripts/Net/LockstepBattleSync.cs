@@ -564,7 +564,7 @@ namespace PangeaSkirmish
         {
             // Loga no BattleHUD se disponível
             var hud = UnityEngine.Object.FindObjectOfType<BattleHUD>();
-            hud?.LogAction($"<color=#ffaa44>[Chat] {playerName} parece ausente (3 rounds sem ação)</color>");
+            hud?.LogAction($"<color=#a4541a>[Chat] {playerName} parece ausente (3 rounds sem ação)</color>");
         }
 
         // =========================================================================

@@ -21,6 +21,8 @@
 
     /* acentos / estados */
     --pg-accent: rgb(106, 169, 255);   /* azul primário */
+    --pg-on-ink: rgb(244, 234, 208);   /* texto sobre botão/faixa azul */
+    --pg-inset: rgba(10, 18, 41, 0.6);
     --pg-gold: rgb(255, 204, 85);
     --pg-danger: rgb(255, 90, 90);
     --pg-ok: rgb(90, 209, 138);
@@ -308,7 +310,7 @@
      então tudo dentro dele (texto, cartões, campos) muda de pele sem regra por tela.
    Texturas geradas por scripts/gen_ui.py.
    ============================================================================ */
-.pg-panel {
+.pg-panel, .bh-window {
     /* superfícies */
     --pg-panel-bg: rgb(212, 191, 146);
     --pg-panel-bg-2: rgb(34, 48, 96);          /* botão: selo de tinta azul */
@@ -331,26 +333,26 @@
     -unity-slice-left: 8; -unity-slice-right: 8; -unity-slice-top: 8; -unity-slice-bottom: 8;
     -unity-slice-scale: 2px; -unity-slice-type: tiled;   /* pixel art em 2×, miolo repetido */
     border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;
-    padding: 18px;
 }
+.pg-panel { padding: 18px; }
+.bh-window { padding: 10px; }
 
 /* Faixa de seção: fita azul com letra creme (igual ao título das janelas da HUD). */
-.pg-section, .pg-panel .pg-section {
+.pg-section, .pg-panel .pg-section, .bh-window .pg-section {
     background-color: rgb(34, 48, 96);
     color: rgb(244, 234, 208);
     letter-spacing: 1px;
 }
 
 /* Cartões, listas e campos: rebaixo no pergaminho. */
-.pg-panel .pg-card, .pg-panel .pg-list {
+.pg-panel .pg-card, .bh-window .pg-card, .pg-panel .pg-list, .bh-window .pg-list {
     background-color: rgba(0, 0, 0, 0);
     background-image: resource('UI/Theme/paper_inset');
     -unity-slice-left: 4; -unity-slice-right: 4; -unity-slice-top: 4; -unity-slice-bottom: 4;
     -unity-slice-scale: 2px;
     border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;
 }
-.pg-panel .pg-input, .pg-panel .pg-dropdown,
-.pg-panel .unity-base-text-field__input, .pg-panel .unity-base-popup-field__input {
+.pg-panel .pg-input, .bh-window .pg-input, .pg-panel .pg-dropdown, .bh-window .pg-dropdown, .pg-panel .unity-base-text-field__input, .bh-window .unity-base-text-field__input, .pg-panel .unity-base-popup-field__input, .bh-window .unity-base-popup-field__input {
     background-color: rgba(255, 250, 235, 0.55);
     color: var(--pg-text);
     border-left-color: var(--pg-panel-border); border-right-color: var(--pg-panel-border);
@@ -358,18 +360,18 @@
 }
 
 /* Botões no pergaminho: selo azul, letra creme. */
-.pg-panel .pg-button { color: var(--pg-on-ink); }
-.pg-panel .pg-button:disabled { opacity: 0.45; }
-.pg-panel .pg-button--primary {
+.pg-panel .pg-button, .bh-window .pg-button { color: var(--pg-on-ink); }
+.pg-panel .pg-button:disabled, .bh-window .pg-button:disabled { opacity: 0.45; }
+.pg-panel .pg-button--primary, .bh-window .pg-button--primary {
     background-color: var(--pg-accent); color: var(--pg-on-ink);
     border-left-color: var(--pg-panel-highlight); border-right-color: var(--pg-panel-highlight);
     border-top-color: var(--pg-panel-highlight); border-bottom-color: var(--pg-panel-highlight);
 }
-.pg-panel .pg-button--primary:hover { background-color: rgb(66, 116, 200); color: rgb(255, 250, 235); }
-.pg-panel .pg-button--danger {
+.pg-panel .pg-button--primary:hover, .bh-window .pg-button--primary:hover { background-color: rgb(66, 116, 200); color: rgb(255, 250, 235); }
+.pg-panel .pg-button--danger, .bh-window .pg-button--danger {
     background-color: rgb(120, 34, 38); color: var(--pg-on-ink);
     border-left-color: rgb(70, 20, 24); border-right-color: rgb(70, 20, 24);
     border-top-color: rgb(70, 20, 24); border-bottom-color: rgb(70, 20, 24);
 }
-.pg-panel .pg-button--danger:hover { background-color: rgb(160, 46, 50); }
-.pg-panel .pg-toggle { color: var(--pg-text); }
+.pg-panel .pg-button--danger:hover, .bh-window .pg-button--danger:hover { background-color: rgb(160, 46, 50); }
+.pg-panel .pg-toggle, .bh-window .pg-toggle { color: var(--pg-text); }

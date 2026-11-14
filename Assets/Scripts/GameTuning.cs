@@ -533,11 +533,11 @@ namespace PangeaSkirmish
         [Tooltip("Cor do botão desabilitado.")]
         public Color hudButtonDisabledColor = new Color(0.18f, 0.20f, 0.26f);
         [Tooltip("Cor do texto de log das ações do JOGADOR.")]
-        public Color logPlayerColor = new Color(0.55f, 0.80f, 1.00f);
+        public Color logPlayerColor = new Color(0.14f, 0.34f, 0.66f);
         [Tooltip("Cor do texto de log das ações INIMIGAS.")]
-        public Color logEnemyColor = new Color(1.00f, 0.52f, 0.52f);
+        public Color logEnemyColor = new Color(0.66f, 0.17f, 0.17f);
         [Tooltip("Cor do texto de log de mensagens de sistema.")]
-        public Color logSystemColor = new Color(0.82f, 0.85f, 0.92f);
+        public Color logSystemColor = new Color(0.14f, 0.16f, 0.27f);
         [Tooltip("Cor/alpha do highlight ao passar o mouse nas linhas do log.")]
         public Color logHoverColor = new Color(0.25f, 0.38f, 0.65f, 0.35f);
         [Tooltip("Cor do chip 'Mover' na fila de ações.")]

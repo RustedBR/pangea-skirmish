@@ -52,7 +52,7 @@ namespace PangeaSkirmish
             float mult = Tuning.Get().aooDamageMult * (Equipment.HasEffect(attacker, ItemEffect.SharpCounter) ? 1.3f : 1f);
             string log = Strike(attacker, AttackShape.Center(target.anchor, target.stats.Footprint), false, target, all,
                                 mult, null, null);
-            return log != null ? "<color=#ff8800>⚔ Oportunidade</color> " + log : null;
+            return log != null ? "<color=#a4541a>⚔ Oportunidade</color> " + log : null;
         }
 
         /// <summary>Resolve um ataque planejado e devolve linha(s) de log; null = sem alvo.</summary>
@@ -96,7 +96,7 @@ namespace PangeaSkirmish
             var second = Last;
             main.Hit.AddRange(second.Hit); main.AnyHit |= second.AnyHit;
             Last = main;
-            return extra != null ? log + "\n<color=#9fd0ff>2ª arma</color> " + extra : log;
+            return extra != null ? log + "\n<color=#2456a8>2ª arma</color> " + extra : log;
         }
 
         private static string ResolveMainHand(Unit attacker, PlannedAttack attack, IEnumerable<Unit> all,
@@ -114,7 +114,7 @@ namespace PangeaSkirmish
                 {
                     var aim = attack.TargetTile;
                     if (GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint, aim, 1) > attacker.EffectiveAttackRange)
-                        return $"<color=#888888>x</color> {attacker.unitName}: mira fora de alcance";
+                        return $"<color=#6f6a5e>x</color> {attacker.unitName}: mira fora de alcance";
                     return Strike(attacker, aim, true, null, all, 1f, interceptor, protectedUnit);
                 }
                 case AttackMode.Unit:
@@ -122,7 +122,7 @@ namespace PangeaSkirmish
                     var t = attack.TargetUnit;
                     if (t == null || t.IsDead || GridManager.FootprintGap(attacker.anchor, attacker.stats.Footprint,
                             t.anchor, t.stats.Footprint) > attacker.EffectiveAttackRange)
-                        return $"<color=#888888>x</color> {attacker.unitName} nao alcancou {(t != null ? t.unitName : "alvo")}";
+                        return $"<color=#6f6a5e>x</color> {attacker.unitName} nao alcancou {(t != null ? t.unitName : "alvo")}";
                     return Strike(attacker, AttackShape.Center(t.anchor, t.stats.Footprint), false, t, all, 1f, interceptor, protectedUnit);
                 }
                 default:
@@ -146,7 +146,7 @@ namespace PangeaSkirmish
             if (AttackShape.TilesOn(CellsFor(attacker, aim), target.anchor, target.stats.Footprint) <= 0)
                 aim = AttackShape.Center(target.anchor, target.stats.Footprint);
             string log = Strike(attacker, aim, attack.Mode == AttackMode.Tile, target, all, 1f, null, null, target, forceHit: true);
-            return log != null ? "<color=#55ccff>◎ Olho certeiro</color> " + log : null;
+            return log != null ? "<color=#2456a8>◎ Olho certeiro</color> " + log : null;
         }
 
         /// <summary>Células que o golpe planejado pega, da posição atual de quem ataca.</summary>
@@ -260,7 +260,7 @@ namespace PangeaSkirmish
             if (order.Count == 0)
             {
                 ConsumeStrBuffOnHit(attacker);
-                return $"<color=#888888>x</color> {attacker.unitName}: o golpe não pegou ninguém";
+                return $"<color=#6f6a5e>x</color> {attacker.unitName}: o golpe não pegou ninguém";
             }
 
             // Muralha / Tempestade no caminho de golpes à distância (GDD-019 §3.2), contra o alvo do clique.
@@ -282,12 +282,12 @@ namespace PangeaSkirmish
                     wall.Hp -= dmg;
                     BattleFeedback.Absorbed(lineTarget, $"{wall.Name} absorveu {dmg}");
                     if (wall.Hp <= 0) field.Remove(wall);
-                    return $"<color=#888888>x</color> {attacker.unitName} acerta a {wall.Name} ({Mathf.Max(0, wall.Hp)} HP)";
+                    return $"<color=#6f6a5e>x</color> {attacker.unitName} acerta a {wall.Name} ({Mathf.Max(0, wall.Hp)} HP)";
                 }
                 if (field.SandstormOnLine(attacker.anchor, lineTarget.anchor) && BattleRng.Roll10000() < 5000)
                 {
                     BattleFeedback.Miss(lineTarget);
-                    return $"<color=#888888>x</color> {attacker.unitName} errou na tempestade de areia";
+                    return $"<color=#6f6a5e>x</color> {attacker.unitName} errou na tempestade de areia";
                 }
             }
 
@@ -319,7 +319,7 @@ namespace PangeaSkirmish
                 if (res == HitResult.Miss)
                 {
                     BattleFeedback.Miss(t);
-                    lines.Add($"<color=#888888>x</color> {attacker.unitName} errou {t.unitName}");
+                    lines.Add($"<color=#6f6a5e>x</color> {attacker.unitName} errou {t.unitName}");
                     Last.Missed.Add(t);
                     ClearDefense(t);
                     continue;
@@ -342,7 +342,7 @@ namespace PangeaSkirmish
                 if (left <= 0)
                 {
                     BattleFeedback.Dodge(t);
-                    lines.Add($"<color=#55ccff>↯</color> {t.unitName} esquivou o golpe de {attacker.unitName} ({tiles}/{tiles} tiles)");
+                    lines.Add($"<color=#2456a8>↯</color> {t.unitName} esquivou o golpe de {attacker.unitName} ({tiles}/{tiles} tiles)");
                     Last.Missed.Add(t);
                     ClearDefense(t);
                     continue;
@@ -369,13 +369,13 @@ namespace PangeaSkirmish
                 }
                 ClearDefense(t);
 
-                string hp   = t.IsDead ? "<color=#ff6666>MORTO</color>" : $"{t.currentHP}/{t.stats.MaxHP} HP";
-                string icon = res == HitResult.Critical ? "<color=#ffd700>★</color>" : (power ? "<color=#ffd700>*</color>" : ">");
-                string tags = (freeAim ? " <color=#9fd0ff>MIRA LIVRE</color>" : "")
-                            + (power ? " <color=#ffd700>PODEROSO</color>" : "")
-                            + (aimDmg > 0 ? $" <color=#55ccff>+MIRA({aimDmg})</color>" : "")
-                            + (fury > 0f ? " <color=#ffb060>FÚRIA</color>" : "")
-                            + (removed > 0 ? $" <color=#55ccff>−{removed} esquiva</color>" : "");
+                string hp   = t.IsDead ? "<color=#a82c2c>MORTO</color>" : $"{t.currentHP}/{t.stats.MaxHP} HP";
+                string icon = res == HitResult.Critical ? "<color=#8f5a0c>★</color>" : (power ? "<color=#8f5a0c>*</color>" : ">");
+                string tags = (freeAim ? " <color=#2456a8>MIRA LIVRE</color>" : "")
+                            + (power ? " <color=#8f5a0c>PODEROSO</color>" : "")
+                            + (aimDmg > 0 ? $" <color=#2456a8>+MIRA({aimDmg})</color>" : "")
+                            + (fury > 0f ? " <color=#a4541a>FÚRIA</color>" : "")
+                            + (removed > 0 ? $" <color=#2456a8>−{removed} esquiva</color>" : "");
                 lines.Add($"{icon} {attacker.unitName} -> {t.unitName}: {rolled} ({left} tile{(left == 1 ? "" : "s")}){tags}  ({hp})");
             }
             if (fury > 0f) BattleFeedback.Status(attacker, "Fúria!", new Color(1f, 0.69f, 0.38f));

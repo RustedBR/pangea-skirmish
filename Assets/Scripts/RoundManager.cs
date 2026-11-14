@@ -314,7 +314,7 @@ namespace PangeaSkirmish
                     // Jogador local morto: auto-submit plano vazio
                     _hud.SetTimerVisible(false);
                     _hud.SetConfirmVisible(false);
-                    _hud.LogAction("<color=#ff7a7a>Sua unidade foi eliminada — round automático.</color>");
+                    _hud.LogAction("<color=#a82c2c>Sua unidade foi eliminada — round automático.</color>");
                     _timer = planningTime; // ainda aguarda timer para sincronizar
                 }
 
@@ -347,7 +347,7 @@ namespace PangeaSkirmish
             {
                 _hud.SetTimerVisible(false);
                 _hud.SetConfirmVisible(false);
-                _hud.LogAction("<color=#ff7a7a>Guerreiro eliminado — rodada automática.</color>");
+                _hud.LogAction("<color=#a82c2c>Guerreiro eliminado — rodada automática.</color>");
                 StartCoroutine(ActionRoutine());
                 return;
             }
@@ -563,7 +563,7 @@ namespace PangeaSkirmish
                     var d = q.Spell.Def;
                     if (d != null && (u.currentMana < d.ManaPart || u.currentStamina < d.StaminaPart))
                     {
-                        _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: sem recurso para <b>{d.displayName}</b> (Mana {u.currentMana}/{d.ManaPart}, Stamina {u.currentStamina}/{d.StaminaPart})", u);
+                        _hud.LogAction($"<color=#a82c2c>✕</color> {u.unitName}: sem recurso para <b>{d.displayName}</b> (Mana {u.currentMana}/{d.ManaPart}, Stamina {u.currentStamina}/{d.StaminaPart})", u);
                         u.queue.RemoveAt(0);
                         continue;
                     }
@@ -582,7 +582,7 @@ namespace PangeaSkirmish
                     {
                         var q0 = cu.queue[0];
                         string nm = q0.Spell.Def != null ? q0.Spell.Def.displayName : q0.Spell.SpellId;
-                        _hud.LogAction($"<color=#ff7a6a>✕</color> {cu.unitName}: <b>{nm}</b> cortada pelo golpe de oportunidade", cu);
+                        _hud.LogAction($"<color=#a82c2c>✕</color> {cu.unitName}: <b>{nm}</b> cortada pelo golpe de oportunidade", cu);
                         cu.queue.RemoveAt(0);
                     }
                 }
@@ -634,7 +634,7 @@ namespace PangeaSkirmish
                             if (!blocked && _spellField.BarrierOnLine(m.u.anchor, m.dest) != null) blocked = true;
                             if (blocked) break;
                         }
-                        if (blocked) _hud.LogAction($"<color=#888888>x</color> {m.u.unitName}: a Muralha bloqueia o caminho", m.u);
+                        if (blocked) _hud.LogAction($"<color=#6f6a5e>x</color> {m.u.unitName}: a Muralha bloqueia o caminho", m.u);
                         return blocked;
                     });
 
@@ -657,7 +657,7 @@ namespace PangeaSkirmish
                 var earlyMoves = SplitEarlyMoves(movesThisSlot, attacksThisSlot.ConvertAll(x => x.u), spellsThisSlot.ConvertAll(x => x.u));
                 if (earlyMoves.Count > 0)
                 {
-                    foreach (var m in earlyMoves) _hud.LogAction($"<color=#55ccff>»</color> {m.u.unitName} é mais ágil: sai antes do golpe", m.u);
+                    foreach (var m in earlyMoves) _hud.LogAction($"<color=#2456a8>»</color> {m.u.unitName} é mais ágil: sai antes do golpe", m.u);
                     yield return ResolveMovementSlot(earlyMoves);
                 }
                 foreach (var u in _units) { u.pendingMoveThisTick = false; u.moveCancelledThisTick = false; }
@@ -691,7 +691,7 @@ namespace PangeaSkirmish
                     catch (System.Exception ex)
                     {
                         Debug.LogError($"[Magia] falha ao RESOLVER {sp.SpellId} de {su.unitName}: {ex}");
-                        spellLines = new List<string> { $"<color=#ff7a6a>✕</color> {su.unitName}: {sp.SpellId} falhou (ver LOG)" };
+                        spellLines = new List<string> { $"<color=#a82c2c>✕</color> {su.unitName}: {sp.SpellId} falhou (ver LOG)" };
                     }
                     foreach (var line in spellLines)
                         _hud.LogAction(line, su);
@@ -751,7 +751,7 @@ namespace PangeaSkirmish
                     {
                         if (!u.IsDead && u.queue.Count > 0)
                         {
-                            _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: {(u.staggered ? "desequilibrado pelo bloqueio" : "interrompido pelo golpe de oportunidade")} — perde o resto da fila", u);
+                            _hud.LogAction($"<color=#a82c2c>✕</color> {u.unitName}: {(u.staggered ? "desequilibrado pelo bloqueio" : "interrompido pelo golpe de oportunidade")} — perde o resto da fila", u);
                             BattleFeedback.Status(u, u.staggered ? "Desequilibrado" : "Interrompido", new Color(1f, 0.48f, 0.42f));
                             u.queue.Clear();
                             interrupted = true;
@@ -762,7 +762,7 @@ namespace PangeaSkirmish
                     if (u.IsDead || u.queue.Count == 0 || !u.queue[0].Interrupted) continue;
                     var q = u.queue[0];
                     string nm = q.Spell.Def != null ? q.Spell.Def.displayName : q.Spell.SpellId;
-                    _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: <b>{nm}</b> interrompida ({q.DamageTaken} ≥ {SpellResolver.InterruptThreshold(u)}). Mana gasta.", u);
+                    _hud.LogAction($"<color=#a82c2c>✕</color> {u.unitName}: <b>{nm}</b> interrompida ({q.DamageTaken} ≥ {SpellResolver.InterruptThreshold(u)}). Mana gasta.", u);
                     BattleFeedback.Interrupted(u, q.DamageTaken, SpellResolver.InterruptThreshold(u));
                     u.queue.Clear();
                     interrupted = true;
@@ -793,7 +793,7 @@ namespace PangeaSkirmish
                 if (reachable.Contains(u.plannedBonusAnchor))
                     yield return u.MoveToDestination(u.plannedBonusAnchor);
                 else
-                    _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra bloqueado", u);
+                    _hud.LogAction($"<color=#6f6a5e>~</color> {u.unitName}: passo extra bloqueado", u);
                 u.hasPlannedBonus = false;
             }
 
@@ -869,7 +869,7 @@ namespace PangeaSkirmish
             }
             _hud.SetPhase($"Camada {Layer} vencida");
             AwardCoop(cleared: true);
-            _hud.Log($"<color=#60ff70>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
+            _hud.Log($"<color=#227446>✦ Camada {Layer} vencida.</color> Descer tem peso; recuar não tem nenhum.");
 
             // Loot (GDD-024 etapa B): o host gera drops + baú e manda para todos.
             if (RuntimeMultiplayerSession.IsHost && PlacementSync.Instance != null) PlacementSync.Instance.HostGenerateLoot(Layer);
@@ -915,14 +915,14 @@ namespace PangeaSkirmish
             int ups = PlayerProfile.AddXp(p, xp);
             PlayerProfile.AddGold(gold);
             PlayerProfile.Save();
-            _hud.Log($"<color=#ffd76a>★</color> {p.presetName}: +{xp} XP, +{gold} moedas ({killed} fera{(killed == 1 ? "" : "s")})" +
+            _hud.Log($"<color=#8f5a0c>★</color> {p.presetName}: +{xp} XP, +{gold} moedas ({killed} fera{(killed == 1 ? "" : "s")})" +
                      (ups > 0 ? $" — <b>subiu para o nível {p.level}!</b> +{ups * PlayerProfile.PointsPerLevel} pontos para distribuir no perfil" : ""));
         }
 
         /// <summary>Uma carta foi aplicada (aqui ou em outra máquina): avisa no histórico e atualiza a ficha.</summary>
         public void OnCardApplied(Unit u, string what)
         {
-            _hud.LogAction($"<color=#ffd76a>★</color> {u.unitName} pegou <b>{what}</b>", u);
+            _hud.LogAction($"<color=#8f5a0c>★</color> {u.unitName} pegou <b>{what}</b>", u);
             _hud.RefreshUnitInfo();
         }
 
@@ -940,8 +940,8 @@ namespace PangeaSkirmish
         /// <summary>Baú mudou (aqui ou em outra máquina): registra e redesenha o menu aberto.</summary>
         public void OnLootChanged(Unit who, string what)
         {
-            if (who != null) _hud.LogAction($"<color=#ffd76a>⬢</color> {who.unitName} {what}", who);
-            else _hud.Log($"<color=#ffd76a>⬢</color> {what}");
+            if (who != null) _hud.LogAction($"<color=#8f5a0c>⬢</color> {who.unitName} {what}", who);
+            else _hud.Log($"<color=#8f5a0c>⬢</color> {what}");
             _hud.RefreshUnitInfo();
             if (_lootView == LootView.Item) _lootView = LootView.List;   // o item pode ter saído do baú
             if (_lootView != LootView.Closed) ShowLootMenu(_lootView);
@@ -957,7 +957,7 @@ namespace PangeaSkirmish
             _lootView = view;
             uint id = UnitRegistry.GetId(mine);
             var opts = new List<(string, System.Action)>();
-            string head = $"{mine.unitName} · <color=#ffd76a>{PlayerProfile.Gold} moedas</color>";
+            string head = $"{mine.unitName} · <color=#8f5a0c>{PlayerProfile.Gold} moedas</color>";
 
             if (view == LootView.Item && _lootIndex < ps.Stash.Count)
             {
@@ -967,7 +967,7 @@ namespace PangeaSkirmish
                 if (Loot.CanEquip(mine, it, out string why))
                     opts.Add(($"Equipar{(cur != null ? $"  <size=12>(o seu {cur.displayName} vai para o grupo)</size>" : "")}",
                               () => ps.LootTakeServerRpc(id, idx, itemId)));
-                else opts.Add(($"<color=#9fb3d9>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
+                else opts.Add(($"<color=#b9c4dc>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
                 opts.Add(($"Vender  <size=12>+{Loot.SellPrice(it)} moedas</size>", () => ps.LootSellServerRpc(id, idx, itemId)));
                 opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
                 _hud.ShowChoiceTitled("ITENS DO GRUPO", $"{head}\n{Loot.Describe(it)}", opts.ToArray());
@@ -1006,7 +1006,7 @@ namespace PangeaSkirmish
         {
             _restedThisLayer = true;
             _lootView = LootView.Closed;
-            _hud.Log($"<color=#8fd18f>☾ Descanso.</color> Vida e Mana cheias, caídos de pé. Agora é {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current).ToLower()}.");
+            _hud.Log($"<color=#227446>☾ Descanso.</color> Vida e Mana cheias, caídos de pé. Agora é {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current).ToLower()}.");
             _hud.RefreshUnitInfo();
             ShowRestMenu();
         }
@@ -1049,7 +1049,7 @@ namespace PangeaSkirmish
             opts.Add(("<b>Pronto</b>", () => ShowDescentChoice()));
             _hud.ShowChoiceTitled("DESCANSO",
                 $"{p.presetName} · nível {PlayerProfile.Level(p)} · XP {p.xp}/{PlayerProfile.XpToNext(PlayerProfile.Level(p))}\n" +
-                (free > 0 ? $"<color=#ffd76a>{free} ponto{(free == 1 ? "" : "s")} para somar</color>" : "Sem pontos novos para somar."),
+                (free > 0 ? $"<color=#8f5a0c>{free} ponto{(free == 1 ? "" : "s")} para somar</color>" : "Sem pontos novos para somar."),
                 opts.ToArray());
         }
 
@@ -1081,7 +1081,7 @@ namespace PangeaSkirmish
             _lootView = LootView.Closed;
             _restedThisLayer = false;
             _hud.HideReactionMenu();
-            _hud.Log($"<color=#ff9a5a>▼ Camada {Layer}</color> — o Inferno está mais perto. {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current)}.");
+            _hud.Log($"<color=#a4541a>▼ Camada {Layer}</color> — o Inferno está mais perto. {DayNight.Icon(DayNight.Current)} {DayNight.Name(DayNight.Current)}.");
             StartCoroutine(StartRound());
         }
 
@@ -1170,13 +1170,13 @@ namespace PangeaSkirmish
                 string tgt = q.Attack.TargetUnit != null ? $" em {q.Attack.TargetUnit.unitName}" : "";
                 var opts = new List<(string, System.Action)>();
                 bool canP = mine.CanIncrementNext(0), canA = mine.CanIncrementNext(1);
-                string Cost(int st, bool tick) => $"<size=12><color=#9fb3d9>{st} Stamina{(tick ? " · +1 tick" : "")}</color></size>";
+                string Cost(int st, bool tick) => $"<size=12><color=#b9c4dc>{st} Stamina{(tick ? " · +1 tick" : "")}</color></size>";
                 if (canP) opts.Add(($"<b>Golpe poderoso</b>   ~{now} → <b>~{Dmg(true, q.IsAimed)}</b> de dano\n{Cost(Unit.IncrementCost(0), true)}", () => Submit(0)));
                 if (canA) opts.Add(($"<b>Mirar</b>   ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano, mais acerto\n{Cost(Unit.IncrementCost(1), false)}", () => Submit(1)));
                 if (canP && canA && mine.currentStamina >= Unit.IncrementCost(0) + Unit.IncrementCost(1))
                     opts.Add(($"<b>Os dois</b>   ~{now} → <b>~{Dmg(true, true)}</b> de dano\n{Cost(Unit.IncrementCost(0) + Unit.IncrementCost(1), true)}", () => Submit(0, 1)));
                 opts.Add(("Não incrementar", () => Submit()));
-                _hud.ShowChoiceTitled("INCREMENTAR", $"{mine.unitName} vai atacar{tgt}: ~{now} de dano.\n<size=12><color=#9fb3d9>Stamina {mine.currentStamina}</color></size>", opts.ToArray());
+                _hud.ShowChoiceTitled("INCREMENTAR", $"{mine.unitName} vai atacar{tgt}: ~{now} de dano.\n<size=12><color=#5f6072>Stamina {mine.currentStamina}</color></size>", opts.ToArray());
             }
 
             float guard = seconds + 6f;     // trava de segurança caso o fechamento nunca chegue
@@ -1520,7 +1520,7 @@ namespace PangeaSkirmish
                     string alvo = atk.TargetUnit != null ? atk.TargetUnit.unitName : "alvo";
                     AudioManager.I?.PlayAtPoint(AudioManager.I.sfxMiss, u.transform.position);
                     BattleLabel.CreateMiss(_cam, u.HeadWorld);
-                    _hud.LogAction($"<color=#888888>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
+                    _hud.LogAction($"<color=#6f6a5e>x</color> {u.unitName}: {alvo} fora de alcance — ataque perdido", u);
                     // Ataque perdido devolve a Stamina do golpe poderoso / mirar.
                     if (incr) u.GainStamina(Tuning.Get().staminaPowerStrike);
                     if (aimed) u.GainStamina(Tuning.Get().staminaAim);
@@ -1560,7 +1560,7 @@ namespace PangeaSkirmish
                     yield return Provoke(u, "atirou", null);
                     if (u.counterInterrupted || u.IsDead)
                     {
-                        _hud.LogAction($"<color=#ff7a6a>✕</color> {u.unitName}: o tiro foi cortado pelo contra-ataque", u);
+                        _hud.LogAction($"<color=#a82c2c>✕</color> {u.unitName}: o tiro foi cortado pelo contra-ataque", u);
                         continue;
                     }
                 }
@@ -1584,7 +1584,7 @@ namespace PangeaSkirmish
                     if (_interceptedBy != null)
                     {
                         guardUnit = _interceptedBy; guarded = hitU; _interceptedBy = null;
-                        _hud.LogAction($"<color=#ffd700>🛡</color> {guardUnit.unitName}: interpôs-se por {hitU.unitName}!", guardUnit);
+                        _hud.LogAction($"<color=#8f5a0c>🛡</color> {guardUnit.unitName}: interpôs-se por {hitU.unitName}!", guardUnit);
                         break;
                     }
                 }
@@ -1684,7 +1684,7 @@ namespace PangeaSkirmish
             if (cands.Count == 0) yield break;
             cands.Sort((a, b) => a.stats.DEX != b.stats.DEX ? b.stats.DEX.CompareTo(a.stats.DEX) : UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
             _provokedThisTick.Add(provoker);
-            _hud.LogAction($"<color=#6aa9ff>↯</color> {provoker.unitName} {why} perto de {cands[0].unitName}{(cands.Count > 1 ? $" e mais {cands.Count - 1}" : "")}: oportunidade!", cands[0]);
+            _hud.LogAction($"<color=#2456a8>↯</color> {provoker.unitName} {why} perto de {cands[0].unitName}{(cands.Count > 1 ? $" e mais {cands.Count - 1}" : "")}: oportunidade!", cands[0]);
             _lastCounterHit = false;
             var savedAttacker = _reactionAttacker;
             _reactionAttacker = provoker;
@@ -1717,7 +1717,7 @@ namespace PangeaSkirmish
                 reactor.counterInterrupted = false;
                 reactor.dodgeReactTiles = 0; reactor.blockFlat = 0;
                 if (applied == ReactionKind.Intercept) _interceptedBy = null;
-                _hud.LogAction($"<color=#ff7a6a>✕</color> {reactor.unitName}: a reação foi cortada", reactor);
+                _hud.LogAction($"<color=#a82c2c>✕</color> {reactor.unitName}: a reação foi cortada", reactor);
                 yield break;
             }
             if (applied == ReactionKind.Dodge && !reactor.IsDead)
@@ -1750,7 +1750,7 @@ namespace PangeaSkirmish
             }
             if (cells != null) u.dodgeReactTiles = 0;    // contra a forma, quem decide é onde ele parou
             if (best == u.anchor) yield break;
-            _hud.LogAction($"<color=#55ccff>↯</color> {u.unitName} esquiva para ({best.x},{best.y})", u);
+            _hud.LogAction($"<color=#2456a8>↯</color> {u.unitName} esquiva para ({best.x},{best.y})", u);
             // Dano primeiro (2026-11-14): a posição lógica muda já (o golpe é calculado de lá), mas o corpo
             // fica parado; depois do dano, PlayPendingDodges anima o passo 2× mais rápido.
             _pendingDodges.Add((u, u.anchor));
@@ -2064,17 +2064,17 @@ namespace PangeaSkirmish
                     reactor.dodgeReactTiles = 1;   // marca a reação; quantos tiles sai é decidido no golpe (fração da AGI)
                     reactor.PlayReactionAnim(ReactionKind.Dodge);
                     BattleFeedback.Status(reactor, $"Esquiva: −{Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}%", new Color(0.55f, 0.85f, 1f));
-                    _hud.LogAction($"<color=#55ccff>↯</color> {reactor.unitName}: Esquivar! tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}% dos tiles do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    _hud.LogAction($"<color=#2456a8>↯</color> {reactor.unitName}: Esquivar! tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}% dos tiles do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
                     reactor.PlayReactionAnim(ReactionKind.Block);
                     BattleFeedback.Status(reactor, $"Escudo erguido (−{reactor.blockFlat})", new Color(1f, 0.86f, 0.40f));
-                    _hud.LogAction($"<color=#ffd700>🛡</color> {reactor.unitName}: Bloquear! −{reactor.blockFlat} de dano; se absorver tudo, desequilibra (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    _hud.LogAction($"<color=#8f5a0c>🛡</color> {reactor.unitName}: Bloquear! −{reactor.blockFlat} de dano; se absorver tudo, desequilibra (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.TrueAim:
                     BattleFeedback.Status(reactor, "Olho certeiro!", new Color(0.33f, 0.80f, 1f));
-                    _hud.LogAction($"<color=#55ccff>◎</color> {reactor.unitName}: Olho certeiro! o tiro acerta (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    _hud.LogAction($"<color=#2456a8>◎</color> {reactor.unitName}: Olho certeiro! o tiro acerta (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Intercept:
                     _interceptedBy = reactor;    // o golpe divide os tiles do protegido com quem interpôs
@@ -2126,14 +2126,14 @@ namespace PangeaSkirmish
                 if (reachable.Contains(u.plannedBonusAnchor))
                     yield return u.MoveToDestination(u.plannedBonusAnchor);
                 else
-                    _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra bloqueado", u);
+                    _hud.LogAction($"<color=#6f6a5e>~</color> {u.unitName}: passo extra bloqueado", u);
                 u.hasPlannedBonus = false;
                 yield break;
             }
 
             if (reachable.Count == 0)
             {
-                _hud.LogAction($"<color=#888888>~</color> {u.unitName}: sem espaço para o passo extra", u);
+                _hud.LogAction($"<color=#6f6a5e>~</color> {u.unitName}: sem espaço para o passo extra", u);
                 yield break;
             }
 
@@ -2180,11 +2180,11 @@ namespace PangeaSkirmish
             {
                 AudioManager.I?.PlayAtPoint(AudioManager.I.sfxDash, u.transform.position);
                 yield return u.MoveToDestination(chosen.Value);
-                _hud.LogAction($"<color=#ffd700>*</color> {u.unitName}: passo extra", u);
+                _hud.LogAction($"<color=#8f5a0c>*</color> {u.unitName}: passo extra", u);
             }
             else
             {
-                _hud.LogAction($"<color=#888888>~</color> {u.unitName}: passo extra pulado", u);
+                _hud.LogAction($"<color=#6f6a5e>~</color> {u.unitName}: passo extra pulado", u);
             }
             // Faltava aqui (só o ramo "IA" acima resetava) — hasPlannedBonus ficava true
             // indefinidamente, vazando e re-executando em rounds seguintes.

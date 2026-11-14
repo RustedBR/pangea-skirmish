@@ -268,8 +268,8 @@ namespace PangeaSkirmish
         }
 
         public static string CardText(Card c) => c.IsAttr
-            ? $"<b>+{c.points} {c.attr}</b>\n<size=12><color=#9fb3d9>pontos de atributo</color></size>"
-            : $"<b>{c.item.displayName}</b>  <size=12><color=#{ColorUtility.ToHtmlStringRGB(RarityColor(c.item.rarity))}>{RarityName(c.item.rarity)} · {SlotName(c.item.slot, c.item.isShield)}</color></size>\n<size=12><color=#9fb3d9>{c.item.Summary()}</color></size>";
+            ? $"<b>+{c.points} {c.attr}</b>\n<size=12><color=#b9c4dc>pontos de atributo</color></size>"
+            : $"<b>{c.item.displayName}</b>  <size=12><color=#{ColorUtility.ToHtmlStringRGB(RarityColor(c.item.rarity))}>{RarityName(c.item.rarity)} · {SlotName(c.item.slot, c.item.isShield)}</color></size>\n<size=12><color=#5f6072>{c.item.Summary()}</color></size>";
 
         public static string SlotName(ItemSlot s, bool shield = false) => shield ? "escudo" : s switch
         {

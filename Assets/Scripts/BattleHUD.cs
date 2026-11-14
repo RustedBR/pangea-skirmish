@@ -145,7 +145,7 @@ namespace PangeaSkirmish
 
             var hover = new Label("Passe o mouse sobre uma magia para ver o efeito.") { pickingMode = PickingMode.Ignore };
             hover.style.fontSize = 12; hover.style.whiteSpace = WhiteSpace.Normal; hover.style.marginTop = 6;
-            hover.style.color = new Color(0.80f, 0.86f, 1f); hover.style.minHeight = 34;
+            hover.style.color = new Color(0.14f, 0.16f, 0.27f); hover.style.minHeight = 34;
 
             var scroll = new ScrollView(ScrollViewMode.Vertical);
             // Altura em unidades do PAINEL (a UI é escalada; Screen.height em px estourava o topo). 2026-11-14.
@@ -157,9 +157,9 @@ namespace PangeaSkirmish
             void Group(string title, string resName, int have, System.Func<SpellDef, bool> pick)
             {
                 var col = new VisualElement(); col.style.flexGrow = 1; col.style.flexBasis = 0; col.style.marginRight = 8;
-                var t = new Label($"{title}  <color=#9fb3d9>({resName} {have})</color>") { pickingMode = PickingMode.Ignore };
+                var t = new Label($"{title}  <color=#5f6072>({resName} {have})</color>") { pickingMode = PickingMode.Ignore };
                 t.style.fontSize = 12; t.style.unityFontStyleAndWeight = FontStyle.Bold; t.style.marginBottom = 4;
-                t.style.color = new Color(0.74f, 0.85f, 1f);
+                t.style.color = new Color(0.14f, 0.16f, 0.27f);
                 col.Add(t);
                 foreach (var s in SpellCatalog.All())
                 {
@@ -174,13 +174,13 @@ namespace PangeaSkirmish
                     b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 36;
                     b.style.fontSize = 12; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 8;
                     b.style.borderLeftWidth = 4; b.style.borderLeftColor = ElementInfo.Color(s.PrimaryElement);
-                    b.text = $"{SpellGlyph} <b>{s.displayName}</b>  <color=#9fb3d9>[{s.MontageText()}]</color>\n" +
+                    b.text = $"{SpellGlyph} <b>{s.displayName}</b>  <color=#b9c4dc>[{s.MontageText()}]</color>\n" +
                              $"<size=11>−{s.CostText} · {ticks} tick{(ticks == 1 ? "" : "s")} · {meta}</size>";
                     b.SetEnabled(ok);
-                    if (!ok) b.style.opacity = 0.45f;
+                    if (!ok) { b.style.opacity = 1f; b.style.backgroundColor = new Color(0.36f, 0.38f, 0.48f); }   // apagado, mas legível no pergaminho
                     string eff = $"<b>{s.displayName}</b> — {s.CostText}. " + SpellResolver.Describe(u, s);
-                    if (!ok) eff = $"<color=#ff9a8a>Não cabe: {why}.</color>  " + eff;
-                    if (!s.IsPhysical) eff += $"  <color=#c9b8ff>Interrompível: {SpellResolver.InterruptThreshold(u)}+ de dano durante a conjuração corta.</color>";
+                    if (!ok) eff = $"<color=#a82c2c>Não cabe: {why}.</color>  " + eff;
+                    if (!s.IsPhysical) eff += $"  <color=#5a3fa8>Interrompível: {SpellResolver.InterruptThreshold(u)}+ de dano durante a conjuração corta.</color>";
                     var captured = eff;
                     b.RegisterCallback<PointerEnterEvent>(_ => hover.text = captured);
                     col.Add(b);
@@ -270,6 +270,31 @@ namespace PangeaSkirmish
 
             // Painel de intenções (substitui o command-menu cascata)
             _intentsPanel     = r.Q<VisualElement>("intents-panel");
+            // Atalhos (Investir, Golpear e recuar, Recuar…) recolhidos num botão só; as teclas 1–3 seguem valendo.
+            if (_intentsPanel != null)
+            {
+                Button first = null;
+                for (int n = 1; n <= 5; n++)
+                {
+                    var ib = r.Q<Button>("btn-intent-" + n);
+                    if (ib == null) continue;
+                    ib.AddToClassList("bh-intent-shortcut");
+                    first ??= ib;
+                }
+                if (first != null)
+                {
+                    Button toggle = null;
+                    toggle = new Button(() =>
+                    {
+                        AudioManager.I?.Play(AudioManager.I.sfxUIClick);
+                        bool open = !_intentsPanel.ClassListContains("bh-intents--open");
+                        _intentsPanel.EnableInClassList("bh-intents--open", open);
+                        toggle.text = open ? "Atalhos ▴" : "Atalhos ▾";
+                    }) { name = "btn-shortcuts", text = "Atalhos ▾" };
+                    toggle.AddToClassList("bh-intent-btn");
+                    _intentsPanel.Insert(_intentsPanel.IndexOf(first), toggle);
+                }
+            }
             HookUiPointerDown();
             _intentButtons    = new[]
             {
@@ -550,7 +575,7 @@ namespace PangeaSkirmish
             if (_unitNameText != null)
             {
                 _unitNameText.text = $"{u.unitName}  <size=11>{team}</size>";
-                if (u.IsDead) _unitNameText.text += "  <color=#888>+</color>";
+                if (u.IsDead) _unitNameText.text += "  <color=#6f6a5e>+</color>";
             }
             float ratio = (float)u.currentHP / Mathf.Max(1, s.MaxHP);
             if (_hpFill != null)
@@ -591,7 +616,8 @@ namespace PangeaSkirmish
 
         private VisualElement Chip(string icon, string text, string tip, string cls = "bh-ichip")
         {
-            var row = new VisualElement(); row.AddToClassList(cls);
+            var row = new VisualElement();
+            foreach (var c in cls.Split(' ')) if (c.Length > 0) row.AddToClassList(c);   // uma classe por chamada
             var img = new VisualElement(); img.AddToClassList("bh-ichip-icon");
             var tex = IconTex(icon);
             if (tex != null) img.style.backgroundImage = new StyleBackground(tex);
@@ -695,7 +721,7 @@ namespace PangeaSkirmish
                 {
                     Slot(u.headId, ItemSlot.Head); Slot(u.torsoId, ItemSlot.Torso); Slot(u.legsId, ItemSlot.Legs);
                     int wt = Equipment.TotalWeight(Equipment.Of(u)), lim = Equipment.WeightLimit(s.VIT);
-                    eq.Add(Chip("stone", wt > lim ? $"<color=#ff8a7a>{wt}/{lim}</color>" : $"{wt}/{lim}",
+                    eq.Add(Chip("stone", wt > lim ? $"<color=#a82c2c>{wt}/{lim}</color>" : $"{wt}/{lim}",
                         $"Peso {wt} de {lim} (2 + VIT/2).{(wt > lim ? $" {wt - lim} acima: −{wt - lim} na andada, na esquiva e no Esquivar." : "")}"));
                 }
                 _inspectBody.Add(eq);
@@ -861,7 +887,7 @@ namespace PangeaSkirmish
             public Func<string> IconFn;       // sprite que muda (postura, reação)
             public Action<bool> OnClick;      // bool = Shift pressionado
         }
-        private VisualElement _actionBar;
+        private VisualElement _actionBar, _stanceRow;
         private Label _actionTip;
         private readonly List<(ActionBarItem item, Button btn, Label badge)> _barButtons = new List<(ActionBarItem, Button, Label)>();
         private readonly Dictionary<ActionBarItem, Label> _barGlyphs = new Dictionary<ActionBarItem, Label>();
@@ -884,11 +910,20 @@ namespace PangeaSkirmish
                 // Fica logo acima da barra de ticks, acompanhando a altura dela.
                 if (_ticksBar != null) _ticksBar.RegisterCallback<GeometryChangedEvent>(_ => PlaceActionBar());
             }
+            // Dois polegares (2026-11-14): ações em grade à esquerda; Postura e Reação à direita,
+            // dentro do painel de intenções, logo acima de Confirmar.
+            if (_stanceRow == null && _intentsPanel != null)
+            {
+                _stanceRow = new VisualElement { name = "stance-row" };
+                _stanceRow.AddToClassList("bh-stance");
+                _intentsPanel.Insert(Mathf.Min(1, _intentsPanel.childCount), _stanceRow);
+            }
             _actionBar.Clear();
+            _stanceRow?.Clear();
             _barButtons.Clear();
             foreach (var it in items)
             {
-                if (it == null) { var sep = new VisualElement(); sep.AddToClassList("bh-abar-sep"); _actionBar.Add(sep); continue; }
+                if (it == null) continue;   // separadores saíram: a grade já agrupa
                 var item = it;
                 var btn = new Button { name = "abtn-" + item.Id };
                 btn.AddToClassList("bh-abtn");
@@ -903,7 +938,11 @@ namespace PangeaSkirmish
                     btn.Add(ic); _barIcons[item] = (ic, iconName);
                     glyph.style.display = DisplayStyle.None;
                 }
-                btn.Add(glyph); btn.Add(key); btn.Add(badge);
+                string shortName = item.Name ?? "";
+                int cut = shortName.IndexOf(" ("); if (cut > 0) shortName = shortName.Substring(0, cut);
+                if (item.Id == "reaction") shortName = "Reação";
+                var cap = new Label(shortName) { pickingMode = PickingMode.Ignore }; cap.AddToClassList("bh-abtn-cap");
+                btn.Add(glyph); btn.Add(key); btn.Add(badge); btn.Add(cap);
                 _barGlyphs[item] = glyph;
                 btn.RegisterCallback<ClickEvent>(e =>
                 {
@@ -915,7 +954,9 @@ namespace PangeaSkirmish
                 });
                 btn.RegisterCallback<PointerEnterEvent>(_ => ShowActionTip(item));
                 btn.RegisterCallback<PointerLeaveEvent>(_ => { if (_actionTip != null) _actionTip.style.display = DisplayStyle.None; });
-                _actionBar.Add(btn);
+                bool stance = item.Id == "posture" || item.Id == "reaction";
+                if (stance && _stanceRow != null) { btn.AddToClassList("bh-abtn--stance"); _stanceRow.Add(btn); }
+                else _actionBar.Add(btn);
                 _barButtons.Add((item, btn, badge));
             }
             RefreshActionBar();
@@ -925,25 +966,23 @@ namespace PangeaSkirmish
         {
             if (_actionTip == null) return;
             string tip = item.Tip != null ? item.Tip() : "";
-            _actionTip.text = $"<b>{item.Name}</b>  <color=#9fb3d9>[{item.Key}]</color>\n{tip}";
+            _actionTip.text = $"<b>{item.Name}</b>  <color=#5f6072>[{item.Key}]</color>\n{tip}";
             _actionTip.style.display = DisplayStyle.Flex;
         }
 
         /// <summary>Espaço que os popups da barra de ticks deixam para a barra de ações (que fica logo acima).</summary>
         private float ActionBarClearance()
         {
-            if (_actionBar == null || !_actionBarWanted || _barButtons.Count == 0) return 0f;
-            float h = _actionBar.layout.height;
-            return (float.IsNaN(h) || h <= 0f ? 60f : h) + 10f;
+            return 0f;   // a barra de ações saiu de cima dos ticks (grade no canto esquerdo)
         }
 
         private void PlaceActionBar()
         {
             if (_actionBar == null) return;
-            float h = (_ticksBar != null && _ticksBar.resolvedStyle.display == DisplayStyle.Flex) ? _ticksBar.layout.height : 0f;
-            if (float.IsNaN(h)) h = 0f;
-            _actionBar.style.bottom = 12 + h + 8;
-            if (_actionTip != null) _actionTip.style.bottom = 12 + h + 8 + 62;
+            // A grade fica fixa no canto inferior esquerdo (USS); a dica aparece logo acima dela.
+            float h = _actionBar.layout.height;
+            if (float.IsNaN(h) || h <= 0f) h = 150f;
+            if (_actionTip != null) _actionTip.style.bottom = 30 + h + 8;
         }
 
         /// <summary>Atualiza habilitado / destacado / rótulos (chamar após mudar o plano).</summary>
@@ -1072,7 +1111,7 @@ namespace PangeaSkirmish
             bool note = !string.IsNullOrEmpty(_planNote) && Time.unscaledTime < _planNoteUntil;
             if (note) t += "\n" + _planNote;
             _ticksRowsHeader.text = t;
-            _ticksRowsHeader.style.color = note ? new Color(1f, 0.82f, 0.45f) : new Color(0.74f, 0.85f, 1f);
+            _ticksRowsHeader.style.color = note ? new Color(0.56f, 0.35f, 0.05f) : new Color(0.14f, 0.16f, 0.27f);
         }
 
         /// <summary>Aviso curto no cabeçalho da barra (ex.: sem tick livre para o incremento).</summary>
@@ -1202,7 +1241,7 @@ namespace PangeaSkirmish
             if (_ticksRows == null)
             {
                 _ticksRowsHeader = new Label { pickingMode = PickingMode.Ignore };
-                _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.74f, 0.85f, 1f);
+                _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.14f, 0.16f, 0.27f);
                 _ticksRowsHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
                 _ticksRowsHeader.style.unityTextAlign = TextAnchor.UpperLeft;
                 _ticksRowsHeader.style.flexGrow = 1; _ticksRowsHeader.style.whiteSpace = WhiteSpace.Normal;
@@ -1214,7 +1253,7 @@ namespace PangeaSkirmish
                 _headerRow.Add(_ticksRowsHeader); _headerRow.Add(_pipsRow);
                 _ticksRows = new VisualElement { name = "ticks-rows" };
                 _previewLine = new Label { pickingMode = PickingMode.Ignore };
-                _previewLine.style.fontSize = 11; _previewLine.style.color = new Color(0.62f, 0.69f, 0.82f);
+                _previewLine.style.fontSize = 11; _previewLine.style.color = new Color(0.37f, 0.38f, 0.45f);
                 _previewLine.style.marginTop = 4; _previewLine.style.whiteSpace = WhiteSpace.Normal;
                 _ticksBar.Add(_headerRow);
                 _ticksBar.Add(_ticksRows);
@@ -1258,8 +1297,8 @@ namespace PangeaSkirmish
                 var rl = new Label(k == 1 ? "agora" : "+" + (k - 1)) { pickingMode = PickingMode.Ignore };
                 rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 9; rl.style.height = 11;
                 rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 2;
-                rl.style.color = new Color(0.55f, 0.62f, 0.80f);
-                rl.style.borderBottomWidth = 1; rl.style.borderBottomColor = new Color(0.30f, 0.38f, 0.60f);
+                rl.style.color = new Color(0.37f, 0.38f, 0.45f);
+                rl.style.borderBottomWidth = 1; rl.style.borderBottomColor = new Color(0.50f, 0.40f, 0.27f);
                 rtrack.Add(rl);
             }
             ruler.Add(rtrack);
@@ -1300,7 +1339,7 @@ namespace PangeaSkirmish
                 var name = new Label(u.unitName) { pickingMode = PickingMode.Ignore };
                 name.style.width = 78; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
                 name.style.unityTextAlign = TextAnchor.MiddleLeft;
-                name.style.color = (u.IsBusy || isPlanRow) ? new Color(0.80f, 0.82f, 0.88f) : new Color(0.52f, 0.90f, 0.60f);
+                name.style.color = (u.IsBusy || isPlanRow) ? new Color(0.14f, 0.16f, 0.27f) : new Color(0.13f, 0.45f, 0.27f);
                 name.style.unityFontStyleAndWeight = mine ? FontStyle.Bold : FontStyle.Normal;
                 row.Add(name);
 
@@ -1472,7 +1511,7 @@ namespace PangeaSkirmish
             _pipsRow.Clear();
             if (u == null) return;
             var lab = new Label("Stamina") { pickingMode = PickingMode.Ignore };
-            lab.style.fontSize = 10; lab.style.color = new Color(0.62f, 0.69f, 0.82f); lab.style.marginRight = 5;
+            lab.style.fontSize = 10; lab.style.color = new Color(0.37f, 0.38f, 0.45f); lab.style.marginRight = 5;
             _pipsRow.Add(lab);
             int max = u.stats.MaxStamina, free = Mathf.Clamp(u.remainingBAP, 0, max), have = Mathf.Clamp(u.currentStamina, 0, max);
             for (int i = 0; i < max; i++)
@@ -1772,7 +1811,7 @@ namespace PangeaSkirmish
             if (_actionTip != null) _actionTip.style.display = DisplayStyle.None;
             if (_reactionText != null)
                 _reactionText.text = $"⚡ {reactor.unitName} pode reagir (Stamina {reactor.currentStamina}).\n" +
-                    $"<size=11><color=#9fb3d9>Se o tempo acabar: {PlanningController.ReactionName(reactor.defaultReaction)}" +
+                    $"<size=11><color=#5f6072>Se o tempo acabar: {PlanningController.ReactionName(reactor.defaultReaction)}" +
                     (options.Contains(reactor.defaultReaction) || reactor.defaultReaction == ReactionKind.None ? "" : " (não cabe aqui → não reage)") + "</color></size>";
             if (_reactionTimer != null) _reactionTimer.text = timer.ToString("0.0") + "s";
 
@@ -1844,7 +1883,7 @@ namespace PangeaSkirmish
             if (u == null) return baseText;
             var T = Tuning.Get();
             int cost = Unit.ReactionCost(k);
-            string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#9fb3d9>{effect} · {cost} Stamina</color></size>";
+            string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#b9c4dc>{effect} · {cost} Stamina</color></size>";
             switch (k)
             {
                 case ReactionKind.Dodge:         return L($"anda até {RoundManager.DodgeMoveTiles(u)} tile{(RoundManager.DodgeMoveTiles(u) == 1 ? "" : "s")} para fora do golpe");

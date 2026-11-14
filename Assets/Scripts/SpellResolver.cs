@@ -228,7 +228,7 @@ namespace PangeaSkirmish
             var log = new List<string>();
             var s = ps.Def;
             if (s == null || caster == null || caster.IsDead) return log;
-            string head = $"<color=#c9b8ff>◈</color> {caster.unitName} — <b>{s.displayName}</b> [{s.MontageText()}]";
+            string head = $"<color=#5a3fa8>◈</color> {caster.unitName} — <b>{s.displayName}</b> [{s.MontageText()}]";
 
             // ---------------- Física: preparos (consomem-se depois) ----------------
             switch (s.effect)
@@ -256,9 +256,9 @@ namespace PangeaSkirmish
                 {
                     var dest = ps.TargetTile;
                     if (!FreeFor(caster, dest, all, grid, field))
-                    { log.Add($"{head}: <color=#888888>sem espaço para pousar</color>"); return log; }
+                    { log.Add($"{head}: <color=#6f6a5e>sem espaço para pousar</color>"); return log; }
                     if (GridManager.FootprintGap(caster.anchor, caster.stats.Footprint, dest, caster.stats.Footprint) > Reach(caster, s))
-                    { log.Add($"{head}: <color=#888888>longe demais</color>"); return log; }
+                    { log.Add($"{head}: <color=#6f6a5e>longe demais</color>"); return log; }
                     caster.TeleportTo(dest);
                     log.Add($"{head}: salta por cima de tudo, sem ataque de oportunidade");
                     return log;
@@ -292,7 +292,7 @@ namespace PangeaSkirmish
                 case SpellEffect.Teleport:
                 {
                     var dest = ps.TargetTile;
-                    if (!FreeFor(caster, dest, all, grid, field)) { log.Add($"{head}: <color=#888888>tile ocupado</color>"); return log; }
+                    if (!FreeFor(caster, dest, all, grid, field)) { log.Add($"{head}: <color=#6f6a5e>tile ocupado</color>"); return log; }
                     caster.TeleportTo(dest);
                     log.Add($"{head}: some e reaparece, sem ataque de oportunidade");
                     return log;
@@ -311,7 +311,7 @@ namespace PangeaSkirmish
                         BattleFeedback.Heal(u, u.currentHP - before);
                         log.Add($"{head}: {u.unitName} +{u.currentHP - before} HP ({u.currentHP}/{u.stats.MaxHP})");
                     }
-                    if (healed == 0) log.Add($"{head}: <color=#888888>nenhum aliado na área</color>");
+                    if (healed == 0) log.Add($"{head}: <color=#6f6a5e>nenhum aliado na área</color>");
                     return log;
                 }
 
@@ -345,7 +345,7 @@ namespace PangeaSkirmish
 
             // ---------------- Elemental com alvo: Damage / CancelMove / Push / DrainMana ----------------
             var targets = HostileTargets(caster, ps, all);
-            if (targets.Count == 0) { log.Add($"{head}: <color=#888888>sem alvo</color>"); return log; }
+            if (targets.Count == 0) { log.Add($"{head}: <color=#6f6a5e>sem alvo</color>"); return log; }
 
             // Projétil: Muralha no caminho absorve; Tempestade de areia faz errar 50%.
             if (!curved && s.area == 0 && field != null && targets.Count == 1)
@@ -361,7 +361,7 @@ namespace PangeaSkirmish
                     return log;
                 }
                 if (field.SandstormOnLine(caster.anchor, t.anchor) && BattleRng.Roll10000() < 5000)
-                { BattleFeedback.Miss(t); log.Add($"{head}: <color=#888888>perdeu-se na tempestade de areia</color>"); return log; }
+                { BattleFeedback.Miss(t); log.Add($"{head}: <color=#6f6a5e>perdeu-se na tempestade de areia</color>"); return log; }
             }
 
             foreach (var t in targets)
@@ -388,7 +388,7 @@ namespace PangeaSkirmish
                 if (left <= 0)
                 {
                     BattleFeedback.Dodge(t);
-                    log.Add($"{head} -> {t.unitName}: <color=#55ccff>esquivou</color> ({tiles} tiles)");
+                    log.Add($"{head} -> {t.unitName}: <color=#2456a8>esquivou</color> ({tiles} tiles)");
                     continue;
                 }
                 float pierce = SpellCatalog.ArmorPierce(s);
@@ -397,7 +397,7 @@ namespace PangeaSkirmish
                 int dmg = Mathf.Max(Tuning.Get().minDamageFloor, raw - def);
                 dmg = StoneSkin(t, dmg, physical: false);
                 t.TakeDamage(dmg);
-                string hp = t.IsDead ? "<color=#ff6666>MORTO</color>" : $"{t.currentHP}/{t.stats.MaxHP} HP";
+                string hp = t.IsDead ? "<color=#a82c2c>MORTO</color>" : $"{t.currentHP}/{t.stats.MaxHP} HP";
                 string extra = "";
 
                 if (!t.IsDead && s.appliesStatus == "Burning")
