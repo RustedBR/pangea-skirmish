@@ -757,7 +757,7 @@ namespace PangeaSkirmish
 
         private RoomManager _chatRoom;
         private void HandleChatMessage(string name, string msg) =>
-            _hud?.LogAction($"<color=#aaddff>[Chat] {name}: {msg}</color>");
+            _hud?.LogAction($"<color=#2456a8>[Chat] {name}: {msg}</color>");
 
         private System.Collections.IEnumerator InitLockstepWhenReady()
         {

@@ -224,8 +224,8 @@ namespace PangeaSkirmish
             {
                 _budgetLbl.text = $"Pontos: {used}/{_budget}";
                 _budgetLbl.style.color = ok
-                    ? new StyleColor(new Color(0.35f, 0.82f, 0.54f))
-                    : new StyleColor(new Color(1f, 0.40f, 0.40f));
+                    ? new StyleColor(new Color(0.13f, 0.45f, 0.27f))    // tinta verde/vermelha: legível no pergaminho
+                    : new StyleColor(new Color(0.66f, 0.17f, 0.17f));
             }
             if (_confirmBtn != null) _confirmBtn.SetEnabled(ok);
         }
@@ -484,7 +484,7 @@ namespace PangeaSkirmish
                 var st = CurrentStats();
                 int wt = Equipment.TotalWeight(Equipment.Of(_editing)), lim = Equipment.WeightLimit(st.VIT);
                 _eqWeightLbl.text = wt > lim
-                    ? $"Peso {wt} / {lim} — <color=#ff8a7a>{wt - lim} acima: −{wt - lim} na andada e na esquiva</color>"
+                    ? $"Peso {wt} / {lim} — <color=#a82c2c>{wt - lim} acima: −{wt - lim} na andada e na esquiva</color>"
                     : $"Peso {wt} / {lim}";
             }
         }

@@ -5,7 +5,7 @@
 /* ---- Lobby ---- */
 .room__center { flex-grow: 1; align-items: center; justify-content: center; }
 .room__lobby { width: 460px; max-width: 94%; max-height: 96%; align-items: stretch; }
-.room__profile-summary { color: rgb(205, 217, 235); font-size: 13px; -unity-text-align: middle-center; margin-bottom: 10px; white-space: normal; }
+.room__profile-summary { color: var(--pg-text-dim, rgb(205, 217, 235)); font-size: 13px; -unity-text-align: middle-center; margin-bottom: 10px; white-space: normal; }
 .room__section-gap { margin-top: 12px; }
 .room__half-btn { flex-grow: 1; flex-basis: 0; }
 .room__field { margin-top: 6px; margin-bottom: 6px; }
@@ -51,7 +51,7 @@
     margin-right: 8px;
 }
 .room__copy-btn { padding-top: 4px; padding-bottom: 4px; padding-left: 10px; padding-right: 10px; }
-.room__phase { color: rgb(159, 176, 208); font-size: 13px; }
+.room__phase { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 13px; }
 
 .room__body { flex-grow: 1; flex-direction: row; }
 .room__col { margin: 4px; }
@@ -59,15 +59,15 @@
 .room__col--players { width: 32%; min-width: 300px; max-width: 460px; flex-shrink: 0; }
 .room__col--rules { width: 300px; flex-shrink: 0; }
 .room__spacer { flex-grow: 1; }
-.room__start-hint { color: rgb(90, 209, 138); font-size: 12px; -unity-text-align: middle-center; white-space: normal; margin-bottom: 4px; }
-.room__start-hint--missing { color: rgb(255, 204, 85); }
+.room__start-hint { color: var(--pg-ok, rgb(90, 209, 138)); font-size: 12px; -unity-text-align: middle-center; white-space: normal; margin-bottom: 4px; }
+.room__start-hint--missing { color: var(--pg-gold, rgb(255, 204, 85)); }
 .room__char { flex-shrink: 0; }
 .room__char-row { flex-direction: row; align-items: center; }
 .room__char-step { width: 34px; padding-left: 0; padding-right: 0; flex-shrink: 0; }
-.room__char-name { flex-grow: 1; color: rgb(238, 242, 255); font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.room__char-info { color: rgb(159, 176, 208); font-size: 11px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
-.room__player-char { color: rgb(159, 176, 208); font-size: 12px; flex-shrink: 1; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
-.room__player-char--missing { color: rgb(255, 204, 85); -unity-font-style: italic; }
+.room__char-name { flex-grow: 1; color: var(--pg-text, rgb(238, 242, 255)); font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room__char-info { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 11px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
+.room__player-char { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 12px; flex-shrink: 1; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
+.room__player-char--missing { color: var(--pg-gold, rgb(255, 204, 85)); -unity-font-style: italic; }
 .room__col--chat { flex-grow: 1; flex-shrink: 1; min-width: 0; }
 .room__col--host { width: 250px; }
 .room__col-title {
@@ -136,7 +136,7 @@
     padding-bottom: 6px;
     padding-left: 8px;
     padding-right: 8px;
-    background-color: var(--pg-panel-bg-2, rgb(18, 26, 56));
+    background-color: var(--pg-inset, rgb(18, 26, 56));
     margin-bottom: 4px;
 }
 .room__room-row:hover { background-color: var(--pg-accent, rgb(106, 169, 255)); }
@@ -184,14 +184,14 @@
     position: absolute;
     background-color: rgba(8, 12, 28, 0.96);
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: rgb(106, 169, 255); border-right-color: rgb(106, 169, 255); border-top-color: rgb(106, 169, 255); border-bottom-color: rgb(106, 169, 255);
+    border-left-color: var(--pg-accent, rgb(106, 169, 255)); border-right-color: var(--pg-accent, rgb(106, 169, 255)); border-top-color: var(--pg-accent, rgb(106, 169, 255)); border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
     border-radius: 6px;
     padding: 6px 8px;
     max-width: 280px;
     white-space: normal;
 }
 .room__tooltip-txt {
-    color: rgb(238, 242, 255);
+    color: var(--pg-text, rgb(238, 242, 255));
     font-size: 12px;
     white-space: normal;
 }
@@ -230,12 +230,12 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--pg-panel-bg-2, rgb(18, 26, 56));
+    background-color: var(--pg-inset, rgb(18, 26, 56));
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: rgb(42, 58, 106);
-    border-right-color: rgb(42, 58, 106);
-    border-top-color: rgb(42, 58, 106);
-    border-bottom-color: rgb(42, 58, 106);
+    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-top-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
     border-radius: 6px;
     padding: 6px 10px;
     margin-top: 8px;
@@ -269,7 +269,7 @@
     color: var(--pg-accent, rgb(106, 169, 255));
     font-size: 15px;
     -unity-font-style: bold;
-    background-color: var(--pg-panel, rgb(10, 16, 38));
+    background-color: var(--pg-inset, rgb(10, 16, 38));
     border-top-width: 1px; border-top-color: var(--pg-accent, rgb(106, 169, 255));
     border-bottom-width: 1px; border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
 }

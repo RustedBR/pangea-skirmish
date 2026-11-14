@@ -244,7 +244,7 @@ namespace PangeaSkirmish
                 // Aplicar bônus: gasta PAB
                 if (_controlled.remainingBAP < Tuning.Get().staminaPowerStrike)
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Stamina insuficiente para Golpe Poderoso", _controlled);
+                    _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: Stamina insuficiente para Golpe Poderoso", _controlled);
                     _hud.ShowPlanNote("Stamina insuficiente para o Golpe poderoso");
                     return;
                 }
@@ -252,7 +252,7 @@ namespace PangeaSkirmish
                                - TickRules.Duration(_controlled, ActionType.Attack, false);
                 if (extraTicks > _controlled.remainingAP)
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para Golpe Poderoso", _controlled);
+                    _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: sem tempo na fila para Golpe Poderoso", _controlled);
                     _hud.ShowPlanNote("Sem tick livre para o Golpe poderoso (+1 tick): desfaça uma ação ou use Mirar");
                     return;
                 }
@@ -383,7 +383,7 @@ namespace PangeaSkirmish
             // Concentrar é da Mente: custa tempo, não Stamina.
             if (!_controlled.CanFit(ActionType.Concentrate))
             {
-                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
+                _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: sem tempo na fila para concentrar", _controlled);
                 return;
             }
             int projectedMana = _controlled.currentMana + _controlled.plannedConcentrations * _controlled.stats.ConcentrateMana;
@@ -437,7 +437,7 @@ namespace PangeaSkirmish
                     Active = () => _mode == PlanMode.AttackUnitPicking,
                     OnClick = _ => OnAttackUnitClick() },
                 new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Icon = "hit", Key = "5", Name = "Mirar livre",
-                    Tip = () => $"Você posiciona a forma tile a tile. <color=#9fd0ff>+{(T.freeAimDamageMult - 1f) * 100:0}% de dano e +{T.freeAimHitBonus * 100:0}% de acerto</color>; " +
+                    Tip = () => $"Você posiciona a forma tile a tile. <color=#2456a8>+{(T.freeAimDamageMult - 1f) * 100:0}% de dano e +{T.freeAimHitBonus * 100:0}% de acerto</color>; " +
                                 $"pega quem estiver nos tiles (só inimigos). {Ticks(ActionType.Attack)}. Magia de dano mirada num tile (sem travar na unidade) também ganha o +{(T.freeAimDamageMult - 1f) * 100:0}%.",
                     Enabled = () => _controlled.CanFit(ActionType.Attack),
                     Active = () => _mode == PlanMode.AttackTilePicking,
@@ -504,7 +504,7 @@ namespace PangeaSkirmish
             foreach (var p in PostureRules.All)
             {
                 bool cur = p == _controlled.plannedPosture;
-                sb.Append(cur ? "<color=#ffd76a>▶ " : "<color=#9fb3d9>   ").Append(PostureRules.Glyph(p)).Append(' ')
+                sb.Append(cur ? "<color=#8f5a0c>▶ " : "<color=#5f6072>   ").Append(PostureRules.Glyph(p)).Append(' ')
                   .Append(PostureRules.Name(p)).Append(": ").Append(PostureRules.Effect(p)).Append("</color>\n");
             }
             return sb.ToString().TrimEnd();
@@ -542,7 +542,7 @@ namespace PangeaSkirmish
         {
             if (!_active || _controlled == null) return;
             if (!_controlled.CanFit(ActionType.Breathe))
-            { _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: sem tempo na fila para respirar", _controlled); return; }
+            { _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: sem tempo na fila para respirar", _controlled); return; }
             int projected = _controlled.currentStamina - _controlled.PlannedStaminaCost() + CountPlanned(ActionType.Breathe) * Tuning.Get().breatheStamina;
             if (projected >= _controlled.stats.MaxStamina)
             { _hud.LogAction($"{_controlled.unitName}: Stamina já cheia", _controlled); return; }
@@ -586,7 +586,7 @@ namespace PangeaSkirmish
                 var probe = action; probe.IsBonus = true;
                 if (_controlled.remainingBAP < TickRules.StaminaCost(_controlled, probe))
                 {
-                    _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: Stamina insuficiente", _controlled);
+                    _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: Stamina insuficiente", _controlled);
                     return;
                 }
                 action.IsBonus = true;
@@ -1054,7 +1054,7 @@ namespace PangeaSkirmish
             : i == ArmedIntent.Retreat ? "Recuar" : "Automática";
 
         /// <summary>Tecla em destaque na dica do topo.</summary>
-        private static string K(string key) => $"<color=#ffd76a><b>[{key}]</b></color>";
+        private static string K(string key) => $"<color=#8f5a0c><b>[{key}]</b></color>";
 
         /// <summary>
         /// Dica do topo em passo a passo (2026-11-13): uma frase só, que muda com o que o
@@ -1224,7 +1224,7 @@ namespace PangeaSkirmish
                 if (!SpellBoosts.Allowed(baseDef, b)) continue;
                 var bb = b;
                 bool on = (flags & (int)b) != 0;
-                opts.Add(($"{(on ? "<color=#7CFC9A>✓</color>" : "○")} {SpellBoosts.Label(b)}  <size=12><color=#9fb3d9>{SpellBoosts.Cost(b)} Mana</color></size>", () =>
+                opts.Add(($"{(on ? "<color=#7fe0a0>✓</color>" : "○")} {SpellBoosts.Label(b)}  <size=12><color=#b9c4dc>{SpellBoosts.Cost(b)} Mana</color></size>", () =>
                 {
                     int next = flags ^ (int)bb;
                     if (!on && !_controlled.CanFitSpell(SpellBoosts.Apply(baseDef, next), out string why))
@@ -1233,7 +1233,7 @@ namespace PangeaSkirmish
                     ShowSpellBoostMenu(baseDef, flags);
                 }));
             }
-            opts.Add(($"<b>Conjurar</b>  <size=12><color=#9fb3d9>{cur.CostText} · {cur.ticksBase} tick{(cur.ticksBase == 1 ? "" : "s")}</color></size>", () =>
+            opts.Add(($"<b>Conjurar</b>  <size=12><color=#b9c4dc>{cur.CostText} · {cur.ticksBase} tick{(cur.ticksBase == 1 ? "" : "s")}</color></size>", () =>
             {
                 _hud.HideReactionMenu();
                 ContinueSpellPick(cur);
@@ -1241,7 +1241,7 @@ namespace PangeaSkirmish
             opts.Add(("Cancelar", () => _hud.HideReactionMenu()));
             string amount = (baseDef.baseAmount > 0f || baseDef.potFactor > 0f) ? $" · ~{SpellResolver.Amount(_controlled, cur)}" : "";
             _hud.ShowChoiceTitled("INCREMENTAR MAGIA",
-                $"<b>{baseDef.displayName}</b>{amount} · alcance {SpellResolver.Reach(_controlled, cur)}\n<size=12><color=#9fb3d9>Mana livre {_controlled.AvailableMana}</color></size>",
+                $"<b>{baseDef.displayName}</b>{amount} · alcance {SpellResolver.Reach(_controlled, cur)}\n<size=12><color=#5f6072>Mana livre {_controlled.AvailableMana}</color></size>",
                 opts.ToArray());
         }
 
@@ -1454,7 +1454,7 @@ namespace PangeaSkirmish
             _previewUnit = ok ? targetUnit : null;
             _previewCell = ok ? targetCell : null;
             if (!ok)
-                _hud.LogAction($"<color=#888888>x</color> {_controlled.unitName}: nada a fazer com essa intenção daqui", _controlled);
+                _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: nada a fazer com essa intenção daqui", _controlled);
             RebuildPlanVisuals();
         }
 

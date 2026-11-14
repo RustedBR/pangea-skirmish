@@ -93,11 +93,18 @@ public class PointerInputTouchTest : InputTestFixture
     {
         PointerInput.RequestConfirm(); yield return null;
         Assert.IsFalse(PointerInput.ClickThisFrame, "sem 1º toque, o ✓ não faz nada");
-        yield return Tap(new Vector2(420, 260));
+        // Um ponto livre: telas deixadas por outros testes podem ter um botão ali, e toque em botão não é toque no mundo.
+        var at = new Vector2(420, 260);
+        for (int i = 0; i < 40 && PangeaSkirmish.UI.UIHelper.IsPositionOverClickableUI(at); i++) at = new Vector2(30 + i * 37 % Screen.width, 20 + i * 23 % Screen.height);
+        Assume.That(!PangeaSkirmish.UI.UIHelper.IsPositionOverClickableUI(at), "sem ponto livre de UI na tela do teste");
+        yield return Tap(at);
         Assert.IsTrue(PointerInput.HasPendingTap);
-        PointerInput.RequestConfirm(); yield return null;
-        Assert.IsTrue(PointerInput.ClickThisFrame, "✓ vira o clique");
-        Assert.AreEqual(new Vector2(420, 260), PointerInput.Position, "no ponto do 1º toque");
+        PointerInput.RequestConfirm();
+        // O clique vale no quadro em que alguém lê o input primeiro: este (LateUpdate de uma câmera) ou o próximo.
+        bool clicked = false;
+        for (int i = 0; i < 2 && !clicked; i++) { yield return new WaitForEndOfFrame(); clicked = PointerInput.ClickThisFrame; }
+        Assert.IsTrue(clicked, "✓ vira o clique");
+        Assert.AreEqual(at, PointerInput.Position, "no ponto do 1º toque");
         Assert.IsFalse(PointerInput.HasPendingTap, "e consome a prévia");
     }
 }

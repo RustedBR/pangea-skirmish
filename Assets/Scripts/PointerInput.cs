@@ -76,9 +76,6 @@ namespace PangeaSkirmish
         public static void RequestConfirm() { if (HasPendingTap) _confirmRequested = true; }
         private static bool _confirmRequested;
 
-        /// <summary>Overlay da HUD de toque (IMGUI): toques em cima dele não contam como toque no mundo.</summary>
-        public static System.Func<Vector2, bool> IsOverOverlay;
-
         /// <summary>Chamado pelo botão "Voltar" da HUD de toque.</summary>
         public static void RequestBack() => _backRequested = true;
 
@@ -183,8 +180,7 @@ namespace PangeaSkirmish
 
             // count == 0 && wasDown → o dedo saiu agora.
             _touchDown = false;
-            bool overOverlay = (IsOverOverlay != null && IsOverOverlay(_lastUpPos))
-                               || PangeaSkirmish.UI.UIHelper.IsPositionOverClickableUI(_lastUpPos);   // botão da UI não é toque no mundo
+            bool overOverlay = PangeaSkirmish.UI.UIHelper.IsPositionOverClickableUI(_lastUpPos);   // botão da UI não é toque no mundo
             if (!_dragging && !_multi && !overOverlay)
             {
                 Vector2 pos = _lastUpPos;
