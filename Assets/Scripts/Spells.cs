@@ -84,7 +84,12 @@ namespace PangeaSkirmish
         public bool IsPhysical => kind == SpellKind.Physical;
         /// <summary>GDD-020 §6: magia Física gasta metade Stamina (arredondada para baixo) e o resto em Mana. Elemental: só Mana.</summary>
         public int StaminaPart => IsPhysical ? cost / 2 : 0;
-        public int ManaPart => cost - StaminaPart;
+        public int ManaPart => cost - StaminaPart + boostMana;
+        /// <summary>Mana extra dos incrementos escolhidos ao planejar (GDD-023). Só nas cópias de SpellBoosts.Apply.</summary>
+        [NonSerialized] public int boostMana;
+        /// <summary>Incrementos aplicados nesta cópia (flags de SpellBoost).</summary>
+        [NonSerialized] public int boosts;
+        public SpellDef CloneDef() => (SpellDef)MemberwiseClone();
         /// <summary>Custo para a UI: "2 Mana + 1 Stamina" ou "4 Mana".</summary>
         public string CostText => StaminaPart > 0 ? $"{ManaPart} Mana + {StaminaPart} Stamina" : $"{ManaPart} Mana";
         public bool IsPure => elements != null && elements.Length == 1;
@@ -202,6 +207,87 @@ namespace PangeaSkirmish
             if (s == null) return 0f;
             if (s.IsPure && s.PrimaryElement == SpellElement.Magic) return Mathf.Max(s.armorPierce, 0.5f);
             return s.armorPierce;
+        }
+    }
+
+    /// <summary>Incrementos de magia escolhidos ao planejar (GDD-023). Flags somáveis; pagos em Mana.</summary>
+    [Flags]
+    public enum SpellBoost { None = 0, Power = 1, Effect = 2, Range = 4, Area = 8, Quick = 16 }
+
+    public static class SpellBoosts
+    {
+        public static readonly SpellBoost[] All = { SpellBoost.Power, SpellBoost.Effect, SpellBoost.Range, SpellBoost.Area, SpellBoost.Quick };
+
+        /// <summary>Mana de cada incremento.</summary>
+        public static int Cost(SpellBoost b) => b switch
+        {
+            SpellBoost.Power => 2, SpellBoost.Effect => 1, SpellBoost.Range => 1, SpellBoost.Area => 2, SpellBoost.Quick => 2, _ => 0
+        };
+
+        public static int TotalCost(int flags)
+        {
+            int c = 0;
+            foreach (var b in All) if ((flags & (int)b) != 0) c += Cost(b);
+            return c;
+        }
+
+        public const float PowerMult = 1.5f;
+        public const int EffectTicks = 2;
+        /// <summary>Células a mais de alcance de conjuração.</summary>
+        public const int RangeCells = 2;
+
+        /// <summary>O incremento faz sentido nesta magia?</summary>
+        public static bool Allowed(SpellDef s, SpellBoost b)
+        {
+            if (s == null) return false;
+            switch (b)
+            {
+                case SpellBoost.Power:  return s.baseAmount > 0f || s.potFactor > 0f || s.tickDamage > 0;
+                case SpellBoost.Effect: return s.durationTicks > 0;
+                case SpellBoost.Range:  return s.range > 0 && s.effect != SpellEffect.Leap;
+                case SpellBoost.Area:   return s.area > 0;
+                case SpellBoost.Quick:  return s.ticksBase > 1;
+            }
+            return false;
+        }
+
+        public static string Label(SpellBoost b) => b switch
+        {
+            SpellBoost.Power  => $"Potência: dano/cura ×{PowerMult:0.#} (+1 tick)",
+            SpellBoost.Effect => $"Efeito: +{EffectTicks} ticks de duração",
+            SpellBoost.Range  => $"Alcance: +{RangeCells} células",
+            SpellBoost.Area   => "Área: +1 de raio",
+            SpellBoost.Quick  => "Rápida: −1 tick de conjuração",
+            _ => ""
+        };
+
+        /// <summary>Cópia da magia com os incrementos aplicados (flags 0 = a própria magia do catálogo).</summary>
+        public static SpellDef Apply(SpellDef s, int flags)
+        {
+            if (s == null || flags == 0) return s;
+            var d = s.CloneDef();
+            d.boosts = flags;
+            foreach (var b in All)
+            {
+                if ((flags & (int)b) == 0 || !Allowed(s, b)) continue;
+                d.boostMana += Cost(b);
+                switch (b)
+                {
+                    case SpellBoost.Power:
+                        d.baseAmount *= PowerMult; d.potFactor *= PowerMult;
+                        d.tickDamage = Mathf.RoundToInt(d.tickDamage * PowerMult);
+                        d.ticksBase += 1;
+                        break;
+                    case SpellBoost.Effect: d.durationTicks += EffectTicks; break;
+                    case SpellBoost.Range:
+                        // Reach = range × spellRangeMult + ...: soma em unidades de range.
+                        d.range += Mathf.Max(1, Mathf.RoundToInt(RangeCells / Mathf.Max(0.01f, Tuning.Get().spellRangeMult)));
+                        break;
+                    case SpellBoost.Area:   d.area += 1; break;
+                    case SpellBoost.Quick:  d.ticksBase = Mathf.Max(1, d.ticksBase - 1); break;
+                }
+            }
+            return d;
         }
     }
 }

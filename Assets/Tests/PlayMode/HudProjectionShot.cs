@@ -150,6 +150,34 @@ public class HudProjectionShot
         StringAssert.Contains("5×5", SpellResolver.Describe(hero, SpellCatalog.Get("Explosion")), "área real no texto");
         StringAssert.Contains("Mana + 1 Stamina", SpellCatalog.Get("Fury").CostText);
 
+        // Incremento de magia ao planejar (GDD-023): menu abre, Potência e Rápida ligadas, conjura na fera.
+        hud.ToggleSpellMenu();
+        hero.plannedPath.Clear(); hero.plannedAttacks.Clear(); hero.plannedSpells.Clear(); hero.actionSequence.Clear();
+        hero.plannedAnchor = hero.anchor; hero.currentMana = hero.stats.MaxMana; hero.RecomputeTickBudget();
+        Button BoostBtn(string txt)
+        {
+            Button r = null;
+            root.Q<VisualElement>("reaction-menu").Query<Button>().ForEach(x => { if (x.text.Contains(txt)) r = x; });
+            Assert.IsNotNull(r, $"botão '{txt}' no menu de incremento");
+            return r;
+        }
+        void Press(Button btn) { using (var e = NavigationSubmitEvent.GetPooled()) { e.target = btn; btn.SendEvent(e); } }
+        Call(planner, "OnSpellPick", "Ember");
+        for (int i = 0; i < 2; i++) yield return null;
+        StringAssert.Contains("INCREMENTAR MAGIA", root.Q<Label>("reaction-title").text);
+        Press(BoostBtn("Potência")); yield return null;
+        Press(BoostBtn("Rápida")); yield return null;
+        StringAssert.Contains("✓", BoostBtn("Potência").text, "Potência ligada");
+        yield return Shot("hud-spell-boost.png");
+        Press(BoostBtn("Conjurar")); yield return null;
+        Call(planner, "CommitSpellTile", f1.anchor, f1);
+        Assert.AreEqual(1, hero.plannedSpells.Count, "Brasa entrou na fila");
+        Assert.AreEqual((int)(SpellBoost.Power | SpellBoost.Quick), hero.plannedSpells[0].Boosts);
+        Assert.AreEqual(SpellCatalog.Get("Ember").ManaPart + 4, hero.plannedSpells[0].Def.ManaPart, "Potência 2 + Rápida 2 de Mana");
+        hud.HideReactionMenu();
+        Call(planner, "SetMode", PlanMode.Idle);
+        hud.ToggleSpellMenu();
+
         // Inspeção com ícones (compacta e expandida) e placas sobre as unidades.
         hud.ToggleSpellMenu();
         f1.burningTicks = 2; f1.burningDamage = 4; f1.soakedTicks = 3;
