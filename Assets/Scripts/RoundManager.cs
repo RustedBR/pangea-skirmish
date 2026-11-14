@@ -652,6 +652,14 @@ namespace PangeaSkirmish
                     yield return FrameGroup(actors);
                 }
 
+                // Fuga por AGI (2026-11-14): a andada de quem tem MAIS AGI que todos os inimigos que golpeiam
+                // ou conjuram neste tick resolve ANTES deles (escapa). As outras ficam depois (magias → ataques → andadas).
+                var earlyMoves = SplitEarlyMoves(movesThisSlot, attacksThisSlot.ConvertAll(x => x.u), spellsThisSlot.ConvertAll(x => x.u));
+                if (earlyMoves.Count > 0)
+                {
+                    foreach (var m in earlyMoves) _hud.LogAction($"<color=#55ccff>»</color> {m.u.unitName} é mais ágil: sai antes do golpe", m.u);
+                    yield return ResolveMovementSlot(earlyMoves);
+                }
                 foreach (var u in _units) { u.pendingMoveThisTick = false; u.moveCancelledThisTick = false; }
                 foreach (var m in movesThisSlot) m.u.pendingMoveThisTick = true;
                 // Magias que terminam neste tick (GDD-019) resolvem ANTES das andadas do mesmo tick
@@ -1763,6 +1771,27 @@ namespace PangeaSkirmish
             foreach (var (u, from) in list)
                 if (u != null && !u.IsDead) running.Add(u.StartCoroutine(u.AnimateMoveFrom(from, DodgeAnimSpeed)));
             foreach (var c in running) yield return c;
+        }
+
+        /// <summary>
+        /// Tira de <paramref name="moves"/> e devolve as andadas que resolvem antes de magias e ataques do tick:
+        /// quem anda tem AGI maior que a de TODOS os inimigos que atacam ou conjuram neste tick. Sem ameaça,
+        /// a andada fica na ordem normal. Determinístico (só lê o estado), igual em toda máquina.
+        /// </summary>
+        public static List<(Unit u, Vector2Int dest, bool incr)> SplitEarlyMoves(
+            List<(Unit u, Vector2Int dest, bool incr)> moves, List<Unit> attackers, List<Unit> casters)
+        {
+            var early = new List<(Unit u, Vector2Int dest, bool incr)>();
+            for (int i = moves.Count - 1; i >= 0; i--)
+            {
+                var mover = moves[i].u;
+                float threat = float.MinValue; bool any = false;
+                foreach (var list in new[] { attackers, casters })
+                    foreach (var a in list)
+                        if (a != null && !a.IsDead && a.IsHostileTo(mover)) { any = true; threat = Mathf.Max(threat, a.stats.AGI); }
+                if (any && mover.stats.AGI > threat) { early.Insert(0, moves[i]); moves.RemoveAt(i); }
+            }
+            return early;
         }
 
         public static int DodgeMoveTiles(Unit u) =>
