@@ -66,6 +66,11 @@ namespace PangeaSkirmish
         public static bool Dragging { get { Tick(); return _dragDelta != Vector2.zero; } }
         /// <summary>Variação da pinça em px (positivo = abrindo os dedos = aproximar).</summary>
         public static float PinchDelta { get { Tick(); return _pinchDelta; } }
+        /// <summary>Botão direito clicado e solto sem arrastar (arrastar move a câmera): fecha a inspeção.</summary>
+        public static bool RightClickThisFrame { get { Tick(); return _rightClick; } }
+        private static bool _rightClick;
+        private static Vector2 _rightDownPos;
+
         /// <summary>Esc ou botão "Voltar" da HUD.</summary>
         public static bool BackThisFrame { get { Tick(); return _back; } }
 
@@ -91,7 +96,13 @@ namespace PangeaSkirmish
         {
             if (_frame == Time.frameCount) return;
             _frame = Time.frameCount;
-            _click = false; _dragDelta = Vector2.zero; _pinchDelta = 0f;
+            _click = false; _dragDelta = Vector2.zero; _pinchDelta = 0f; _rightClick = false;
+            var rm = Mouse.current;
+            if (rm != null)
+            {
+                if (rm.rightButton.wasPressedThisFrame) _rightDownPos = rm.position.ReadValue();
+                if (rm.rightButton.wasReleasedThisFrame && Vector2.Distance(rm.position.ReadValue(), _rightDownPos) < 8f) _rightClick = true;
+            }
 
             var kb = Keyboard.current;
             _back = _backRequested || (kb != null && kb.escapeKey.wasPressedThisFrame);

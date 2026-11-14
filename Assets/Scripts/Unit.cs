@@ -62,6 +62,34 @@ namespace PangeaSkirmish
         /// <summary>Fila comprometida. Não vazia = unidade ocupada (não decide neste ponto).</summary>
         public readonly List<QueuedAction> queue = new List<QueuedAction>();
         public bool IsBusy => queue.Count > 0;
+
+        // ── Ação que atravessa o round (2026-11-14): continua, e a unidade planeja os ticks que sobram ──
+        /// <summary>Ticks do round já tomados pela fila que veio do round anterior (fixado ao entrar no planejamento).</summary>
+        public int carriedTicks;
+        /// <summary>Ainda cabe alguma ação neste round depois do que veio do anterior?</summary>
+        public bool CanPlanThisRound => carriedTicks < Tuning.Get().maxQueueTicks;
+
+        /// <summary>Onde a unidade vai estar quando a fila que veio do round anterior terminar: o plano novo parte daqui.</summary>
+        public Vector2Int PlanStartAnchor
+        {
+            get
+            {
+                var at = anchor;
+                foreach (var q in queue)
+                {
+                    if (q.Type == ActionType.Move) at = q.Dest;
+                    else if (q.Type == ActionType.Spell) { var d = SpellMoveDest(q.Spell); if (d.HasValue) at = d.Value; }
+                }
+                return at;
+            }
+        }
+
+        /// <summary>Começo do planejamento: guarda quanto do round a fila antiga ocupa e zera o plano.</summary>
+        public void BeginPlanning()
+        {
+            carriedTicks = Mathf.Min(QueueTicksRemaining, Tuning.Get().maxQueueTicks);
+            ResetPlan();
+        }
         /// <summary>Inimigos em cujo alcance esta unidade ENTROU andando e ainda não atacou (gatilho de AoO ao sair).</summary>
         public readonly HashSet<Unit> enteredReach = new HashSet<Unit>();
         public int QueueTicksRemaining
@@ -80,7 +108,7 @@ namespace PangeaSkirmish
         /// <summary>Recalcula remainingAP = maxQueueTicks − ticks planejados.</summary>
         public void RecomputeTickBudget()
         {
-            remainingAP  = Tuning.Get().maxQueueTicks - PlannedTicks();
+            remainingAP  = Tuning.Get().maxQueueTicks - carriedTicks - PlannedTicks();
             var p = ProjectPlan();
             // Custos imediatos (golpe poderoso, mirar, passo) saem no começo: valem pelo ponto mais baixo da fila.
             remainingBAP = p.staminaLow;
@@ -116,7 +144,7 @@ namespace PangeaSkirmish
         public void RecomputePlannedAnchor()
         {
             var stops = PlannedStops();
-            plannedAnchor = stops.Count > 0 ? stops[stops.Count - 1] : anchor;
+            plannedAnchor = stops.Count > 0 ? stops[stops.Count - 1] : PlanStartAnchor;
         }
 
         /// <summary>Andada termina neste tick (marcado pelo RoundManager antes das magias) e se uma
@@ -139,8 +167,12 @@ namespace PangeaSkirmish
             int maxM = stats.MaxMana, maxS = stats.MaxStamina;
             int mana = currentMana, st = currentStamina;
             foreach (var a in actionSequence) st -= TickRules.StaminaCost(a);   // imediatos (não-magia)
-            int lowM = mana, lowS = st, t = 0, regM = 0, regS = 0;
-            bool ok = st >= 0;
+            // Magia que veio do round anterior e ainda não começou vai cobrar antes do plano novo.
+            if (carriedTicks > 0)
+                foreach (var q in queue)
+                    if (q.Type == ActionType.Spell && !q.Paid) { var cd = q.Spell.Def; if (cd != null) { mana -= cd.ManaPart; st -= cd.StaminaPart; } }
+            int lowM = mana, lowS = st, t = carriedTicks, regM = 0, regS = 0;
+            bool ok = st >= 0 && mana >= 0;
             int rm = Mathf.Max(1, stats.ManaRegenTicks), rs = Mathf.Max(1, stats.StaminaRegenTicks);
             foreach (var a in actionSequence)
             {
@@ -200,7 +232,8 @@ namespace PangeaSkirmish
         /// <summary>Converte o plano (actionSequence + listas) na fila de ticks. Plano vazio = Esperar.</summary>
         public void BuildQueueFromPlan()
         {
-            queue.Clear();
+            // A fila que veio do round anterior fica na frente; o plano novo entra depois dela (2026-11-14).
+            if (carriedTicks <= 0) queue.Clear();
             // Postura do plano vale desde o primeiro tick (GDD-020 §8.1); antes dos custos, que leem os máximos.
             SetPosture(plannedPosture);
             // Compromete a Stamina do plano (ações bônus). Feito aqui, a partir do plano,
@@ -1595,8 +1628,8 @@ namespace PangeaSkirmish
 
         public void ResetPlan()
         {
-            plannedAnchor      = anchor;
-            plannedBonusAnchor = anchor;
+            plannedAnchor      = PlanStartAnchor;
+            plannedBonusAnchor = plannedAnchor;
             plannedMoveCount = 0;
             plannedPath.Clear();
             plannedAttacks.Clear();
@@ -1607,7 +1640,7 @@ namespace PangeaSkirmish
             aimBonusThisAttack    = false;
             plannedConcentrations = 0;
             reservedMana = 0;
-            remainingAP  = Tuning.Get().maxQueueTicks;
+            remainingAP  = Tuning.Get().maxQueueTicks - carriedTicks;
             remainingBAP = currentStamina;
             dodgeReactBonus = 0f;
             dodgeReactTiles = 0;

@@ -266,9 +266,10 @@ namespace PangeaSkirmish
             _pauseUsed = 0f;
             _waitingLockstep = false;
 
-            // Só unidades LIVRES recebem plano novo; ocupadas mantêm fila e listas (carry-over).
+            // Todos planejam juntos (2026-11-14): quem tem ação atravessando o round mantém a fila
+            // e planeja só os ticks que sobram depois dela.
             foreach (var u in _units)
-                if (!u.IsDead && !u.IsBusy) u.ResetPlan();
+                if (!u.IsDead) u.BeginPlanning();
             float decisionTime = Tuning.Get().decisionTime;
 
             if (RuntimeMultiplayerSession.IsMultiplayer)
@@ -292,7 +293,7 @@ namespace PangeaSkirmish
                     { controlled = u; break; }
                 Debug.Log($"[MP] Planejamento: localId={localId}, controlando '{(controlled != null ? controlled.unitName : "NENHUMA")}'");
 
-                if (controlled != null && !controlled.IsDead && controlled.IsBusy)
+                if (controlled != null && !controlled.IsDead && !controlled.CanPlanThisRound)
                 {
                     // Ocupada: não decide neste ponto — confirma sozinha (pequeno atraso para o
                     // host já ter aberto a janela de coleta).
@@ -336,7 +337,7 @@ namespace PangeaSkirmish
             planningTime = decisionTime;
 
             // Jogador morto ou ocupado: pula direto para a simulação de ticks
-            if (_playerUnit != null && !_playerUnit.IsDead && _playerUnit.IsBusy)
+            if (_playerUnit != null && !_playerUnit.IsDead && !_playerUnit.CanPlanThisRound)
             {
                 _hud.SetTimerVisible(false);
                 _hud.SetConfirmVisible(false);
@@ -407,6 +408,8 @@ namespace PangeaSkirmish
         /// </summary>
         private void HandleInspectClick()
         {
+            // Botão direito no mapa, sem arrastar, fecha a inspeção (2026-11-14).
+            if (PointerInput.RightClickThisFrame && !PointerOverUI()) { _hud?.HideUnitInfo(); return; }
             if (!PointerInput.Available || !PointerInput.ClickThisFrame) return;
             if (_planner != null && _planner.IsPicking) return; // o planner usa o clique
             if (_hud != null && _hud.IsPromptVisible) return;    // escolha de passo bônus
@@ -530,9 +533,15 @@ namespace PangeaSkirmish
             //    As feras (Coop) planejam aqui, em toda máquina, com o mesmo estado (GDD-015 §4).
             foreach (var u in _units)
             {
-                if (u.IsDead || u.IsBusy) continue;
-                if (BeastAI.Controls(u)) BeastAI.Plan(u, _units, _grid);
+                if (u.IsDead) continue;
+                if (BeastAI.Controls(u))
+                {
+                    if (u.IsBusy) continue;          // fera com ação em andamento segue nela (a IA planeja do zero)
+                    BeastAI.Plan(u, _units, _grid);
+                }
+                else if (u.IsBusy && u.carriedTicks <= 0) continue;   // ocupada sem ter passado pelo planejamento: segue na fila
                 u.BuildQueueFromPlan();
+                u.carriedTicks = 0;                  // a fila agora é uma só
             }
             // Diagnóstico (vai para o painel de LOG): a fila de cada unidade neste ponto de decisão.
             LogQueues();
@@ -970,7 +979,7 @@ namespace PangeaSkirmish
                 else opts.Add(($"<color=#b9c4dc>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
                 opts.Add(($"Vender  <size=12>+{Loot.SellPrice(it)} moedas</size>", () => ps.LootSellServerRpc(id, idx, itemId)));
                 opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
-                _hud.ShowChoiceTitled("ITENS DO GRUPO", $"{head}\n{Loot.Describe(it)}", opts.ToArray());
+                _hud.ShowChoiceTitled("ITENS DO GRUPO", $"{head}\n{Loot.Describe(it)}\n{Loot.Details(it, cur)}", opts.ToArray());
                 return;
             }
             if (view == LootView.Mine)

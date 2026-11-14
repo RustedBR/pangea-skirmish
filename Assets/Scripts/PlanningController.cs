@@ -825,7 +825,7 @@ namespace PangeaSkirmish
         private void CancelAllMoves()
         {
             _controlled.plannedMoveCount  = 0;
-            _controlled.plannedAnchor     = _controlled.anchor;
+            _controlled.plannedAnchor     = _controlled.PlanStartAnchor;
             _controlled.plannedPath.Clear();
             // Devolve PAB dos movimentos bônus (Passo Rápido)
             foreach (var a in _controlled.actionSequence)
@@ -950,7 +950,7 @@ namespace PangeaSkirmish
                 _controlled.plannedMoveCount--;
                 _controlled.plannedAnchor = _controlled.plannedMoveCount > 0
                     ? _controlled.plannedPath[_controlled.plannedPath.Count - 1]
-                    : _controlled.anchor;
+                    : _controlled.PlanStartAnchor;
                 if (last.IsBonus)
                 {
                     // Desfez o movimento com Passo Rápido — limpa o destino escolhido em
@@ -1008,7 +1008,7 @@ namespace PangeaSkirmish
                 && _controlled.plannedMoveCount == 0 && _controlled.plannedAttacks.Count == 0 && _controlled.plannedConcentrations == 0) return;
 
             _controlled.plannedMoveCount = 0;
-            _controlled.plannedAnchor = _controlled.anchor;
+            _controlled.plannedAnchor = _controlled.PlanStartAnchor;
             _controlled.plannedPath.Clear();
             _controlled.plannedAttacks.Clear();
             _controlled.plannedSpells.Clear();
@@ -1358,7 +1358,7 @@ namespace PangeaSkirmish
 
         private Vector2Int PositionBefore(int seqIdx)
         {
-            var pos = _controlled.anchor;
+            var pos = _controlled.PlanStartAnchor;
             for (int i = 0; i < seqIdx && i < _controlled.actionSequence.Count; i++)
             {
                 var a = _controlled.actionSequence[i];
@@ -1840,7 +1840,7 @@ namespace PangeaSkirmish
             int fp = _controlled.stats.Footprint;
             var stops = _controlled.PlannedStops();   // andadas e Salto/Passo do vento
             var T = Tuning.Get();
-            var prev = _controlled.anchor;
+            var prev = _controlled.PlanStartAnchor;
             for (int i = 0; i < stops.Count; i++)
             {
                 var cur = stops[i];
@@ -1866,7 +1866,7 @@ namespace PangeaSkirmish
             foreach (var g in _planShapeGhosts) if (g != null) Destroy(g);
             _planShapeGhosts.Clear();
             if (_controlled == null) return;
-            var at = _controlled.anchor;
+            var at = _controlled.PlanStartAnchor;
             var col = Tuning.Get().shapePreviewColor; col.a *= 0.7f;
             var w = WeaponCatalog.Get(_controlled.weaponId);
             int fp = _controlled.stats.Footprint;

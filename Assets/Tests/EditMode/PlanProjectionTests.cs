@@ -99,4 +99,51 @@ public class PlanProjectionTests
         }
         finally { Object.DestroyImmediate(beast.gameObject); }
     }
+
+    /// <summary>2026-11-14: ação que atravessa o round continua, e a unidade planeja os ticks que sobram.</summary>
+    [Test]
+    public void BusyUnit_PlansTheRemainingTicks_AfterTheCarriedAction()
+    {
+        int max = Tuning.Get().maxQueueTicks;
+        var dest = new Vector2Int(2, 5);
+        _u.queue.Add(new QueuedAction { Type = ActionType.Move, Dest = dest, Duration = 2, Elapsed = 1 });   // falta 1 tick
+        _u.BeginPlanning();
+        Assert.AreEqual(1, _u.carriedTicks);
+        Assert.IsTrue(_u.CanPlanThisRound, "ocupada também planeja");
+        Assert.AreEqual(max - 1, _u.remainingAP, "sobram os ticks depois da ação em andamento");
+        Assert.AreEqual(dest, _u.PlanStartAnchor, "o plano novo parte de onde a andada termina");
+        Assert.AreEqual(dest, _u.plannedAnchor);
+
+        _u.actionSequence.Add(new ScheduledAction { Type = ActionType.Wait });
+        _u.RecomputeTickBudget();
+        _u.BuildQueueFromPlan();
+        Assert.AreEqual(2, _u.queue.Count, "a ação antiga fica na frente e o plano entra depois");
+        Assert.AreEqual(ActionType.Move, _u.queue[0].Type);
+        Assert.AreEqual(ActionType.Wait, _u.queue[1].Type);
+    }
+
+    [Test]
+    public void FullyBusyUnit_CannotPlan()
+    {
+        int max = Tuning.Get().maxQueueTicks;
+        _u.queue.Add(new QueuedAction { Type = ActionType.Spell, Spell = new PlannedSpell { SpellId = "Explosion" }, Duration = max + 2 });
+        _u.BeginPlanning();
+        Assert.IsFalse(_u.CanPlanThisRound, "a fila antiga ocupa o round inteiro");
+        Assert.AreEqual(0, _u.remainingAP);
+    }
+
+    [Test]
+    public void LootDetails_ShowStatsAndCompareWithEquipped()
+    {
+        ItemDef a = null, b = null;
+        foreach (var it in ItemCatalog.All)
+            foreach (var other in ItemCatalog.All)
+                if (a == null && it.slot == other.slot && it.id != other.id && it.physDef > other.physDef) { a = it; b = other; }
+        Assert.IsNotNull(a, "dois itens do mesmo slot com defesas diferentes");
+        string txt = Loot.Details(a, b);
+        StringAssert.Contains(a.Summary(), txt, "mostra o que o item faz");
+        StringAssert.Contains(b.displayName, txt, "compara com o que está equipado");
+        StringAssert.Contains($"+{a.physDef - b.physDef} defesa", txt);
+        StringAssert.Contains("não usa nada", Loot.Details(a, null));
+    }
 }
