@@ -705,6 +705,23 @@ namespace PangeaSkirmish
         public Vector4 worldBarPillBorder = new Vector4(8, 3, 8, 3);
 
 
+        // ═════════════════════════ BARRA DE TICKS & VISIBILIDADE (2026-11-15) ═════════════════════════
+        [Header("═══ BARRA DE TICKS & VISIBILIDADE ═══")]
+        [Tooltip("Durante o tick, todos veem a ação ATUAL de cada inimigo (o resto da fila fica como '?'). Desligado: inimigos só aparecem com Visão arcana.")]
+        public bool tickBarEnemyCurrentAction = true;
+        [Tooltip("Mostra a fila inteira dos aliados (outras unidades do seu lado) na barra de ticks.")]
+        public bool tickBarShowAllies = true;
+        [Tooltip("Visão arcana revela a fila inteira de TODAS as unidades durante o tick.")]
+        public bool visionRevealsAllQueues = true;
+        [Tooltip("Visão arcana no planejamento mostra o que as unidades estão preparando; as feras mostram o plano previsto pela própria IA.")]
+        public bool visionShowsPlanning = true;
+        [Tooltip("Quantos ticks do PRÓXIMO round aparecem depois da linha do round (0 = só o round atual).")]
+        public int tickBarNextRoundTicks = 2;
+        [Tooltip("Marca com ↷ as ações que passam da linha do round, que vieram do round anterior ou que uma reação atrasou.")]
+        public bool tickBarFlagRoundCrossing = true;
+        [Tooltip("Segundos da animação do bloco entrando na barra e empurrando os outros (0 = sem animação).")]
+        public float tickBarPushAnimSeconds = 0.3f;
+
         // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]

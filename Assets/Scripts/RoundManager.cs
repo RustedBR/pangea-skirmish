@@ -44,6 +44,8 @@ namespace PangeaSkirmish
         private bool _waitingLockstep; // true enquanto aguarda ExecuteRoundClientRpc
 
         private RoundPhase _phase = RoundPhase.Resolving;
+        /// <summary>Só HUD (aviso de atraso por reação): o avanço das filas deste tick já aconteceu?</summary>
+        private bool _tickHeadsAdvanced;
         private float _timer;
         private int _round;
         private bool _gracePeriodUsed;
@@ -167,6 +169,7 @@ namespace PangeaSkirmish
         {
             ulong localId = RuntimeMultiplayerSession.IsMultiplayer && Unity.Netcode.NetworkManager.Singleton != null
                 ? Unity.Netcode.NetworkManager.Singleton.LocalClientId : 0;
+            _hud.TimelinePlanning = _phase == RoundPhase.Planning;   // a régua do round começa no 1º tick ao planejar
             _hud.UpdateTimeline(_globalTick, _units, u =>
                 RuntimeMultiplayerSession.IsMultiplayer ? u.ownerId == localId : u == _playerUnit);
         }
@@ -270,6 +273,7 @@ namespace PangeaSkirmish
             // e planeja só os ticks que sobram depois dela.
             foreach (var u in _units)
                 if (!u.IsDead) u.BeginPlanning();
+            LogTimeline();   // barra de ticks no modo planejamento (só HUD; não mexe na simulação)
             float decisionTime = Tuning.Get().decisionTime;
 
             if (RuntimeMultiplayerSession.IsMultiplayer)
@@ -527,6 +531,7 @@ namespace PangeaSkirmish
             // Sai de Planning já aqui: enquanto a fase ficava em Planning até o primeiro
             // movimento/ataque, o timer de decisão podia zerar e reenviar o plano.
             _phase = RoundPhase.Resolving;
+            _hud.TimelinePlanning = false;
 
             // 1) Unidades livres comprometem o plano na fila (plano vazio = Esperar).
             //    Ordem por unitId: mesma em todas as máquinas (lockstep).
@@ -562,6 +567,7 @@ namespace PangeaSkirmish
                 var attacksThisSlot = new List<(Unit u, PlannedAttack atk, bool incr, bool aimed)>();
                 var spellsThisSlot  = new List<(Unit u, PlannedSpell sp)>();
                 _provokedThisTick.Clear();
+                _tickHeadsAdvanced = false;   // só HUD: a reação antes do avanço ainda conta este tick na fila
                 // A magia paga Mana/Stamina no tick em que começa (2026-11-14): Concentrar/Respirar antes
                 // dela já contam. Sem recurso na hora (ex.: drenado), a magia falha e sai da fila.
                 foreach (var u in _units)
@@ -598,6 +604,7 @@ namespace PangeaSkirmish
                         cu.queue.RemoveAt(0);
                     }
                 }
+                _tickHeadsAdvanced = true;    // daqui em diante a fila já não inclui este tick
                 foreach (var u in _units)
                 {
                     if (u.IsDead || u.queue.Count == 0) continue;
@@ -2060,6 +2067,17 @@ namespace PangeaSkirmish
             // Reagir custa 1 tick da fila (2026-11-13): a reação acontece na hora, no tick do gatilho;
             // a ação em andamento recomeça do zero, ou a fila anda 1 tick se nada estava em andamento.
             reactor.ReactionPushQueue();
+            if (Tuning.Get().tickBarFlagRoundCrossing)
+            {
+                // Mostra o atraso (2026-11-15): se a fila agora passa do fim do round, o resto vai para o próximo.
+                int R = Mathf.Max(1, Tuning.Get().ticksPerRound);
+                int inRound = ((_globalTick % R) + R) % R;
+                int leftInRound = R - inRound - (_tickHeadsAdvanced ? 1 : 0);
+                bool crosses = reactor.QueueTicksRemaining > leftInRound;
+                _hud.LogAction($"<color=#8f5a0c>↷</color> {reactor.unitName}: reagir atrasou a fila 1 tick" +
+                               (crosses ? " — parte dela vai para o próximo round" : ""), reactor);
+                _hud.SetRowEvent(reactor, crosses ? "↷ atrasou: vai p/ o próximo round" : "↷ atrasou 1 tick");
+            }
 
             var T = Tuning.Get();
             switch (kind)

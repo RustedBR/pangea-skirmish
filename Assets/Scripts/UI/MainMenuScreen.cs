@@ -21,6 +21,8 @@ namespace PangeaSkirmish.UI
 
         protected override void Bind()
         {
+            // Título diminui até caber: em telas mais quadradas (tablet 4:3, janela pequena) ele saía da caixa.
+            UIHelper.FitText(Root.Q<Label>("title"), 18f);
             _name = Root.Q<Label>("profile-name");
             _char = Root.Q<Label>("profile-char");
 

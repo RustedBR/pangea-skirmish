@@ -855,6 +855,7 @@ namespace PangeaSkirmish
             if (h.Contains("mag") || h.Contains("conjur")) return "sfx_spell_fire";
             if (h.Contains("def") || h.Contains("rea") || h.Contains("postur")) return "defender";
             if (h.Contains("camera") || h.Contains("view") || h.Contains("visual")) return "sfx_spell_air";
+            if (h.Contains("tick") || h.Contains("visib")) return "sfx_spell_air";   // barra de ticks & visibilidade
             if (h.Contains("grid") || h.Contains("cenario") || h.Contains("mapa")) return "sfx_spell_earth";
             if (h.Contains("hud") || h.Contains("tema") || h.Contains("label")) return "sfx_spell_water";
             return "sfx_attack";

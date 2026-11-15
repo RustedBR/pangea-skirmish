@@ -252,6 +252,13 @@ namespace PangeaSkirmish
         {
             // Celular (2026-11-14): classe para layout de toque (intenções à esquerda, botões maiores).
             if (MobileHUD.Active) Root?.AddToClassList("bh-mobile");
+            // Tela mais quadrada que 16:9 (tablet 4:3, janela estreita): painéis laterais ficam mais largos, senão a
+            // grade de ações e o ROUND encolhem a ponto de os rótulos não caberem (2026-11-15).
+            Root?.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                var lay = Root.layout;
+                if (lay.height > 1f) Root.EnableInClassList("bh-narrow", lay.width / lay.height < 1.7f);
+            });
             var r = Root;
             _phaseText        = r.Q<Label>("phase-text");
             _timerText        = r.Q<Label>("timer-text");
@@ -1266,6 +1273,7 @@ namespace PangeaSkirmish
             }
             SetPlanEditorVisible(false);
             _ticksRows.Clear();
+            _segTouched.Clear();
             _rowRefs.Clear();
             _seqChips.Clear();
             int maxTicks = Mathf.Max(1, Tuning.Get().maxQueueTicks);
@@ -1280,7 +1288,11 @@ namespace PangeaSkirmish
                                ? TickRules.Duration(planUnit, _planSched[i])
                                : TickRules.Duration(planUnit, _planSeq[i], false);
             }
-            _headBase = $"TICK {_tlTick}";
+            {
+                int Rh = Mathf.Max(1, Tuning.Get().ticksPerRound);
+                int roundN = _tlTick / Rh + 1, k = ((_tlTick % Rh) + Rh) % Rh + 1;
+                _headBase = TimelinePlanning ? $"ROUND {roundN}  •  PLANEJAMENTO" : $"ROUND {roundN}  •  TICK {k}/{Rh}";
+            }
             if (planning)
             {
                 int free = Mathf.Max(0, maxTicks - planTotal);
@@ -1290,83 +1302,151 @@ namespace PangeaSkirmish
             }
             else _headCosts = null;
             RefreshHeader();
-            // Régua de ticks: mostra a capacidade da fila (1..N) alinhada com as faixas.
+            // ── Régua do round (2026-11-15): os ticks deste round (1..R) e os do próximo, com uma linha no meio.
+            // Fica claro quando o round acaba: o que passa da linha cai no próximo round.
+            var TB = Tuning.Get();
+            int R = Mathf.Max(1, TB.ticksPerRound);
+            int cols = R + Mathf.Clamp(TB.tickBarNextRoundTicks, 0, R);   // só um pedaço do próximo round: blocos legíveis
+            // Anima só no planejamento (bloco entrando/ficando mais caro empurra os outros). Durante o tick a barra
+            // se reorganiza a cada tick e a animação deixaria os blocos fora da régua por um instante.
+            _growSeconds = TimelinePlanning ? Mathf.Max(0f, TB.tickBarPushAnimSeconds) : 0f;
+            bool flagCross = TB.tickBarFlagRoundCrossing;
+            bool planPhase = TimelinePlanning;
+            int inRound = ((_tlTick % R) + R) % R;
+            // Planejando, a fila começa no 1º tick do round. Resolvendo, _tlTick já avançou (LogTimeline vem depois
+            // do AdvanceGlobalTick): inRound é o próximo tick a rodar e a fila começa nele.
+            int start = planPhase ? 0 : inRound;
+            int nowCol = start;
             var ruler = new VisualElement { pickingMode = PickingMode.Ignore };
             ruler.style.flexDirection = FlexDirection.Row; ruler.style.marginBottom = 2;
-            var rpad = new VisualElement { pickingMode = PickingMode.Ignore }; rpad.style.width = 78; ruler.Add(rpad);
+            var rpad = new Label("") { pickingMode = PickingMode.Ignore };
+            rpad.style.width = 78; rpad.style.fontSize = 9; rpad.style.unityTextAlign = TextAnchor.MiddleLeft;
+            rpad.style.color = new Color(0.37f, 0.38f, 0.45f);
+            ruler.Add(rpad);
             var rtrack = new VisualElement { pickingMode = PickingMode.Ignore };
-            rtrack.style.flexDirection = FlexDirection.Row; rtrack.style.flexGrow = 1;
-            for (int k = 1; k <= maxTicks; k++)
+            rtrack.style.flexDirection = FlexDirection.Row; rtrack.style.flexGrow = 1; rtrack.style.position = Position.Relative;
+            for (int k = 0; k < cols; k++)
             {
-                var rl = new Label(k == 1 ? "agora" : "+" + (k - 1)) { pickingMode = PickingMode.Ignore };
-                rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 9; rl.style.height = 11;
-                rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 2;
-                rl.style.color = new Color(0.37f, 0.38f, 0.45f);
-                rl.style.borderBottomWidth = 1; rl.style.borderBottomColor = new Color(0.50f, 0.40f, 0.27f);
+                bool next = k >= R, past = k < nowCol, now = k == nowCol;
+                var rl = new Label(next ? (k == R ? "próx. 1" : (k - R + 1).ToString()) : (k + 1).ToString()) { pickingMode = PickingMode.Ignore };
+                rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 9; rl.style.height = 12;
+                rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 0;
+                rl.style.color = now ? new Color(0.06f, 0.08f, 0.16f) : next ? new Color(0.55f, 0.52f, 0.47f) : past ? new Color(0.62f, 0.60f, 0.56f) : new Color(0.30f, 0.31f, 0.38f);
+                rl.style.unityFontStyleAndWeight = now ? FontStyle.Bold : FontStyle.Normal;
+                if (now) { rl.style.backgroundColor = new Color(1f, 0.85f, 0.45f, 0.85f); rl.style.borderTopLeftRadius = rl.style.borderTopRightRadius = 3; }
+                rl.style.borderBottomWidth = now ? 2 : 1;
+                rl.style.borderBottomColor = next ? new Color(0.62f, 0.56f, 0.46f) : new Color(0.50f, 0.40f, 0.27f);
                 rtrack.Add(rl);
             }
+            if (cols > R) rtrack.Add(RoundDivider(R, cols));
             ruler.Add(rtrack);
             _ticksRows.Add(ruler);
 
             BuildPips(planning ? planUnit : null);
             UpdatePreviewLine(planning ? planUnit : null);
 
-            // Ameaças (elemento da linha do tempo compartilhada): ataques de outros em unidades suas.
+            // Quem é "eu" e quem é aliado: aliados mostram a fila inteira sempre (2026-11-15).
+            Unit meRef = null;
+            foreach (var o in _tlUnits) if (o != null && !o.IsDead && _tlIsMine != null && _tlIsMine(o)) { meRef = o; break; }
+            if (meRef == null) meRef = planUnit;
+            bool IsMine(Unit o) => _tlIsMine != null && _tlIsMine(o);
+            bool IsAlly(Unit o) => TB.tickBarShowAllies && o != null && !IsMine(o) && meRef != null && o != meRef && !o.IsHostileTo(meRef);
+
+            // Visão mágica (Visão arcana): com uma unidade sua sob o efeito, vê as ações de TODAS as unidades
+            // durante o tick e, no planejamento, o que estão preparando (feras: plano previsto pela mesma IA).
+            bool vision = false;
+            foreach (var o in _tlUnits) if (o != null && !o.IsDead && IsMine(o) && o.foresightTicks > 0) vision = true;
+            bool visionAll = vision && TB.visionRevealsAllQueues;     // opção da sala
+            bool visionPlan = vision && TB.visionShowsPlanning;
+
+            // Ameaças: ataques inimigos em unidades suas — só os que você enxerga (a ação atual, ou tudo com visão).
             var threats = new List<(Unit target, int endTick, Unit by)>();
             foreach (var o in _tlUnits)
             {
-                if (o == null || o.IsDead || (_tlIsMine != null && _tlIsMine(o))) continue;
-                int at = 0;
+                if (o == null || o.IsDead || IsMine(o) || IsAlly(o)) continue;
+                int at = 0, qi = 0;
                 foreach (var q in o.queue)
                 {
                     at += q.Remaining;
-                    if (q.Type == ActionType.Attack && q.Attack.TargetUnit != null && _tlIsMine != null && _tlIsMine(q.Attack.TargetUnit))
+                    if ((qi == 0 || visionAll) && q.Type == ActionType.Attack && q.Attack.TargetUnit != null && IsMine(q.Attack.TargetUnit))
                         threats.Add((q.Attack.TargetUnit, at, o));
+                    qi++;
                 }
             }
-
-            // Visão arcana (GDD-019 §3.1): com uma unidade sua sob o efeito, as filas inimigas aparecem até +2 ticks.
-            bool foresight = false;
-            foreach (var o in _tlUnits) if (o != null && !o.IsDead && _tlIsMine != null && _tlIsMine(o) && o.foresightTicks > 0) foresight = true;
 
             foreach (var u in _tlUnits)
             {
                 if (u == null || u.IsDead) continue;
-                bool mine = _tlIsMine != null && _tlIsMine(u);
+                bool mine = IsMine(u);
+                bool ally = IsAlly(u);
                 bool isPlanRow = planning && u == planUnit;
-                if (!ShowsOthers && !mine && !isPlanRow) continue;   // padrão: só as minhas unidades (Esc mostra todas)
+                bool enemy = !mine && !ally && !isPlanRow;
+                // Inimigos: durante o tick todos veem a ação atual; no planejamento só com visão (Esc ainda mostra tudo).
+                if (enemy && planPhase && !visionPlan && !ShowsOthers) continue;
+                if (enemy && !planPhase && !visionAll && !TB.tickBarEnemyCurrentAction && !ShowsOthers) continue;
+                bool fullView = mine || ally || isPlanRow || visionAll;
 
                 var row = new VisualElement { pickingMode = PickingMode.Ignore };
                 row.style.flexDirection = FlexDirection.Row; row.style.alignItems = Align.Stretch;
                 row.style.marginBottom = 3;
 
-                var name = new Label(u.unitName) { pickingMode = PickingMode.Ignore };
+                var name = new Label((visionAll && enemy ? "👁 " : "") + u.unitName) { pickingMode = PickingMode.Ignore };
                 name.style.width = 78; name.style.fontSize = 11; name.style.overflow = Overflow.Hidden;
                 name.style.unityTextAlign = TextAnchor.MiddleLeft;
-                name.style.color = (u.IsBusy || isPlanRow) ? new Color(0.14f, 0.16f, 0.27f) : new Color(0.13f, 0.45f, 0.27f);
+                name.style.color = enemy ? new Color(0.55f, 0.16f, 0.14f) : (u.IsBusy || isPlanRow) ? new Color(0.14f, 0.16f, 0.27f) : new Color(0.13f, 0.45f, 0.27f);
                 name.style.unityFontStyleAndWeight = mine ? FontStyle.Bold : FontStyle.Normal;
                 row.Add(name);
 
                 var track = new VisualElement { pickingMode = PickingMode.Ignore };
                 track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 28;
                 track.style.position = Position.Relative;
-                int used = 0;
+                string uid = UnitRegistry.GetId(u).ToString();
+                int used = start;          // coluna absoluta (0..cols) onde o próximo bloco começa
+                int segN = 0;
                 bool firstSeg = true;
+
+                if (start > 0)
+                {   // Ticks que já passaram neste round.
+                    var past = MakeSegment(start, new Color(0.80f, 0.74f, 0.62f, 0.45f), "", false);
+                    past.style.borderTopWidth = past.style.borderBottomWidth = past.style.borderLeftWidth = past.style.borderRightWidth = 0;
+                    track.Add(past);
+                    AnimateGrow(past, uid + ":past", start, false);
+                }
+
+                // Coloca um bloco, marcando quando passa da linha do round (↷ = vai para o próximo round).
+                VisualElement Put(VisualElement seg, int d, string key, bool enter)
+                {
+                    int s0 = used, e0 = used + d;
+                    if (flagCross && e0 > R && s0 < cols)
+                    {
+                        var l = seg.childCount > 0 ? seg.ElementAt(0) as Label : null;
+                        if (l != null && !l.text.StartsWith("↷")) l.text = "↷ " + l.text;
+                        string why = s0 >= R ? "Fica inteira para o próximo round." : $"Começa neste round e termina no próximo (tick {e0 - R} dele).";
+                        seg.tooltip = string.IsNullOrEmpty(seg.tooltip) ? why : seg.tooltip + "\n" + why;
+                        if (s0 >= R) seg.style.opacity = 0.78f;
+                    }
+                    track.Add(seg);
+                    AnimateGrow(seg, key, Mathf.Max(1, d), enter);
+                    used += d;
+                    segN++;
+                    return seg;
+                }
 
                 if (isPlanRow)
                 {
                     // Plano em edição: blocos clicáveis (mesmo clique de antes p/ golpe poderoso e passo rápido).
                     Vector2Int prevPos = planUnit.PlanStartAnchor;
+                    int planUsed = 0;
                     // O que veio do round anterior aparece primeiro, travado: o plano novo começa depois.
                     if (planUnit.carriedTicks > 0)
                     {
-                        int cd = Mathf.Min(planUnit.carriedTicks, maxTicks);
-                        var carried = MakeSegment(cd, TlWait, "em andamento", true);
+                        int cd = Mathf.Min(planUnit.carriedTicks, cols - used);
+                        var carried = MakeSegment(cd, TlWait, flagCross ? "↷ do round anterior" : "em andamento", true);
                         carried.tooltip = "Ação que atravessou o round: termina primeiro, e o seu plano novo entra depois dela.";
-                        track.Add(carried);
-                        used += cd;
+                        Put(carried, cd, uid + ":carried", false);
+                        planUsed += cd;
                     }
-                    for (int i = 0; i < _planSeq.Count && used < maxTicks; i++)
+                    for (int i = 0; i < _planSeq.Count && used < cols; i++)
                     {
                         int idx = i;
                         bool bonus = _planSched != null && i < _planSched.Count && _planSched[i].IsBonus;
@@ -1390,12 +1470,12 @@ namespace PangeaSkirmish
                             else if (_planSeq[i] == ActionType.Spell && ix >= 0 && ix < planUnit.plannedSpells.Count) planTarget = planUnit.plannedSpells[ix].TargetUnit;
                         }
                         string planText = planSpell != null ? SpellBlockText(planUnit, planSpell, planTarget) : BlockText(planUnit, _planSeq[i], bonus, aimed, tiles, planTarget);
-                        var seg = MakeSegment(Mathf.Min(d, maxTicks - used), SegColor(_planSeq[i], bonus, planSpell),
-                                              $"{idx + 1} {planText}", true);
+                        int dd = Mathf.Min(d, cols - used);
+                        var seg = MakeSegment(dd, SegColor(_planSeq[i], bonus, planSpell), $"{idx + 1} {planText}", true);
                         if (planSpell != null && !planSpell.IsPhysical)
-                        {   // borda tracejada = interrompível (GDD-019 §9.1); UI Toolkit não tem dash, então borda clara fina
-                            seg.style.borderTopWidth = seg.style.borderBottomWidth = seg.style.borderLeftWidth = seg.style.borderRightWidth = 1;
-                            seg.style.borderTopColor = seg.style.borderBottomColor = seg.style.borderLeftColor = seg.style.borderRightColor = new Color(1f, 1f, 1f, 0.55f);
+                        {   // borda clara fina = interrompível (GDD-019 §9.1)
+                            seg.style.borderTopWidth = seg.style.borderBottomWidth = 1;
+                            seg.style.borderTopColor = seg.style.borderBottomColor = new Color(1f, 1f, 1f, 0.55f);
                             seg.tooltip = $"Interrompida se tomar ≥ {Mathf.CeilToInt(planUnit.stats.MaxHP * Tuning.Get().spellInterruptHpFraction)} de dano antes de terminar. A Mana é gasta mesmo assim.";
                         }
                         seg.pickingMode = PickingMode.Position;
@@ -1413,26 +1493,48 @@ namespace PangeaSkirmish
                             });
                         }
                         seg.style.opacity = idx == _selectedSeqIndex ? 1f : 0.82f;
-                        track.Add(seg); _seqChips.Add(seg);
-                        used += d;
+                        // Bloco novo entra crescendo do zero e empurra os outros; bloco que ficou mais caro cresce.
+                        Put(seg, dd, $"plan:{uid}:{i}:{_planSeq[i]}", true);
+                        _seqChips.Add(seg);
+                        planUsed += d;
+                    }
+                    int planFree = Mathf.Max(0, maxTicks - planUsed);
+                    if (used < cols)
+                    {
+                        var rest = MakeSegment(cols - used, TlEmpty, planFree > 0 ? $"+ {planFree} livre{(planFree == 1 ? "" : "s")}" : "", false);
+                        ((Label)rest.ElementAt(0)).style.color = new Color(0.55f, 0.62f, 0.80f);
+                        track.Add(rest);
+                        AnimateGrow(rest, uid + ":rest", cols - used, false);
+                        used = cols;
                     }
                 }
-                else if (u.IsBusy)
+                else
                 {
+                    // Fila comprometida (o que a unidade está fazendo e vai fazer).
+                    int qi = 0, qOff = 0;
+                    bool hiddenTail = false;
                     foreach (var q in u.queue)
                     {
-                        if (used >= maxTicks) break;
-                        int d = Mathf.Min(q.Remaining, maxTicks - used);
+                        bool fromPrev = planPhase && qOff < u.carriedTicks;   // começou (ou foi empurrada) no round anterior
+                        qOff += Mathf.Max(0, q.Remaining);
+                        if (used >= cols) break;
+                        int d = Mathf.Min(q.Remaining, cols - used);
+                        if (d <= 0) { qi++; continue; }
+                        bool seen = fullView || qi == 0;   // sem visão, só a ação atual de um inimigo aparece
+                        if (!seen) { hiddenTail = true; break; }
                         bool threat = false;
                         foreach (var th in threats) if (th.by == u && q.Type == ActionType.Attack && q.Attack.TargetUnit == th.target) threat = true;
                         SpellDef qSpell = q.Type == ActionType.Spell ? q.Spell.Def : null;
-                        bool seen = mine || (foresight && used <= 2);
-                        string label = seen ? (qSpell != null ? SpellBlockText(u, qSpell, q.Spell.TargetUnit) : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0, q.Type == ActionType.Attack ? q.Attack.TargetUnit : null))
-                                     : threat ? "⚠ ataca você" : (qSpell != null && !qSpell.IsPhysical) ? SpellGlyph + " conjurando" : "ocupada";
-                        if (seen && !mine) label = "👁 " + label;
-                        var seg = MakeSegment(d, mine ? SegColor(q.Type, q.IsBonus, qSpell) : threat ? new Color(0.72f, 0.20f, 0.18f) : TlWait, label, mine || threat);
-                        if (threat) ((Label)seg.ElementAt(0)).style.color = new Color(1f, 0.82f, 0.80f);
-                        track.Add(seg);
+                        string label = qSpell != null ? SpellBlockText(u, qSpell, q.Spell.TargetUnit)
+                                     : BlockText(u, q.Type, q.IsBonus, q.IsAimed, 0, q.Type == ActionType.Attack ? q.Attack.TargetUnit : null);
+                        if (threat && !mine) label = "⚠ " + label;
+                        if (flagCross && fromPrev) label = "↷ " + label;   // veio do round anterior
+                        bool colored = mine || ally || threat || visionAll;
+                        var baseCol = threat && !mine ? new Color(0.72f, 0.20f, 0.18f) : colored ? SegColor(q.Type, q.IsBonus, qSpell) : TlWait;
+                        var seg = MakeSegment(d, baseCol, label, mine || threat);
+                        if (threat && !mine) ((Label)seg.ElementAt(0)).style.color = new Color(1f, 0.82f, 0.80f);
+                        if (enemy && !visionAll) seg.tooltip = "Ação que este inimigo está fazendo agora. O resto da fila dele fica escondido (Visão arcana revela).";
+                        Put(seg, d, $"{uid}:q{qi}:{q.Type}", false);
                         if (firstSeg && mine && u == _windowUnit && q.Type == ActionType.Attack)
                         {
                             seg.pickingMode = PickingMode.Position;
@@ -1450,39 +1552,65 @@ namespace PangeaSkirmish
                         }
                         if (firstSeg)
                         {
-                            _rowRefs[u] = new RowRef { seg = seg, label = (Label)seg.ElementAt(0), defaultText = label,
-                                                       baseColor = mine ? SegColor(q.Type, q.IsBonus, qSpell) : TlWait };
+                            _rowRefs[u] = new RowRef { seg = seg, label = (Label)seg.ElementAt(0), defaultText = ((Label)seg.ElementAt(0)).text, baseColor = baseCol };
                             firstSeg = false;
                         }
-                        used += d;
+                        qi++;
+                    }
+                    if (hiddenTail && used < cols)
+                    {   // O resto da fila de um inimigo: existe, mas não dá para ver o quê.
+                        int left = 0; int k2 = 0;
+                        foreach (var q in u.queue) { if (k2++ >= qi) left += q.Remaining; }
+                        int d = Mathf.Min(Mathf.Max(1, left), cols - used);
+                        var hid = MakeSegment(d, TlWait, "?", false);
+                        hid.style.opacity = 0.6f;
+                        hid.tooltip = "Fila escondida. Com Visão arcana você vê as ações de todas as unidades.";
+                        Put(hid, d, uid + ":hidden", false);
+                    }
+
+                    // Visão no planejamento: o que a unidade está preparando (fera: plano previsto pela própria IA).
+                    if (planPhase && visionPlan && enemy && !u.IsBusy && used < cols)
+                    {
+                        foreach (var (pt, pd, ptext, pcol) in PredictPlan(u))
+                        {
+                            if (used >= cols) break;
+                            int d = Mathf.Min(pd, cols - used);
+                            var seg = MakeSegment(d, pcol, "👁 " + ptext, false);
+                            seg.style.opacity = 0.85f;
+                            seg.tooltip = BeastAI.Controls(u) ? "Previsão: é o que a fera vai fazer com o mapa como está agora. Pode mudar se o seu plano mudar o que ela vê."
+                                                             : "Plano que este jogador já confirmou.";
+                            Put(seg, d, $"{uid}:pred{segN}:{pt}", true);
+                        }
+                    }
+
+                    if (used < cols)
+                    {
+                        bool deciding = !u.IsBusy && (!enemy || !planPhase || !visionPlan);
+                        string restText = deciding ? (planPhase ? "decide agora" : "livre") : "";
+                        var rest = MakeSegment(cols - used, TlEmpty, restText, false);
+                        if (deciding)
+                        {
+                            var l = (Label)rest.ElementAt(0);
+                            l.style.color = new Color(0.52f, 0.90f, 0.60f);
+                            if (firstSeg) _rowRefs[u] = new RowRef { seg = rest, label = l, defaultText = restText, baseColor = TlEmpty };
+                        }
+                        track.Add(rest);
+                        AnimateGrow(rest, uid + ":rest", cols - used, false);
+                        used = cols;
                     }
                 }
 
-                if (used < maxTicks)
-                {
-                    string restText = (!u.IsBusy && !isPlanRow) ? "decide agora"
-                                    : isPlanRow ? $"+ {maxTicks - used} livre{(maxTicks - used == 1 ? "" : "s")}" : "";
-                    var rest = MakeSegment(maxTicks - used, TlEmpty, restText, false);
-                    if (isPlanRow) ((Label)rest.ElementAt(0)).style.color = new Color(0.55f, 0.62f, 0.80f);
-                    if (!u.IsBusy && !isPlanRow)
-                    {
-                        var l = (Label)rest.ElementAt(0);
-                        l.style.color = new Color(0.52f, 0.90f, 0.60f);
-                        _rowRefs[u] = new RowRef { seg = rest, label = l, defaultText = "decide agora", baseColor = TlEmpty };
-                    }
-                    track.Add(rest);
-                }
+                if (cols > R) track.Add(RoundDivider(R, cols));
                 if (mine)
                     foreach (var th in threats)
                     {
-                        if (th.target != u || th.endTick > maxTicks) continue;
+                        int col = start + th.endTick;
+                        if (th.target != u || col > cols) continue;
                         var mark = new VisualElement { pickingMode = PickingMode.Ignore };
                         mark.style.position = Position.Absolute; mark.style.top = 0; mark.style.bottom = 0;
-                        mark.style.left = Length.Percent(th.endTick * 100f / maxTicks); mark.style.width = 3;
+                        mark.style.left = Length.Percent(col * 100f / cols); mark.style.width = 3;
                         mark.style.marginLeft = -3; mark.style.backgroundColor = new Color(1f, 0.38f, 0.33f);
-                        // Etiqueta legível no lugar do "!" solto (que ficava cortado e parecia defeito):
-                        // diz quem ataca e que o golpe chega neste tick. Fica à esquerda da linha,
-                        // dentro do tick em que o golpe está vindo.
+                        // Etiqueta legível: quem ataca e que o golpe chega neste tick.
                         string who = th.by != null ? th.by.unitName : "inimigo";
                         if (who.Length > 9) who = who.Substring(0, 8) + "…";
                         var ml = new Label($"⚠ {who} acerta") { pickingMode = PickingMode.Ignore };
@@ -1499,6 +1627,86 @@ namespace PangeaSkirmish
                 _ticksRows.Add(row);
                 ApplyRowEvent(u);
             }
+            // Esquece larguras de blocos que não existem mais (outro round, outra unidade, ordem mudada).
+            if (_segGrow.Count > _segTouched.Count)
+            {
+                var drop = new List<string>();
+                foreach (var k in _segGrow.Keys) if (!_segTouched.Contains(k)) drop.Add(k);
+                foreach (var k in drop) _segGrow.Remove(k);
+            }
+        }
+
+        /// <summary>A linha planejando ou resolvendo? (a régua começa no 1º tick do round ao planejar)</summary>
+        public bool TimelinePlanning { get; set; }
+
+        /// <summary>Linha vertical que separa este round do próximo na barra de ticks.</summary>
+        private static VisualElement RoundDivider(int R, int cols)
+        {
+            var div = new VisualElement { pickingMode = PickingMode.Ignore, name = "round-divider" };
+            div.style.position = Position.Absolute; div.style.top = -2; div.style.bottom = -2;
+            div.style.left = Length.Percent(R * 100f / cols); div.style.width = 3; div.style.marginLeft = -2;
+            div.style.backgroundColor = new Color(0.36f, 0.22f, 0.08f);
+            div.style.borderTopLeftRadius = div.style.borderTopRightRadius = div.style.borderBottomLeftRadius = div.style.borderBottomRightRadius = 1;
+            return div;
+        }
+
+        // ── Animação dos blocos (2026-11-15): cada bloco lembra a largura (em ticks) da última vez que apareceu.
+        // Um bloco novo entra crescendo do zero e, como a barra é flex, empurra os outros para os ticks seguintes;
+        // um bloco que ficou mais caro (golpe poderoso, incremento) cresce no lugar.
+        private readonly Dictionary<string, float> _segGrow = new Dictionary<string, float>();
+        private static readonly List<StylePropertyName> GrowProp = new List<StylePropertyName> { new StylePropertyName("flex-grow") };
+        private float _growSeconds = 0.3f;   // opção da sala (tickBarPushAnimSeconds)
+        private readonly HashSet<string> _segTouched = new HashSet<string>();
+        private static readonly List<EasingFunction> GrowEase = new List<EasingFunction> { new EasingFunction(EasingMode.EaseOutCubic) };
+
+        private void AnimateGrow(VisualElement seg, string key, float target, bool enterFromZero)
+        {
+            _segTouched.Add(key);
+            float from = _segGrow.TryGetValue(key, out var f) ? f : (enterFromZero ? 0f : target);
+            _segGrow[key] = target;
+            if (_growSeconds <= 0.01f) from = target;   // animação desligada na sala
+            seg.style.flexGrow = from;
+            if (Mathf.Approximately(from, target)) return;
+            seg.style.transitionProperty = GrowProp;
+            seg.style.transitionDuration = new List<TimeValue> { new TimeValue(_growSeconds, TimeUnit.Second) };
+            seg.style.transitionTimingFunction = GrowEase;
+            // Um quadro depois: o bloco nasce na largura antiga e a transição leva até a nova.
+            seg.schedule.Execute(() => seg.style.flexGrow = target).StartingIn(16);
+        }
+
+        private GridManager _gridCache;
+        /// <summary>
+        /// Plano previsto de uma unidade que ainda não agiu (Visão arcana no planejamento). A fera roda a mesma IA
+        /// determinística do início do round (sem sorteio) e o plano é desfeito logo depois; jogadores mostram o
+        /// plano já confirmado, se chegou.
+        /// </summary>
+        private List<(ActionType type, int dur, string text, Color color)> PredictPlan(Unit u)
+        {
+            var list = new List<(ActionType, int, string, Color)>();
+            bool beast = BeastAI.Controls(u);
+            if (beast)
+            {
+                if (_gridCache == null) _gridCache = UnityEngine.Object.FindFirstObjectByType<GridManager>();
+                if (_gridCache == null) return list;
+                BeastAI.Plan(u, _tlUnits, _gridCache);
+            }
+            Vector2Int prev = u.PlanStartAnchor;
+            foreach (var a in u.actionSequence)
+            {
+                int d = TickRules.Duration(u, a);
+                Unit target = null; int tiles = 0;
+                if (a.Type == ActionType.Attack && a.Index >= 0 && a.Index < u.plannedAttacks.Count) target = u.plannedAttacks[a.Index].TargetUnit;
+                if (a.Type == ActionType.Move && a.Index >= 0 && a.Index < u.plannedPath.Count)
+                {
+                    var dest = u.plannedPath[a.Index];
+                    tiles = Mathf.Max(Mathf.Abs(dest.x - prev.x), Mathf.Abs(dest.y - prev.y)); prev = dest;
+                }
+                SpellDef sp = a.Type == ActionType.Spell ? TickRules.SpellOf(u, a) : null;
+                string text = sp != null ? SpellBlockText(u, sp) : BlockText(u, a.Type, a.IsBonus, a.IsAimed, tiles, target);
+                list.Add((a.Type, Mathf.Max(1, d), text, SegColor(a.Type, a.IsBonus, sp)));
+            }
+            if (beast) u.ResetPlan();   // a previsão não fica no plano: o round planeja de novo com o mesmo resultado
+            return list;
         }
 
         private static int ExpectedDamage(Unit u, bool bonus, bool aimed) =>
@@ -1591,19 +1799,27 @@ namespace PangeaSkirmish
         {
             var seg = new VisualElement { pickingMode = PickingMode.Ignore };
             var ss = seg.style;
-            ss.flexGrow = Mathf.Max(1, ticks); ss.flexBasis = 0; ss.marginRight = 2;
+            // Largura = só a fatia de ticks (2026-11-15): sem padding/borda/margem na horizontal, que o flex somaria
+            // fora da proporção e tiraria os blocos do alinhamento com a régua e a linha do round.
+            ss.flexGrow = Mathf.Max(1, ticks); ss.flexBasis = 0; ss.flexShrink = 1; ss.marginRight = 0;
             ss.backgroundColor = color; ss.justifyContent = Justify.Center;
             ss.borderTopLeftRadius = ss.borderTopRightRadius = ss.borderBottomLeftRadius = ss.borderBottomRightRadius = 4;
-            ss.borderTopWidth = ss.borderBottomWidth = ss.borderLeftWidth = ss.borderRightWidth = 1;
+            ss.borderTopWidth = ss.borderBottomWidth = 1; ss.borderLeftWidth = ss.borderRightWidth = 0;
             var bc = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f);
             ss.borderTopColor = ss.borderBottomColor = ss.borderLeftColor = ss.borderRightColor = bc;
-            ss.paddingLeft = ss.paddingRight = 6; ss.overflow = Overflow.Hidden;
+            ss.paddingLeft = ss.paddingRight = 0; ss.overflow = Overflow.Hidden;
             var l = new Label(text) { pickingMode = PickingMode.Ignore };
+            l.style.paddingLeft = 5; l.style.paddingRight = 5;
             l.style.fontSize = 11; l.style.whiteSpace = WhiteSpace.NoWrap; l.style.overflow = Overflow.Hidden;
             l.style.unityTextAlign = TextAnchor.MiddleCenter; l.style.textOverflow = TextOverflow.Ellipsis;
             l.style.unityFontStyleAndWeight = strong ? FontStyle.Bold : FontStyle.Normal;
             l.style.color = (color.r + color.g + color.b) > 1.9f ? new Color(0.06f, 0.08f, 0.16f) : Color.white;
             seg.Add(l);
+            // Vão entre blocos desenhado por dentro (não conta na largura).
+            var gap = new VisualElement { pickingMode = PickingMode.Ignore, name = "seg-gap" };
+            gap.style.position = Position.Absolute; gap.style.right = 0; gap.style.top = -1; gap.style.bottom = -1; gap.style.width = 2;
+            gap.style.backgroundColor = new Color(0.82f, 0.74f, 0.57f);
+            seg.Add(gap);
             return seg;
         }
 

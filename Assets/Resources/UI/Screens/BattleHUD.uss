@@ -446,3 +446,9 @@
 .bh-unit-name { font-size: 13px; }
 .bh-ichip-icon { width: 14px; height: 14px; margin-right: 3px; }
 .bh-ichip-text { font-size: 11px; }
+
+/* TELA ESTREITA (2026-11-15): mais quadrada que 16:9 (tablet, janela). Painéis laterais mais largos. */
+.bh-narrow .bh-abar { width: 24%; }
+.bh-narrow .bh-abar-tip { width: 24%; }
+.bh-narrow .bh-intents { width: 24%; }
+.bh-narrow .bh-inspect { width: 24%; }
