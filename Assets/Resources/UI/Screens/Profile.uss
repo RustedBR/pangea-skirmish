@@ -1,10 +1,10 @@
 /* Perfil do jogador: nome + personagens salvos (visual base em PangeaTheme.uss). */
 .pf-root { flex-grow: 1; align-items: center; justify-content: center; }
-.pf-panel { width: 820px; max-width: 96%; max-height: 96%; flex-direction: column; align-items: stretch; }
+.pf-panel { width: 42.7%; min-width: 60%; max-width: 96%; max-height: 96%; flex-direction: column; align-items: stretch; }
 .pf-notice { color: var(--pg-gold, rgb(255, 204, 85)); font-size: 13px; -unity-text-align: middle-center; white-space: normal; min-height: 18px; margin-bottom: 6px; }
 .pf-body { flex-direction: row; flex-grow: 1; flex-shrink: 1; min-height: 200px; }
 .pf-left { flex-grow: 1; flex-basis: 0; margin-right: 14px; min-width: 0; }
-.pf-right { width: 300px; flex-shrink: 0; align-items: stretch; }
+.pf-right { width: 36%; flex-shrink: 0; align-items: stretch; }
 .pf-name { margin: 0; }
 .pf-hint { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 11px; margin-top: 3px; }
 .pf-section-gap { margin-top: 12px; }
@@ -32,7 +32,7 @@
 .pf-row-tag { color: var(--pg-ok, rgb(90, 209, 138)); font-size: 11px; -unity-font-style: bold; flex-shrink: 0; margin-left: 8px; }
 .pf-empty { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 12px; white-space: normal; -unity-text-align: middle-center; padding: 14px; }
 .pf-preview {
-    height: 230px; align-self: center; width: 230px;
+    align-self: center; width: 75%;   /* quadrado: altura segue a largura (KeepAspect) */
     background-color: rgb(10, 18, 41);
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
     border-left-color: var(--pg-panel-highlight, rgb(120, 160, 220)); border-right-color: var(--pg-panel-highlight, rgb(120, 160, 220));

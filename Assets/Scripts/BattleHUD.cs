@@ -297,6 +297,7 @@ namespace PangeaSkirmish
             _timerText        = r.Q<Label>("timer-text");
             _cameraModeText   = r.Q<Label>("camera-mode-text");
             _compassRose      = r.Q<VisualElement>("compass-rose");
+            KeepAspect(r.Q<VisualElement>("compass"), 1f);
             _compassLabels    = new[] { r.Q<Label>("compass-n"), r.Q<Label>("compass-e"),
                                         r.Q<Label>("compass-s"), r.Q<Label>("compass-w") };
             // Toque/clique na bússola gira a vista (GDD-022): metade esquerda = anti-horário, direita = horário.
@@ -1017,6 +1018,7 @@ namespace PangeaSkirmish
                 btn.RegisterCallback<PointerEnterEvent>(_ => ShowActionTip(item));
                 btn.RegisterCallback<PointerLeaveEvent>(_ => { if (_actionTip != null) _actionTip.style.display = DisplayStyle.None; });
                 bool stance = item.Id == "posture" || item.Id == "reaction";
+                KeepAspect(btn, stance ? 0.5f : 0.82f);
                 if (stance && _stanceRow != null) { btn.AddToClassList("bh-abtn--stance"); _stanceRow.Add(btn); }
                 else _actionBar.Add(btn);
                 _barButtons.Add((item, btn, badge));
@@ -1033,6 +1035,8 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Espaço que os popups da barra de ticks deixam para a barra de ações (que fica logo acima).</summary>
+        private static void KeepAspect(VisualElement e, float ratio) => UIHelper.KeepAspect(e, ratio);
+
         private float ActionBarClearance()
         {
             return 0f;   // a barra de ações saiu de cima dos ticks (grade no canto esquerdo)

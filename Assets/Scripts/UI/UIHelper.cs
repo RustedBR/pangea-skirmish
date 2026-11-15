@@ -57,6 +57,22 @@ namespace PangeaSkirmish.UI
             return RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPos.x, Screen.height - screenPos.y));
         }
 
+        /// <summary>
+        /// Mantém a proporção: altura = largura × ratio. Larguras vêm em % da tela pelo USS; altura em % encolheria
+        /// em telas largas, então ela segue a largura (2026-11-14).
+        /// </summary>
+        public static void KeepAspect(VisualElement e, float ratio)
+        {
+            if (e == null) return;
+            e.RegisterCallback<GeometryChangedEvent>(_ =>
+            {
+                float w = e.layout.width;
+                if (float.IsNaN(w) || w <= 0f) return;
+                float h = w * ratio;
+                if (Mathf.Abs(e.resolvedStyle.height - h) > 0.5f) e.style.height = h;
+            });
+        }
+
         /// <summary>Texto para busca simples: minúsculo e sem acento ("Água" acha "agua"). 2026-11-14.</summary>
         public static string Fold(string t)
         {

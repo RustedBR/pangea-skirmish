@@ -104,7 +104,7 @@ namespace PangeaSkirmish
             _frame = Time.frameCount;
             _click = false; _dragDelta = Vector2.zero; _pinchDelta = 0f; _rightClick = false;
             var rm = Mouse.current;
-            if (rm != null)
+            if (rm != null && rm.added)   // testes trocam os dispositivos; ler um mouse removido dispara assert do Input System
             {
                 if (rm.rightButton.wasPressedThisFrame) _rightDownPos = rm.position.ReadValue();
                 if (rm.rightButton.wasReleasedThisFrame && Vector2.Distance(rm.position.ReadValue(), _rightDownPos) < 8f) _rightClick = true;

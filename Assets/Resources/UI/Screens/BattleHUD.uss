@@ -23,7 +23,7 @@
 
 /* TOPO */
 .bh-topbar {
-  position: absolute; top: 0.9%; left: 0; right: 0; width: 18.6%; height: 4.7%;
+  position: absolute; top: 0.9%; left: 0; right: 0; width: 18.6%; 
   margin-left: auto; margin-right: auto;
   flex-direction: row; align-items: center; justify-content: space-between;
   padding: 0 14px;
@@ -49,7 +49,7 @@
 
 /* CAMERA MODE */
 .bh-camera {
-  position: absolute; top: 0.9%; right: 0.5%; width: 5.7%; height: 2.2%;
+  position: absolute; top: 0.9%; right: 0.5%; width: 5.7%; 
   align-items: center; justify-content: center; padding: 0;
 }
 .bh-camera-label { font-size: 11px; color: var(--pg-accent, rgb(106, 169, 255)); -unity-font-style: bold; }
@@ -57,11 +57,11 @@
 /* COMPASSO — para onde aponta o norte do mapa na orientação de vista atual (Q/E).
    Fica logo abaixo do indicador de câmera (que termina em y=34), sem colidir. */
 .bh-compass {
-  position: absolute; top: 4.1%; right: 0.5%; width: 4.0%; height: 7.0%;
+  position: absolute; top: 4.1%; right: 0.5%; width: 4.0%; 
   align-items: center; justify-content: center; padding: 0;
 }
 .bh-compass-rose {
-  position: relative; width: 60px; height: 60px;
+  position: relative; width: 80%; height: 80%;
   rotate: 0deg;
   transition-property: rotate;
   transition-duration: 0.29s;
@@ -331,10 +331,10 @@
 /* DOIS POLEGARES (2026-11-14, celular e PC): ações em grade no canto inferior esquerdo; no direito,
    Postura/Reação, atalhos recolhidos e Confirmar grande. A fila de ticks fica no meio. */
 .bh-abar {
-  left: 0.6%; bottom: 2.8%; translate: 0 0; width: 14.4%; height: 13.9%;   /* acima do botão LOG */
+  left: 0.6%; bottom: 2.8%; translate: 0 0; width: 14.4%;   /* acima do botão LOG; altura segue os botões */
   flex-direction: row; flex-wrap: wrap; align-items: flex-start; padding: 8px;
 }
-.bh-abtn { width: 30%; height: 44%; margin: 1.5%; }
+.bh-abtn { width: 30%; margin: 1.5%; }   /* altura = proporção da largura (KeepAspect no C#) */
 .bh-abtn-icon { top: 12px; width: 28px; height: 28px; }
 .bh-abtn-cap {
   position: absolute; bottom: 2px; left: 0; right: 0; font-size: 10px; color: rgb(244, 234, 208);
@@ -358,7 +358,7 @@
 
 /* CELULAR: classe .bh-mobile no root quando MobileHUD está ativo. Tudo maior, sem a faixa de dica. */
 .bh-mobile .bh-intentband { display: none; }
-.bh-mobile .bh-abar { width: 20%; height: 19%; }
+.bh-mobile .bh-abar { width: 20%; }
 .bh-mobile .bh-abtn-cap { font-size: 12px; }
 .bh-mobile .bh-abar-tip { width: 20%; font-size: 14px; }
 .bh-mobile .bh-intents { width: 20%; gap: 8px; }

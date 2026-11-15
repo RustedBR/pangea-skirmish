@@ -79,6 +79,7 @@ namespace PangeaSkirmish
             _nameInput  = r.Q<TextField>("name-input");
             _spriteLbl  = r.Q<Label>("sprite-label");
             _spritePreview = r.Q<VisualElement>("sprite-preview");
+            PangeaSkirmish.UI.UIHelper.KeepAspect(_spritePreview, 1f);
             _weaponInfoLbl = r.Q<Label>("weapon-info");
             _derivedLbl    = r.Q<Label>("derived-label");
             _infoLbl       = r.Q<Label>("info-label");

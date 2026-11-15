@@ -101,8 +101,8 @@ public class SpellMenuShot
         bool hoverShown = false;
         menu.Query<Label>().ForEach(l => { if (l.text.Contains("de dano de Fogo em quem estiver inteiro")) hoverShown = true; });
         Assert.IsTrue(hoverShown, "hover escreve o efeito da magia");
-        var ember = menu.Q<Button>("spell-Ember");
-        using (var e = PointerEnterEvent.GetPooled()) { e.target = ember; ember.SendEvent(e); }
+        var emberBlock = menu.Q<Button>("spell-Ember");
+        using (var e = PointerEnterEvent.GetPooled()) { e.target = emberBlock; emberBlock.SendEvent(e); }
         for (int i = 0; i < 2; i++) yield return null;
         Assert.AreEqual(topBefore, menu.worldBound.yMin, 0.5f, "a tela de magia não pula com a descrição");
         for (int i = 0; i < 2; i++) yield return null;

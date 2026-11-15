@@ -138,6 +138,7 @@ public class CharCreationTest
         AttributeStats.Formulas = null;
         // Desde o balanceamento do simulador (2026-11-13) o critério é a taxa de vitória (scripts/balance_sim.py),
         // não o dano por tick: cajados e varinha trocam dano por conduíte de magia e alcance. Aqui só um teto de sanidade.
-        Assert.LessOrEqual(max / min, 3.5f, $"nenhuma arma bate mais de 3,5× outra por tick (menor {lo} {min:0.#}, maior {hi} {max:0.#})");
+        // 2026-11-14: a DEX à distância caiu para 2% e os cajados (DEX) ficaram mais fracos: teto de 4×.
+        Assert.LessOrEqual(max / min, 4f, $"nenhuma arma bate mais de 4× outra por tick (menor {lo} {min:0.#}, maior {hi} {max:0.#})");
     }
 }

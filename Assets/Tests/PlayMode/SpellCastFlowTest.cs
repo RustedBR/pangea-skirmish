@@ -322,7 +322,7 @@ public class SpellCastFlowTest
         var longBow  = Make("ArqLongo", Team.Player, new Vector2Int(8, 14), "LongBow", 0, 5, dex: 6);
         Assert.IsTrue(longBow.stats.dexScalesDamage, "arco escala com DEX");
         Assert.IsFalse(sword.stats.dexScalesDamage, "espada continua na STR");
-        Assert.Greater(longBow.stats.PhysicalDamage, 28, "Arco Longo (3 ticks) bate forte por disparo");
+        Assert.GreaterOrEqual(longBow.stats.PhysicalDamage, 26, "Arco Longo (3 ticks) bate forte por disparo (DEX a 2% desde 2026-11-14)");
         Assert.Greater(longBow.stats.PhysicalDamage, shortBow.stats.PhysicalDamage, "arma pesada bate mais por disparo");
         float shortPerTick = shortBow.stats.PhysicalDamage / (float)TickRules.Duration(shortBow, ActionType.Attack, false);
         float swordPerTick = swordDmg / (float)TickRules.Duration(sword, ActionType.Attack, false);
