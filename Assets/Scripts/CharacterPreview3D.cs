@@ -131,12 +131,33 @@ namespace PangeaSkirmish
             return mf != null && mf.sharedMesh != null ? mf.sharedMesh.bounds : new Bounds(Vector3.zero, Vector3.one * 0.1f);
         }
 
+        /// <summary>
+        /// Falso na batalha (2026-11-15): a câmera fica desligada e renderiza sob demanda, ~8× por segundo e só com o
+        /// retrato na tela. Ligada, ela redesenhava a cena a cada quadro mesmo com a inspeção fechada.
+        /// </summary>
+        public bool Live { get => _live; set { _live = value; if (_cam != null) _cam.enabled = value; } }
+        private bool _live = true;
+        /// <summary>O retrato está na tela? (só vale com Live = false)</summary>
+        public bool Visible { get; set; }
+        private float _renderTimer;
+
+        /// <summary>Renderiza agora (troca de unidade com a câmera desligada).</summary>
+        public void RenderNow() { if (_cam != null && !_live) _cam.Render(); }
+
         private void Update()
         {
             if (_pivot == null) return;
+            if (!_live)
+            {
+                if (!Visible) return;
+                _renderTimer -= Time.unscaledDeltaTime;
+                if (_renderTimer > 0f) return;
+                _renderTimer = MobileHUD.Active ? 0.5f : 0.125f;   // celular: quase parado
+            }
             // Balança de um lado ao outro mostrando frente e perfil (não gira de costas).
             _spin += Time.unscaledDeltaTime;
             _pivot.localRotation = Quaternion.Euler(0f, 180f + Mathf.Sin(_spin * 0.8f) * 55f, 0f);
+            if (!_live && _cam != null) _cam.Render();
         }
 
         private void OnDestroy()

@@ -465,6 +465,7 @@ namespace PangeaSkirmish
         {
             _inspectedUnit = u;
             if (u == null) { HideUnitInfo(); return; }
+            if (_unitPreview != null) _unitPreview.Visible = true;
             ApplyUnitInfo(u);
             if (_inspectPanel != null) _inspectPanel.style.display = DisplayStyle.Flex;
             if (_miniLog != null) _miniLog.style.display = DisplayStyle.Flex;
@@ -535,6 +536,7 @@ namespace PangeaSkirmish
 
         public void HideUnitInfo()
         {
+            if (_unitPreview != null) _unitPreview.Visible = false;
             _inspectedUnit = null;
             if (_inspectPanel != null) _inspectPanel.style.display = DisplayStyle.None;
             if (_miniLog != null) _miniLog.style.display = DisplayStyle.None;
@@ -559,8 +561,9 @@ namespace PangeaSkirmish
                     string key = m.ModelName + "|" + (m.WeaponModelName ?? "") + "|" + tc.ToString();
                     if (_unitPreview == null || key != _previewKey)
                     {
-                        if (_unitPreview == null) _unitPreview = CharacterPreview3D.Create(256);
+                        if (_unitPreview == null) { _unitPreview = CharacterPreview3D.Create(256); _unitPreview.Live = false; _unitPreview.Visible = true; }
                         _unitPreview.Show(m.ModelName, m.WeaponModelName, tc);
+                        _unitPreview.RenderNow();
                         _previewKey = key;
                     }
                     _portraitImg.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(_unitPreview.Texture));
@@ -1245,7 +1248,20 @@ namespace PangeaSkirmish
           : t == ActionType.Attack ? (bonus ? "Golpe poderoso" : "Atacar")
           : t == ActionType.Concentrate ? "Concentrar" : t == ActionType.Spell ? "Magia" : "Esperar";
 
+        /// <summary>
+        /// Pede a reconstrução da barra de ticks (2026-11-15): vários pedidos no mesmo quadro (fim do tick, janela de
+        /// incremento, plano editado) viram uma reconstrução só, no próximo update do painel.
+        /// </summary>
         private void RebuildTickRows()
+        {
+            if (_ticksBar == null || _ticksBar.panel == null) { RebuildTickRowsNow(); return; }
+            if (_rowsDirty) return;
+            _rowsDirty = true;
+            _ticksBar.schedule.Execute(() => { _rowsDirty = false; RebuildTickRowsNow(); });
+        }
+        private bool _rowsDirty;
+
+        private void RebuildTickRowsNow()
         {
             if (_ticksBar == null || _tlUnits == null) return;
             _ticksBar.style.display = DisplayStyle.Flex;
@@ -1328,14 +1344,17 @@ namespace PangeaSkirmish
             ruler.Add(rpad);
             var rtrack = new VisualElement { pickingMode = PickingMode.Ignore };
             rtrack.style.flexDirection = FlexDirection.Row; rtrack.style.flexGrow = 1; rtrack.style.position = Position.Relative;
+            // Faixa clara atrás dos números (2026-11-15): sobre o pergaminho eles ficavam pequenos e apagados.
+            rtrack.style.backgroundColor = new Color(1f, 0.97f, 0.88f, 0.85f);
+            rtrack.style.borderTopLeftRadius = rtrack.style.borderTopRightRadius = rtrack.style.borderBottomLeftRadius = rtrack.style.borderBottomRightRadius = 3;
             for (int k = 0; k < cols; k++)
             {
                 bool next = k >= R, past = k < nowCol, now = k == nowCol;
-                var rl = new Label(next ? (k == R ? "próx. 1" : (k - R + 1).ToString()) : (k + 1).ToString()) { pickingMode = PickingMode.Ignore };
-                rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 9; rl.style.height = 12;
+                var rl = new Label(next ? (k == R ? "próx 1" : (k - R + 1).ToString()) : (k + 1).ToString()) { pickingMode = PickingMode.Ignore };
+                rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 14; rl.style.height = 20;
                 rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 0;
-                rl.style.color = now ? new Color(0.06f, 0.08f, 0.16f) : next ? new Color(0.55f, 0.52f, 0.47f) : past ? new Color(0.62f, 0.60f, 0.56f) : new Color(0.30f, 0.31f, 0.38f);
-                rl.style.unityFontStyleAndWeight = now ? FontStyle.Bold : FontStyle.Normal;
+                rl.style.color = now ? new Color(0.06f, 0.08f, 0.16f) : next ? new Color(0.36f, 0.28f, 0.18f) : past ? new Color(0.55f, 0.52f, 0.46f) : new Color(0.12f, 0.12f, 0.16f);
+                rl.style.unityFontStyleAndWeight = FontStyle.Bold;
                 if (now) { rl.style.backgroundColor = new Color(1f, 0.85f, 0.45f, 0.85f); rl.style.borderTopLeftRadius = rl.style.borderTopRightRadius = 3; }
                 rl.style.borderBottomWidth = now ? 2 : 1;
                 rl.style.borderBottomColor = next ? new Color(0.62f, 0.56f, 0.46f) : new Color(0.50f, 0.40f, 0.27f);

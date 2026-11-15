@@ -80,6 +80,9 @@
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
+        // Desempenho (2026-11-15): o celular desenhava na densidade cheia da tela (2,5–3,5×), 6–12× mais pixels por
+        // quadro. 1,5× ainda deixa o texto nítido.
+        config.devicePixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
       } else {
         canvas.style.width = "100vw";
         canvas.style.height = "100vh";
