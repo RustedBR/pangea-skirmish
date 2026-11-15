@@ -16,7 +16,7 @@
    painel passava da tela e o Confirmar ficava cortado embaixo. Agora o painel nunca passa
    de 96% da altura: o meio rola e o rodapé com os botões fica fixo. */
 .cc-panel {
-    width: 940px;
+    width: 49%; min-width: 70%;
     max-width: 96%;
     max-height: 96%;
     padding: 16px 22px;
@@ -63,7 +63,7 @@
 .cc-side {
     flex-direction: column;
     align-items: stretch;
-    width: 330px;
+    width: 35%;
     flex-shrink: 0;
     padding-top: 4px;
 }
@@ -76,8 +76,7 @@
 }
 
 .cc-sprite-preview {
-    width: 230px;
-    height: 230px;
+    width: 75%;   /* quadrado: altura segue a largura (KeepAspect) */
     align-self: center;
     background-color: rgba(0, 0, 0, 0.35);
     border-radius: 10px;
@@ -129,7 +128,7 @@
 
 .cc-load {
     margin-left: 8px;
-    width: 90px;
+    width: 22%;
 }
 
 .cc-row {
@@ -138,7 +137,7 @@
     margin-top: 6px;
     margin-bottom: 6px;
 }
-.cc-row-label { width: 90px; }
+.cc-row-label { width: 22%; }
 
 .cc-step {
     width: 40px;
@@ -147,13 +146,13 @@
 }
 
 .cc-value {
-    width: 120px;
+    width: 30%;
     -unity-text-align: middle-center;
     color: var(--pg-text, rgb(238, 242, 255));
     margin-left: 6px;
     margin-right: 6px;
 }
-.cc-value--wide { width: 180px; }
+.cc-value--wide { width: 45%; }
 
 /* Atributos em duas colunas: metade da altura. */
 .cc-attrs { margin-top: 6px; margin-bottom: 4px; flex-direction: row; flex-wrap: wrap; }
@@ -165,7 +164,7 @@
     margin-bottom: 3px;
     border-radius: 6px;
 }
-.cc-attr-label { width: 60px; }
+.cc-attr-label { width: 18%; }
 .cc-step-value {
     width: 50px;
     -unity-text-align: middle-center;

@@ -71,6 +71,12 @@ namespace PangeaSkirmish
         private static bool _rightClick;
         private static Vector2 _rightDownPos;
 
+        /// <summary>
+        /// Com uma ação armada, o toque não precisa de prévia: o próprio alcance já está na tela, então um toque
+        /// no alvo vira clique na hora (2026-11-14, "ação primeiro"). Sem ação armada, segue a regra dos dois toques.
+        /// </summary>
+        public static bool SingleTapMode;
+
         /// <summary>Esc ou botão "Voltar" da HUD.</summary>
         public static bool BackThisFrame { get { Tick(); return _back; } }
 
@@ -98,7 +104,7 @@ namespace PangeaSkirmish
             _frame = Time.frameCount;
             _click = false; _dragDelta = Vector2.zero; _pinchDelta = 0f; _rightClick = false;
             var rm = Mouse.current;
-            if (rm != null)
+            if (rm != null && rm.added)   // testes trocam os dispositivos; ler um mouse removido dispara assert do Input System
             {
                 if (rm.rightButton.wasPressedThisFrame) _rightDownPos = rm.position.ReadValue();
                 if (rm.rightButton.wasReleasedThisFrame && Vector2.Distance(rm.position.ReadValue(), _rightDownPos) < 8f) _rightClick = true;
@@ -197,7 +203,12 @@ namespace PangeaSkirmish
                 Vector2 pos = _lastUpPos;
                 _pos = pos;
                 float now = Time.unscaledTime;
-                if (now - _lastTapTime <= ConfirmWindow && Vector2.Distance(pos, _lastTapPos) <= ConfirmRadius)
+                if (SingleTapMode)
+                {
+                    _accClick = true;
+                    _lastTapTime = -99f;
+                }
+                else if (now - _lastTapTime <= ConfirmWindow && Vector2.Distance(pos, _lastTapPos) <= ConfirmRadius)
                 {
                     _accClick = true;
                     _lastTapTime = -99f;

@@ -40,6 +40,7 @@ namespace PangeaSkirmish.UI
             var r = Root;
             _stage = AnimationStage.Create(520);
             var view = r.Q<VisualElement>("view");
+            UIHelper.KeepAspect(view, 1f);
             if (view != null) view.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(_stage.Texture));
             _actorLbl = r.Q<Label>("actor-label"); _timeLbl = r.Q<Label>("time-label");
             _notesFor = r.Q<Label>("notes-for"); _notesStatus = r.Q<Label>("notes-status");

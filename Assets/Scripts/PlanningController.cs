@@ -132,6 +132,7 @@ namespace PangeaSkirmish
 
         public void End()
         {
+            PointerInput.SingleTapMode = false;
             ClearProjection();
             _active = false;
             _mode   = PlanMode.Idle;
@@ -430,6 +431,12 @@ namespace PangeaSkirmish
             var w = WeaponCatalog.Get(_controlled.weaponId);
             return new List<BattleHUD.ActionBarItem>
             {
+                // Andar (2026-11-14): no toque, a ação vem primeiro — arma o movimento e um toque no tile já põe na fila.
+                new BattleHUD.ActionBarItem { Id = "move", Glyph = "➜", Icon = "move", Key = "3", Name = "Andar",
+                    Tip = () => $"Mostra até onde você anda; toque ou clique no tile de destino. {Ticks(ActionType.Move)}.",
+                    Enabled = () => _controlled.CanFit(ActionType.Move),
+                    Active = () => _mode == PlanMode.MovePicking,
+                    OnClick = _ => OnMoveClick() },
                 new BattleHUD.ActionBarItem { Id = "attack", Glyph = "⚔", Icon = "dmg", Key = "4", Name = "Atacar (centralizado)",
                     Tip = () => $"Clique num inimigo: a forma da arma ({AttackShape.Describe(WeaponCatalog.Get(_controlled.weaponId))}) centraliza nele. " +
                                 $"Dano comum: ~{_controlled.stats.PhysicalDamage} num alvo inteiro. {Ticks(ActionType.Attack)}.",
@@ -1566,6 +1573,8 @@ namespace PangeaSkirmish
 
         private void Update()
         {
+            // Ação armada (andar, atacar, mirar, magia): no toque, UM toque no alvo já confirma (2026-11-14).
+            PointerInput.SingleTapMode = _active && _mode != PlanMode.Idle;
             if (!_active || !PointerInput.Available) return;
 
             // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)

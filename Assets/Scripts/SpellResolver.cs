@@ -169,7 +169,7 @@ namespace PangeaSkirmish
             string txt = s.description ?? "";
             txt = txt.Replace("{amount}", u != null ? Amount(u, s).ToString() : s.baseAmount.ToString())
                      .Replace("{tick}", TickDamage(s).ToString())
-                     .Replace("{dur}", s.durationTicks.ToString())
+                     .Replace("{dur}", DurationText(s))
                      .Replace("{reach}", u != null ? Reach(u, s).ToString() : s.range.ToString())
                      .Replace("{area}", $"{side}×{side}")
                      .Replace("{push}", s.pushTiles.ToString())
@@ -181,6 +181,11 @@ namespace PangeaSkirmish
                      .Replace("{skinEx}", Mathf.RoundToInt(5 * Mathf.Max(1f, s.multiplier)).ToString());
             return txt;
         }
+
+        /// <summary>Duração da magia em ticks: rounds × ticks por round (2026-11-14).</summary>
+        public static int DurationTicks(SpellDef s) => s == null ? 0 : Mathf.Max(0, s.durationRounds) * Mathf.Max(1, Tuning.Get().ticksPerRound);
+        /// <summary>"1 round", "2 rounds" (descrições e histórico).</summary>
+        public static string DurationText(SpellDef s) { int r = s != null ? s.durationRounds : 0; return $"{r} round{(r == 1 ? "" : "s")}"; }
 
         /// <summary>Dano por tick (Queimando, Magma) já com o multiplicador do tuning.</summary>
         public static int TickDamage(SpellDef s) => Mathf.RoundToInt(s.tickDamage * Tuning.Get().spellTickDamageMult * Tuning.Get().spellValueMult);
@@ -247,7 +252,7 @@ namespace PangeaSkirmish
                     log.Add($"{head}: o próximo ataque não erra (+{Mathf.RoundToInt(s.critBonus * 100)}% crítico)");
                     return log;
                 case SpellEffect.PrepStoneSkin:
-                    caster.stoneSkinTicks = Mathf.Max(1, Tuning.Get().ticksPerRound) + Mathf.Max(0, s.durationTicks);   // + incremento Efeito
+                    caster.stoneSkinTicks = Mathf.Max(1, Tuning.Get().ticksPerRound) + DurationTicks(s);   // 1 round + incremento Efeito
                     caster.stoneSkinMult = s.multiplier;
                     BattleFeedback.Status(caster, "Pele de pedra", new Color(0.86f, 0.80f, 0.70f));
                     log.Add($"{head}: redução de dano ×{s.multiplier:0.#} por {caster.stoneSkinTicks} ticks");
@@ -284,9 +289,9 @@ namespace PangeaSkirmish
             switch (s.effect)
             {
                 case SpellEffect.Foresight:
-                    caster.foresightTicks = Mathf.Max(caster.foresightTicks, s.durationTicks);
+                    caster.foresightTicks = Mathf.Max(caster.foresightTicks, DurationTicks(s));
                     BattleFeedback.Status(caster, "Visão arcana", new Color(0.78f, 0.62f, 1f));
-                    log.Add($"{head}: vê as filas inimigas +2 ticks à frente por {s.durationTicks} ticks");
+                    log.Add($"{head}: vê as filas inimigas +2 ticks à frente por {DurationText(s)}");
                     return log;
 
                 case SpellEffect.Teleport:
@@ -320,12 +325,12 @@ namespace PangeaSkirmish
                 case SpellEffect.ZoneSteam:
                 case SpellEffect.ZoneSandstorm:
                 {
-                    var z = new SpellZone { Kind = s.effect, TicksLeft = s.durationTicks, TickDamage = TickDamage(s), Caster = caster, Name = s.displayName };
+                    var z = new SpellZone { Kind = s.effect, TicksLeft = DurationTicks(s), TickDamage = TickDamage(s), Caster = caster, Name = s.displayName };
                     for (int dx = -radius; dx <= radius; dx++)
                     for (int dy = -radius; dy <= radius; dy++)
                         z.Cells.Add(center + new Vector2Int(dx, dy));
                     field?.Add(z, grid);
-                    log.Add($"{head}: zona de {z.Cells.Count} células por {s.durationTicks} ticks");
+                    log.Add($"{head}: zona de {z.Cells.Count} células por {DurationText(s)}");
                     return log;
                 }
 
@@ -335,10 +340,10 @@ namespace PangeaSkirmish
                     if (dir == Vector2Int.zero) dir = Vector2Int.up;
                     var perp = new Vector2Int(-dir.y, dir.x);
                     int len = Mathf.Max(1, s.area) * AttributeStats.DefaultFootprint; // "3 tiles" de unidade = 9 células
-                    var z = new SpellZone { Kind = SpellEffect.Barrier, TicksLeft = s.durationTicks, Hp = amount, Caster = caster, Name = s.displayName };
+                    var z = new SpellZone { Kind = SpellEffect.Barrier, TicksLeft = DurationTicks(s), Hp = amount, Caster = caster, Name = s.displayName };
                     for (int i = -len / 2; i <= len / 2; i++) z.Cells.Add(center + perp * i);
                     field?.Add(z, grid);
-                    log.Add($"{head}: muralha de {z.Cells.Count} células, {z.Hp} HP, {s.durationTicks} ticks");
+                    log.Add($"{head}: muralha de {z.Cells.Count} células, {z.Hp} HP, {DurationText(s)}");
                     return log;
                 }
             }
@@ -401,9 +406,9 @@ namespace PangeaSkirmish
                 string extra = "";
 
                 if (!t.IsDead && s.appliesStatus == "Burning")
-                { t.burningTicks = Mathf.Max(t.burningTicks, Equipment.HasEffect(t, ItemEffect.FireResist) ? Mathf.Max(1, s.durationTicks / 2) : s.durationTicks); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
+                { t.burningTicks = Mathf.Max(t.burningTicks, Equipment.HasEffect(t, ItemEffect.FireResist) ? Mathf.Max(1, DurationTicks(s) / 2) : DurationTicks(s)); t.burningDamage = Mathf.Max(t.burningDamage, TickDamage(s)); extra += " · Queimando"; BattleFeedback.Status(t, "Queimando", new Color(1f, 0.55f, 0.20f)); }
                 if (!t.IsDead && s.appliesStatus == "Soaked")
-                { if (!Equipment.HasEffect(t, ItemEffect.Dry)) t.soakedTicks = Mathf.Max(t.soakedTicks, s.durationTicks); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
+                { if (!Equipment.HasEffect(t, ItemEffect.Dry)) t.soakedTicks = Mathf.Max(t.soakedTicks, DurationTicks(s)); if (t.burningTicks > 0) { t.burningTicks = 0; extra += " · apagou o fogo"; } extra += " · Encharcado"; BattleFeedback.Status(t, "Encharcado", new Color(0.45f, 0.72f, 1f)); }
                 if (!t.IsDead && s.effect == SpellEffect.CancelMove)
                 {
                     // A andada que termina neste tick também para: a magia resolve antes dela (2026-11-14).

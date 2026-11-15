@@ -76,7 +76,8 @@ public class AttackShapeTests
         var bow = new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5 }.ToAttributeStats();
         WeaponDef.ApplyTo(bow, WeaponCatalog.Get("LongBow"), _t);
         Assert.IsTrue(bow.dexScalesDamage);
-        Assert.AreEqual(WeaponCatalog.Get("LongBow").damage * (1f + 5f * _t.statFormulas.dmgPctPerAttr), bow.DamagePerTile, 0.001f);
+        // Arma à distância escala pela DEX com multiplicador próprio (PR 27; 2% desde 2026-11-14).
+        Assert.AreEqual(WeaponCatalog.Get("LongBow").damage * (1f + 5f * _t.statFormulas.dexDmgPctPerAttr), bow.DamagePerTile, 0.001f);
     }
 
     [Test]

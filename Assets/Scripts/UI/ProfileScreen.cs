@@ -35,6 +35,7 @@ namespace PangeaSkirmish.UI
             _selName     = r.Q<Label>("sel-name");
             _selInfo     = r.Q<Label>("sel-info");
             _preview     = r.Q<VisualElement>("preview");
+            UIHelper.KeepAspect(_preview, 1f);
             _newBtn      = r.Q<Button>("btn-new");
             _editBtn     = r.Q<Button>("btn-edit");
             _deleteBtn   = r.Q<Button>("btn-delete");

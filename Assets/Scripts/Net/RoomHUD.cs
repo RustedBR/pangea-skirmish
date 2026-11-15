@@ -183,6 +183,19 @@ namespace PangeaSkirmish
             _tabChatBtn.clicked  += () => { ShowTab("chat"); };
             _tabGameBtn.clicked  += () => { ShowTab("game"); if (!_tuningBuilt) BuildTuningTab(); };
             _resetTuningBtn.clicked += ResetTuningToDefault;
+            // Busca e presets (2026-11-14)
+            _tuningSearch = r.Q<TextField>("tuning-search");
+            if (_tuningSearch != null)
+            {
+                _tuningSearch.textEdition.placeholder = "Buscar ajuste (ex.: dano, esquiva, mana)…";
+                _tuningSearch.RegisterValueChangedCallback(e => FilterTuning(e.newValue));
+            }
+            _presetName = r.Q<TextField>("preset-name");
+            if (_presetName != null) _presetName.textEdition.placeholder = "Nome do preset";
+            _presetList = r.Q<VisualElement>("preset-list");
+            var saveBtn = r.Q<Button>("btn-preset-save");
+            if (saveBtn != null) saveBtn.clicked += SavePreset;
+            RefreshPresets();
 
             // Tooltip estilo BattleHUD (criado em runtime, append no Root)
             _tooltipGo = new VisualElement();
@@ -594,6 +607,7 @@ namespace PangeaSkirmish
         {
             if (_tuningList == null) return;
             _tuningList.Clear();
+            _tuningRows.Clear(); _tuningHeaders.Clear(); _currentTuningHeader = null;
 
             // Garante que temos um GameTuning ativo (host edita este; clientes recebem por RPC).
             if (RuntimeTuning.Active == null)
@@ -642,6 +656,7 @@ namespace PangeaSkirmish
             }
 
             _tuningBuilt = true;
+            if (_tuningSearch != null && !string.IsNullOrEmpty(_tuningSearch.value)) FilterTuning(_tuningSearch.value);
             // a aba principal (Sala) continua sendo a visível
             ShowTab("chat");
         }
@@ -729,13 +744,101 @@ namespace PangeaSkirmish
             tip += $"\n\nTipo: {f.FieldType.Name}\nValor: {val}";
             AttachTuningTooltip(row, tip);
             _tuningList.Add(row);
+            string group = _currentTuningHeader != null ? (_currentTuningHeader.Q<Label>()?.text ?? "") : "";
+            _tuningRows.Add((row, PangeaSkirmish.UI.UIHelper.Fold(PrettyName(f.Name) + " " + f.Name + " " + tip + " " + group), _currentTuningHeader));
         }
 
         /// <summary>Cabeçalho de grupo da aba Game com ícone: separa as seções do tuning visualmente.</summary>
+        // ── Busca e presets (2026-11-14) ──
+        private TextField _tuningSearch, _presetName;
+        private VisualElement _presetList, _currentTuningHeader;
+        private readonly List<(VisualElement row, string key, VisualElement header)> _tuningRows = new List<(VisualElement, string, VisualElement)>();
+        private readonly List<VisualElement> _tuningHeaders = new List<VisualElement>();
+
+        /// <summary>Esconde linhas que não batem com a busca (nome, explicação e grupo) e grupos que ficam vazios.</summary>
+        private void FilterTuning(string q)
+        {
+            string f = PangeaSkirmish.UI.UIHelper.Fold(q).Trim();
+            var shown = new Dictionary<VisualElement, int>();
+            foreach (var (row, key, header) in _tuningRows)
+            {
+                bool on = f.Length == 0 || key.Contains(f);
+                row.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+                if (header != null) { shown.TryGetValue(header, out int n); shown[header] = n + (on ? 1 : 0); }
+            }
+            foreach (var h in _tuningHeaders)
+            {
+                shown.TryGetValue(h, out int n);
+                h.style.display = n > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+        }
+
+        private void SavePreset()
+        {
+            if (!RuntimeMultiplayerSession.IsHost) { ShowPresetNote("Só o anfitrião salva presets."); return; }
+            string name = _presetName != null ? _presetName.value : "";
+            if (RuntimeTuning.Active == null) RuntimeTuning.Active = Resources.Load<GameTuning>("GameTuning");
+            if (RoomPresets.Save(name, _gameMode, _maxPlayersValue, _planningValue, RuntimeTuning.Active))
+            { ShowPresetNote($"Preset \"{name.Trim()}\" salvo."); RefreshPresets(); }
+            else ShowPresetNote(string.IsNullOrWhiteSpace(name) ? "Dê um nome ao preset." : $"Limite de {RoomPresets.MaxPresets} presets.");
+        }
+
+        /// <summary>Aplica o preset: modo, regras e tuning; refaz a aba e manda a config para a sala.</summary>
+        public void LoadPreset(RoomPresets.Preset p)
+        {
+            if (!RuntimeMultiplayerSession.IsHost || p == null) return;
+            _gameMode = p.gameMode;
+            _maxPlayersValue = Mathf.Clamp(p.maxPlayers, 2, 8);
+            _planningValue = p.planningTime > 0f ? p.planningTime : _planningValue;
+            RuntimeTuning.Active = RoomPresets.TuningOf(p);
+            if (_maxLabel != null) _maxLabel.text = _maxPlayersValue.ToString();
+            UpdateModeHighlight();
+            _tuningBuilt = false;
+            BuildTuningTab();
+            ShowTab("game");
+            if (_presetName != null) _presetName.value = p.name;
+            SyncConfig();
+            OnTuningChanged();
+            ShowPresetNote($"Preset \"{p.name}\" carregado.");
+        }
+
+        private void RefreshPresets()
+        {
+            if (_presetList == null) return;
+            _presetList.Clear();
+            var all = RoomPresets.All();
+            if (all.Count == 0)
+            {
+                var none = new Label("Nenhum preset salvo. Ajuste a sala e use \"Salvar como preset\".");
+                none.AddToClassList("tuning__preset-empty"); _presetList.Add(none);
+                return;
+            }
+            foreach (var p in all)
+            {
+                var pp = p;
+                var chip = new VisualElement(); chip.AddToClassList("tuning__preset");
+                var load = new Button(() => LoadPreset(pp)) { text = pp.name, tooltip = $"Carregar: {GameModes.Name(pp.gameMode)}, até {pp.maxPlayers} jogadores, {pp.planningTime:0}s" };
+                load.AddToClassList("pg-button"); load.AddToClassList("tuning__preset-load");
+                var del = new Button(() => { RoomPresets.Delete(pp.name); RefreshPresets(); ShowPresetNote($"Preset \"{pp.name}\" apagado."); }) { text = "×", tooltip = "Apagar preset" };
+                del.AddToClassList("pg-button"); del.AddToClassList("pg-button--danger"); del.AddToClassList("tuning__preset-del");
+                load.SetEnabled(RuntimeMultiplayerSession.IsHost); del.SetEnabled(RuntimeMultiplayerSession.IsHost);
+                chip.Add(load); chip.Add(del);
+                _presetList.Add(chip);
+            }
+        }
+
+        private void ShowPresetNote(string msg)
+        {
+            if (_presetName != null) _presetName.tooltip = msg;
+            Debug.Log("[Presets] " + msg);
+            if (_startHint != null) _startHint.text = msg;
+        }
+
         private void AddTuningHeader(string title, string iconSprite)
         {
             if (_tuningList == null || string.IsNullOrEmpty(title)) return;
             var hdr = new VisualElement(); hdr.AddToClassList("tuning__header");
+            _currentTuningHeader = hdr; _tuningHeaders.Add(hdr);
             var icon = new Image(); icon.AddToClassList("tuning__hdr-icon");
             var sp = BdragonIcon(iconSprite);
             if (sp != null) icon.style.backgroundImage = new StyleBackground(sp);

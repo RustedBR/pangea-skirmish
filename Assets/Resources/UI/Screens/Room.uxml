@@ -116,6 +116,14 @@
             <ui:VisualElement name="tab-game" class="room__tabpanel" style="display: none;">
                 <ui:VisualElement class="pg-panel room__host-panel">
                     <ui:Label text="Ajustes avançados de balanceamento (só o anfitrião edita; valem ao iniciar a partida)" class="pg-section" />
+                    <ui:VisualElement class="tuning__tools">
+                        <ui:TextField name="tuning-search" class="pg-input tuning__search" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="tuning__tools">
+                        <ui:TextField name="preset-name" class="pg-input tuning__preset-name" />
+                        <ui:Button name="btn-preset-save" text="Salvar como preset" class="pg-button pg-button--primary" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="preset-list" class="tuning__presets" />
                     <ui:ScrollView name="tuning-list" class="pg-list room__scroll room__tuning-list" />
                     <ui:Button name="btn-reset-tuning" text="Voltar ao padrão" class="pg-button" />
                 </ui:VisualElement>

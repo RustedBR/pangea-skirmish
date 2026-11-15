@@ -30,7 +30,7 @@ public class SpellBoostTests
         var ember = SpellCatalog.Get("Ember");
         int flags = (int)(SpellBoost.Effect | SpellBoost.Range | SpellBoost.Quick);
         var b = new PlannedSpell { SpellId = "Ember", Boosts = flags }.Def;
-        Assert.AreEqual(ember.durationTicks + 2, b.durationTicks);
+        Assert.AreEqual(ember.durationRounds + 1, b.durationRounds, "Efeito: +1 round");
         Assert.Greater(b.range, ember.range);
         Assert.AreEqual(System.Math.Max(1, ember.ticksBase - 1), b.ticksBase);
         Assert.AreEqual(ember.ManaPart + 1 + 1 + 2, b.ManaPart);

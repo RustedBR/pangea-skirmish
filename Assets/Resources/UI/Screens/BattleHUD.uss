@@ -23,7 +23,7 @@
 
 /* TOPO */
 .bh-topbar {
-  position: absolute; top: 10px; left: 0; right: 0; width: 357px; height: 51px;
+  position: absolute; top: 0.9%; left: 0; right: 0; width: 18.6%; 
   margin-left: auto; margin-right: auto;
   flex-direction: row; align-items: center; justify-content: space-between;
   padding: 0 14px;
@@ -33,7 +33,7 @@
 
 /* BANDA DE INTENÇÃO — faixa central no topo (NÃO cobre o botão Confirmar) */
 .bh-intentband {
-  position: absolute; top: 66px; left: 50%; width: 780px; min-height: 34px; translate: -50% 0;
+  position: absolute; top: 6.1%; left: 50%; width: 40.6%; min-height: 34px; translate: -50% 0;
   flex-direction: row; align-items: center; justify-content: center; gap: 8px;
   padding: 6px 16px; border-radius: 12px;
   display: none;
@@ -49,7 +49,7 @@
 
 /* CAMERA MODE */
 .bh-camera {
-  position: absolute; top: 10px; right: 10px; width: 110px; height: 24px;
+  position: absolute; top: 0.9%; right: 0.5%; width: 5.7%; 
   align-items: center; justify-content: center; padding: 0;
 }
 .bh-camera-label { font-size: 11px; color: var(--pg-accent, rgb(106, 169, 255)); -unity-font-style: bold; }
@@ -57,11 +57,11 @@
 /* COMPASSO — para onde aponta o norte do mapa na orientação de vista atual (Q/E).
    Fica logo abaixo do indicador de câmera (que termina em y=34), sem colidir. */
 .bh-compass {
-  position: absolute; top: 44px; right: 10px; width: 76px; height: 76px;
+  position: absolute; top: 4.1%; right: 0.5%; width: 4.0%; 
   align-items: center; justify-content: center; padding: 0;
 }
 .bh-compass-rose {
-  position: relative; width: 60px; height: 60px;
+  position: relative; width: 80%; height: 80%;
   rotate: 0deg;
   transition-property: rotate;
   transition-duration: 0.29s;
@@ -88,7 +88,7 @@
 
 /* MINI-LOG TEMPORÁRIO — histórico compacto, só com unidade selecionada */
 .bh-minilog {
-  position: absolute; left: 12px; bottom: 150px; width: 250px;
+  position: absolute; left: 0.6%; bottom: 150px; width: 13.0%;
   flex-direction: column; display: none;
 }
 .bh-minilog-content { flex-direction: column; gap: 3px; overflow: hidden; }
@@ -126,7 +126,7 @@
 
 /* BARRA DE TICKS (GDD-016 §7) — track proporcional ao custo + chips da fila */
 .bh-ticks {
-  position: absolute; bottom: 12px; left: 50%; width: 780px; translate: -50% 0;
+  position: absolute; bottom: 1.1%; left: 50%; width: 40.6%; translate: -50% 0;
   flex-direction: column; align-items: stretch; display: none; padding: 6px 8px;
 }
 .bh-ticks-label { font-size: 11px; color: var(--pg-text, white); -unity-font-style: bold; -unity-text-align: middle-center; margin-bottom: 4px; }
@@ -166,7 +166,7 @@
 
 /* PAINEL DE INTENÇÕES — direita, substitui o menu cascata */
 .bh-intents {
-  position: absolute; right: 12px; bottom: 12px; width: 250px;
+  position: absolute; right: 0.6%; bottom: 1.1%; width: 14.4%;
   flex-direction: column; gap: 5px;
 }
 .bh-intent-btn {
@@ -192,8 +192,8 @@
 
 /* REACTION MENU — modal central (aprovado no mockup v4.1) */
 .bh-reaction {
-  position: absolute; left: 12px; bottom: 40px;   /* canto inferior esquerdo, acima do LOG (2026-11-13) */
-  width: 420px; min-height: 140px;
+  position: absolute; left: 0.6%; bottom: 40px;   /* canto inferior esquerdo, acima do LOG (2026-11-13) */
+  width: 21.9%; min-height: 140px;
   flex-direction: column; align-items: stretch; gap: 6px; padding: 14px;
    border-color: rgb(106, 134, 200);
   display: none;
@@ -218,7 +218,7 @@
   background-color: rgba(0,0,0,0.55); align-items: center; justify-content: center;
   display: none;
 }
-.bh-end-win { width: 820px; height: 240px; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+.bh-end-win { width: 42.7%; height: 22.2%; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
 .bh-end-text { font-size: 40px; color: var(--pg-text, white); -unity-text-align: middle-center; }
 .bh-confirm-btn {
   height: 42px; background-color: rgb(36, 107, 56); color: white;
@@ -331,10 +331,10 @@
 /* DOIS POLEGARES (2026-11-14, celular e PC): ações em grade no canto inferior esquerdo; no direito,
    Postura/Reação, atalhos recolhidos e Confirmar grande. A fila de ticks fica no meio. */
 .bh-abar {
-  left: 12px; bottom: 30px; translate: 0 0; width: 276px;   /* 30: deixa o botão LOG livre no canto */
+  left: 0.6%; bottom: 2.8%; translate: 0 0; width: 14.4%;   /* acima do botão LOG; altura segue os botões */
   flex-direction: row; flex-wrap: wrap; align-items: flex-start; padding: 8px;
 }
-.bh-abtn { width: 80px; height: 66px; margin: 3px; }
+.bh-abtn { width: 30%; margin: 1.5%; }   /* altura = proporção da largura (KeepAspect no C#) */
 .bh-abtn-icon { top: 12px; width: 28px; height: 28px; }
 .bh-abtn-cap {
   position: absolute; bottom: 2px; left: 0; right: 0; font-size: 10px; color: rgb(244, 234, 208);
@@ -342,11 +342,11 @@
 }
 .bh-abtn--on .bh-abtn-cap { color: rgb(8, 14, 34); }
 .bh-abtn-badge { bottom: auto; top: 2px; left: auto; right: 4px; font-size: 10px; -unity-text-align: middle-right; }
-.bh-abar-tip { left: 12px; translate: 0 0; width: 276px; }
-.bh-minilog { top: 76px; bottom: auto; }      /* canto superior esquerdo: embaixo ficam a grade e os menus */
-.bh-reaction { bottom: 214px; }                /* menus de escolha abrem acima da grade de ações */
+.bh-abar-tip { left: 0.6%; translate: 0 0; width: 14.4%; }
+.bh-minilog { top: 7.0%; bottom: auto; }      /* canto superior esquerdo: embaixo ficam a grade e os menus */
+.bh-reaction { bottom: 19.8%; }                /* menus de escolha abrem acima da grade de ações */
 
-.bh-intents { width: 276px; gap: 6px; }
+.bh-intents { width: 14.4%; gap: 6px; }
 .bh-stance { flex-direction: row; }
 .bh-abtn--stance { flex-grow: 1; flex-basis: 0; width: auto; }
 .bh-abtn--stance .bh-abtn-badge { position: absolute; top: auto; bottom: 16px; left: 0; right: 0; font-size: 11px; -unity-text-align: middle-center; }
@@ -358,15 +358,53 @@
 
 /* CELULAR: classe .bh-mobile no root quando MobileHUD está ativo. Tudo maior, sem a faixa de dica. */
 .bh-mobile .bh-intentband { display: none; }
-.bh-mobile .bh-abar { width: 312px; }
-.bh-mobile .bh-abtn { width: 92px; height: 76px; }
+.bh-mobile .bh-abar { width: 20%; }
 .bh-mobile .bh-abtn-cap { font-size: 12px; }
-.bh-mobile .bh-abar-tip { width: 312px; font-size: 14px; }
-.bh-mobile .bh-intents { width: 312px; gap: 8px; }
+.bh-mobile .bh-abar-tip { width: 20%; font-size: 14px; }
+.bh-mobile .bh-intents { width: 20%; gap: 8px; }
 .bh-mobile .bh-intent-btn { height: 48px; font-size: 17px; }
 .bh-mobile .bh-actbtn { height: 48px; font-size: 16px; }
 .bh-mobile .bh-act-confirm { height: 64px; font-size: 22px; }
-.bh-mobile .bh-ticks { width: 440px; }
-.bh-mobile .bh-reaction { bottom: 236px; }
+.bh-mobile .bh-ticks { width: 40%; }
+.bh-mobile .bh-reaction { bottom: 25%; width: 30%; }
 .bh-mobile .bh-minilog-content .bh-log-line-text { font-size: 14px; }
 .bh-mobile .bh-mp-waiting-text { font-size: 24px; }
+
+/* TELA DE MAGIAS (2026-11-14): grade por elemento, busca e descrição de altura fixa. */
+.bh-spellmenu {
+  position: absolute; left: 50%; translate: -50% 0; bottom: 14%; width: 46%; height: 62%;
+  padding: 10px 12px; flex-direction: column;
+}
+.bh-spellmenu > .unity-scroll-view { flex-grow: 1; flex-shrink: 1; }
+.bh-spellmenu-top { flex-direction: row; align-items: center; margin-bottom: 6px; }
+.bh-spellmenu-res { font-size: 12px; color: var(--pg-text-dim, rgb(159, 176, 208)); margin: 0 10px; -unity-font-style: bold; }
+.bh-spellmenu-search { width: 34%; margin: 0; }
+.bh-spellmenu-search .unity-base-text-field__input { font-size: 13px; padding: 4px 8px; }
+.bh-spellgroup { margin-bottom: 6px; }
+.bh-spellgroup-head { flex-direction: row; align-items: center; margin-bottom: 3px; }
+.bh-spellgroup-icon { width: 18px; height: 18px; margin-right: 5px; -unity-background-scale-mode: scale-to-fit; }
+.bh-spellgroup-name { font-size: 13px; -unity-font-style: bold; }
+.bh-spellgroup-count { font-size: 11px; color: var(--pg-text-dim, rgb(159, 176, 208)); margin-left: 6px; }
+.bh-spellgrid { flex-direction: row; flex-wrap: wrap; }
+.bh-spellblock {
+  width: 15.4%; min-height: 0; margin: 0 1.2% 1.2% 0; padding: 6px 6px 6px 28px;
+  background-color: rgb(34, 48, 96); border-radius: 5px;
+  border-width: 1px; border-left-width: 4px; border-color: rgb(46, 42, 60);
+  flex-direction: column; justify-content: center; align-items: flex-start;
+}
+.bh-spellblock:hover, .bh-spellblock:focus { background-color: rgb(50, 70, 132); }
+.bh-spellblock--off { background-color: rgb(92, 98, 122); }
+.bh-spellblock--off > * { opacity: 0.6; }
+.bh-spellblock-icon { position: absolute; left: 5px; top: 6px; width: 18px; height: 18px; -unity-background-scale-mode: scale-to-fit; }
+.bh-spellblock-pair { position: absolute; left: 7px; bottom: 6px; width: 14px; height: 14px; -unity-background-scale-mode: scale-to-fit; opacity: 0.9; }
+.bh-spellblock-name { font-size: 12px; color: rgb(244, 234, 208); -unity-font-style: bold; white-space: normal; -unity-text-align: middle-left; }
+.bh-spellblock-meta { font-size: 10px; color: rgb(185, 196, 220); -unity-text-align: middle-left; }
+.bh-spellmenu-desc {
+  height: 13%; flex-shrink: 0; overflow: hidden; margin-top: 6px; padding: 4px 6px;
+  font-size: 12px; white-space: normal; color: var(--pg-text, rgb(238, 242, 255));
+  background-color: var(--pg-inset, rgba(0, 0, 0, 0.2)); border-radius: 4px;
+}
+.bh-mobile .bh-spellmenu { width: 64%; height: 70%; bottom: 8%; }
+.bh-mobile .bh-spellblock { width: 23.6%; }
+.bh-mobile .bh-spellblock-name { font-size: 14px; }
+.bh-mobile .bh-spellmenu-desc { height: 15%; font-size: 14px; }
