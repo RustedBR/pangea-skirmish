@@ -158,8 +158,6 @@ namespace PangeaSkirmish
             if (_ticksBar == null || u == null) return;
             var pop = new VisualElement { name = "spell-menu" };
             pop.AddToClassList("bh-window"); pop.AddToClassList("bh-spellmenu");
-            var ps = pop.style;
-            ps.position = Position.Absolute;
 
             var top = new VisualElement(); top.AddToClassList("bh-spellmenu-top");
             var head = new Label("MAGIA"); head.AddToClassList("bh-title"); head.style.flexGrow = 1; head.style.marginBottom = 0;
@@ -174,11 +172,8 @@ namespace PangeaSkirmish
             var desc = new Label(idleText) { name = "spell-desc", pickingMode = PickingMode.Ignore };
             desc.AddToClassList("bh-spellmenu-desc");
 
+            // Tamanho e posição em % da tela, no USS (.bh-spellmenu); a lista rola dentro do espaço que sobra.
             var scroll = new ScrollView(ScrollViewMode.Vertical) { name = "spell-scroll" };
-            float rootH = Root != null ? Root.layout.height : float.NaN, rootW = Root != null ? Root.layout.width : float.NaN;
-            float below = (_ticksBar != null ? _ticksBar.worldBound.height : 0f) + 4f + ActionBarClearance();
-            scroll.style.maxHeight = float.IsNaN(rootH) ? 300f : Mathf.Max(140f, rootH - below - 220f);
-            if (!float.IsNaN(rootW)) ps.width = Mathf.Min(860f, rootW - 24f);
 
             var blocks = new List<(VisualElement block, string key, VisualElement group)>();
             var groups = new List<(VisualElement group, Label count)>();
@@ -264,9 +259,7 @@ namespace PangeaSkirmish
             close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
             close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 4;
             pop.Add(close);
-            _ticksBar.Add(pop);
-            var bb = _ticksBar.worldBound;
-            ps.left = 0; ps.bottom = bb.height + 4 + ActionBarClearance();
+            (Root.Q<VisualElement>("root") ?? Root).Add(pop);
             _incPopup = pop;
         }
 

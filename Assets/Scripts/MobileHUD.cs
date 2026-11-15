@@ -68,12 +68,13 @@ namespace PangeaSkirmish
             root.style.left = 0; root.style.right = 0; root.style.top = 0; root.style.bottom = 0;
 
             _back = Make("← Voltar", "mobile-back", () => PointerInput.RequestBack());
-            _back.style.left = 12; _back.style.top = 12; _back.style.width = 130;
+            // Posições e tamanhos em % da tela (2026-11-14).
+            _back.style.left = Length.Percent(1); _back.style.top = Length.Percent(2); _back.style.width = Length.Percent(11);
             _full = Make("⛶", "mobile-full", () => Screen.fullScreen = true);
-            _full.style.left = 150; _full.style.top = 12; _full.style.width = 52;
+            _full.style.left = Length.Percent(12.5f); _full.style.top = Length.Percent(2); _full.style.width = Length.Percent(4.5f);
             _confirm = Make("✓ Confirmar", "mobile-confirm", () => PointerInput.RequestConfirm());
             _confirm.AddToClassList("pg-button--primary");
-            _confirm.style.right = 12; _confirm.style.top = Length.Percent(42); _confirm.style.width = 190; _confirm.style.height = 64;
+            _confirm.style.right = Length.Percent(1); _confirm.style.top = Length.Percent(42); _confirm.style.width = Length.Percent(16); _confirm.style.height = Length.Percent(10);
             _confirm.style.fontSize = 22;
 
             _portrait = new VisualElement { name = "mobile-portrait" };
@@ -92,7 +93,7 @@ namespace PangeaSkirmish
         {
             var b = new Button(onClick) { text = text, name = name };
             b.AddToClassList("pg-button");
-            b.style.position = Position.Absolute; b.style.height = 52; b.style.fontSize = 18;
+            b.style.position = Position.Absolute; b.style.height = Length.Percent(8); b.style.fontSize = 18;
             _doc.rootVisualElement.Add(b);
             return b;
         }
