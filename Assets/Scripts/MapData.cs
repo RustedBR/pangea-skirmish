@@ -109,7 +109,7 @@ namespace PangeaSkirmish
         {
             new CharacterLookDef { displayName = "Automático", modelId = "",          spritePath = Fighter,    blurb = "O corpo acompanha a arma: cajado vira Mago, arco vira Arqueiro, lâmina vira Guerreiro." },
             new CharacterLookDef { displayName = "Guerreiro",  modelId = "Warrior",   spritePath = Fighter,    blurb = "Faixa na cabeça, ombreiras e bandoleira." },
-            new CharacterLookDef { displayName = "Tanque",     modelId = "Tank",      spritePath = Fighter,    blurb = "Elmo de crânio, peitoral de osso e escudo no braço." },
+            new CharacterLookDef { displayName = "Tanque",     modelId = "Tank",      spritePath = Fighter,    blurb = "Elmo de crânio e peitoral de osso." },
             new CharacterLookDef { displayName = "Arqueiro",   modelId = "Archer",    spritePath = Fighter,    blurb = "Capuz, aljava nas costas e botas altas." },
             new CharacterLookDef { displayName = "Mago",       modelId = "Mage",      spritePath = MageSprite, blurb = "Manto, chapéu pontudo e conduíte no peito." },
             new CharacterLookDef { displayName = "Aventureiro",modelId = "Character", spritePath = Fighter,    blurb = "Sem adereços." },
