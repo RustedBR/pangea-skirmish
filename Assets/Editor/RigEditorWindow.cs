@@ -321,7 +321,7 @@ namespace PangeaSkirmish.Editor
             if (plus < 0) return false;
             string item = key.Substring(plus + 1);
             string def = part == "Shield" ? "Tank" : UnitModel3D.DefaultBodyFor(item);
-            asset.ResolveAccessory(m.ModelName, item, part, part == "Weapon" ? "ArmR" : "ArmL", def, out var p, out var r, out var sc);
+            asset.ResolveAccessory(m.ModelName, item, part, part == "Weapon" ? "ArmR" : "ArmL", def, m.MainWeaponId, out var p, out var r, out var sc);
             return (rig.localPosition - p).sqrMagnitude < 1e-6f && Quaternion.Angle(rig.localRotation, r) < 0.05f && (rig.localScale - sc).sqrMagnitude < 1e-6f;
         }
 

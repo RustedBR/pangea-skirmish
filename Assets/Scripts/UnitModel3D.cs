@@ -94,6 +94,7 @@ namespace PangeaSkirmish
             _root.SetParent(transform, false);
 
             ModelName = _monster ? MonsterModelFor(_unit) : CharacterModelFor(_unit, weapon);
+            _mainWeaponId = weapon != null ? weapon.id : "";
             var go = World3D.Spawn(ModelName, _root);
             if (go == null) { enabled = false; Destroy(_root.gameObject); return; }
             _model = go.transform;
@@ -152,7 +153,12 @@ namespace PangeaSkirmish
             var rig = new GameObject(partName + "Rig").transform;
             rig.SetParent(pivot, false);
             part.SetParent(rig, true);
-            RigOffsets.Apply(rig, ModelName, partName);
+            // Corpo com ajuste só para uma arma (ex.: braços do Arqueiro com arco, 2026-11-15) usa a chave do par.
+            var asset = RigOffsets.Get();
+            string key = asset != null && asset.Find(RigOffsets.PairKey(ModelName, _mainWeaponId), partName) != null
+                ? RigOffsets.PairKey(ModelName, _mainWeaponId) : ModelName;
+            _rigKeys[partName] = key;
+            RigOffsets.Apply(rig, key, partName);
             _rigs[partName] = rig;
             return pivot;
         }
@@ -175,7 +181,7 @@ namespace PangeaSkirmish
             if (asset != null)
             {
                 from = asset.ResolveAccessory(ModelName, itemModel, partName, partName == "Weapon" ? "ArmR" : "ArmL",
-                                              defaultBody, out var p, out var r, out var sc);
+                                              defaultBody, _mainWeaponId, out var p, out var r, out var sc);
                 rig.localPosition = p; rig.localRotation = r; rig.localScale = sc;
             }
             _rigSources[partName] = from;
@@ -187,6 +193,9 @@ namespace PangeaSkirmish
         /// <summary>De onde veio o ajuste do acessório: a própria chave, outro corpo (espelhado) ou "" (pose padrão).</summary>
         public string RigSource(string partName) => _rigSources.TryGetValue(partName, out var k) ? k : RigKey(partName);
 
+        private string _mainWeaponId = "";
+        /// <summary>Id da arma principal (decide os ajustes por par corpo+arma).</summary>
+        public string MainWeaponId => _mainWeaponId;
         private readonly Dictionary<string, string> _rigKeys = new Dictionary<string, string>();
         /// <summary>Chave em que o ajuste da peça é salvo: o modelo do corpo, ou corpo+item nos acessórios.</summary>
         public string RigKey(string partName) => _rigKeys.TryGetValue(partName, out var k) ? k : ModelName;
