@@ -31,7 +31,6 @@ namespace PangeaSkirmish
         private Label _profileSummary;
         private ScrollView _roomList;
         private Button _browseBtn;
-        private Button _refreshBtn;
         private Toggle _loopbackToggle;
         private Label _lobbyStatus;
 
@@ -137,12 +136,10 @@ namespace PangeaSkirmish
             _profileSummary = r.Q<Label>("profile-summary");
             _roomList       = r.Q<ScrollView>("room-list");
             _browseBtn      = r.Q<Button>("btn-browse");
-            _refreshBtn     = r.Q<Button>("btn-refresh");
             _loopbackToggle = r.Q<Toggle>("loopback-toggle");
             _lobbyStatus    = r.Q<Label>("lobby-status");
             r.Q<Button>("btn-create").clicked += OnClickCreateRoom;
             _browseBtn.clicked                += OnClickBrowse;
-            _refreshBtn.clicked               += () => _ = RefreshRoomListAsync();
             r.Q<Button>("btn-back").clicked   += () => { StopAutoRefresh(); HideAll(); OnBackToMenu?.Invoke(); };
 
             // --- sala ---
