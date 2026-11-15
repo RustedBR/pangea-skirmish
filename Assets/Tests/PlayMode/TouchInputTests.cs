@@ -24,7 +24,16 @@ public class TouchInputTests : InputTestFixture
         PointerInput.ResetPendingTap();
     }
 
-    public override void TearDown() { base.TearDown(); }
+    public override void TearDown()
+    {
+        base.TearDown();
+#if UNITY_EDITOR
+        // O fixture troca a instância do Input System; sem domain reload no Play (EnterPlayModeOptions), o próximo
+        // Play reusaria ações presas a ela e o console enche de "Map index out of range" (2026-11-15).
+        // O editor recarrega o domínio ao voltar para a edição (PostTestDomainReload).
+        UnityEditor.SessionState.SetBool("PangeaSkirmish.ReloadAfterInputTests", true);
+#endif
+    }
 
     private IEnumerator Tap(Vector2 p, int id = 1)
     {
