@@ -153,4 +153,46 @@ public class CombatRulesTests
         }
         finally { Object.DestroyImmediate(u.gameObject); }
     }
+
+    [Test]
+    public void PowerStrike_AlwaysAddsItsTick_WhateverTheDex()
+    {
+        var u = TestKit.Unit();
+        try
+        {
+            foreach (float dex in new[] { 0f, 3f, 5f, 8f, 12f, 20f })
+            {
+                u.stats = TestKit.Stats(dex: dex);
+                int normal = TickRules.Duration(u, ActionType.Attack, false);
+                int power = TickRules.Duration(u, ActionType.Attack, true);
+                Assert.AreEqual(normal + _t.ticksPowerStrikeExtra, power, $"DEX {dex}: o arredondamento da DEX não pode engolir o tick do golpe poderoso");
+            }
+        }
+        finally { Object.DestroyImmediate(u.gameObject); }
+    }
+
+    [Test]
+    public void LastAction_CanCrossIntoNextRound_ButNothingStartsAfterTheLine()
+    {
+        var u = TestKit.Unit();
+        try
+        {
+            u.BeginPlanning();
+            int cap = _t.maxQueueTicks;
+            // Enche o round até sobrar 1 tick.
+            while (u.remainingAP > 1) { u.actionSequence.Add(new ScheduledAction { Type = ActionType.Wait }); u.RecomputeTickBudget(); }
+            Assert.AreEqual(1, u.remainingAP);
+            Assert.IsTrue(u.CanFit(ActionType.Attack), "1 tick livre basta: o ataque começa neste round e termina no próximo");
+            u.actionSequence.Add(new ScheduledAction { Type = ActionType.Attack, Index = 0 });
+            u.RecomputeTickBudget();
+            Assert.LessOrEqual(u.remainingAP, 0);
+            Assert.IsTrue(u.PlanStartsInRound(), "a última ação começa dentro do round");
+            Assert.IsFalse(u.CanFit(ActionType.Wait), "depois de atravessar a linha não entra mais nada");
+
+            var tooLate = new System.Collections.Generic.List<ScheduledAction>(u.actionSequence) { new ScheduledAction { Type = ActionType.Wait } };
+            Assert.IsFalse(u.PlanStartsInRound(tooLate), "uma ação que começaria depois da linha é recusada");
+            Assert.Greater(u.PlannedTicks() + u.carriedTicks, cap - 1);
+        }
+        finally { Object.DestroyImmediate(u.gameObject); }
+    }
 }

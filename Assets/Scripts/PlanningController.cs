@@ -230,12 +230,13 @@ namespace PangeaSkirmish
                     _hud.ShowPlanNote("Stamina insuficiente para o Golpe poderoso");
                     return;
                 }
-                int extraTicks = TickRules.Duration(_controlled, ActionType.Attack, true)
-                               - TickRules.Duration(_controlled, ActionType.Attack, false);
-                if (extraTicks > _controlled.remainingAP)
+                // O golpe pode crescer para o próximo round (↷), desde que as ações depois dele ainda comecem neste.
+                var trial = new List<ScheduledAction>(_controlled.actionSequence);
+                trial[idx] = new ScheduledAction { Type = action.Type, Index = action.Index, IsBonus = true, IsAimed = action.IsAimed, BonusStep = action.BonusStep };
+                if (!_controlled.PlanStartsInRound(trial))
                 {
-                    _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: sem tempo na fila para Golpe Poderoso", _controlled);
-                    _hud.ShowPlanNote("Sem tick livre para o Golpe poderoso (+1 tick): desfaça uma ação ou use Mirar");
+                    _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: o Golpe poderoso empurraria a próxima ação para fora do round", _controlled);
+                    _hud.ShowPlanNote("O Golpe poderoso (+1 tick) empurraria a ação seguinte para o próximo round: desfaça uma ação ou use Mirar");
                     return;
                 }
                 _controlled.actionSequence[idx] = new ScheduledAction
@@ -1346,6 +1347,13 @@ namespace PangeaSkirmish
             var t = _controlled.actionSequence[i];
             _controlled.actionSequence[i] = _controlled.actionSequence[j];
             _controlled.actionSequence[j] = t;
+            if (!_controlled.PlanStartsInRound())
+            {   // a ação longa no meio empurraria outra para começar depois da linha do round: desfaz a troca
+                _controlled.actionSequence[j] = _controlled.actionSequence[i];
+                _controlled.actionSequence[i] = t;
+                _hud.ShowPlanNote("Assim uma ação começaria depois do fim do round: só a última pode atravessar a linha");
+                return;
+            }
             RecomputePlannedAnchor();
             RebuildPlanVisuals();
         }

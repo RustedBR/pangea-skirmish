@@ -214,8 +214,8 @@ namespace PangeaSkirmish
         {
             why = null;
             if (s == null) { why = "magia desconhecida"; return false; }
-            int d = TickRules.Duration(this, ActionType.Spell, false, s);
-            if (remainingAP < d) { why = $"sem tick livre ({d} tick{(d == 1 ? "" : "s")})"; return false; }
+            // Basta 1 tick livre: a magia começa neste round e o resto atravessa para o próximo (2026-11-15).
+            if (remainingAP <= 0) { why = "sem tick livre neste round"; return false; }
             if (s.StaminaPart > 0 && ProjectedStaminaEnd < s.StaminaPart) { why = $"Stamina insuficiente ({ProjectedStaminaEnd}/{s.StaminaPart})"; return false; }
             if (s.ManaPart > 0 && AvailableMana < s.ManaPart) { why = $"Mana insuficiente ({AvailableMana}/{s.ManaPart})"; return false; }
             return true;
@@ -225,9 +225,23 @@ namespace PangeaSkirmish
         public void GainStamina(int amount) =>
             currentStamina = Mathf.Clamp(currentStamina + amount, 0, stats.MaxStamina);
 
-        /// <summary>Cabe uma ação de 'type' no orçamento restante?</summary>
-        public bool CanFit(ActionType type, bool isBonus = false) =>
-            remainingAP >= TickRules.Duration(this, type, isBonus);
+        /// <summary>
+        /// Cabe mais uma ação? Basta 1 tick livre no round: a última ação pode começar neste round e terminar no
+        /// próximo (2026-11-15, "↷"). Depois dela não entra mais nada.
+        /// </summary>
+        public bool CanFit(ActionType type, bool isBonus = false) => remainingAP > 0;
+
+        /// <summary>Toda ação do plano começa dentro do round? (só a última pode passar da linha)</summary>
+        public bool PlanStartsInRound(List<ScheduledAction> seq = null)
+        {
+            int cap = Tuning.Get().maxQueueTicks, at = carriedTicks;
+            foreach (var a in seq ?? actionSequence)
+            {
+                if (at >= cap) return false;
+                at += TickRules.Duration(this, a);
+            }
+            return true;
+        }
 
         /// <summary>Converte o plano (actionSequence + listas) na fila de ticks. Plano vazio = Esperar.</summary>
         public void BuildQueueFromPlan()
