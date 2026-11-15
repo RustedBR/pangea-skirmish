@@ -439,3 +439,7 @@
 }
 .bh-reaction .bh-reaction-btn:hover { background-color: rgb(248, 236, 204); border-color: rgb(150, 96, 16); }
 .bh-reaction .bh-reaction-btn:active { background-color: rgb(255, 222, 140); }
+
+/* INSPEÇÃO NO CELULAR (2026-11-15): faixa estreita — nome, vida, Mana/Stamina e armas; o resto na "ficha". */
+.bh-mobile .bh-inspect { width: 22%; min-width: 0; padding: 6px 8px; }
+.bh-mobile .bh-portrait { width: 34px; height: 40px; }

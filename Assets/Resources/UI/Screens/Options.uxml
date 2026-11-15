@@ -11,6 +11,9 @@
             <ui:Label text="Efeitos (SFX)" name="lbl-sfx" class="pg-label options__label" />
             <ui:Slider name="opt-sfx" class="pg-slider options__slider" low-value="0" high-value="1" page-size="0.01" />
 
+            <ui:Label text="Tamanho da interface" name="lbl-uiscale" class="pg-label options__label" />
+            <ui:Slider name="opt-uiscale" class="pg-slider options__slider" low-value="0.5" high-value="1.5" page-size="0.05" />
+
             <ui:Label text="Tamanho das barras de vida" name="lbl-plate" class="pg-label options__label" />
             <ui:Slider name="opt-plate" class="pg-slider options__slider" low-value="0.7" high-value="1.6" />
 

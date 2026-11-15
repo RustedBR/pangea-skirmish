@@ -59,6 +59,27 @@ namespace PangeaSkirmish.UI
                 });
             }
 
+            // Tamanho da interface: aplica ao soltar (mudar a escala durante o arrasto move o próprio slider).
+            var ui = Root.Q<Slider>("opt-uiscale");
+            var uiLbl = Root.Q<Label>("lbl-uiscale");
+            if (ui != null)
+            {
+                ui.lowValue = GameSettings.UiScaleMin; ui.highValue = GameSettings.UiScaleMax;
+                ui.SetValueWithoutNotify(GameSettings.UiScale);
+                bool dragging = false;
+                void Label() { if (uiLbl != null) uiLbl.text = $"Tamanho da interface · {Mathf.RoundToInt(ui.value * 100)}%"; }
+                Label();
+                ui.RegisterValueChangedCallback(evt =>
+                {
+                    float v = Mathf.Round(evt.newValue / 0.05f) * 0.05f;
+                    if (!Mathf.Approximately(v, evt.newValue)) { ui.SetValueWithoutNotify(v); }
+                    Label();
+                    if (!dragging) GameSettings.UiScale = v;
+                });
+                ui.RegisterCallback<PointerCaptureEvent>(_ => dragging = true, TrickleDown.TrickleDown);
+                ui.RegisterCallback<PointerCaptureOutEvent>(_ => { dragging = false; GameSettings.UiScale = ui.value; }, TrickleDown.TrickleDown);
+            }
+
             var plate = Root.Q<Slider>("opt-plate");
             if (plate != null)
             {

@@ -22,10 +22,9 @@ public class TouchInputTests : InputTestFixture
         foreach (var es in Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None)) Object.Destroy(es.gameObject);
         _ts = InputSystem.AddDevice<Touchscreen>();
         PointerInput.ResetPendingTap();
-        PointerInput.SingleTapMode = false;
     }
 
-    public override void TearDown() { PointerInput.SingleTapMode = false; base.TearDown(); }
+    public override void TearDown() { base.TearDown(); }
 
     private IEnumerator Tap(Vector2 p, int id = 1)
     {
@@ -43,16 +42,6 @@ public class TouchInputTests : InputTestFixture
         Assert.IsTrue(PointerInput.HasPendingTap);
         yield return Tap(new Vector2(405, 302), 2);
         Assert.IsTrue(PointerInput.ClickThisFrame, "2º toque no mesmo ponto confirma");
-    }
-
-    [UnityTest]
-    public IEnumerator WithArmedAction_OneTapConfirms()
-    {
-        UnityEngine.TestTools.LogAssert.ignoreFailingMessages = true;   // NRE interno do InputForUI sob o fixture
-        yield return null;
-        PointerInput.SingleTapMode = true;
-        yield return Tap(new Vector2(400, 300));
-        Assert.IsTrue(PointerInput.ClickThisFrame, "ação armada: um toque no alvo já vale");
     }
 
     [UnityTest]

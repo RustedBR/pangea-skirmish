@@ -361,7 +361,8 @@ namespace PangeaSkirmish
             if (tagLbl != null) tagLbl.text = tag;
             var hintLbl = band.Q<Label>("intent-hint");
             if (hintLbl != null) hintLbl.text = hint;
-            band.style.display = DisplayStyle.Flex;
+            // Celular (2026-11-15): a dica é de teclado ([1], [Enter], [Esc]) — fica escondida.
+            band.style.display = MobileHUD.Active ? DisplayStyle.None : DisplayStyle.Flex;
         }
         public void HideIntentBand()
         {
@@ -668,8 +669,10 @@ namespace PangeaSkirmish
             _inspectBody.Add(Bar("stamina", s.MaxStamina > 0 ? (float)u.currentStamina / s.MaxStamina : 0f, new Color(1f, 0.82f, 0.30f),
                 $"{u.currentStamina}/{s.MaxStamina}", $"Stamina: paga reações, golpe poderoso e metade das magias Físicas. Volta 1 a cada {s.StaminaRegenTicks} ticks; Respirar dá +{T.breatheStamina}."));
 
-            // Combate em ícones.
+            // Combate em ícones. No celular, compacta: só aparecem na ficha aberta (2026-11-15).
+            bool compactPhone = MobileHUD.Active && !_inspectExpanded;
             var combat = new VisualElement(); combat.AddToClassList("bh-igrid");
+            if (compactPhone) combat.style.display = DisplayStyle.None;
             var w = WeaponCatalog.Get(u.weaponId);
             combat.Add(Chip("dmg", $"{s.PhysicalDamage}", $"Golpe: {s.DamagePerTile:0.#} por tile × {s.ShapeTiles} tiles ({AttackShape.Describe(w)}) num alvo inteiro."));
             combat.Add(Chip("range", $"{u.EffectiveAttackRange}", "Alcance da arma em células (uma unidade ocupa 3)."));
