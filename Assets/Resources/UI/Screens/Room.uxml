@@ -12,11 +12,8 @@
                 <ui:Label text="Criar" class="pg-section" />
                 <ui:Button name="btn-create" text="Criar sala" class="pg-button pg-button--primary" />
 
-                <ui:Label text="Entrar numa sala aberta" class="pg-section room__section-gap" />
+                <ui:Button name="btn-browse" text="Buscar salas" class="pg-button" />
                 <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
-                <ui:VisualElement class="room__code-join-row">
-                    <ui:Button name="btn-browse" text="Buscar salas" class="pg-button room__half-btn" />
-                </ui:VisualElement>
 
                 <ui:Label text="Entrar com o código" class="pg-section room__section-gap" />
                 <ui:VisualElement class="room__code-join-row">
