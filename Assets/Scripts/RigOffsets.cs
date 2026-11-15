@@ -17,7 +17,7 @@ namespace PangeaSkirmish
         [Serializable]
         public class Entry
         {
-            public string model;     // Warrior, Mage, Monster... (ModelName do UnitModel3D)
+            public string model;     // corpo (Warrior, Mage...) ou par corpo+item nos acessórios ("Warrior+IronAxe")
             public string part;      // Head, ArmL, ArmR, LegL, LegR, Tail, Weapon, Offhand, Shield...
             public Vector3 position;
             public Vector3 euler;
@@ -36,6 +36,9 @@ namespace PangeaSkirmish
         /// <summary>O editor criou o asset agora: passa a usar este.</summary>
         public static void SetCache(RigOffsets asset) { _cached = asset;
         }
+
+        /// <summary>Chave do par corpo + item (arma, mão esquerda, escudo).</summary>
+        public static string PairKey(string body, string item) => string.IsNullOrEmpty(item) ? body : body + "+" + item;
 
         public Entry Find(string model, string part) =>
             entries.Find(e => e.model == model && e.part == part);

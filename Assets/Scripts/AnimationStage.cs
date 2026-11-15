@@ -89,6 +89,12 @@ namespace PangeaSkirmish
             Respawn();
         }
 
+        /// <summary>Corpos que o editor de rig pode escolher (vazio = o padrão da arma).</summary>
+        public static readonly string[] Bodies = { "", "Warrior", "Mage", "Archer", "Tank", "Character" };
+        /// <summary>Corpo forçado (Unit.modelId); vazio usa o da arma, como no jogo.</summary>
+        public string BodyId { get; private set; } = "";
+        public void SetBody(string body) { BodyId = body ?? ""; Respawn(); }
+
         public void SetView(View v) { CurrentView = v; PlaceCamera(); }
 
         private void Respawn()
@@ -100,6 +106,7 @@ namespace PangeaSkirmish
             u.unitName = monster ? "Fera" : "Ator";
             u.team = Team.Player;
             u.weaponId = monster ? "Claws" : ActorId;
+            if (!monster && !string.IsNullOrEmpty(BodyId)) u.modelId = BodyId;
             u.stats = new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5, Footprint = monster ? 2 : 3 }.ToAttributeStats();
             var tint = RuntimeTuning.Active != null ? RuntimeTuning.Active.playerTeamColor : Color.white;
             u.Init(_grid, new Vector2Int(3, 3), tint, "Sprites/TinyTactics/Warrior");
