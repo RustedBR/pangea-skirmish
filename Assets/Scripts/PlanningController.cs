@@ -460,7 +460,7 @@ namespace PangeaSkirmish
                 new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "9", Name = "Reação padrão", IconFn = () => ReactionIcon(_controlled.defaultReaction),
                     Tip = () => $"Quando alguém age contra você, abre a janela de reação. Esta é a usada se o tempo da janela acabar. Só 1 reação por round; reagir faz a ação em andamento recomeçar. Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
                                 (_controlled.defaultReaction != ReactionKind.None ? $" ({Unit.ReactionCost(_controlled.defaultReaction)} Stamina)" : "") +
-                                ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2 · Olho certeiro 2 (seu tiro à distância que ia errar).",
+                                $". Esquivar {Unit.ReactionCost(ReactionKind.Dodge)} · Bloquear {Unit.ReactionCost(ReactionKind.Block)} · Contra-atacar {Unit.ReactionCost(ReactionKind.CounterAttack)} · Interpor {Unit.ReactionCost(ReactionKind.Intercept)} · Olho certeiro {Unit.ReactionCost(ReactionKind.TrueAim)} (seu tiro à distância que ia errar).",
                     Badge = () => ReactionName(_controlled.defaultReaction),
                     Active = () => _controlled.defaultReaction != ReactionKind.None,
                     OnClick = back =>
@@ -1155,7 +1155,7 @@ namespace PangeaSkirmish
                     ShowSpellBoostMenu(baseDef, flags);
                 }));
             }
-            opts.Add(($"<b>Conjurar</b>  <size=12><color=#6b4a1e>{cur.CostText} · {cur.ticksBase} tick{(cur.ticksBase == 1 ? "" : "s")}</color></size>", () =>
+            opts.Add(($"<b>Conjurar</b>  <size=12><color=#6b4a1e>{cur.CostText} · {TickRules.Duration(_controlled, ActionType.Spell, false, cur)} tick{(TickRules.Duration(_controlled, ActionType.Spell, false, cur) == 1 ? "" : "s")}</color></size>", () =>
             {
                 _hud.HideReactionMenu();
                 ContinueSpellPick(cur);

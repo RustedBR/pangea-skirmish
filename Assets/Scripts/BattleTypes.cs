@@ -26,7 +26,7 @@ namespace PangeaSkirmish
         public float weaponBase = 2f;
         public float dmgPerSTR  = 1f;
         public float dmgPerINT  = 1f;
-        [Tooltip("Legado (antes do dano por tile). O dano agora é dano por tile × (1 + atributo × dmgPctPerAttr).")]
+        [Tooltip("Legado (antes do dano por tile). O dano agora é dano por tile × (1 + STR × dmgPctPerAttr, ou DEX × dexDmgPctPerAttr à distância).")]
         public float dmgPerDEXRanged = 3f;
         [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) aumenta o dano por tile nesta fração.")]
         public float dmgPctPerAttr = 0.06f;
@@ -59,7 +59,7 @@ namespace PangeaSkirmish
         public int armorBase     = 0;
         [Tooltip("Defesa fixa por ponto de VIT (GDD-020 §7). 0,5 = 1 de defesa a cada 2 de VIT (balanceamento 2026-11-13).")]
         public float armorPerVIT = 0.5f;
-        [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT (substitui a armadura fixa: dano alto passa a ser reduzido na mesma proporção).")]
+        [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT, somada à defesa fixa (armorPerVIT). 0 = desligada (valor atual).")]
         public float armorPctPerVIT = 0f;
         public float armorPctMax    = 0.6f;
         public int magicResistBase  = 0;
@@ -269,7 +269,7 @@ namespace PangeaSkirmish
         public int shapeWidth = 1;
         [Tooltip("Comprimento da forma (na direção do golpe).")]
         public int shapeLength = 1;
-        [Tooltip("Peso da arma em ticks base do ataque: 1 leve, 2 média, 3 pesada. A DEX encurta.")]
+        [Tooltip("Ticks do ataque (2026-11-15): arma de 1 mão = 1, de 2 mãos = 2 (mínimo); Arco Longo 3. A DEX não muda.")]
         public int    attackTicks = 2;
         [Tooltip("Dureza: quanto dano FIXO o Bloquear absorve com esta arma/escudo (PF2e: Shield Block).")]
         public int    blockHardness = 2;
@@ -381,29 +381,38 @@ namespace PangeaSkirmish
         }
 
         /// <summary>
-        /// ticks = max(1, round(base × k / (k + DEX))). A DEX é a rapidez das ações (GDD-016);
+        /// Ataque: ticks fixos da arma (1 mão = 1, 2 mãos ≥ 2; a DEX não muda — 2026-11-15). Magias, Concentrar e
+        /// Respirar: base − ⌊DEX / dexPointsPerTick⌋, mínimo 1 (degraus legíveis no planejamento).
         /// Andar e Esperar não escalam (o alcance da andada é da AGI). A base do ataque é o
         /// peso da arma da unidade.
         /// </summary>
         public static int Duration(Unit u, ActionType type, bool isBonus) => Duration(u, type, isBonus, null);
 
-        /// <summary>Magias usam spell.ticksBase como base; a DEX encurta como qualquer ação (GDD-018).</summary>
+        /// <summary>Magias usam spell.ticksBase como base; a DEX encurta magias, Concentrar e Respirar (ataque, andar e esperar não).</summary>
         public static int Duration(Unit u, ActionType type, bool isBonus, SpellDef spell)
         {
             int b = BaseTicks(type, isBonus);
             if (type == ActionType.Spell && spell != null) b = Mathf.Max(1, spell.ticksBase);
             if (u == null) return Mathf.Max(1, b);
-            // Golpe poderoso (2026-11-15): o tick extra entra DEPOIS da escala da DEX. Antes ele entrava na base e o
-            // arredondamento o engolia (ex.: Atacar 2 e Golpe poderoso 2), e o golpe ficava de graça em tempo.
-            int powerExtra = 0;
+            // Ataque (2026-11-15): ticks fixos pela arma; o golpe poderoso soma +1 tick.
             if (type == ActionType.Attack)
-            {
-                b = Mathf.Max(1, u.stats.AttackTicks);
-                powerExtra = isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0;
-            }
+                return AttackTicks(WeaponCatalog.Get(u.weaponId), u.stats.AttackTicks) + (isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0);
             if (type == ActionType.Wait || type == ActionType.Move) return Mathf.Max(1, b);
-            float k = Mathf.Max(1f, Tuning.Get().tickDexFactor);
-            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX)))) + powerExtra;
+            return DexShortened(b, u.stats.DEX);
+        }
+
+        /// <summary>Ticks de um ataque com a arma: 1 mão = 1, 2 mãos = no mínimo 2 (Arco Longo 3). Garras e desarmado usam o valor dado.</summary>
+        public static int AttackTicks(WeaponDef w, int fallback)
+        {
+            if (w == null || w.id == "Claws" || w.id == "ClawsLarge") return Mathf.Max(1, fallback);
+            return Equipment.IsTwoHanded(w) ? Mathf.Max(2, w.attackTicks) : 1;
+        }
+
+        /// <summary>Magias, Concentrar e Respirar: −1 tick a cada dexPointsPerTick de DEX, mínimo 1.</summary>
+        public static int DexShortened(int baseTicks, float dex)
+        {
+            int step = Mathf.Max(1, Tuning.Get().dexPointsPerTick);
+            return Mathf.Max(1, baseTicks - Mathf.FloorToInt(Mathf.Max(0f, dex) / step));
         }
 
         // ---- Custos em Stamina (GDD-016 §3) ----

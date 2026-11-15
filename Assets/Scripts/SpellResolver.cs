@@ -178,7 +178,7 @@ namespace PangeaSkirmish
                      .Replace("{wall}", (Mathf.Max(1, s.area) * AttributeStats.DefaultFootprint).ToString())
                      .Replace("{drain}", u != null ? Mathf.Max(0, s.Amount(u.stats.INT)).ToString() : "?")
                      .Replace("{skin}", Mathf.Max(1, T.ticksPerRound).ToString())
-                     .Replace("{skinEx}", Mathf.RoundToInt(5 * Mathf.Max(1f, s.multiplier)).ToString());
+                     .Replace("{skinEx}", Mathf.RoundToInt(new AttributeStats { VIT = 5f }.PhysicalDefense * Mathf.Max(1f, s.multiplier)).ToString());
             return txt;
         }
 

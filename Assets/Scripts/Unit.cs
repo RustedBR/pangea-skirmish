@@ -439,13 +439,13 @@ namespace PangeaSkirmish
             if (furyReady > 0f) p.Add($"Fúria (próximo golpe ×{furyReady:0.#})");
             if (trueAimCrit > 0f) p.Add("Olho certeiro (próximo golpe não erra)");
             if (curveReady) p.Add("Curva (próximo ataque à distância segue o alvo)");
-            if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}t (VIT ×{stoneSkinMult:0.#} na defesa)");
+            if (stoneSkinTicks > 0) p.Add($"Pele de pedra {stoneSkinTicks}t (defesa física ×{stoneSkinMult:0.#})");
             if (burningTicks > 0) p.Add($"Queimando {burningTicks}t (−{burningDamage}/tick)");
             if (soakedTicks > 0) p.Add($"Encharcado {soakedTicks}t (−1 andada)");
             if (foresightTicks > 0) p.Add($"Visão arcana {foresightTicks}t");
             if (dodgeReactTiles > 0) p.Add("Esquivando");
             if (blockFlat > 0) p.Add($"Bloqueando (−{blockFlat})");
-            if (IsDulled) p.Add("Embotado (pouca Mana: magias com menos alcance)");
+            if (IsDulled) p.Add($"Embotado (pouca Mana: −{Tuning.Get().dullRangePenalty} alcance, −{Tuning.Get().dullHitPenalty * 100:0}% acerto)");
             return string.Join(" · ", p);
         }
 

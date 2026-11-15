@@ -34,14 +34,14 @@ Tests for stat calculations:
 - `Accuracy` - Hit chance from DEX + weapon
 - `Evasion` - Dodge chance from AGI - footprint
 - `SpellCritChance` - Critical chance from INT
-- `SpellPotency` - Spell power from INT + WIS
+- `SpellPotency` - Spell power from INT
 - `HitsToKill` - Expected hits to defeat enemy
 
 ### SpellBookTests.cs
 Tests for magic system:
 - `Potency` - Spell damage calculation for each element
 - `SpellRange` - Range with conduit bonus
-- `SpellCritChance` - Critical chance from WIS
+- `SpellCritChance` - Spells do not crit; crit comes from DEX (CritChance), and True Aim adds critBonus to the caster's next attack
 - `ElementPair` - Attribute pairs for each element
 - `AffinityBonus` - Bonus when weapon matches spell element
 

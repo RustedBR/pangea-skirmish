@@ -1191,7 +1191,7 @@ namespace PangeaSkirmish
                 bool canP = mine.CanIncrementNext(0), canA = mine.CanIncrementNext(1);
                 string Cost(int st, bool tick) => $"<size=12><color=#6b4a1e>{st} Stamina{(tick ? " · +1 tick" : "")}</color></size>";
                 if (canP) opts.Add(($"<b>Golpe poderoso</b>   ~{now} → <b>~{Dmg(true, q.IsAimed)}</b> de dano\n{Cost(Unit.IncrementCost(0), true)}", () => Submit(0)));
-                if (canA) opts.Add(($"<b>Mirar</b>   ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano, mais acerto\n{Cost(Unit.IncrementCost(1), false)}", () => Submit(1)));
+                if (canA) opts.Add(($"<b>Mirar</b>   ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano (+{aimBonus} da DEX)\n{Cost(Unit.IncrementCost(1), false)}", () => Submit(1)));
                 if (canP && canA && mine.currentStamina >= Unit.IncrementCost(0) + Unit.IncrementCost(1))
                     opts.Add(($"<b>Os dois</b>   ~{now} → <b>~{Dmg(true, true)}</b> de dano\n{Cost(Unit.IncrementCost(0) + Unit.IncrementCost(1), true)}", () => Submit(0, 1)));
                 opts.Add(("Não incrementar", () => Submit()));
@@ -1994,7 +1994,7 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Escolha automática da IA (inimigo SP ou fallback MP).</summary>
-        /// <summary>Bloquear (GDD-020 §8): soma à defesa fixa a dureza da arma/escudo + metade da VIT (blockFlatPerVIT).</summary>
+        /// <summary>Bloquear (GDD-020 §8): soma à defesa fixa a dureza da arma/escudo + VIT × blockFlatPerVIT (0,75 no asset).</summary>
         public static int BlockAmount(Unit u)
         {
             var w = WeaponCatalog.Get(u.weaponId);
@@ -2093,14 +2093,14 @@ namespace PangeaSkirmish
                 case ReactionKind.Dodge:
                     reactor.dodgeReactTiles = 1;   // marca a reação; quantos tiles sai é decidido no golpe (fração da AGI)
                     reactor.PlayReactionAnim(ReactionKind.Dodge);
-                    BattleFeedback.Status(reactor, $"Esquiva: −{Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}%", new Color(0.55f, 0.85f, 1f));
-                    _hud.LogAction($"<color=#2456a8>↯</color> {reactor.unitName}: Esquivar! tira {Mathf.RoundToInt(AttackResolver.DodgeFrac(reactor) * 100)}% dos tiles do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    BattleFeedback.Status(reactor, $"Esquivar: até {DodgeMoveTiles(reactor)} tiles", new Color(0.55f, 0.85f, 1f));
+                    _hud.LogAction($"<color=#2456a8>↯</color> {reactor.unitName}: Esquivar! anda até {DodgeMoveTiles(reactor)} tiles para fora do golpe (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.Block:
                     reactor.blockFlat = BlockAmount(reactor);
                     reactor.PlayReactionAnim(ReactionKind.Block);
                     BattleFeedback.Status(reactor, $"Escudo erguido (−{reactor.blockFlat})", new Color(1f, 0.86f, 0.40f));
-                    _hud.LogAction($"<color=#8f5a0c>🛡</color> {reactor.unitName}: Bloquear! −{reactor.blockFlat} de dano; se absorver tudo, desequilibra (−{Unit.ReactionCost(kind)} Stamina)", reactor);
+                    _hud.LogAction($"<color=#8f5a0c>🛡</color> {reactor.unitName}: Bloquear! −{reactor.blockFlat} de dano; se absorver tudo, desequilibra o atacante (−{Unit.ReactionCost(kind)} Stamina)", reactor);
                     break;
                 case ReactionKind.TrueAim:
                     BattleFeedback.Status(reactor, "Olho certeiro!", new Color(0.33f, 0.80f, 1f));

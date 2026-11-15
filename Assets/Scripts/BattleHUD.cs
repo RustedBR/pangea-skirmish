@@ -682,7 +682,7 @@ namespace PangeaSkirmish
             _inspectBody.Add(Bar("mana", s.MaxMana > 0 ? (float)u.currentMana / s.MaxMana : 0f, new Color(0.31f, 0.59f, 1f),
                 $"{u.currentMana}/{s.MaxMana}", $"Mana: paga magias Elementais e metade das Físicas. Volta 1 a cada {s.ManaRegenTicks} ticks; Concentrar dá +{s.ConcentrateMana}."));
             _inspectBody.Add(Bar("stamina", s.MaxStamina > 0 ? (float)u.currentStamina / s.MaxStamina : 0f, new Color(1f, 0.82f, 0.30f),
-                $"{u.currentStamina}/{s.MaxStamina}", $"Stamina: paga reações, golpe poderoso e metade das magias Físicas. Volta 1 a cada {s.StaminaRegenTicks} ticks; Respirar dá +{T.breatheStamina}."));
+                $"{u.currentStamina}/{s.MaxStamina}", $"Stamina: paga reações, golpe poderoso, Mirar e metade das magias Físicas. Volta 1 a cada {s.StaminaRegenTicks} ticks; Respirar dá +{T.breatheStamina}."));
 
             // Combate em ícones. No celular, compacta: só aparecem na ficha aberta (2026-11-15).
             bool compactPhone = MobileHUD.Active && !_inspectExpanded;
@@ -693,8 +693,8 @@ namespace PangeaSkirmish
             combat.Add(Chip("range", $"{u.EffectiveAttackRange}", "Alcance da arma em células (uma unidade ocupa 3)."));
             combat.Add(Chip("hit", $"{u.EffectiveHitChance * 100:0}%", "Chance de acertar (DEX)."));
             combat.Add(Chip("dodge", $"{s.DodgeChance * 100:0}%", $"Chance de esquiva (AGI); a esquiva tira {AttackResolver.DodgeFrac(u) * 100:0}% dos tiles do golpe."));
-            combat.Add(Chip("def", $"−{s.PhysicalDefense}", $"Defesa física fixa por golpe (VIT × {F.armorPerVIT:0.##}). Bloquear soma {RoundManager.BlockAmount(u)}."));
-            combat.Add(Chip("mdef", $"−{s.MagicDefense}", "Defesa contra magia (WIS)."));
+            combat.Add(Chip("def", $"−{s.PhysicalDefense}", $"Defesa física fixa por golpe (VIT × {F.armorPerVIT:0.##} + armadura). Bloquear soma {RoundManager.BlockAmount(u)}."));
+            combat.Add(Chip("mdef", $"−{s.MagicDefense}", $"Defesa contra magia (WIS + armadura {s.ArmorMag})."));
             if (_inspectExpanded) combat.Add(Chip("move", $"{u.EffectiveMoveStep}", "Células por andada (AGI)."));
             _inspectBody.Add(combat);
 
@@ -723,7 +723,7 @@ namespace PangeaSkirmish
                     Slot(u.headId, ItemSlot.Head); Slot(u.torsoId, ItemSlot.Torso); Slot(u.legsId, ItemSlot.Legs);
                     int wt = Equipment.TotalWeight(Equipment.Of(u)), lim = Equipment.WeightLimit(s.VIT);
                     eq.Add(Chip("stone", wt > lim ? $"<color=#a82c2c>{wt}/{lim}</color>" : $"{wt}/{lim}",
-                        $"Peso {wt} de {lim} (2 + VIT/2).{(wt > lim ? $" {wt - lim} acima: −{wt - lim} na andada, na esquiva e no Esquivar." : "")}"));
+                        $"Peso {wt} de {lim} (2 + VIT/2).{(wt > lim ? $" {wt - lim} acima: −{wt - lim} na andada e no Esquivar, −{(wt - lim) * 4}% de esquiva." : "")}"));
                 }
                 _inspectBody.Add(eq);
             }
@@ -739,10 +739,10 @@ namespace PangeaSkirmish
                     attrs.Add(Chip(icon, $"<color={col}>{key} {v:0}</color>", tip));
                 }
                 A("str", "STR", s.STR, "Força: dano por tile das armas de perto, Stamina.");
-                A("vit", "VIT", s.VIT, "Vitalidade: vida, defesa fixa, bloqueio, Stamina.");
-                A("dex", "DEX", s.DEX, "Destreza: ações mais rápidas, acerto, crítico, dano à distância, Stamina.");
-                A("agi", "AGI", s.AGI, "Agilidade: andada, esquiva (fração de tiles), iniciativa.");
-                A("int", "INT", s.INT, "Inteligência: potência e alcance das magias.");
+                A("vit", "VIT", s.VIT, "Vitalidade: vida, defesa física fixa, Bloquear, Stamina, limite de peso.");
+                A("dex", "DEX", s.DEX, $"Destreza: −1 tick em magias, Concentrar e Respirar a cada {Tuning.Get().dexPointsPerTick} pontos; acerto, crítico, dano à distância, Mirar, iniciativa, Stamina.");
+                A("agi", "AGI", s.AGI, $"Agilidade: andada, esquiva (fração de tiles), Esquivar anda {RoundManager.DodgeMoveTiles(u)} tiles, anda antes de inimigo com menos AGI, Stamina mais rápida acima de {Tuning.Get().agiRegenFrom}, iniciativa.");
+                A("int", "INT", s.INT, "Inteligência: dano, cura e alcance das magias Elementais (não das Físicas).");
                 A("wis", "WIS", s.WIS, "Sabedoria: Mana, regeneração e defesa mágica.");
                 _inspectBody.Add(attrs);
             }
@@ -757,11 +757,11 @@ namespace PangeaSkirmish
             void St(string icon, string name, string tip) => states.Add(Chip(icon, name, tip, "bh-ichip bh-ichip--state"));
             if (u.burningTicks > 0) St("burn", $"{u.burningTicks}t", $"Queimando: −{u.burningDamage} por tick.");
             if (u.soakedTicks > 0) St("soaked", $"{u.soakedTicks}t", "Encharcado: −1 tile de andada. Apaga Queimando.");
-            if (u.stoneSkinTicks > 0) St("stone", $"{u.stoneSkinTicks}t", $"Pele de pedra: defesa da VIT ×{u.stoneSkinMult:0.#}.");
+            if (u.stoneSkinTicks > 0) St("stone", $"{u.stoneSkinTicks}t", $"Pele de pedra: defesa física fixa ×{u.stoneSkinMult:0.#}.");
             if (u.furyReady > 0f) St("fury", "Fúria", $"Próximo golpe ×{u.furyReady:0.#}.");
             if (u.curveReady) St("eye", "Curva", "Próximo ataque à distância segue o alvo e contorna obstáculos.");
             if (u.foresightTicks > 0) St("cast", $"{u.foresightTicks}t", "Visão arcana: vê a fila inimiga mais à frente.");
-            if (u.IsDulled) St("dulled", "Embotado", "Pouca Mana: magias com menos alcance.");
+            if (u.IsDulled) St("dulled", "Embotado", $"Pouca Mana: −{T.dullRangePenalty} de alcance (ataques e magias) e −{T.dullHitPenalty * 100:0}% de acerto.");
             if (u.IsDead) St("hp", "Morto", "Fora da luta.");
             if (states.childCount > 0) _inspectBody.Add(states);
         }
@@ -1770,7 +1770,7 @@ namespace PangeaSkirmish
             string hit = "";
             if (a.TargetUnit != null)
             {
-                float h = Mathf.Clamp01(u.EffectiveHitChance - a.TargetUnit.stats.DodgeChance);
+                float c = u.stats.CritChance; float h = Mathf.Clamp01(c + (1f - c) * u.EffectiveHitChance);
                 hit = $" • {Mathf.RoundToInt(h * 100f)}% de acerto";
             }
             _previewLine.text = $"Plano: {n} ataque{(n > 1 ? "s" : "")} em {who} • ~{total} de dano no total{hit}";
@@ -2143,7 +2143,7 @@ namespace PangeaSkirmish
             switch (k)
             {
                 case ReactionKind.Dodge:         return L($"anda até {RoundManager.DodgeMoveTiles(u)} tile{(RoundManager.DodgeMoveTiles(u) == 1 ? "" : "s")} para fora do golpe");
-                case ReactionKind.Block:         return L($"segura {RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra");
+                case ReactionKind.Block:         return L($"segura {RoundManager.BlockAmount(u)} de dano; se absorver tudo, desequilibra o atacante");
                 case ReactionKind.CounterAttack: return L("golpe da arma; se acertar, interrompe a ação dele");
                 case ReactionKind.Intercept:     return L("anda até o aliado, entra na frente e divide os tiles");
                 case ReactionKind.TrueAim:       return L($"o tiro que ia errar acerta, +{Tuning.Get().trueAimCritBonus * 100:0}% de crítico");
