@@ -393,11 +393,17 @@ namespace PangeaSkirmish
             int b = BaseTicks(type, isBonus);
             if (type == ActionType.Spell && spell != null) b = Mathf.Max(1, spell.ticksBase);
             if (u == null) return Mathf.Max(1, b);
+            // Golpe poderoso (2026-11-15): o tick extra entra DEPOIS da escala da DEX. Antes ele entrava na base e o
+            // arredondamento o engolia (ex.: Atacar 2 e Golpe poderoso 2), e o golpe ficava de graça em tempo.
+            int powerExtra = 0;
             if (type == ActionType.Attack)
-                b = Mathf.Max(1, u.stats.AttackTicks) + (isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0);
+            {
+                b = Mathf.Max(1, u.stats.AttackTicks);
+                powerExtra = isBonus ? Tuning.Get().ticksPowerStrikeExtra : 0;
+            }
             if (type == ActionType.Wait || type == ActionType.Move) return Mathf.Max(1, b);
             float k = Mathf.Max(1f, Tuning.Get().tickDexFactor);
-            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX))));
+            return Mathf.Max(1, Mathf.RoundToInt(b * k / (k + Mathf.Max(0f, u.stats.DEX)))) + powerExtra;
         }
 
         // ---- Custos em Stamina (GDD-016 §3) ----

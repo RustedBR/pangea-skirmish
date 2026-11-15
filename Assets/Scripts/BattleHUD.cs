@@ -1295,8 +1295,11 @@ namespace PangeaSkirmish
             }
             if (planning)
             {
-                int free = Mathf.Max(0, maxTicks - planTotal);
-                _headBase += $"  •  PLANO {Mathf.Min(planTotal, maxTicks)}/{maxTicks} ticks  ({free} livre{(free == 1 ? "" : "s")})";
+                int carriedNow = planUnit.carriedTicks;
+                int free = Mathf.Max(0, maxTicks - carriedNow - planTotal);
+                int over = Mathf.Max(0, carriedNow + planTotal - maxTicks);
+                _headBase += $"  •  PLANO {Mathf.Min(planTotal, maxTicks - carriedNow)}/{maxTicks - carriedNow} ticks  " +
+                             (over > 0 ? $"(↷ {over} no próximo round)" : $"({free} livre{(free == 1 ? "" : "s")})");
                 _headCosts = $"Custo: Andar {TickRules.Duration(planUnit, ActionType.Move, false)} tick  •  " +
                              $"Atacar {TickRules.Duration(planUnit, ActionType.Attack, false)}  •  Golpe poderoso {TickRules.Duration(planUnit, ActionType.Attack, true)}";
             }
