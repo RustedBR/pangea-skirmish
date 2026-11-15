@@ -29,6 +29,7 @@ namespace PangeaSkirmish.Editor
 
         private AnimationStage _stage;
         private int _actor;
+        private int _body;
         private float _speed = 1f;
         private string _part = "Weapon";
         private Vector2 _scroll;
@@ -213,6 +214,13 @@ namespace PangeaSkirmish.Editor
             for (int i = 0; i < names.Length; i++) names[i] = AnimationStage.Actors[i].label;
             int a = EditorGUILayout.Popup(_actor, names);
             if (a != _actor || _stage.Actor == null) { _actor = a; _stage.SetActor(AnimationStage.Actors[_actor].id); }
+            if (AnimationStage.Actors[_actor].id != "Fera")
+            {
+                var bodies = new string[AnimationStage.Bodies.Length];
+                for (int i = 0; i < bodies.Length; i++) bodies[i] = AnimationStage.Bodies[i] == "" ? "Corpo padrão da arma" : AnimationStage.Bodies[i];
+                int b = EditorGUILayout.Popup("Corpo", _body, bodies);
+                if (b != _body) { _body = b; _stage.SetBody(AnimationStage.Bodies[_body]); }
+            }
             var m = Model;
             EditorGUILayout.LabelField("Modelo", m != null ? m.ModelName : "—");
 
@@ -238,7 +246,11 @@ namespace PangeaSkirmish.Editor
                     EditorGUILayout.EndHorizontal();
                 }
 
-                if (m.Rigs.TryGetValue(_part, out var sel) && sel != null) DrawPieceFields(sel);
+                if (m.Rigs.TryGetValue(_part, out var sel) && sel != null)
+                {
+                    EditorGUILayout.HelpBox($"Este ajuste vale para: {m.RigKey(_part)}", MessageType.None);
+                    DrawPieceFields(sel);
+                }
             }
 
             EditorGUILayout.Space(8);
@@ -332,12 +344,13 @@ namespace PangeaSkirmish.Editor
             foreach (var kv in m.Rigs)
             {
                 if (kv.Value == null) continue;
-                asset.Set(m.ModelName, kv.Key, kv.Value.localPosition, kv.Value.localEulerAngles, kv.Value.localScale);
+                asset.Set(m.RigKey(kv.Key), kv.Key, kv.Value.localPosition, kv.Value.localEulerAngles, kv.Value.localScale);
                 n++;
             }
             EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
-            _status = $"Ajustes de {m.ModelName} salvos ({n} peças). Valem para todo personagem com esse modelo.";
+            string arma = m.RigKey("Weapon") != m.ModelName ? $" Arma: {m.RigKey("Weapon")}." : "";
+            _status = $"Ajustes de {m.ModelName} salvos ({n} peças). Corpo vale para todo {m.ModelName};{arma}";
         }
     }
 }

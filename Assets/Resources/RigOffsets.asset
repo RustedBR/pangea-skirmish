@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76d0ed0f5d62f72f58d46ebef54cbf79, type: 3}
+  m_Name: RigOffsets
+  m_EditorClassIdentifier: PangeaSkirmish::PangeaSkirmish.RigOffsets
+  entries:
+  - model: Warrior+IronSword
+    part: Weapon
+    position: {x: -0.16, y: -0.3, z: 0.26}
+    euler: {x: 24.400084, y: 72.2, z: 94.40001}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Mage
+    part: ArmR
+    position: {x: 0, y: 0, z: 0}
+    euler: {x: 318, y: 354.86, z: -0.0000043082464}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Mage+ArcaneStaff
+    part: Weapon
+    position: {x: -0.05, y: 0.05, z: 0.42}
+    euler: {x: 50.10031, y: 355.15, z: 3.0399683}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Archer+ShortBow
+    part: Weapon
+    position: {x: -0.15, y: -0.18, z: 0.14}
+    euler: {x: 78.504585, y: 3.4998493, z: 99.899635}
+    scale: {x: 1.5, y: 1.5, z: 1.5}
+  - model: Archer
+    part: ArmL
+    position: {x: -0.02, y: -0.04, z: 0.01}
+    euler: {x: 310.3, y: 343, z: 359.52}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Archer
+    part: ArmR
+    position: {x: 0, y: -0.03, z: -0.12}
+    euler: {x: 285.09998, y: 357.1, z: 358.55}
+    scale: {x: 0.9, y: 0.86, z: 1.13}
