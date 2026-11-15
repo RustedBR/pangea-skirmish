@@ -61,8 +61,12 @@ namespace PangeaSkirmish
         /// padrão da arma — mantendo a mesma posição em relação à mão: o braço ajustado de cada corpo leva a arma junto.
         /// Devolve de onde veio ("" = sem ajuste, a pose padrão).
         /// </summary>
+        /// <summary>Ajuste do braço do corpo com esta arma na mão: o do par corpo+arma, se houver, senão o do corpo.</summary>
+        public Entry ArmFor(string body, string mainWeapon, string armPart) =>
+            (string.IsNullOrEmpty(mainWeapon) ? null : Find(PairKey(body, mainWeapon), armPart)) ?? Find(body, armPart);
+
         public string ResolveAccessory(string body, string item, string part, string armPart, string preferredSource,
-                                       out Vector3 pos, out Quaternion rot, out Vector3 scale)
+                                       string mainWeapon, out Vector3 pos, out Quaternion rot, out Vector3 scale)
         {
             pos = Vector3.zero; rot = Quaternion.identity; scale = Vector3.one;
             var own = Find(PairKey(body, item), part);
@@ -76,7 +80,9 @@ namespace PangeaSkirmish
                     { src = e; srcBody = e.model.Substring(0, e.model.Length - item.Length - 1); break; }
             if (src == null) return "";
             // Mesma pose em relação ao braço: alvo = braçoAlvo · braçoOrigem⁻¹ · armaOrigem (todos no espaço do ombro).
-            var m = Trs(Find(body, armPart)) * Trs(Find(srcBody, armPart)).inverse * Trs(src);
+            // Braço de origem: o da arma com que a origem foi ajustada (a própria, se for a arma principal).
+            var srcArm = ArmFor(srcBody, part == "Weapon" ? item : null, armPart);
+            var m = Trs(ArmFor(body, mainWeapon, armPart)) * Trs(srcArm).inverse * Trs(src);
             pos = m.GetColumn(3);
             rot = m.rotation;
             scale = m.lossyScale;

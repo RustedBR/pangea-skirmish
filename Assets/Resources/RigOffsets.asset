@@ -38,16 +38,6 @@ MonoBehaviour:
     position: {x: -0.15, y: -0.18, z: 0.14}
     euler: {x: 78.504585, y: 3.4998493, z: 99.899635}
     scale: {x: 1.5, y: 1.5, z: 1.5}
-  - model: Archer
-    part: ArmL
-    position: {x: -0.02, y: -0.04, z: 0.01}
-    euler: {x: 310.3, y: 343, z: 359.52}
-    scale: {x: 1, y: 1, z: 1}
-  - model: Archer
-    part: ArmR
-    position: {x: 0, y: -0.03, z: -0.12}
-    euler: {x: 285.09995, y: 357.1, z: 358.55}
-    scale: {x: 0.9, y: 0.86, z: 1.13}
   - model: Warrior+WoodenSword
     part: Weapon
     position: {x: 0.16, y: -0.42, z: 0.25}
@@ -108,3 +98,23 @@ MonoBehaviour:
     position: {x: -0.01, y: -0.08, z: 0.04}
     euler: {x: 3.8101532, y: 136.4, z: 4.2600045}
     scale: {x: 1, y: 1, z: 1}
+  - model: Archer+ShortBow
+    part: ArmL
+    position: {x: -0.02, y: -0.04, z: 0.01}
+    euler: {x: 310.3, y: 343, z: 359.52}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Archer+ShortBow
+    part: ArmR
+    position: {x: 0, y: -0.03, z: -0.12}
+    euler: {x: 285.09995, y: 357.1, z: 358.55}
+    scale: {x: 0.9, y: 0.86, z: 1.13}
+  - model: Archer+LongBow
+    part: ArmL
+    position: {x: -0.02, y: -0.04, z: 0.01}
+    euler: {x: 310.3, y: 343, z: 359.52}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Archer+LongBow
+    part: ArmR
+    position: {x: 0, y: -0.03, z: -0.12}
+    euler: {x: 285.09995, y: 357.1, z: 358.55}
+    scale: {x: 0.9, y: 0.86, z: 1.13}
