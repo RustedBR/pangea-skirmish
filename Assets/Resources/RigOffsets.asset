@@ -21,12 +21,12 @@ MonoBehaviour:
   - model: Warrior+IronAxe
     part: Weapon
     position: {x: -0.16, y: -0.3, z: 0.26}
-    euler: {x: 24.400084, y: 72.2, z: 94.40001}
+    euler: {x: 12.80003, y: 71.8, z: 94.40002}
     scale: {x: 1, y: 1, z: 1}
   - model: Mage
     part: ArmR
     position: {x: 0, y: 0, z: 0}
-    euler: {x: 318, y: 354.86, z: -0.0000043082464}
+    euler: {x: 318, y: 354.86, z: -0.000004164638}
     scale: {x: 1, y: 1, z: 1}
   - model: Mage+ArcaneStaff
     part: Weapon
@@ -46,5 +46,65 @@ MonoBehaviour:
   - model: Archer
     part: ArmR
     position: {x: 0, y: -0.03, z: -0.12}
-    euler: {x: 285.09998, y: 357.1, z: 358.55}
+    euler: {x: 285.09995, y: 357.1, z: 358.55}
     scale: {x: 0.9, y: 0.86, z: 1.13}
+  - model: Warrior+WoodenSword
+    part: Weapon
+    position: {x: 0.16, y: -0.42, z: 0.25}
+    euler: {x: 12.200091, y: 287.6, z: 251.09998}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Mage+WoodenStaff
+    part: Weapon
+    position: {x: -0.04, y: 0.04, z: 0.36}
+    euler: {x: 45.850002, y: 348.54, z: -0.000004290079}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Mage+Scepter
+    part: Weapon
+    position: {x: 0, y: 0.03, z: 0.41}
+    euler: {x: 47.100834, y: 359.65, z: 357.9}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Archer+LongBow
+    part: Weapon
+    position: {x: 0.62, y: -0.27, z: 0.12}
+    euler: {x: 66.200005, y: 355.79993, z: 246.79984}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Mage+ApprenticeWand
+    part: Weapon
+    position: {x: 0, y: 0.04, z: 0.37}
+    euler: {x: 42.4, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+Hatchet
+    part: Weapon
+    position: {x: -0.18, y: -0.36, z: 0.23}
+    euler: {x: 10.099964, y: 64.2, z: 103.699974}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+Hatchet
+    part: Offhand
+    position: {x: -0.14, y: -0.31, z: 0.27}
+    euler: {x: 7.8001156, y: 74.600044, z: 92.20006}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+WoodenSword
+    part: Offhand
+    position: {x: 0.06, y: -0.16, z: 0.3}
+    euler: {x: 73.20091, y: 10.000003, z: 0.15004577}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+IronSword
+    part: Offhand
+    position: {x: 0, y: -0.22, z: 0.32}
+    euler: {x: 79.600716, y: 1.130003, z: 0.00000266055}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+Scepter
+    part: Offhand
+    position: {x: 0.02, y: -0.04, z: 0.12}
+    euler: {x: 36.700108, y: 1.7000129, z: 356.81}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+ApprenticeWand
+    part: Offhand
+    position: {x: -0.01, y: -0.12, z: 0.25}
+    euler: {x: 64, y: 0, z: 0}
+    scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+Shield
+    part: Shield
+    position: {x: -0.01, y: -0.08, z: 0.04}
+    euler: {x: 3.8101532, y: 136.4, z: 4.2600045}
+    scale: {x: 1, y: 1, z: 1}
