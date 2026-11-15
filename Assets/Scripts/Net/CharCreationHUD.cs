@@ -297,12 +297,12 @@ namespace PangeaSkirmish
             var st = CurrentStats();
             switch (idx)
             {
-                case 0: return $"<b>STR — Força</b>\nDano por tile das armas corpo a corpo: +{F.dmgPctPerAttr * 100:0.#}% por ponto.\nStamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.\nEscala a magia Física <b>Fúria</b>.";
-                case 1: return $"<b>VIT — Vitalidade</b>\nVida: +{F.hpPerVIT:0.#} por ponto.\nDefesa: −1 de dano físico a cada {1f / Mathf.Max(0.01f, F.armorPerVIT):0.#} pontos, uma vez por golpe.\nBloquear soma metade da VIT. Stamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
-                case 2: return $"<b>DEX — Destreza</b>\nAções mais rápidas: menos ticks para atacar e conjurar.\nAcerto +{F.hitPerDEX * 100:0.#}% e crítico +{F.critPerDEX * 100:0.#}% por ponto.\nDano por tile das armas à distância (arcos, cajados): +{F.dmgPctPerAttr * 100:0.#}% por ponto.\nStamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
-                case 3: return $"<b>AGI — Agilidade</b>\nTiles por andada (até {T.maxTilesPerMove}).\nEsquiva +{F.dodgePerAGI * 100:0.#}% por ponto; cada esquiva tira {T.dodgeFracPerAGI * 100:0}% dos tiles do golpe por ponto (até {T.dodgeFracCap * 100:0}%; golpe de 1 tile: chance de errar).\nAcima de {T.agiRegenFrom}, a Stamina volta mais rápido.";
-                case 4: return $"<b>INT — Inteligência</b>\nPotência das magias: +{T.spellPotPerINT:0.#} por ponto.\nAlcance das magias: +{T.spellRangePerINT:0.#} célula por ponto.";
-                default: return $"<b>WIS — Sabedoria</b>\nMana máxima: +{F.manaPerWIS:0.#} por ponto.\nMana volta mais rápido a cada {T.wisRegenStep} pontos.\nDefesa contra magia: −{F.magicResistPerWIS} de dano mágico por ponto.";
+                case 0: return $"<b>STR — Força</b>\nDano por tile das armas corpo a corpo: +{F.dmgPctPerAttr * 100:0.#}% por ponto.\nStamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.\nA <b>Fúria</b> multiplica o dano por tile da arma; a STR não aumenta o multiplicador.";
+                case 1: return $"<b>VIT — Vitalidade</b>\nVida: +{F.hpPerVIT:0.#} por ponto.\nDefesa: −1 de dano físico a cada {1f / Mathf.Max(0.01f, F.armorPerVIT):0.#} pontos, uma vez por golpe.\nBloquear: +{T.blockFlatPerVIT:0.##} por ponto (+ dureza da arma/escudo). Stamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.\nPeso sem penalidade: 2 + VIT/2.";
+                case 2: return $"<b>DEX — Destreza</b>\nMagias, Concentrar e Respirar mais rápidos: −1 tick a cada {T.dexPointsPerTick} pontos (o ataque não muda: 1 mão = 1 tick, 2 mãos = 2, Arco Longo 3).\nAcerto +{F.hitPerDEX * 100:0.#}% e crítico +{F.critPerDEX * 100:0.#}% por ponto.\nDano por tile das armas à distância (arcos, cajados): +{F.dexDmgPctPerAttr * 100:0.#}% por ponto.\nMirar: +{T.aimDexMultiplier:0.#} de dano por ponto. Iniciativa: +{F.iniPerDEX:0.#} por ponto.\nStamina máxima: +{T.staminaPerBodyPoint:0.##} por ponto.";
+                case 3: return $"<b>AGI — Agilidade</b>\nTiles por andada (até {T.maxTilesPerMove}).\nEsquiva contra arma +{F.dodgePerAGI * 100:0.#}% por ponto; ela tira {T.dodgeFracPerAGI * 100:0}% dos tiles do golpe por ponto (até {T.dodgeFracCap * 100:0}%; golpe de 1 tile: chance de errar).\nEsquivar (reação) anda 1 + 1 tile a cada {T.dodgeAgiPerMoveTile:0} pontos para fora do golpe.\nCom mais AGI que todo inimigo que ataca ou conjura no mesmo tick, sua andada sai antes.\nAcima de {T.agiRegenFrom}, a Stamina volta 1 tick mais cedo a cada {T.agiRegenStep} pontos.";
+                case 4: return $"<b>INT — Inteligência</b>\nDano/cura das magias Elementais: +{T.spellPotPerINT * T.spellValueMult:0.##} por ponto × fator da magia (Brasa ×1) × conduíte da arma.\nAlcance das magias Elementais: +{T.spellRangePerINT:0.#} célula por ponto.";
+                default: return $"<b>WIS — Sabedoria</b>\nMana máxima: +{F.manaPerWIS:0.#} por ponto.\nMana volta 1 a cada {T.manaRegenTicks} ticks; −1 tick a cada {T.wisRegenStep} pontos (mínimo 1 tick).\nDefesa contra magia: −{F.magicResistPerWIS} de dano mágico por ponto.";
             }
         }
 
@@ -321,15 +321,15 @@ namespace PangeaSkirmish
                 case UnitModel3D.AttackStyle.Thrust: style = "cajado: estocada e conduíte de magia"; break;
                 default:                             style = "lâmina: corte cruzado"; break;
             }
-            string scale = st.dexScalesDamage ? $"DEX +{st.DEX * F.dmgPctPerAttr * 100:0}%" : $"STR +{st.STR * F.dmgPctPerAttr * 100:0}%";
-            int ticks = Mathf.Max(1, Mathf.RoundToInt(st.AttackTicks * T.tickDexFactor / (T.tickDexFactor + Mathf.Max(0f, st.DEX))));
+            string scale = st.dexScalesDamage ? $"DEX +{st.DEX * F.dexDmgPctPerAttr * 100:0}%" : $"STR +{st.STR * F.dmgPctPerAttr * 100:0}%";
+            int ticks = TickRules.AttackTicks(w, st.AttackTicks);
             string magic = (w.spellPowerMult != 1f || w.spellRangeBonus != 0)
                 ? $"\nConduíte: magias ×{w.spellPowerMult:0.##}" + (w.spellRangeBonus != 0 ? $", +{w.spellRangeBonus} de alcance" : "") + "."
                 : "";
             return $"<b>{w.displayName}</b> — {style}\n" +
                    $"Forma: <b>{AttackShape.Describe(w)}</b> — pega {st.ShapeTiles} dos 9 tiles de um alvo quando centralizada nele\n" +
                    $"Dano por tile: {st.WeaponDamage}{(Equipment.IsTwoHanded(w) ? "" : $" (uma mão: {Tuning.Get().oneHandDamageMult * 100:0}% de {w.damage})")} {scale} = {st.DamagePerTile:0.#} → golpe centralizado <b>{st.PhysicalDamage}</b>\n" +
-                   $"Cadência: {ticks} tick{(ticks == 1 ? "" : "s")} (peso {w.attackTicks}; a DEX encurta) → {st.PhysicalDamage / (float)ticks:0.#} de dano por tick\n" +
+                   $"Cadência: {ticks} tick{(ticks == 1 ? "" : "s")} ({(Equipment.IsTwoHanded(w) ? "duas mãos" : "uma mão")}) → {st.PhysicalDamage / (float)ticks:0.#} de dano por tick\n" +
                    $"Alcance: {st.AttackRange} célula{(st.AttackRange == 1 ? "" : "s")} (uma unidade ocupa 3).  Bloqueio: +{w.blockHardness}.{magic}";
         }
 
@@ -340,12 +340,12 @@ namespace PangeaSkirmish
             var st = CurrentStats();
             if (_weaponInfoLbl != null && w != null)
             {
-                int tk = Mathf.Max(1, Mathf.RoundToInt(st.AttackTicks * T.tickDexFactor / (T.tickDexFactor + Mathf.Max(0f, st.DEX))));
+                int tk = TickRules.AttackTicks(w, st.AttackTicks);
                 _weaponInfoLbl.text = $"{AttackShape.Describe(w)} · {st.DamagePerTile:0.#} por tile ({st.PhysicalDamage} centralizado) a cada {tk} tick{(tk == 1 ? "" : "s")} · alcance {st.AttackRange} · {(st.dexScalesDamage ? "DEX" : "STR")}" +
                                       (w.spellPowerMult != 1f ? $" · magia ×{w.spellPowerMult:0.##}" : "");
             }
             if (_derivedLbl == null) return;
-            int emberDmg = Mathf.RoundToInt((4f * T.spellBaseMult + st.INT * T.spellPotPerINT) * (w != null ? w.spellPowerMult : 1f));
+            int emberDmg = Mathf.RoundToInt((4f * T.spellBaseMult + st.INT * T.spellPotPerINT) * (w != null ? w.spellPowerMult : 1f) * T.spellValueMult);
             int emberReach = Mathf.RoundToInt(4f * T.spellRangeMult + st.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0);
             _derivedLbl.text =
                 $"<b>Vida</b> {st.MaxHP}    <b>Stamina</b> {st.MaxStamina}    <b>Mana</b> {st.MaxMana}\n" +
@@ -485,7 +485,7 @@ namespace PangeaSkirmish
                 var st = CurrentStats();
                 int wt = Equipment.TotalWeight(Equipment.Of(_editing)), lim = Equipment.WeightLimit(st.VIT);
                 _eqWeightLbl.text = wt > lim
-                    ? $"Peso {wt} / {lim} — <color=#a82c2c>{wt - lim} acima: −{wt - lim} na andada e na esquiva</color>"
+                    ? $"Peso {wt} / {lim} — <color=#a82c2c>{wt - lim} acima: −{wt - lim} na andada e no Esquivar, −{(wt - lim) * 4}% de esquiva</color>"
                     : $"Peso {wt} / {lim}";
             }
         }

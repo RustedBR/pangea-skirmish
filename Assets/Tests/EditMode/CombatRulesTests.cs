@@ -195,4 +195,41 @@ public class CombatRulesTests
         }
         finally { Object.DestroyImmediate(u.gameObject); }
     }
+
+    [Test]
+    public void AttackTicks_OneHand1_TwoHand2_LongBow3_DexDoesNotChange()
+    {
+        var u = TestKit.Unit();
+        try
+        {
+            foreach (var w in WeaponCatalog.All())
+                foreach (float dex in new[] { 0f, 10f, 25f })
+                {
+                    u.weaponId = w.id;
+                    u.stats = TestKit.Stats(dex: dex);
+                    WeaponDef.ApplyTo(u.stats, w, _t);
+                    int expected = w.id == "LongBow" ? 3 : Equipment.IsTwoHanded(w) ? 2 : 1;
+                    Assert.AreEqual(expected, TickRules.Duration(u, ActionType.Attack, false), $"{w.id} com DEX {dex}");
+                }
+        }
+        finally { Object.DestroyImmediate(u.gameObject); }
+    }
+
+    [Test]
+    public void Dex_ShortensSpellsAndConcentrate_InSteps_NeverBelowOne()
+    {
+        var u = TestKit.Unit();
+        try
+        {
+            int step = _t.dexPointsPerTick;
+            u.stats = TestKit.Stats(dex: step - 1);
+            Assert.AreEqual(_t.ticksConcentrate, TickRules.Duration(u, ActionType.Concentrate, false), "abaixo do degrau não muda");
+            u.stats = TestKit.Stats(dex: step);
+            Assert.AreEqual(Mathf.Max(1, _t.ticksConcentrate - 1), TickRules.Duration(u, ActionType.Concentrate, false), "cada degrau tira 1 tick");
+            u.stats = TestKit.Stats(dex: step * 20);
+            Assert.AreEqual(1, TickRules.Duration(u, ActionType.Concentrate, false), "nunca abaixo de 1");
+            Assert.AreEqual(_t.ticksMove, TickRules.Duration(u, ActionType.Move, false), "andar não escala com DEX");
+        }
+        finally { Object.DestroyImmediate(u.gameObject); }
+    }
 }

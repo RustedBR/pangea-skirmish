@@ -57,7 +57,7 @@ MonoBehaviour:
   weapons:
   - id: Hatchet
     displayName: Machado
-    damage: 6
+    damage: 5
     range: 1
     shape: 2
     shapeWidth: 3
@@ -69,43 +69,43 @@ MonoBehaviour:
     elementAffinity: 1
   - id: IronAxe
     displayName: Machado de Ferro
-    damage: 6
+    damage: 4
     range: 2
     shape: 2
     shapeWidth: 3
     shapeLength: 2
-    attackTicks: 3
+    attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 6
   - id: WoodenSword
     displayName: Espada de Madeira
-    damage: 12
+    damage: 7
     range: 3
     shape: 1
     shapeWidth: 1
     shapeLength: 2
-    attackTicks: 2
+    attackTicks: 1
     blockHardness: 3
     spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 4
   - id: IronSword
     displayName: Espada de Ferro
-    damage: 8
+    damage: 4
     range: 4
     shape: 2
     shapeWidth: 3
     shapeLength: 1
-    attackTicks: 2
+    attackTicks: 1
     blockHardness: 3
     spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 3
   - id: WoodenStaff
     displayName: Cajado
-    damage: 4
+    damage: 8
     range: 7
     shape: 1
     shapeWidth: 1
@@ -122,26 +122,26 @@ MonoBehaviour:
     shape: 3
     shapeWidth: 2
     shapeLength: 2
-    attackTicks: 2
+    attackTicks: 1
     blockHardness: 2
     spellPowerMult: 1.15
     spellRangeBonus: 1
     elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
-    damage: 15
+    damage: 25
     range: 8
     shape: 0
     shapeWidth: 1
     shapeLength: 1
-    attackTicks: 1
+    attackTicks: 2
     blockHardness: 0
     spellPowerMult: 1.0
     spellRangeBonus: 0
     elementAffinity: 5
   - id: LongBow
     displayName: Arco Longo
-    damage: 25
+    damage: 28
     range: 10
     shape: 0
     shapeWidth: 1
@@ -165,7 +165,7 @@ MonoBehaviour:
     elementAffinity: 4
   - id: ArcaneStaff
     displayName: Cajado Arcano
-    damage: 4
+    damage: 5
     range: 7
     shape: 1
     shapeWidth: 1

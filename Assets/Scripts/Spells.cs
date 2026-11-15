@@ -51,9 +51,9 @@ namespace PangeaSkirmish
         public SpellElement[] elements = Array.Empty<SpellElement>();
         [Tooltip("Física: atributo que escala o efeito (STR/AGI/VIT/DEX). Elemental: sempre INT (POT).")]
         public Attr scalesWith = Attr.INT;
-        [Tooltip("Custo em Mana (Elemental) ou Stamina (Física).")]
+        [Tooltip("Custo total. Elemental: tudo em Mana; Física: metade em Stamina, o resto em Mana.")]
         public int cost = 2;
-        [Tooltip("Ticks base; a DEX encurta como qualquer ação.")]
+        [Tooltip("Ticks base; a DEX tira 1 tick a cada dexPointsPerTick pontos (mínimo 1).")]
         public int ticksBase = 2;
         [Tooltip("Alcance em tiles a partir do conjurador. 0 = só em si. −1 = sem alvo (ex.: Visão arcana).")]
         public int range = 4;
@@ -62,7 +62,7 @@ namespace PangeaSkirmish
         public SpellEffect effect = SpellEffect.Damage;
 
         [Header("Números do efeito")]
-        [Tooltip("Dano/cura/drenagem = baseAmount + POT × potFactor (POT = INT).")]
+        [Tooltip("Dano/cura = (baseAmount × spellBaseMult + INT × spellPotPerINT × potFactor) × conduíte × spellValueMult. Drenagem = baseAmount + INT × potFactor.")]
         public float baseAmount = 0f;
         public float potFactor = 0f;
         [Tooltip("Ticks que a zona/status/buff dura.")]
@@ -146,7 +146,7 @@ namespace PangeaSkirmish
             P("Leap",      "Salto",         Attr.AGI, 3, 1, SpellEffect.Leap,          mult: 2f, range: -1,
               desc: "Salta até {reach} células por cima de obstáculos e ameaças. O salto não provoca oportunidade (começar a conjurar no alcance de alguém provoca)."),
             P("StoneSkin", "Pele de pedra", Attr.VIT, 2, 1, SpellEffect.PrepStoneSkin, mult: 5f,
-              desc: "Por 1 round, a defesa da VIT conta ×{mult} contra dano físico (VIT 5 → −{skinEx} por golpe)."),
+              desc: "Por 1 round, a defesa física fixa (VIT + armadura) conta ×{mult} contra dano físico (VIT 10 sem armadura → −{skinEx} por golpe)."),
             P("Curve",     "Curva",         Attr.AGI, 2, 1, SpellEffect.PrepCurve,
               desc: "O seu próximo ataque à distância (arma ou magia, inclusive de área) faz curva: segue o alvo se ele se mover ou esquivar, e contorna Muralha, Tempestade de areia e quem estiver no caminho."),
 

@@ -67,7 +67,7 @@ namespace PangeaSkirmish
         public int reactCostIntercept = 2;
         [Tooltip("Legado: tiles por AGI. A esquiva agora tira uma FRAÇÃO dos tiles (dodgeFracPerAGI).")]
         public int dodgeAgiPerTile = 3;
-        [Tooltip("Esquiva (natural ou reação) tira AGI × isto dos tiles do golpe, até dodgeFracCap. Contra golpe de 1 tile vira chance de errar (balanceamento 2026-11-13).")]
+        [Tooltip("Esquiva natural (contra arma) e Esquivar contra magia de alvo único tiram AGI × isto dos tiles do golpe, até dodgeFracCap. Contra golpe de 1 tile vira chance de errar. Contra forma/área, o Esquivar só anda (dodgeAgiPerMoveTile).")]
         public float dodgeFracPerAGI = 0.05f;   // era 0.06
         public float dodgeFracCap = 0.5f;        // era 0.6
         [Tooltip("Garras das feras: dano por tile, ticks, forma arco 3×1.")]
@@ -108,7 +108,7 @@ namespace PangeaSkirmish
         public int concentrateMana = 3;
         [Tooltip("Embotamento dos sentidos: abaixo desta fração da Mana máxima, a unidade perde alcance e acerto.")]
         [Range(0f, 1f)] public float dullManaFraction = 0.25f;
-        [Tooltip("Tiles de alcance perdidos no embotamento (só ataques/magias à distância; corpo a corpo não cai abaixo de 1).")]
+        [Tooltip("Células de alcance perdidas no embotamento (todos os ataques e magias; o alcance nunca cai abaixo de 1).")]
         public int dullRangePenalty = 1;
         [Tooltip("Acerto perdido no embotamento (0.10 = −10%).")]
         [Range(0f, 1f)] public float dullHitPenalty = 0.10f;
@@ -122,7 +122,7 @@ namespace PangeaSkirmish
         public int conduitManaDiscount = 1;
         [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
         public float conduitPotBonus = 0.25f;
-        [Tooltip("Potência mágica por ponto de INT. Dano/cura = base × spellBaseMult + INT × spellPotPerINT × fator da magia. 3 deixa a Brasa (INT 6) perto de uma espada (STR 6).")]
+        [Tooltip("Potência mágica por ponto de INT. Dano/cura = (base × spellBaseMult + INT × spellPotPerINT × fator da magia) × conduíte da arma × spellValueMult.")]
         public float spellPotPerINT = 1.5f;
         [Tooltip("Multiplicador do valor base das magias (dano, cura, HP da Muralha).")]
         public float spellBaseMult = 2.25f;
@@ -140,16 +140,16 @@ namespace PangeaSkirmish
         public float spellFxPause = 0.45f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
-        [Tooltip("Ticks base do ataque desarmado e das feras (armas usam WeaponDef.attackTicks). 2 = igual a uma arma média.")]
+        [Tooltip("Ticks do ataque desarmado. Armas: 1 mão = 1, 2 mãos = 2 (Arco Longo 3); feras usam beastClawTicks.")]
         public int ticksUnarmed = 2;
         [Tooltip("Ticks somados à base da arma num golpe poderoso.")]
         public int ticksPowerStrikeExtra = 1;
-        [Tooltip("Ticks base: concentrar.")]
+        [Tooltip("Ticks base: Concentrar e Respirar (a DEX tira 1 a cada dexPointsPerTick pontos, mínimo 1).")]
         public int ticksConcentrate = 2;
         [Tooltip("Ticks de Esperar (timeout sem ação). Não escala com AGI.")]
         public int ticksWait = 1;
-        [Tooltip("k da fórmula de rapidez: ticks = base × k / (k + DEX). Maior = DEX pesa menos.")]
-        public float tickDexFactor = 10f;
+        [Tooltip("DEX encurta magias, Concentrar e Respirar em degraus: −1 tick a cada N pontos (mínimo 1 tick). Ataques NÃO: 1 mão = 1 tick, 2 mãos = 2 (Arco Longo 3).")]
+        public int dexPointsPerTick = 10;
         [Tooltip("A cada N ticks globais: status, efeitos de tile e reações renovam (equivale ao antigo round).")]
         public int ticksPerRound = 4;
         [Tooltip("Ticks adicionados à fila de quem reage.")]
@@ -172,7 +172,7 @@ namespace PangeaSkirmish
         public int unarmedRange = 0;
         [Tooltip("Alcance natural da unidade além do footprint, em tiles (gap). Efetivo = base + arma.")]
         public int baseAttackRange = 1;
-        [Tooltip("Armas com range ACIMA disso não escalam dano com STR (usam Mirar/DEX).")]
+        [Tooltip("Armas com range (da arma, sem o base) ACIMA disso escalam o dano com DEX (dexDmgPctPerAttr) em vez de STR.")]
         public int strDamageMaxRange = 4;
         [Tooltip("Mirar: dano extra no próximo ataque = DEX * este fator.")]
         public float aimDexMultiplier = 1f;
@@ -190,16 +190,16 @@ namespace PangeaSkirmish
         // (Machado), alcance (Espada de Ferro), golpe pesado (Machado de Ferro), à distância por
         // DEX (arcos), conduítes que reforçam magia (cajados). Antes o Machado batia 10 em 1 tick.
         public WeaponDef[] weapons = {
-            new WeaponDef{ id="Hatchet", displayName="Machado", damage=6, range=1, attackTicks=1, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="IronAxe", displayName="Machado de Ferro", damage=6, range=2, attackTicks=3, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=2, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira", damage=12, range=3, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=2, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="IronSword", displayName="Espada de Ferro", damage=8, range=4, attackTicks=2, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="WoodenStaff", displayName="Cajado", damage=4, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.1f, spellRangeBonus=0 },
-            new WeaponDef{ id="Scepter", displayName="Cetro", damage=3, range=6, attackTicks=2, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=2, spellPowerMult=1.15f, spellRangeBonus=1 },
-            new WeaponDef{ id="ShortBow", displayName="Arco Curto", damage=15, range=8, attackTicks=1, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="LongBow", displayName="Arco Longo", damage=25, range=10, attackTicks=3, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="Hatchet", displayName="Machado", damage=5, range=1, attackTicks=1, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="IronAxe", displayName="Machado de Ferro", damage=4, range=2, attackTicks=2, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=2, blockHardness=2, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="WoodenSword", displayName="Espada de Madeira", damage=7, range=3, attackTicks=1, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=2, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="IronSword", displayName="Espada de Ferro", damage=4, range=4, attackTicks=1, shape=AttackShapeKind.Arc, shapeWidth=3, shapeLength=1, blockHardness=3, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="WoodenStaff", displayName="Cajado", damage=8, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.1f, spellRangeBonus=0 },
+            new WeaponDef{ id="Scepter", displayName="Cetro", damage=3, range=6, attackTicks=1, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=2, spellPowerMult=1.15f, spellRangeBonus=1 },
+            new WeaponDef{ id="ShortBow", displayName="Arco Curto", damage=25, range=8, attackTicks=2, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
+            new WeaponDef{ id="LongBow", displayName="Arco Longo", damage=28, range=10, attackTicks=3, shape=AttackShapeKind.Single, shapeWidth=1, shapeLength=1, blockHardness=0, spellPowerMult=1.0f, spellRangeBonus=0 },
             new WeaponDef{ id="ApprenticeWand", displayName="Varinha", damage=4, range=5, attackTicks=1, shape=AttackShapeKind.Square, shapeWidth=2, shapeLength=2, blockHardness=1, spellPowerMult=1.0f, spellRangeBonus=0 },
-            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano", damage=4, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.3f, spellRangeBonus=2 },
+            new WeaponDef{ id="ArcaneStaff", displayName="Cajado Arcano", damage=5, range=7, attackTicks=2, shape=AttackShapeKind.Line, shapeWidth=1, shapeLength=3, blockHardness=2, spellPowerMult=1.3f, spellRangeBonus=2 },
         };
 
         [Tooltip("Valor mínimo por atributo no editor de personagem do menu.")]
@@ -726,13 +726,13 @@ namespace PangeaSkirmish
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
         public float reactionChoiceTime   = 3f;
-        [Tooltip("Esquiva: +chance de dodge por ponto de AGI (fração). Ex: 0.03 → AGI 10 = +30% dodge no ataque.")]
+        [Tooltip("Legado (não usado): a chance de esquiva é StatFormulas.dodgePerAGI e a fração de tiles é dodgeFracPerAGI.")]
         public float dodgeReactionPerAGI  = 0.09f;
-        [Tooltip("Bloqueio: redução de dano recebido por ponto de VIT (fração). Ex: 0.03 → VIT 10 = -30% dano.")]
+        [Tooltip("Legado (não usado): o Bloquear agora é fixo, ver blockFlatPerVIT.")]
         public float blockReductionPerVIT = 0.04f;   // legado (percentual): o Bloquear agora é FIXO
-        [Tooltip("Bloquear: redução fixa = VIT × este valor + dureza da arma (GDD-017).")]
+        [Tooltip("Bloquear: redução fixa = VIT × este valor + dureza da arma e do escudo (GDD-017).")]
         public float blockFlatPerVIT = 0.25f;
-        [Tooltip("Teto da redução de dano do Bloqueio (fração, 0.60 = máx 60% a menos).")]
+        [Tooltip("Legado (não usado): o Bloquear fixo não tem teto percentual.")]
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]
         public float aooDamageMult        = 0.6f;   // rebalance 2026-11-14: contra-ataque forte demais (era 1.0)
