@@ -428,3 +428,14 @@
 /* Dica ao passar o mouse nos botões: respiro entre o texto e a moldura do pergaminho. */
 .bh-abar-tip { padding: 14px 18px; }
 .bh-mobile .bh-abar-tip { padding: 16px 20px; }
+
+/* JANELAS DE ESCOLHA EM PERGAMINHO (2026-11-15): incrementar magia, reação e escolhas usam o mesmo
+   botão claro da grade de ações; ícones de traço grosso e caixa de marcar leem bem nele. O texto quebra
+   linha em vez de sair do botão. */
+.bh-reaction .bh-reaction-btn {
+  background-color: rgb(236, 220, 180); border-color: rgb(120, 84, 40); border-width: 2px; border-radius: 5px;
+  color: rgb(52, 34, 14); white-space: normal; flex-shrink: 1; max-width: 100%; overflow: hidden;
+  -unity-text-align: middle-left; padding: 8px 12px;
+}
+.bh-reaction .bh-reaction-btn:hover { background-color: rgb(248, 236, 204); border-color: rgb(150, 96, 16); }
+.bh-reaction .bh-reaction-btn:active { background-color: rgb(255, 222, 140); }

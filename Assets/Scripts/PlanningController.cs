@@ -1143,7 +1143,7 @@ namespace PangeaSkirmish
                 if (!SpellBoosts.Allowed(baseDef, b)) continue;
                 var bb = b;
                 bool on = (flags & (int)b) != 0;
-                opts.Add(($"{(on ? "<color=#7fe0a0>✓</color>" : "○")} {SpellBoosts.Label(b)}  <size=12><color=#b9c4dc>{SpellBoosts.Cost(b)} Mana</color></size>", () =>
+                opts.Add(($"{(on ? TextIcons.BoxOn : TextIcons.BoxOff)} {SpellBoosts.Icon(b)} {SpellBoosts.Label(b)}  <size=12><color=#6b4a1e>{SpellBoosts.Cost(b)} Mana</color></size>", () =>
                 {
                     int next = flags ^ (int)bb;
                     if (!on && !_controlled.CanFitSpell(SpellBoosts.Apply(baseDef, next), out string why))
@@ -1152,7 +1152,7 @@ namespace PangeaSkirmish
                     ShowSpellBoostMenu(baseDef, flags);
                 }));
             }
-            opts.Add(($"<b>Conjurar</b>  <size=12><color=#b9c4dc>{cur.CostText} · {cur.ticksBase} tick{(cur.ticksBase == 1 ? "" : "s")}</color></size>", () =>
+            opts.Add(($"<b>Conjurar</b>  <size=12><color=#6b4a1e>{cur.CostText} · {cur.ticksBase} tick{(cur.ticksBase == 1 ? "" : "s")}</color></size>", () =>
             {
                 _hud.HideReactionMenu();
                 ContinueSpellPick(cur);

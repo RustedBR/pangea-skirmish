@@ -1907,7 +1907,7 @@ namespace PangeaSkirmish
             if (u == null) return baseText;
             var T = Tuning.Get();
             int cost = Unit.ReactionCost(k);
-            string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#b9c4dc>{effect} · {cost} Stamina</color></size>";
+            string L(string effect) => $"<b>{baseText}</b>\n<size=12><color=#6b4a1e>{effect} · {cost} Stamina</color></size>";
             switch (k)
             {
                 case ReactionKind.Dodge:         return L($"anda até {RoundManager.DodgeMoveTiles(u)} tile{(RoundManager.DodgeMoveTiles(u) == 1 ? "" : "s")} para fora do golpe");

@@ -259,6 +259,14 @@ namespace PangeaSkirmish
             return false;
         }
 
+        /// <summary>Ícone do incremento (sprite de texto, 2026-11-15).</summary>
+        public static string Icon(SpellBoost b) => b switch
+        {
+            SpellBoost.Power => TextIcons.BoostPower, SpellBoost.Effect => TextIcons.BoostEffect,
+            SpellBoost.Range => TextIcons.BoostRange, SpellBoost.Area => TextIcons.BoostArea,
+            SpellBoost.Quick => TextIcons.BoostQuick, _ => ""
+        };
+
         public static string Label(SpellBoost b) => b switch
         {
             SpellBoost.Power  => $"Potência: dano/cura ×{PowerMult:0.#}, físicas ×{PhysicalPowerMult:0.#} (+1 tick)",
