@@ -189,7 +189,7 @@ namespace PangeaSkirmish
                 var gi = new VisualElement(); gi.AddToClassList("bh-spellgroup-icon");
                 var gtex = IconTex(icon); if (gtex != null) gi.style.backgroundImage = new StyleBackground(gtex);
                 var gl = new Label(el == SpellElement.Physical ? "Física" : ElementInfo.Name(el)); gl.AddToClassList("bh-spellgroup-name");
-                gl.style.color = ElementInfo.Color(el) * 0.75f + new Color(0f, 0f, 0f, 0.25f);
+                gl.style.color = Color.Lerp(ElementInfo.Color(el), Color.black, 0.55f);   // escuro: tons claros (Ar) sumiam no pergaminho
                 var gc = new Label(""); gc.AddToClassList("bh-spellgroup-count");
                 gh.Add(gi); gh.Add(gl); gh.Add(gc);
                 var grid = new VisualElement(); grid.AddToClassList("bh-spellgrid");
@@ -208,7 +208,7 @@ namespace PangeaSkirmish
                     var ic = new VisualElement { pickingMode = PickingMode.Ignore }; ic.AddToClassList("bh-spellblock-icon");
                     var tx = IconTex(SpellIcon(s.IsPhysical ? SpellElement.Physical : s.PrimaryElement)); if (tx != null) ic.style.backgroundImage = new StyleBackground(tx);
                     var nm = new Label(s.displayName) { pickingMode = PickingMode.Ignore }; nm.AddToClassList("bh-spellblock-name");
-                    var meta = new Label($"{s.CostText} · {ticks}t") { pickingMode = PickingMode.Ignore }; meta.AddToClassList("bh-spellblock-meta");
+                    var meta = new Label($"{s.CostText} · {ticks}t") { pickingMode = PickingMode.Ignore }; meta.AddToClassList("bh-spellblock-meta");   // quebra linha em bloco estreito
                     b.Add(ic); b.Add(nm); b.Add(meta);
                     if (s.IsPair && s.elements.Length > 1)
                     {
@@ -562,20 +562,20 @@ namespace PangeaSkirmish
             if (float.IsNaN(w) || float.IsNaN(H) || w <= 0f || W <= 0f) return;
             Vector2 Screen(Unit x) => RuntimePanelUtils.CameraTransformWorldToPanel(panel, x.HeadWorld, cam);
             Vector2 me = Screen(_inspectedUnit);
-            const float gap = 40f, top = 120f, bottomReserve = 200f;   // topo: barra de fase e dica   // topo: barra de fase; baixo: barras de ação e ticks
+            float gap = W * 0.02f, top = H * 0.11f, bottomReserve = H * 0.18f;   // em % da tela: em px fixos a bolha saía por baixo no celular   // topo: barra de fase e dica   // topo: barra de fase; baixo: barras de ação e ticks
             var cands = new List<Vector2>
             {
                 new Vector2(me.x - gap - w, me.y - h * 0.3f),   // à esquerda da unidade
                 new Vector2(me.x - gap - w, me.y - h),          // à esquerda, acima
                 new Vector2(me.x - gap - w, me.y + 10f),        // à esquerda, abaixo
                 new Vector2(me.x + gap,     me.y - h * 0.3f),   // à direita da unidade
-                new Vector2(12f, top),                          // colada na borda esquerda, no topo
+                new Vector2(W * 0.01f, top),                          // colada na borda esquerda, no topo
                 new Vector2(12f, H - bottomReserve - h),        // colada na borda esquerda, embaixo
             };
             Vector2 best = cands[0]; int bestScore = int.MaxValue;
             for (int i = 0; i < cands.Count; i++)
             {
-                var c = new Vector2(Mathf.Clamp(cands[i].x, 12f, Mathf.Max(12f, W - w - 12f)), Mathf.Clamp(cands[i].y, top, Mathf.Max(top, H - bottomReserve - h)));
+                var c = new Vector2(Mathf.Clamp(cands[i].x, 12f, Mathf.Max(12f, W - w - 12f)), Mathf.Clamp(cands[i].y, Mathf.Min(top, Mathf.Max(0f, H - h)), Mathf.Max(Mathf.Min(top, Mathf.Max(0f, H - h)), Mathf.Min(H - bottomReserve - h, H - h))));
                 var rect = new Rect(c.x - 16f, c.y - 16f, w + 32f, h + 32f);
                 int covered = 0;
                 foreach (var u in UnitRegistry.Tracked)
@@ -1004,7 +1004,7 @@ namespace PangeaSkirmish
                 string shortName = item.Name ?? "";
                 int cut = shortName.IndexOf(" ("); if (cut > 0) shortName = shortName.Substring(0, cut);
                 if (item.Id == "reaction") shortName = "Reação";
-                var cap = new Label(shortName) { pickingMode = PickingMode.Ignore }; cap.AddToClassList("bh-abtn-cap");
+                var cap = new Label(shortName) { pickingMode = PickingMode.Ignore }; cap.AddToClassList("bh-abtn-cap"); UIHelper.FitText(cap);
                 btn.Add(glyph); btn.Add(key); btn.Add(badge); btn.Add(cap);
                 _barGlyphs[item] = glyph;
                 btn.RegisterCallback<ClickEvent>(e =>
