@@ -22,6 +22,35 @@ namespace PangeaSkirmish
             set { PlayerPrefs.SetFloat(KEY_PLATE, Mathf.Clamp(value, 0.7f, 1.6f)); PlayerPrefs.Save(); }
         }
 
+        // ── Tamanho da interface (2026-11-15): 50% a 150%, salvo separado no celular e no PC ──
+        public const float UiScaleMin = 0.5f, UiScaleMax = 1.5f;
+        private static string KeyUiScale => "settings.uiScale." + (UnityEngine.Device.Application.isMobilePlatform ? "mobile" : "pc");
+
+        public static float UiScale
+        {
+            get { return Mathf.Clamp(PlayerPrefs.GetFloat(KeyUiScale, 1f), UiScaleMin, UiScaleMax); }
+            set { PlayerPrefs.SetFloat(KeyUiScale, Mathf.Clamp(value, UiScaleMin, UiScaleMax)); PlayerPrefs.Save(); ApplyUiScale(); }
+        }
+
+        private static bool _uiScaleRestoreHooked;
+        /// <summary>Aplica o tamanho da UI no PanelSettings de todas as telas (no editor, devolve o original ao sair do Play).</summary>
+        public static void ApplyUiScale()
+        {
+            var ps = Resources.Load<UnityEngine.UIElements.PanelSettings>(UI.PangeaScreen.PanelSettingsResource);
+            if (ps == null) return;
+            if (Application.isEditor && !_uiScaleRestoreHooked)
+            {
+                _uiScaleRestoreHooked = true;
+                float keep = ps.scale;
+                void Restore() { Application.quitting -= Restore; ps.scale = keep; _uiScaleRestoreHooked = false; }
+                Application.quitting += Restore;
+            }
+            ps.scale = UiScale;
+        }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void BootUiScale() => ApplyUiScale();
+
         // Cache em memória (evita ler PlayerPrefs a todo momento)
         private static float  _musicVolume  = 1f;
         private static float  _sfxVolume    = 1f;

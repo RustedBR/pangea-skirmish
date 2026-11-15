@@ -126,9 +126,12 @@ namespace PangeaSkirmish
         {
             bool portrait = Screen.height > Screen.width;
             Show(_portrait, portrait);
-            Show(_back, !portrait);
+            // Voltar só quando a tela não tem como voltar sozinha (Voltar, Fechar, Cancelar, Desfazer, Sair).
+            if (Time.frameCount % 10 == 0 || _screenHasBack == null) _screenHasBack = ScreenHasOwnBack();
+            Show(_back, !portrait && _screenHasBack == false);
             Show(_full, !portrait && !Screen.fullScreen);
-            Show(_confirm, !portrait && PointerInput.HasPendingTap);   // só enquanto um 1º toque espera o 2º
+            // ✓ só no planejamento, com ação escolhida e o alvo tocado (prévia na tela) — 2026-11-15.
+            Show(_confirm, !portrait && PlanningController.ArmedForTouch && PointerInput.HasPendingTap);
 
             bool over = portrait;
             var panel = _doc != null && _doc.rootVisualElement != null ? _doc.rootVisualElement.panel : null;
@@ -139,6 +142,31 @@ namespace PangeaSkirmish
                     if (b != null && b.resolvedStyle.display == DisplayStyle.Flex && b.worldBound.Contains(p)) { over = true; break; }
             }
             PointerOver = over;
+        }
+
+        private bool? _screenHasBack;
+        private static readonly string[] BackWords = { "voltar", "fechar", "cancelar", "desfazer", "sair" };
+
+        /// <summary>Alguma tela visível já tem um botão de voltar/fechar? Aí o Voltar flutuante sobra.</summary>
+        private bool ScreenHasOwnBack()
+        {
+            foreach (var doc in FindObjectsByType<UIDocument>(FindObjectsSortMode.None))
+            {
+                if (doc == _doc || doc.rootVisualElement == null || !doc.isActiveAndEnabled) continue;
+                foreach (var b in doc.rootVisualElement.Query<Button>().ToList())
+                {
+                    if (string.IsNullOrEmpty(b.text) || b.resolvedStyle.display == DisplayStyle.None || b.resolvedStyle.visibility == Visibility.Hidden) continue;
+                    var r = b.worldBound;
+                    if (float.IsNaN(r.width) || r.width < 2f || r.height < 2f) continue;
+                    bool shown = true;
+                    for (var p = b.parent; p != null; p = p.parent)
+                        if (p.resolvedStyle.display == DisplayStyle.None || p.resolvedStyle.opacity < 0.05f) { shown = false; break; }
+                    if (!shown) continue;
+                    string t = UIHelper.Fold(b.text);
+                    foreach (var w in BackWords) if (t.Contains(w)) return true;
+                }
+            }
+            return false;
         }
 
         private void Update()

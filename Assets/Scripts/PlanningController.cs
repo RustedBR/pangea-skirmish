@@ -38,6 +38,8 @@ namespace PangeaSkirmish
 
         /// <summary>True quando o clique do mouse está reservado para escolher destino/alvo.</summary>
         public bool IsPicking => _active && _mode != PlanMode.Idle;
+        /// <summary>Há uma ação escolhida esperando o alvo? O ✓ do celular só aparece nesse caso.</summary>
+        public static bool ArmedForTouch { get; private set; }
         /// <summary>Jogador no meio de montar a jogada (intenção armada ou prévia na tela): o relógio de decisão pausa.</summary>
         public bool IsEngaged => _active && _controlled != null &&
             (_controlled.actionSequence.Count > 0 || _mode != PlanMode.Idle);
@@ -111,7 +113,7 @@ namespace PangeaSkirmish
 
         public void End()
         {
-            PointerInput.SingleTapMode = false;
+            ArmedForTouch = false;
             ClearProjection();
             _active = false;
             _mode   = PlanMode.Idle;
@@ -1475,7 +1477,8 @@ namespace PangeaSkirmish
         private void Update()
         {
             // Ação armada (andar, atacar, mirar, magia): no toque, UM toque no alvo já confirma (2026-11-14).
-            PointerInput.SingleTapMode = _active && _mode != PlanMode.Idle;
+            // Celular (2026-11-15): com ação armada, o toque no alvo mostra a prévia e o ✓ confirma.
+            ArmedForTouch = _active && _mode != PlanMode.Idle;
             if (!_active || !PointerInput.Available) return;
 
             // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)
