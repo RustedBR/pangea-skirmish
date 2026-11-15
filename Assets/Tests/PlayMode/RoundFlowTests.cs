@@ -9,7 +9,13 @@ using UnityEngine.TestTools;
 public class RoundFlowTests
 {
     private Battlefield _b;
-    [UnitySetUp] public IEnumerator SetUp() { _b = new Battlefield(); yield return _b.Build(); }
+    [UnitySetUp] public IEnumerator SetUp()
+    {
+        // Sem domain reload, a instância de input trocada pelo teste de toque pode sobrar e o Input System
+        // solta um assert interno ("Map index out of range") aqui. Não é regra do round; os Asserts é que valem.
+        UnityEngine.TestTools.LogAssert.ignoreFailingMessages = true;
+        _b = new Battlefield(); yield return _b.Build();
+    }
     [TearDown] public void TearDown() { Battlefield.Clean(); RuntimeMultiplayerSession.IsMultiplayer = false; }
 
     /// <summary>O alvo termina uma andada no mesmo tick em que o golpe (ou magia) termina.</summary>

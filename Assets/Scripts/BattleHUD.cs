@@ -512,8 +512,9 @@ namespace PangeaSkirmish
             float cx = _inspectPanel.resolvedStyle.left, cy = _inspectPanel.resolvedStyle.top;
             float k = Mathf.Clamp01(Time.unscaledDeltaTime * 12f);
             if (float.IsNaN(cx) || Mathf.Abs(cx - best.x) > 600f) { cx = best.x; cy = best.y; k = 1f; }
-            _inspectPanel.style.left = Mathf.Lerp(cx, best.x, k);
-            _inspectPanel.style.top = Mathf.Lerp(cy, best.y, k);
+            // Mesmo deslizando (ex.: a tela mudou de tamanho), nunca fica fora da tela.
+            _inspectPanel.style.left = Mathf.Clamp(Mathf.Lerp(cx, best.x, k), 0f, Mathf.Max(0f, W - w));
+            _inspectPanel.style.top = Mathf.Clamp(Mathf.Lerp(cy, best.y, k), 0f, Mathf.Max(0f, H - h));
         }
 
         public void HideUnitInfo()
