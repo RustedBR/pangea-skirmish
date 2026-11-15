@@ -11,7 +11,7 @@ namespace PangeaSkirmish
     /// </summary>
     public class AnimationStage : MonoBehaviour
     {
-        public enum View { Game, Side, Front }
+        public enum View { Game, Side, Front, Free }
 
         /// <summary>Animações disponíveis: id, nome na tela e quanto tempo observar (s).</summary>
         public static readonly (string id, string label, float seconds)[] Clips =
@@ -35,6 +35,8 @@ namespace PangeaSkirmish
         public string ActorId { get; private set; } = "IronSword";
         public string ClipId { get; private set; } = "idle";
         public View CurrentView { get; private set; } = View.Game;
+        /// <summary>Câmera livre do editor de rig (2026-11-15): giro em graus e zoom (1 = enquadra o ator).</summary>
+        public float Yaw = -20f, Pitch = 20f, Zoom = 1f;   // -20: frente em 3/4 (o ator olha para StageForward)
 
         private GridManager _grid;
         private Camera _cam;
@@ -136,11 +138,12 @@ namespace PangeaSkirmish
             {
                 case View.Side:  rot = Quaternion.LookRotation(-Vector3.Cross(Vector3.up, f) + Vector3.down * 0.12f); break;
                 case View.Front: rot = Quaternion.LookRotation(-f + Vector3.down * 0.12f); break;
+                case View.Free:  rot = Quaternion.Euler(Mathf.Clamp(Pitch, -80f, 85f), Yaw, 0f); break;
                 default:         rot = World3D.CamRotation; break;
             }
             Vector3 look = Actor.transform.position + _center;
             _cam.transform.SetPositionAndRotation(look - rot * Vector3.forward * 60f, rot);
-            _cam.orthographicSize = _height * 1.05f;     // folga para arma erguida, investida e salto
+            _cam.orthographicSize = _height * 1.05f / Mathf.Max(0.1f, Zoom);     // folga para arma erguida, investida e salto
         }
 
         /// <summary>Recria o ator parado. Espere alguns quadros antes de Play: ao nascer, o modelo ainda
