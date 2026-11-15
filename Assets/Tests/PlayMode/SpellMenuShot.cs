@@ -76,16 +76,35 @@ public class SpellMenuShot
 
         var menu = root.Q<VisualElement>("spell-menu");
         Assert.IsNotNull(menu, "menu de magia aberto");
-        int spellButtons = 0; Button explosion = null;
-        menu.Query<Button>().ForEach(b => { if (b.text.Contains("[")) spellButtons++; if (b.text.Contains("Explosão")) explosion = b; });
-        Assert.AreEqual(19, spellButtons, "19 magias listadas");
+        int spellButtons = menu.Query<Button>(className: "bh-spellblock").ToList().Count;
+        var explosion = menu.Q<Button>("spell-Explosion");
+        Assert.AreEqual(19, spellButtons, "19 magias na grade");
         Assert.IsNotNull(explosion);
+        // Agrupadas por elemento: a Explosão (Fogo + Ar) fica no grupo de Fogo.
+        Assert.AreEqual(ElementInfo.Name(SpellElement.Fire), explosion.parent.parent.Q<Label>(className: "bh-spellgroup-name").text);
+
+        // Busca sem acento e por elemento: "agua" acha as magias de Água; "zzz" esconde tudo.
+        var search = menu.Q<TextField>("spell-search");
+        search.value = "agua"; yield return null;
+        int visible = 0;
+        menu.Query<Button>(className: "bh-spellblock").ForEach(b => { if (b.resolvedStyle.display == DisplayStyle.Flex) visible++; });
+        Assert.Greater(visible, 0, "busca por elemento acha magias");
+        Assert.Less(visible, 19, "e filtra as outras");
+        Assert.AreEqual(DisplayStyle.None, menu.Q<Button>("spell-Ember").resolvedStyle.display, "Brasa (Fogo) sai da busca por água");
+        search.value = ""; yield return null;
+
+        // A descrição tem altura fixa: trocar de magia não move o painel.
+        float topBefore = menu.worldBound.yMin;
         // Hover na Explosão: a linha de baixo mostra o efeito.
         using (var e = PointerEnterEvent.GetPooled()) { e.target = explosion; explosion.SendEvent(e); }
         yield return null;
         bool hoverShown = false;
         menu.Query<Label>().ForEach(l => { if (l.text.Contains("de dano de Fogo em quem estiver inteiro")) hoverShown = true; });
         Assert.IsTrue(hoverShown, "hover escreve o efeito da magia");
+        var ember = menu.Q<Button>("spell-Ember");
+        using (var e = PointerEnterEvent.GetPooled()) { e.target = ember; ember.SendEvent(e); }
+        for (int i = 0; i < 2; i++) yield return null;
+        Assert.AreEqual(topBefore, menu.worldBound.yMin, 0.5f, "a tela de magia não pula com a descrição");
         for (int i = 0; i < 2; i++) yield return null;
         yield return new WaitForEndOfFrame();
 

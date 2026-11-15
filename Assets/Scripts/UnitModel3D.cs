@@ -148,9 +148,30 @@ namespace PangeaSkirmish
             var pivot = new GameObject(partName + "Pivot").transform;
             pivot.SetParent(part.parent, false);
             pivot.localPosition = part.localPosition + part.localRotation * Vector3.Scale(part.localScale, local);
-            part.SetParent(pivot, true);
+            // Nó de ajuste (2026-11-14): fica entre a articulação (animada) e a peça; guarda o ajuste do editor de rig.
+            var rig = new GameObject(partName + "Rig").transform;
+            rig.SetParent(pivot, false);
+            part.SetParent(rig, true);
+            RigOffsets.Apply(rig, ModelName, partName);
+            _rigs[partName] = rig;
             return pivot;
         }
+
+        /// <summary>Envolve um acessório (arma, escudo) num nó de ajuste e aplica o que foi salvo.</summary>
+        private Transform WrapRig(Transform item, string partName)
+        {
+            if (item == null) return null;
+            var rig = new GameObject(partName + "Rig").transform;
+            rig.SetParent(item.parent, false);
+            item.SetParent(rig, false);
+            RigOffsets.Apply(rig, ModelName, partName);
+            _rigs[partName] = rig;
+            return rig;
+        }
+
+        private readonly Dictionary<string, Transform> _rigs = new Dictionary<string, Transform>();
+        /// <summary>Nós de ajuste deste modelo (peça → nó). Usado pelo editor de rig.</summary>
+        public IReadOnlyDictionary<string, Transform> Rigs => _rigs;
 
         /// <summary>Nome do modelo do corpo em uso (Warrior, Mage, MonsterAlpha...). Para testes e depuração.</summary>
         public string ModelName { get; private set; }
@@ -219,6 +240,7 @@ namespace PangeaSkirmish
             if (go == null) return;
             go.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
             go.transform.localRotation = Quaternion.Euler(18f, 0f, 0f);
+            WrapRig(go.transform, "Offhand");
         }
 
         private void EquipShield()
@@ -231,6 +253,7 @@ namespace PangeaSkirmish
             go.transform.localPosition = new Vector3(-0.07f, -0.22f, 0.05f);
             go.transform.localRotation = Quaternion.Euler(0f, -70f, 0f);
             go.transform.localScale = Vector3.one * 0.85f;
+            WrapRig(go.transform, "Shield");
         }
 
         private void EquipWeaponModel(WeaponDef w)
@@ -245,6 +268,7 @@ namespace PangeaSkirmish
                     own.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
                     WeaponModelName = w.id;
                     SetWeapon(own.transform, StyleFor(w.id));
+                    WrapRig(own.transform, "Weapon");
                     return;
                 }
             }
@@ -263,6 +287,7 @@ namespace PangeaSkirmish
             // Mão: ponta de baixo do braço (o pivô fica no ombro, a ~0.32 acima da mão).
             go.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
             SetWeapon(go.transform, StyleFor(model));
+            WrapRig(go.transform, "Weapon");
         }
 
         public static AttackStyle StyleFor(string weaponOrModel)

@@ -57,6 +57,17 @@ namespace PangeaSkirmish.UI
             return RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPos.x, Screen.height - screenPos.y));
         }
 
+        /// <summary>Texto para busca simples: minúsculo e sem acento ("Água" acha "agua"). 2026-11-14.</summary>
+        public static string Fold(string t)
+        {
+            if (string.IsNullOrEmpty(t)) return "";
+            var n = t.ToLowerInvariant().Normalize(System.Text.NormalizationForm.FormD);
+            var sb = new System.Text.StringBuilder(n.Length);
+            foreach (char c in n)
+                if (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c) != System.Globalization.UnicodeCategory.NonSpacingMark) sb.Append(c);
+            return sb.ToString();
+        }
+
         public static bool IsPositionOverClickableUI(Vector2 screenPos)
         {
             var docs = UnityEngine.Object.FindObjectsOfType<UIDocument>();

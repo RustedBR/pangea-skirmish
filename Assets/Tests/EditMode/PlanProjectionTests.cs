@@ -39,7 +39,7 @@ public class PlanProjectionTests
         var skin = SpellCatalog.Get("StoneSkin");
         Assert.IsTrue(SpellBoosts.Allowed(skin, SpellBoost.Effect));
         Assert.IsTrue(SpellBoosts.Allowed(skin, SpellBoost.Power));
-        Assert.AreEqual(2, SpellBoosts.Apply(skin, (int)SpellBoost.Effect).durationTicks);
+        Assert.AreEqual(1, SpellBoosts.Apply(skin, (int)SpellBoost.Effect).durationRounds, "Pele de pedra: +1 round");
     }
 
     [Test]

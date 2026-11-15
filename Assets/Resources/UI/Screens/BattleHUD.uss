@@ -370,3 +370,37 @@
 .bh-mobile .bh-reaction { bottom: 236px; }
 .bh-mobile .bh-minilog-content .bh-log-line-text { font-size: 14px; }
 .bh-mobile .bh-mp-waiting-text { font-size: 24px; }
+
+/* TELA DE MAGIAS (2026-11-14): grade por elemento, busca e descrição de altura fixa. */
+.bh-spellmenu { padding: 10px 12px; }
+.bh-spellmenu-top { flex-direction: row; align-items: center; margin-bottom: 6px; }
+.bh-spellmenu-res { font-size: 12px; color: var(--pg-text-dim, rgb(159, 176, 208)); margin: 0 10px; -unity-font-style: bold; }
+.bh-spellmenu-search { width: 240px; margin: 0; }
+.bh-spellmenu-search .unity-base-text-field__input { font-size: 13px; padding: 4px 8px; }
+.bh-spellgroup { margin-bottom: 6px; }
+.bh-spellgroup-head { flex-direction: row; align-items: center; margin-bottom: 3px; }
+.bh-spellgroup-icon { width: 18px; height: 18px; margin-right: 5px; -unity-background-scale-mode: scale-to-fit; }
+.bh-spellgroup-name { font-size: 13px; -unity-font-style: bold; }
+.bh-spellgroup-count { font-size: 11px; color: var(--pg-text-dim, rgb(159, 176, 208)); margin-left: 6px; }
+.bh-spellgrid { flex-direction: row; flex-wrap: wrap; }
+.bh-spellblock {
+  width: 132px; height: 62px; margin: 0 5px 5px 0; padding: 4px 6px 4px 28px;
+  background-color: rgb(34, 48, 96); border-radius: 5px;
+  border-width: 1px; border-left-width: 4px; border-color: rgb(46, 42, 60);
+  flex-direction: column; justify-content: center; align-items: flex-start;
+}
+.bh-spellblock:hover, .bh-spellblock:focus { background-color: rgb(50, 70, 132); }
+.bh-spellblock--off { background-color: rgb(92, 98, 122); }
+.bh-spellblock--off > * { opacity: 0.6; }
+.bh-spellblock-icon { position: absolute; left: 5px; top: 6px; width: 18px; height: 18px; -unity-background-scale-mode: scale-to-fit; }
+.bh-spellblock-pair { position: absolute; left: 7px; bottom: 6px; width: 14px; height: 14px; -unity-background-scale-mode: scale-to-fit; opacity: 0.9; }
+.bh-spellblock-name { font-size: 12px; color: rgb(244, 234, 208); -unity-font-style: bold; white-space: normal; -unity-text-align: middle-left; }
+.bh-spellblock-meta { font-size: 10px; color: rgb(185, 196, 220); -unity-text-align: middle-left; }
+.bh-spellmenu-desc {
+  height: 64px; overflow: hidden; margin-top: 6px; padding: 4px 6px;
+  font-size: 12px; white-space: normal; color: var(--pg-text, rgb(238, 242, 255));
+  background-color: var(--pg-inset, rgba(0, 0, 0, 0.2)); border-radius: 4px;
+}
+.bh-mobile .bh-spellblock { width: 150px; height: 74px; }
+.bh-mobile .bh-spellblock-name { font-size: 14px; }
+.bh-mobile .bh-spellmenu-desc { height: 78px; font-size: 14px; }

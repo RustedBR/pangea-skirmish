@@ -142,8 +142,7 @@ public class HudProjectionShot
         // Catálogo de magias com a descrição de números reais.
         hud.ToggleSpellMenu();
         for (int i = 0; i < 2; i++) yield return null;
-        Button explosion = null;
-        root.Q<VisualElement>("spell-menu").Query<Button>().ForEach(b => { if (b.text.Contains("Explosão")) explosion = b; });
+        var explosion = root.Q<VisualElement>("spell-menu").Q<Button>("spell-Explosion");
         Assert.IsNotNull(explosion);
         Hover(explosion);
         yield return Shot("hud-spells.png");

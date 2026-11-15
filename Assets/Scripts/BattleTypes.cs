@@ -31,7 +31,7 @@ namespace PangeaSkirmish
         [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) aumenta o dano por tile nesta fração.")]
         public float dmgPctPerAttr = 0.06f;
         [Tooltip("GDD-020: DEX (arma de longo alcance) usa esta fração por ponto. Menor que o STR p/ ranged não estourar (balance 2026-11-14).")]
-        public float dexDmgPctPerAttr = 0.04f;
+        public float dexDmgPctPerAttr = 0.02f;   // 2026-11-14: 4% → 2% (DEX à distância desbalanceava); STR segue 6%
 
         [Header("Iniciativa")]
         public float iniPerAGI = 1f;

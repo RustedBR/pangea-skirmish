@@ -130,6 +130,26 @@ namespace PangeaSkirmish
         /// Cada linha mostra nome, montagem, custo, ticks com a DEX atual e alcance/área;
         /// o hover escreve o efeito na linha de baixo. Linhas que não cabem ficam apagadas com o motivo.
         /// </summary>
+        /// <summary>Grupos da tela de magias (2026-11-14): por elemento; pares entram no grupo do 1º elemento.</summary>
+        private static readonly (SpellElement el, string icon)[] SpellGroups =
+        {
+            (SpellElement.Fire, "burn"), (SpellElement.Water, "soaked"), (SpellElement.Earth, "stone"),
+            (SpellElement.Air, "wind"), (SpellElement.Magic, "eye"), (SpellElement.Physical, "fury"),
+        };
+        private static string SpellIcon(SpellElement e)
+        {
+            foreach (var g in SpellGroups) if (g.el == e) return g.icon;
+            return "cast";
+        }
+
+        private static string Fold(string t) => UIHelper.Fold(t);
+
+        /// <summary>
+        /// Catálogo de magias (2026-11-14): grade de blocos pequenos agrupada por elemento, com busca por nome
+        /// ou elemento. Cada bloco: sprite do elemento, nome, custo e ticks (pares mostram o 2º elemento).
+        /// A descrição fica numa faixa de altura fixa embaixo: antes ela crescia com o texto e, como o painel
+        /// é ancorado embaixo, empurrava a tela inteira para cima.
+        /// </summary>
         private void OpenSpellMenu()
         {
             if (_actionTip != null) _actionTip.style.display = DisplayStyle.None;
@@ -137,62 +157,109 @@ namespace PangeaSkirmish
             var u = _spellMenuUnit;
             if (_ticksBar == null || u == null) return;
             var pop = new VisualElement { name = "spell-menu" };
+            pop.AddToClassList("bh-window"); pop.AddToClassList("bh-spellmenu");
             var ps = pop.style;
-            pop.AddToClassList("bh-window");
             ps.position = Position.Absolute;
-            ps.minWidth = 700; ps.maxWidth = 900; ps.paddingLeft = ps.paddingRight = 12; ps.paddingTop = ps.paddingBottom = 10;
-            var head = new Label("MAGIA"); head.AddToClassList("bh-title"); head.style.marginBottom = 6; pop.Add(head);
 
-            var hover = new Label("Passe o mouse sobre uma magia para ver o efeito.") { pickingMode = PickingMode.Ignore };
-            hover.style.fontSize = 12; hover.style.whiteSpace = WhiteSpace.Normal; hover.style.marginTop = 6;
-            hover.style.color = new Color(0.14f, 0.16f, 0.27f); hover.style.minHeight = 34;
+            var top = new VisualElement(); top.AddToClassList("bh-spellmenu-top");
+            var head = new Label("MAGIA"); head.AddToClassList("bh-title"); head.style.flexGrow = 1; head.style.marginBottom = 0;
+            var search = new TextField { name = "spell-search" }; search.AddToClassList("bh-spellmenu-search");
+            search.textEdition.placeholder = "Buscar magia ou elemento…";
+            var res = new Label($"Mana {u.AvailableMana} · Stamina {u.remainingBAP}") { pickingMode = PickingMode.Ignore };
+            res.AddToClassList("bh-spellmenu-res");
+            top.Add(head); top.Add(res); top.Add(search);
+            pop.Add(top);
 
-            var scroll = new ScrollView(ScrollViewMode.Vertical);
-            // Altura em unidades do PAINEL (a UI é escalada; Screen.height em px estourava o topo). 2026-11-14.
+            const string idleText = "Toque ou passe o mouse numa magia para ver o efeito.";
+            var desc = new Label(idleText) { name = "spell-desc", pickingMode = PickingMode.Ignore };
+            desc.AddToClassList("bh-spellmenu-desc");
+
+            var scroll = new ScrollView(ScrollViewMode.Vertical) { name = "spell-scroll" };
             float rootH = Root != null ? Root.layout.height : float.NaN, rootW = Root != null ? Root.layout.width : float.NaN;
             float below = (_ticksBar != null ? _ticksBar.worldBound.height : 0f) + 4f + ActionBarClearance();
-            scroll.style.maxHeight = float.IsNaN(rootH) ? 300f : Mathf.Max(140f, rootH - below - 170f);
-            if (!float.IsNaN(rootW)) { ps.maxWidth = Mathf.Min(900f, rootW - 24f); ps.minWidth = Mathf.Min(700f, rootW - 24f); }
-            var cols = new VisualElement(); cols.style.flexDirection = FlexDirection.Row;
-            void Group(string title, string resName, int have, System.Func<SpellDef, bool> pick)
+            scroll.style.maxHeight = float.IsNaN(rootH) ? 300f : Mathf.Max(140f, rootH - below - 220f);
+            if (!float.IsNaN(rootW)) ps.width = Mathf.Min(860f, rootW - 24f);
+
+            var blocks = new List<(VisualElement block, string key, VisualElement group)>();
+            var groups = new List<(VisualElement group, Label count)>();
+            foreach (var (el, icon) in SpellGroups)
             {
-                var col = new VisualElement(); col.style.flexGrow = 1; col.style.flexBasis = 0; col.style.marginRight = 8;
-                var t = new Label($"{title}  <color=#5f6072>({resName} {have})</color>") { pickingMode = PickingMode.Ignore };
-                t.style.fontSize = 12; t.style.unityFontStyleAndWeight = FontStyle.Bold; t.style.marginBottom = 4;
-                t.style.color = new Color(0.14f, 0.16f, 0.27f);
-                col.Add(t);
+                var spells = new List<SpellDef>();
                 foreach (var s in SpellCatalog.All())
+                    if ((el == SpellElement.Physical && s.IsPhysical) || (!s.IsPhysical && s.PrimaryElement == el)) spells.Add(s);
+                if (spells.Count == 0) continue;
+
+                var g = new VisualElement(); g.AddToClassList("bh-spellgroup");
+                var gh = new VisualElement(); gh.AddToClassList("bh-spellgroup-head");
+                var gi = new VisualElement(); gi.AddToClassList("bh-spellgroup-icon");
+                var gtex = IconTex(icon); if (gtex != null) gi.style.backgroundImage = new StyleBackground(gtex);
+                var gl = new Label(el == SpellElement.Physical ? "Física" : ElementInfo.Name(el)); gl.AddToClassList("bh-spellgroup-name");
+                gl.style.color = ElementInfo.Color(el) * 0.75f + new Color(0f, 0f, 0f, 0.25f);
+                var gc = new Label(""); gc.AddToClassList("bh-spellgroup-count");
+                gh.Add(gi); gh.Add(gl); gh.Add(gc);
+                var grid = new VisualElement(); grid.AddToClassList("bh-spellgrid");
+                g.Add(gh); g.Add(grid);
+                groups.Add((g, gc));
+
+                foreach (var s in spells)
                 {
-                    if (!pick(s)) continue;
+                    var sp = s;
                     bool ok = u.CanFitSpell(s, out string why);
                     int ticks = TickRules.Duration(u, ActionType.Spell, false, s);
-                    string reach = s.effect == SpellEffect.Leap ? $"alc {SpellResolver.Reach(u, s)}" : s.range < 0 ? "sem alvo" : s.range == 0 ? "em si" : $"alc {SpellResolver.Reach(u, s)}";
-                    string area  = s.area > 0 ? (s.effect == SpellEffect.Barrier ? $"linha {s.area * AttributeStats.DefaultFootprint}" : $"raio {SpellResolver.AreaRadius(s)}") : "";
-                    string meta  = $"{reach}{(area != "" ? " · " + area : "")}";
-                    var b = new Button(() => { AudioManager.I?.PlayNamed("sfx_spell_pick", AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnSpellPick?.Invoke(s.id); });
-                    b.AddToClassList("bh-intent-btn");
-                    b.style.marginLeft = b.style.marginRight = 0; b.style.marginBottom = 3; b.style.height = 36;
-                    b.style.fontSize = 12; b.style.unityTextAlign = TextAnchor.MiddleLeft; b.style.paddingLeft = 8;
-                    b.style.borderLeftWidth = 4; b.style.borderLeftColor = ElementInfo.Color(s.PrimaryElement);
-                    b.text = $"{SpellGlyph} <b>{s.displayName}</b>  <color=#b9c4dc>[{s.MontageText()}]</color>\n" +
-                             $"<size=11>−{s.CostText} · {ticks} tick{(ticks == 1 ? "" : "s")} · {meta}</size>";
+                    var b = new Button(() => { AudioManager.I?.PlayNamed("sfx_spell_pick", AudioManager.I.sfxUIClick); CloseIncrementPopup(); OnSpellPick?.Invoke(sp.id); })
+                    { name = "spell-" + s.id };
+                    b.AddToClassList("bh-spellblock");
+                    b.style.borderLeftColor = ElementInfo.Color(s.PrimaryElement);
+                    var ic = new VisualElement { pickingMode = PickingMode.Ignore }; ic.AddToClassList("bh-spellblock-icon");
+                    var tx = IconTex(SpellIcon(s.IsPhysical ? SpellElement.Physical : s.PrimaryElement)); if (tx != null) ic.style.backgroundImage = new StyleBackground(tx);
+                    var nm = new Label(s.displayName) { pickingMode = PickingMode.Ignore }; nm.AddToClassList("bh-spellblock-name");
+                    var meta = new Label($"{s.CostText} · {ticks}t") { pickingMode = PickingMode.Ignore }; meta.AddToClassList("bh-spellblock-meta");
+                    b.Add(ic); b.Add(nm); b.Add(meta);
+                    if (s.IsPair && s.elements.Length > 1)
+                    {
+                        var dot = new VisualElement { pickingMode = PickingMode.Ignore }; dot.AddToClassList("bh-spellblock-pair");
+                        var tx2 = IconTex(SpellIcon(s.elements[1])); if (tx2 != null) dot.style.backgroundImage = new StyleBackground(tx2);
+                        dot.tooltip = ElementInfo.Name(s.elements[1]);
+                        b.Add(dot);
+                    }
+                    if (!ok) b.AddToClassList("bh-spellblock--off");
                     b.SetEnabled(ok);
-                    if (!ok) { b.style.opacity = 1f; b.style.backgroundColor = new Color(0.36f, 0.38f, 0.48f); }   // apagado, mas legível no pergaminho
-                    string eff = $"<b>{s.displayName}</b> — {s.CostText}. " + SpellResolver.Describe(u, s);
+                    string eff = $"<b>{s.displayName}</b> <color=#5f6072>[{s.MontageText()}]</color> — {s.CostText}, {ticks} tick{(ticks == 1 ? "" : "s")}. " + SpellResolver.Describe(u, s);
                     if (!ok) eff = $"<color=#a82c2c>Não cabe: {why}.</color>  " + eff;
-                    if (!s.IsPhysical) eff += $"  <color=#5a3fa8>Interrompível: {SpellResolver.InterruptThreshold(u)}+ de dano durante a conjuração corta.</color>";
+                    if (!s.IsPhysical) eff += $"  <color=#5a3fa8>Interrompível: {SpellResolver.InterruptThreshold(u)}+ de dano.</color>";
                     var captured = eff;
-                    b.RegisterCallback<PointerEnterEvent>(_ => hover.text = captured);
-                    col.Add(b);
+                    b.RegisterCallback<PointerEnterEvent>(_ => desc.text = captured);
+                    b.RegisterCallback<FocusInEvent>(_ => desc.text = captured);
+                    grid.Add(b);
+                    string names = s.displayName + " " + s.MontageText() + " " + (s.IsPhysical ? "fisica" : "");
+                    foreach (var e in s.elements ?? System.Array.Empty<SpellElement>()) names += " " + ElementInfo.Name(e);
+                    blocks.Add((b, Fold(names), g));
                 }
-                cols.Add(col);
+                scroll.Add(g);
             }
-            Group("FÍSICA", $"Mana {u.AvailableMana} · Stamina", u.remainingBAP, s => s.IsPhysical);
-            Group("ELEMENTAL · PURAS", "Mana", u.AvailableMana, s => !s.IsPhysical && s.IsPure);
-            Group("ELEMENTAL · PARES", "Mana", u.AvailableMana, s => !s.IsPhysical && s.IsPair);
-            scroll.Add(cols);
+
+            void Filter(string q)
+            {
+                string f = Fold(q).Trim();
+                var shown = new Dictionary<VisualElement, int>();
+                foreach (var (block, key, group) in blocks)
+                {
+                    bool on = f.Length == 0 || key.Contains(f);
+                    block.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+                    shown.TryGetValue(group, out int n); shown[group] = n + (on ? 1 : 0);
+                }
+                foreach (var (group, count) in groups)
+                {
+                    shown.TryGetValue(group, out int n);
+                    group.style.display = n > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                    count.text = $"{n}";
+                }
+            }
+            search.RegisterValueChangedCallback(e => Filter(e.newValue));
+            Filter("");
+
             pop.Add(scroll);
-            pop.Add(hover);
+            pop.Add(desc);
             var close = new Button(CloseIncrementPopup) { text = "Fechar" };
             close.AddToClassList("bh-intent-btn"); close.style.marginLeft = close.style.marginRight = 0;
             close.style.height = 30; close.style.fontSize = 12; close.style.marginTop = 4;

@@ -14,8 +14,9 @@ from PIL import Image
 OUT = os.path.join(os.path.dirname(__file__), "..", "Assets", "Resources", "UI", "Theme")
 # Pergaminho mais escuro e PIXELADO (pedido 2026-11-14): 4 tons, sem suavização. A textura é pequena
 # (64 px) e o tema a desenha em escala 2× com filtro "ponto"; o miolo (48×48) repete sem emenda.
-TONES = [(212, 191, 146), (201, 178, 131), (222, 203, 160), (186, 161, 114)]   # base, sombra, luz, mancha
-INK, LINE, HILITE = (46, 42, 60), (128, 102, 68), (236, 220, 180)
+TONES = [(168, 142, 98), (150, 124, 84), (182, 158, 112), (126, 100, 64)]   # 2026-11-14: bem mais escuro e velho
+STAIN = (104, 80, 50)                                                      # manchas de idade
+INK, LINE, HILITE = (38, 30, 26), (96, 74, 46), (196, 172, 124)
 B = 8            # borda do 9-slice, em px da textura
 N = 64
 
@@ -31,26 +32,43 @@ def tile_tone(rnd, coarse, x, y, m):
     return 0
 
 def paper(seed):
+    """Pergaminho velho: miolo pontilhado com manchas de idade; borda rasgada e queimada.
+    A borda (8 px) repete em 9-slice, então o rasgo também repete ao longo do painel."""
     rnd = random.Random(seed)
     m = N - 2 * B
     g = 6
-    coarse = [[rnd.choice([0, 0, 0, 1, 2, 0, 3 if rnd.random() < 0.25 else 0]) for _ in range(g)] for _ in range(g)]
+    coarse = [[rnd.choice([0, 0, 0, 1, 2, 0, 3 if rnd.random() < 0.35 else 0]) for _ in range(g)] for _ in range(g)]
     core = [[TONES[tile_tone(rnd, coarse, x, y, m)] for x in range(m)] for y in range(m)]
+    for _ in range(3):                                   # manchas redondas (umidade, idade)
+        cx, cy, r = rnd.randrange(m), rnd.randrange(m), rnd.randint(3, 6)
+        for y in range(m):
+            for x in range(m):
+                dx = min(abs(x - cx), m - abs(x - cx)); dy = min(abs(y - cy), m - abs(y - cy))
+                d2 = dx * dx + dy * dy
+                if d2 <= r * r and rnd.random() < 0.75: core[y][x] = STAIN
+                elif d2 <= (r + 1) * (r + 1) and rnd.random() < 0.5: core[y][x] = TONES[1]
     img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
     px = img.load()
     for y in range(N):
         for x in range(N):
-            px[x, y] = core[(y - B) % m][(x - B) % m] + (255,)      # a borda continua o desenho do miolo
-    # moldura em degraus (canto de pixel art): tinta por fora, filete claro e sépia por dentro
-    def ring(d, col):
-        for i in range(d, N - d):
-            for (x, y) in ((i, d), (i, N - 1 - d), (d, i), (N - 1 - d, i)): px[x, y] = col + (255,)
-    ring(0, INK); ring(1, INK); ring(2, HILITE); ring(4, LINE)
-    for cx, cy in ((0, 0), (N - 1, 0), (0, N - 1), (N - 1, N - 1)):  # cantos cortados em 2 px
-        sx, sy = (1 if cx == 0 else -1), (1 if cy == 0 else -1)
-        for a, b in ((0, 0), (1, 0), (0, 1)): px[cx + a * sx, cy + b * sy] = (0, 0, 0, 0)
-        px[cx + sx, cy + sy] = INK + (255,); px[cx + 2 * sx, cy + sy] = INK + (255,); px[cx + sx, cy + 2 * sy] = INK + (255,)
-        px[cx + 2 * sx, cy + 2 * sy] = INK + (255,)
+            px[x, y] = core[(y - B) % m][(x - B) % m] + (255,)
+    # Rasgo: a profundidade do corte varia ao longo de cada lado (0–4 px); fora dele é transparente,
+    # e logo dentro do corte fica uma faixa queimada escura. O mesmo perfil nos 4 lados, com fase diferente.
+    prof = []
+    depth = 1
+    for i in range(N):
+        depth = max(0, min(4, depth + rnd.choice([-1, 0, 0, 1])))
+        prof.append(depth)
+    def cut(x, y, d):
+        if d < 0: return
+        for k in range(d): px[x(k), y(k)] = (0, 0, 0, 0)
+        px[x(d), y(d)] = INK + (255,)
+        if d + 1 < B: px[x(d + 1), y(d + 1)] = (92, 66, 40, 255)
+    for i in range(N):
+        cut(lambda k: i, lambda k: k, prof[i])                          # topo
+        cut(lambda k: i, lambda k: N - 1 - k, prof[(i + 17) % N])       # base
+        cut(lambda k: k, lambda k: i, prof[(i + 33) % N])               # esquerda
+        cut(lambda k: N - 1 - k, lambda k: i, prof[(i + 49) % N])       # direita
     return img
 
 def inset():

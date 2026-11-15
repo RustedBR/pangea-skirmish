@@ -336,3 +336,13 @@
     min-height: 18px;
     background-color: transparent;
 }
+
+/* Busca e presets da aba de ajustes avançados (2026-11-14) */
+.tuning__tools { flex-direction: row; align-items: center; margin-bottom: 6px; }
+.tuning__search { flex-grow: 1; margin: 0; }
+.tuning__preset-name { flex-grow: 1; margin: 0 6px 0 0; }
+.tuning__presets { flex-direction: row; flex-wrap: wrap; margin-bottom: 6px; }
+.tuning__preset { flex-direction: row; margin: 0 6px 6px 0; }
+.tuning__preset-load { margin: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.tuning__preset-del { margin: 0; width: 30px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.tuning__preset-empty { font-size: 12px; color: var(--pg-text-dim, rgb(159, 176, 208)); white-space: normal; }
