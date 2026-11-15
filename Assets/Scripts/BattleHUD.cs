@@ -47,7 +47,6 @@ namespace PangeaSkirmish
         private VisualElement _ticksBar, _ticksTrack, _ticksQueue;
         private Label  _ticksLabel;
         private VisualElement _intentsPanel;
-        private Button[] _intentButtons;
         private VisualElement _reactionMenu, _reactionButtons;
         private Label _reactionTimer, _reactionText;
         private VisualElement _promptPanel, _endPanel, _endWin;
@@ -95,28 +94,14 @@ namespace PangeaSkirmish
         [Obsolete("Migrado para UI Toolkit: o PangeaScreen carrega o UXML automaticamente.")]
         public void Build(Canvas canvas) { }
 
-        /// <summary>Disparado quando o jogador clica numa intenção do painel (slot 0..2).</summary>
-        public Action<int> OnIntentSelected;
-        public Action OnFreeModeToggled;
-        private Button _freeBtn;
         /// <summary>Jogador escolheu uma magia no menu (id do SpellCatalog).</summary>
         public Action<string> OnSpellPick;
-        private Button _spellBtn;
         private Unit _spellMenuUnit;
 
-        /// <summary>Botão "Magia" no painel de intenções; abre o catálogo para a unidade controlada.</summary>
+        /// <summary>Unidade cujo catálogo de magias a tela de magias mostra.</summary>
         public void SetSpellMenuUnit(Unit u)
         {
             _spellMenuUnit = u;
-            if (false && _spellBtn == null && _intentsPanel != null)   // Magia agora fica na barra de ações (GDD-020 §9)
-            {
-                _spellBtn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); ToggleSpellMenu(); }) { text = SpellGlyph + " Magia" };
-                _spellBtn.AddToClassList("bh-intent-btn");
-                _spellBtn.style.marginBottom = 4;
-                int at = _freeBtn != null ? _intentsPanel.IndexOf(_freeBtn) + 1 : Mathf.Min(1, _intentsPanel.childCount);
-                _intentsPanel.Insert(Mathf.Clamp(at, 0, _intentsPanel.childCount), _spellBtn);
-            }
-            if (_spellBtn != null) _spellBtn.SetEnabled(u != null);
         }
 
         public void ToggleSpellMenu()
@@ -263,31 +248,6 @@ namespace PangeaSkirmish
             _incPopup = pop;
         }
 
-        public void SetFreeModeLabel(bool on)
-        {
-            if (_freeBtn == null && _intentsPanel != null)
-            {
-                _freeBtn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIClick); OnFreeModeToggled?.Invoke(); });
-                _freeBtn.AddToClassList("bh-intent-btn");
-                _freeBtn.style.marginBottom = 4;
-                _intentsPanel.Insert(Mathf.Min(1, _intentsPanel.childCount), _freeBtn);
-            }
-            if (_freeBtn == null) return;
-            _freeBtn.text = on ? "✎ Modo livre: LIGADO (Tab)" : "✎ Modo livre (Tab)";
-            _freeBtn.EnableInClassList("armed", on);
-        }
-        /// <summary>Marca o botão de intenção atualmente armado (slot 0..2, ou -1).</summary>
-        public void SetIntentArmed(int slot)
-        {
-            if (_intentButtons == null) return;
-            for (int i = 0; i < _intentButtons.Length; i++)
-            {
-                if (_intentButtons[i] == null) continue;
-                if (i == slot) { _intentButtons[i].AddToClassList("armed"); }
-                else           { _intentButtons[i].RemoveFromClassList("armed"); }
-            }
-        }
-
         protected override void Bind()
         {
             // Celular (2026-11-14): classe para layout de toque (intenções à esquerda, botões maiores).
@@ -331,36 +291,9 @@ namespace PangeaSkirmish
 
             // Painel de intenções (substitui o command-menu cascata)
             _intentsPanel     = r.Q<VisualElement>("intents-panel");
-            // Atalhos (Investir, Golpear e recuar, Recuar…) recolhidos num botão só; as teclas 1–3 seguem valendo.
-            if (_intentsPanel != null)
-            {
-                Button first = null;
-                for (int n = 1; n <= 5; n++)
-                {
-                    var ib = r.Q<Button>("btn-intent-" + n);
-                    if (ib == null) continue;
-                    ib.AddToClassList("bh-intent-shortcut");
-                    first ??= ib;
-                }
-                if (first != null)
-                {
-                    Button toggle = null;
-                    toggle = new Button(() =>
-                    {
-                        AudioManager.I?.Play(AudioManager.I.sfxUIClick);
-                        bool open = !_intentsPanel.ClassListContains("bh-intents--open");
-                        _intentsPanel.EnableInClassList("bh-intents--open", open);
-                        toggle.text = open ? "Atalhos ▴" : "Atalhos ▾";
-                    }) { name = "btn-shortcuts", text = "Atalhos ▾" };
-                    toggle.AddToClassList("bh-intent-btn");
-                    _intentsPanel.Insert(_intentsPanel.IndexOf(first), toggle);
-                }
-            }
+            // Intenções automáticas (Investir, Golpear e recuar, Recuar) saíram em 2026-11-15: só o modo livre.
+            for (int n = 1; n <= 5; n++) { var ib = r.Q<Button>("btn-intent-" + n); if (ib != null) ib.style.display = DisplayStyle.None; }
             HookUiPointerDown();
-            _intentButtons    = new[]
-            {
-                r.Q<Button>("btn-intent-1"), r.Q<Button>("btn-intent-2"), r.Q<Button>("btn-intent-3")
-            };
             _confirmButton    = r.Q<Button>("btn-confirm");
             _undoButton       = r.Q<Button>("btn-undo");
             _clearButton      = r.Q<Button>("btn-clear");
@@ -386,18 +319,6 @@ namespace PangeaSkirmish
             // ── Tooltips de botões ──
             AttachMainButtonTooltips();
 
-            // Callbacks dos botões de intenção (1-3; 4-5 são reservadas/dim)
-            for (int i = 0; i < 3; i++)
-            {
-                int slot = i;
-                var btn = _intentButtons[i];
-                if (btn == null) continue;
-                btn.RegisterCallback<ClickEvent>(evt =>
-                {
-                    AudioManager.I?.Play(AudioManager.I.sfxUIClick);
-                    OnIntentSelected?.Invoke(slot);
-                });
-            }
             _endMenuButton.RegisterCallback<ClickEvent>(_ => { if (_endMenuAction != null) _endMenuAction(); else SceneManager.LoadScene("MainMenu"); });
 
             // Ordem de desenho (UI Toolkit não tem z-index): a bolha de inspeção vai para o fundo,
@@ -1092,13 +1013,17 @@ namespace PangeaSkirmish
 
         private static Key? KeyFor(string label)
         {
-            switch (label)
-            {
-                case "4": return Key.Digit4; case "5": return Key.Digit5; case "6": return Key.Digit6;
-                case "7": return Key.Digit7; case "8": return Key.Digit8; case "9": return Key.Digit9;
-                case "0": return Key.Digit0; case "-": return Key.Minus;
-                default:  return null;
-            }
+            // Ações em sequência a partir do 1 (2026-11-15): 1 Andar, 2 Atacar, 3 Mirar livre…
+            if (label != null && label.Length == 1 && label[0] >= '1' && label[0] <= '9') return Key.Digit1 + (label[0] - '1');
+            return label == "0" ? Key.Digit0 : (Key?)null;
+        }
+
+        /// <summary>Fecha a janela aberta (tela de magias, incremento). Devolve true se havia uma: o Esc para nela.</summary>
+        public bool CloseOpenPopup()
+        {
+            if (_incPopup == null) return false;
+            CloseIncrementPopup();
+            return true;
         }
 
         public void SetActionBarVisible(bool v, Unit u = null)
@@ -1790,16 +1715,6 @@ namespace PangeaSkirmish
             AttachButtonTooltip(_confirmButton, "Confirma o plano de ações da unidade.");
             AttachButtonTooltip(_undoButton, "Remove a última ação adicionada ao plano.");
             AttachButtonTooltip(_clearButton, "Remove TODAS as ações do plano.");
-            if (_intentButtons != null)
-            {
-                string[] names = { "Investir", "Golpear e recuar", "Recuar" };
-                for (int i = 0; i < _intentButtons.Length && i < names.Length; i++)
-                {
-                    if (_intentButtons[i] != null)
-                        AttachButtonTooltip(_intentButtons[i],
-                            $"{names[i]}: arma a intenção. Depois clique no inimigo p/ montar a fila. Tecla {i + 1}.");
-                }
-            }
         }
         private void AttachButtonTooltip(VisualElement el, string text)
         {
@@ -1909,7 +1824,7 @@ namespace PangeaSkirmish
                 skip.AddToClassList("pg-button");
                 _reactionButtons.Add(skip);
             }
-            if (_reactionMenu != null) { _reactionMenu.style.display = DisplayStyle.Flex; _reactionMenu.BringToFront(); }
+            if (_reactionMenu != null) { _reactionMenu.style.display = DisplayStyle.Flex; _reactionMenu.BringToFront(); PlaceChoiceAboveActionBar(); }
         }
         public void UpdateBonusTimer(float sec)
         {
@@ -1941,7 +1856,41 @@ namespace PangeaSkirmish
                 }
             }
             if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.Flex;
+            PlaceChoiceAboveActionBar();
         }
+
+        /// <summary>
+        /// A janela de escolha (reação, incrementar magia) fica na frente e logo acima da grade de ações.
+        /// A grade cresce com a largura da tela (KeepAspect), então o "bottom" fixo em % deixava a janela
+        /// por baixo dela (2026-11-15).
+        /// </summary>
+        private void PlaceChoiceAboveActionBar()
+        {
+            if (_reactionMenu == null) return;
+            _reactionMenu.BringToFront();
+            void Place()
+            {
+                var parent = _reactionMenu.parent;
+                if (parent == null || _actionBar == null || _actionBar.resolvedStyle.display == DisplayStyle.None) return;
+                float top = _actionBar.worldBound.yMin, pb = parent.worldBound.yMax;
+                if (float.IsNaN(top) || top <= 0f) return;
+                float H = parent.layout.height, h = _reactionMenu.layout.height;
+                float bottom = pb - top + H * 0.01f;
+                // Tela baixa (celular deitado): não cabe acima da grade; fica na frente dela, sem sair pelo topo.
+                if (!float.IsNaN(h) && h > 0f) bottom = Mathf.Min(bottom, Mathf.Max(H * 0.01f, H - h - H * 0.01f));
+                _reactionMenu.style.bottom = bottom;
+            }
+            _placeChoice = Place;
+            Place();
+            _reactionMenu.schedule.Execute(Place);   // depois do layout do frame
+            if (!_choicePlaceHooked)
+            {
+                _choicePlaceHooked = true;   // o texto muda a altura da janela: reposiciona quando o layout mudar
+                _reactionMenu.RegisterCallback<GeometryChangedEvent>(_ => { if (_reactionMenu.resolvedStyle.display == DisplayStyle.Flex) _placeChoice?.Invoke(); });
+            }
+        }
+        private bool _choicePlaceHooked;
+        private System.Action _placeChoice;
         public void HideReactionMenu()
         {
             _reactionPick = null;

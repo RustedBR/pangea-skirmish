@@ -40,7 +40,7 @@ namespace PangeaSkirmish
         public bool IsPicking => _active && _mode != PlanMode.Idle;
         /// <summary>Jogador no meio de montar a jogada (intenção armada ou prévia na tela): o relógio de decisão pausa.</summary>
         public bool IsEngaged => _active && _controlled != null &&
-            (_armed != ArmedIntent.None || _controlled.actionSequence.Count > 0 || _mode != PlanMode.Idle);
+            (_controlled.actionSequence.Count > 0 || _mode != PlanMode.Idle);
 
         public void Setup(GridManager grid, Camera cam, List<Unit> allUnits)
         {
@@ -52,20 +52,9 @@ namespace PangeaSkirmish
         public void SetHUD(BattleHUD hud) { _hud = hud; }
 
         // ── Modo Intenção (GDD-016 §6) ──
-        private enum ArmedIntent { None, Charge, HitAndRun, Retreat }
-        private ArmedIntent _armed = ArmedIntent.None;
         // ── Modo Livre: cada clique ACRESCENTA um passo (GDD-016 §6) ──
-        private bool _freeMode = true;   // 2026-11-14: o planejamento começa no modo livre
         private int _retargetIdx = -1;      // índice (na sequência) do bloco de andar cujo destino será trocado
         private float _lastEnemyClickTime; private Unit _lastEnemyClicked;
-        public bool FreeMode => _freeMode;
-
-        public void SetFreeMode(bool on)
-        {
-            _freeMode = on; _retargetIdx = -1; _armed = ArmedIntent.None;
-            _hud.SetFreeModeLabel(on);
-            ShowIntentHint();
-        }
         private Unit _previewUnit;            // alvo da prévia atual (segundo clique nele confirma)
         private Vector2Int? _previewCell;     // idem, para clique no chão
         /// <summary>Pedido de confirmação do plano (Enter, Espaço ou segundo clique no mesmo alvo).</summary>
@@ -92,7 +81,6 @@ namespace PangeaSkirmish
             if (!_active) return;
 
             _mode = PlanMode.Idle;
-            _hud?.SetFreeModeLabel(_freeMode);   // botão do modo livre mostra o estado (começa ligado)
             _controlled.SetSelected(true);
             foreach (var u in _allUnits) u.SetAttackMarked(false); // limpa marcas de alvo do round anterior
             EnsureCursorGhost();
@@ -112,17 +100,8 @@ namespace PangeaSkirmish
             _hud.OnSeqChipToggled = OnSeqChipToggled;
             _hud.OnIncrementPick = OnBlockAction;
             _hud.OnSpellPick = OnSpellPick;
-            _hud.OnFreeModeToggled = () => SetFreeMode(!_freeMode);
-            _hud.SetFreeModeLabel(_freeMode);
             _hud.SetSpellMenuUnit(_controlled);
-            // Painel de INTENÇÕES (reformulação): botões 1-3 armam como as teclas 1/2/3.
-            _hud.OnIntentSelected = slot =>
-            {
-                if (slot == 0) Arm(ArmedIntent.Charge);
-                else if (slot == 1) Arm(ArmedIntent.HitAndRun);
-                else if (slot == 2) Arm(ArmedIntent.Retreat);
-            };
-            _armed = ArmedIntent.None; _previewUnit = null; _previewCell = null;
+            _previewUnit = null; _previewCell = null;
             _hud.SetActionBarItems(BuildActionBar());
             ShowIntentHint();
             SyncButtonStates();
@@ -432,50 +411,50 @@ namespace PangeaSkirmish
             return new List<BattleHUD.ActionBarItem>
             {
                 // Andar (2026-11-14): no toque, a ação vem primeiro — arma o movimento e um toque no tile já põe na fila.
-                new BattleHUD.ActionBarItem { Id = "move", Glyph = "➜", Icon = "move", Key = "3", Name = "Andar",
+                new BattleHUD.ActionBarItem { Id = "move", Glyph = "➜", Icon = "act_move", Key = "1", Name = "Andar",
                     Tip = () => $"Mostra até onde você anda; toque ou clique no tile de destino. {Ticks(ActionType.Move)}.",
                     Enabled = () => _controlled.CanFit(ActionType.Move),
                     Active = () => _mode == PlanMode.MovePicking,
                     OnClick = _ => OnMoveClick() },
-                new BattleHUD.ActionBarItem { Id = "attack", Glyph = "⚔", Icon = "dmg", Key = "4", Name = "Atacar (centralizado)",
+                new BattleHUD.ActionBarItem { Id = "attack", Glyph = "⚔", Icon = "act_attack", Key = "2", Name = "Atacar (centralizado)",
                     Tip = () => $"Clique num inimigo: a forma da arma ({AttackShape.Describe(WeaponCatalog.Get(_controlled.weaponId))}) centraliza nele. " +
                                 $"Dano comum: ~{_controlled.stats.PhysicalDamage} num alvo inteiro. {Ticks(ActionType.Attack)}.",
                     Enabled = () => _controlled.CanFit(ActionType.Attack),
                     Active = () => _mode == PlanMode.AttackUnitPicking,
                     OnClick = _ => OnAttackUnitClick() },
-                new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Icon = "hit", Key = "5", Name = "Mirar livre",
+                new BattleHUD.ActionBarItem { Id = "aim", Glyph = "✚", Icon = "act_aim", Key = "3", Name = "Mirar livre",
                     Tip = () => $"Você posiciona a forma tile a tile. <color=#2456a8>+{(T.freeAimDamageMult - 1f) * 100:0}% de dano e +{T.freeAimHitBonus * 100:0}% de acerto</color>; " +
                                 $"pega quem estiver nos tiles (só inimigos). {Ticks(ActionType.Attack)}. Magia de dano mirada num tile (sem travar na unidade) também ganha o +{(T.freeAimDamageMult - 1f) * 100:0}%.",
                     Enabled = () => _controlled.CanFit(ActionType.Attack),
                     Active = () => _mode == PlanMode.AttackTilePicking,
                     OnClick = _ => OnAttackTileClick() },
-                new BattleHUD.ActionBarItem { Id = "spell", Glyph = "◈", Icon = "cast", Key = "6", Name = "Magia",
+                new BattleHUD.ActionBarItem { Id = "spell", Glyph = "◈", Icon = "act_spell", Key = "4", Name = "Magia",
                     Tip = () => $"Abre o catálogo. Física: metade Mana, metade Stamina. Elemental: Mana. Mana {_controlled.AvailableMana}, Stamina {_controlled.remainingBAP}.",
                     OnClick = _ => _hud.ToggleSpellMenu() },
                 null,
-                new BattleHUD.ActionBarItem { Id = "concentrate", Glyph = "✦", Icon = "mana", Key = "7", Name = "Concentrar",
+                new BattleHUD.ActionBarItem { Id = "concentrate", Glyph = "✦", Icon = "act_concentrate", Key = "5", Name = "Concentrar",
                     Tip = () => $"Parado, recupera <b>+{_controlled.stats.ConcentrateMana} Mana</b>. {Ticks(ActionType.Concentrate)}. Shift: até encher a fila ou a Mana.",
                     Enabled = () => _controlled.CanFit(ActionType.Concentrate),
                     Badge = () => _controlled.plannedConcentrations > 0 ? "×" + _controlled.plannedConcentrations : $"{_controlled.ProjectedManaEnd}/{_controlled.stats.MaxMana}",
                     OnClick = fill => AddRepeat(OnConcentrateClick, ActionType.Concentrate, fill) },
-                new BattleHUD.ActionBarItem { Id = "breathe", Glyph = "❂", Icon = "stamina", Key = "8", Name = "Respirar",
+                new BattleHUD.ActionBarItem { Id = "breathe", Glyph = "❂", Icon = "act_breathe", Key = "6", Name = "Respirar",
                     Tip = () => $"Parado, recupera <b>+{T.breatheStamina} Stamina</b>. {Ticks(ActionType.Breathe)}. Shift: até encher a fila ou a Stamina.",
                     Enabled = () => _controlled.CanFit(ActionType.Breathe),
                     Badge = () => { int n = CountPlanned(ActionType.Breathe); return n > 0 ? "×" + n : $"{_controlled.ProjectedStaminaEnd}/{_controlled.stats.MaxStamina}"; },
                     OnClick = fill => AddRepeat(OnBreatheClick, ActionType.Breathe, fill) },
-                new BattleHUD.ActionBarItem { Id = "wait", Glyph = "…", Icon = "wait", Key = "9", Name = "Esperar",
+                new BattleHUD.ActionBarItem { Id = "wait", Glyph = "…", Icon = "act_wait", Key = "7", Name = "Esperar",
                     Tip = () => $"Passa {Ticks(ActionType.Wait)} sem agir (a Stamina e a Mana seguem voltando). Shift: até o próximo ponto de decisão.",
                     Enabled = () => _controlled.CanFit(ActionType.Wait),
                     Badge = () => { int n = CountPlanned(ActionType.Wait); return n > 0 ? "×" + n : ""; },
                     OnClick = fill => AddRepeat(OnWaitClick, ActionType.Wait, fill) },
                 null,
-                new BattleHUD.ActionBarItem { Id = "posture", Key = "0", Name = "Postura",
+                new BattleHUD.ActionBarItem { Id = "posture", Key = "8", Name = "Postura",
                     Glyph = "○", GlyphFn = () => PostureRules.Glyph(_controlled.plannedPosture), IconFn = () => "p_" + _controlled.plannedPosture.ToString().ToLowerInvariant(),
                     Tip = () => PostureTip(),
                     Badge = () => PostureRules.Name(_controlled.plannedPosture),
                     Active = () => _controlled.plannedPosture != Posture.Neutral,
                     OnClick = back => CyclePosture(back ? -1 : +1) },
-                new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "-", Name = "Reação padrão", IconFn = () => ReactionIcon(_controlled.defaultReaction),
+                new BattleHUD.ActionBarItem { Id = "reaction", Glyph = "▣", Key = "9", Name = "Reação padrão", IconFn = () => ReactionIcon(_controlled.defaultReaction),
                     Tip = () => $"Quando alguém age contra você, abre a janela de reação. Esta é a usada se o tempo da janela acabar. Só 1 reação por round; reagir faz a ação em andamento recomeçar. Agora: <b>{ReactionName(_controlled.defaultReaction)}</b>" +
                                 (_controlled.defaultReaction != ReactionKind.None ? $" ({Unit.ReactionCost(_controlled.defaultReaction)} Stamina)" : "") +
                                 ". Esquivar 1 · Bloquear 1 · Contra-atacar 3 · Interpor 2 · Olho certeiro 2 (seu tiro à distância que ia errar).",
@@ -1056,10 +1035,6 @@ namespace PangeaSkirmish
 
         // ------------------------------------------------------------------ MODO INTENÇÃO
 
-        private static string IntentName(ArmedIntent i) =>
-            i == ArmedIntent.Charge ? "Investir" : i == ArmedIntent.HitAndRun ? "Golpear e recuar"
-            : i == ArmedIntent.Retreat ? "Recuar" : "Automática";
-
         /// <summary>Tecla em destaque na dica do topo.</summary>
         private static string K(string key) => $"<color=#8f5a0c><b>[{key}]</b></color>";
 
@@ -1072,39 +1047,14 @@ namespace PangeaSkirmish
             if (_controlled == null) return;
             int max = Tuning.Get().maxQueueTicks;
             int used = Mathf.Clamp(max - _controlled.remainingAP, 0, max);
-            string tag, hint;
-            if (_freeMode)
-            {
-                tag = "Modo livre";
-                if (used == 0)        hint = $"Passo 1 · {K("Clique")} no chão para andar ou num inimigo para atacar";
-                else if (used < max)  hint = $"Passo 2 · {used}/{max} ticks usados. Adicione mais ou {K("Enter")} confirma o round  ·  {K("Backspace")} desfaz";
-                else                  hint = $"Round cheio · {K("Enter")} confirma  ·  {K("Backspace")} desfaz";
-                hint += $"  ·  {K("Tab")} volta ao automático";
-            }
-            else
-            {
-                tag = _armed == ArmedIntent.None ? "Automático" : $"Automático: {IntentName(_armed)}";
-                if (used == 0)        hint = $"Passo 1 · {K("Clique")} num inimigo e o round se monta sozinho  ·  {K("Tab")} para planejar tile a tile";
-                else                  hint = $"Passo 2 · {K("Enter")} ou clique de novo para confirmar o round ({used}/{max} ticks)";
-            }
+            // Só o modo livre (2026-11-15): as intenções automáticas (Investir, Golpear e recuar) saíram.
+            string tag = "Planejando", hint;
+            if (used == 0)        hint = $"Passo 1 · {K("1")} Andar, {K("2")} Atacar, {K("3")} Mirar livre… ou {K("Clique")} no chão/inimigo";
+            else if (used < max)  hint = $"Passo 2 · {used}/{max} ticks usados. Adicione mais ou {K("Enter")} confirma o round  ·  {K("Esc")} desfaz";
+            else                  hint = $"Round cheio · {K("Enter")} confirma  ·  {K("Esc")} desfaz";
             if (tag != _lastHintTag || hint != _lastHint) { _lastHintTag = tag; _lastHint = hint; _hud.ShowIntentBand(tag, hint); }
-            _hud.SetIntentArmed(IntentSlot(_armed));
         }
         private string _lastHintTag, _lastHint;
-        private static int IntentSlot(ArmedIntent i) => i switch
-        {
-            ArmedIntent.Charge    => 0,
-            ArmedIntent.HitAndRun => 1,
-            ArmedIntent.Retreat   => 2,
-            _ => -1
-        };
-
-        private void Arm(ArmedIntent intent)
-        {
-            _armed = _armed == intent ? ArmedIntent.None : intent; // apertar de novo desarma
-            ShowIntentHint();
-        }
-
         private bool PointerOverUI()
         {
             // O EventSystem UGUI não enxerga UI Toolkit. Usa o picking real do painel
@@ -1121,16 +1071,7 @@ namespace PangeaSkirmish
             var kb = Keyboard.current;
             if (kb != null)
             {
-                if (kb.tabKey.wasPressedThisFrame) { SetFreeMode(!_freeMode); return true; }
                 if (kb.backspaceKey.wasPressedThisFrame && _controlled.actionSequence.Count > 0) { OnUndoClick(); return true; }
-                if (kb.digit1Key.wasPressedThisFrame) { Arm(ArmedIntent.Charge); return true; }
-                if (kb.digit2Key.wasPressedThisFrame) { Arm(ArmedIntent.HitAndRun); return true; }
-                if (kb.digit3Key.wasPressedThisFrame)
-                {
-                    _armed = ArmedIntent.Retreat; ShowIntentHint();
-                    ApplyIntent(() => IntentBuilder.Retreat(_controlled, _allUnits, _grid), null, null);
-                    return true;
-                }
                 bool confirmKey = kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame
                                || kb.spaceKey.wasPressedThisFrame;
                 if (confirmKey && _controlled.actionSequence.Count > 0) { OnConfirmRequested?.Invoke(); return true; }
@@ -1144,36 +1085,7 @@ namespace PangeaSkirmish
             bool ctrl  = kb != null && kb.ctrlKey.isPressed;
 
             var unit = HitUnitWithCollider();
-            if (_freeMode) return FreeClick(unit, shift, ctrl);
-            if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
-            {
-                // Segundo clique no mesmo alvo confirma a prévia.
-                if (_previewUnit == unit && !shift && !ctrl && _controlled.actionSequence.Count > 0)
-                { OnConfirmRequested?.Invoke(); return true; }
-
-                if (ctrl || (_armed == ArmedIntent.HitAndRun && !shift))
-                    ApplyIntent(() => IntentBuilder.HitAndRun(_controlled, unit, _allUnits, _grid), unit, null);
-                else if (shift)
-                    ApplyIntent(() => IntentBuilder.Charge(_controlled, unit, _allUnits, _grid, maxAttacks: 1), unit, null);
-                else
-                    ApplyIntent(() => IntentBuilder.Charge(_controlled, unit, _allUnits, _grid), unit, null);
-                return true;
-            }
-
-            var cell = HitAnchor();
-            if (cell.HasValue && _grid.IsAnchorInBounds(cell.Value, _controlled.stats.Footprint) && (unit == null || unit == _controlled))
-            {
-                var c = cell.Value;
-                if (_previewCell == c && _controlled.actionSequence.Count > 0)
-                { OnConfirmRequested?.Invoke(); return true; }
-
-                if (_armed == ArmedIntent.Retreat)
-                    ApplyIntent(() => IntentBuilder.Retreat(_controlled, _allUnits, _grid, c), null, c);
-                else
-                    ApplyIntent(() => IntentBuilder.MoveTo(_controlled, c, _allUnits, _grid), null, c);
-                return true;
-            }
-            return false;
+            return FreeClick(unit, shift, ctrl);
         }
 
         // ------------------------------------------------------------------ MODO LIVRE
@@ -1454,17 +1366,6 @@ namespace PangeaSkirmish
             }
         }
 
-        /// <summary>Roda o montador, guarda o alvo da prévia e redesenha fantasmas, marcas e barra de ticks.</summary>
-        private void ApplyIntent(System.Func<bool> build, Unit targetUnit, Vector2Int? targetCell)
-        {
-            bool ok = build();
-            _previewUnit = ok ? targetUnit : null;
-            _previewCell = ok ? targetCell : null;
-            if (!ok)
-                _hud.LogAction($"<color=#6f6a5e>x</color> {_controlled.unitName}: nada a fazer com essa intenção daqui", _controlled);
-            RebuildPlanVisuals();
-        }
-
         /// <summary>Recria os fantasmas e marcas a partir do plano atual da unidade (1 por ação da fila).</summary>
         private void RebuildPlanVisuals()
         {
@@ -1586,14 +1487,16 @@ namespace PangeaSkirmish
             }
             if (_mode == PlanMode.Idle && PointerInput.BackThisFrame)
             {
-                _hud.GoBack();
+                // Esc (2026-11-15): sem nada armado, desfaz a última ação; plano vazio, alterna o que a HUD mostra.
+                if (_hud.CloseOpenPopup()) return;
+                if (_controlled.actionSequence.Count > 0) OnUndoClick(); else _hud.GoBack();
                 return;
             }
 
             // Esc sai da mira de ataque.
             if ((_mode == PlanMode.AttackUnitPicking || _mode == PlanMode.AttackTilePicking) && PointerInput.BackThisFrame)
             { SetMode(PlanMode.Idle); ShowSelfAttackRange(); return; }
-            // Teclas da barra de ações valem em qualquer modo (4 Atacar, 5 Mirar livre...).
+            // Teclas da barra de ações valem em qualquer modo (2 Atacar, 3 Mirar livre...).
             if (_mode != PlanMode.Idle && _hud.HandleActionBarKeys()) return;
 
             // Modo Intenção: um clique monta a fila inteira (GDD-016 §6).
