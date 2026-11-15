@@ -16,7 +16,6 @@
                 <ui:ScrollView name="room-list" class="pg-list room__scroll room__room-list" />
                 <ui:VisualElement class="room__code-join-row">
                     <ui:Button name="btn-browse" text="Buscar salas" class="pg-button room__half-btn" />
-                    <ui:Button name="btn-refresh" text="Atualizar" class="pg-button room__half-btn" />
                 </ui:VisualElement>
 
                 <ui:Label text="Entrar com o código" class="pg-section room__section-gap" />
