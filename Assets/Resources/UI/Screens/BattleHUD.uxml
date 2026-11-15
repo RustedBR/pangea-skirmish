@@ -21,12 +21,7 @@
       </ui:VisualElement>
     </ui:VisualElement>
 
-    <!-- INDICADOR DE MODO CÂMERA -->
-    <ui:VisualElement name="camera-mode" class="bh-window bh-camera">
-      <ui:Label name="camera-mode-text" text="Auto" class="bh-camera-label" />
-    </ui:VisualElement>
-
-    <!-- COMPASSO -->
+    <!-- BÚSSOLA + MODO DA CÂMERA (2026-11-15): uma caixa só; letras dentro da moldura, modo embaixo. -->
     <ui:VisualElement name="compass" class="bh-window bh-compass" picking-mode="Ignore">
       <ui:VisualElement name="compass-rose" class="bh-compass-rose" picking-mode="Ignore">
         <ui:VisualElement name="compass-needle" class="bh-compass-needle" picking-mode="Ignore" />
@@ -34,6 +29,9 @@
         <ui:Label name="compass-e" text="L" class="bh-compass-dir bh-compass-e" picking-mode="Ignore" />
         <ui:Label name="compass-s" text="S" class="bh-compass-dir bh-compass-s" picking-mode="Ignore" />
         <ui:Label name="compass-w" text="O" class="bh-compass-dir bh-compass-w" picking-mode="Ignore" />
+      </ui:VisualElement>
+      <ui:VisualElement name="camera-mode" class="bh-compass-mode">
+        <ui:Label name="camera-mode-text" text="Auto" class="bh-camera-label" />
       </ui:VisualElement>
     </ui:VisualElement>
 
