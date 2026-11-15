@@ -24,11 +24,13 @@ namespace PangeaSkirmish
 
         // ── Tamanho da interface (2026-11-15): 50% a 150%, salvo separado no celular e no PC ──
         public const float UiScaleMin = 0.5f, UiScaleMax = 1.5f;
+        /// <summary>Padrão: 85% no celular (a UI ficava grande demais), 100% no PC.</summary>
+        public static float DefaultUiScale => UnityEngine.Device.Application.isMobilePlatform ? 0.85f : 1f;
         private static string KeyUiScale => "settings.uiScale." + (UnityEngine.Device.Application.isMobilePlatform ? "mobile" : "pc");
 
         public static float UiScale
         {
-            get { return Mathf.Clamp(PlayerPrefs.GetFloat(KeyUiScale, 1f), UiScaleMin, UiScaleMax); }
+            get { return Mathf.Clamp(PlayerPrefs.GetFloat(KeyUiScale, DefaultUiScale), UiScaleMin, UiScaleMax); }
             set { PlayerPrefs.SetFloat(KeyUiScale, Mathf.Clamp(value, UiScaleMin, UiScaleMax)); PlayerPrefs.Save(); ApplyUiScale(); }
         }
 

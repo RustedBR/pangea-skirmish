@@ -48,43 +48,34 @@
 }
 
 /* CAMERA MODE */
-.bh-camera {
-  position: absolute; top: 0.9%; right: 0.5%; width: 5.7%; 
-  align-items: center; justify-content: center; padding: 4px;
-}
-.bh-camera-label { font-size: 11px; color: var(--pg-accent, rgb(106, 169, 255)); -unity-font-style: bold; }
-
-/* COMPASSO — para onde aponta o norte do mapa na orientação de vista atual (Q/E).
-   Fica logo abaixo do indicador de câmera (que termina em y=34), sem colidir. */
+/* BÚSSOLA + MODO DA CÂMERA (2026-11-15) — uma caixa só, em % da tela. A rosa é quadrada (KeepAspect)
+   e as letras ficam dentro dela: girando de 90 em 90 graus continuam dentro da moldura. */
 .bh-compass {
-  position: absolute; top: 4.1%; right: 0.5%; width: 4.0%; 
-  align-items: center; justify-content: center; padding: 4px;
+  position: absolute; top: 1%; right: 0.6%; width: 4.4%;
+  flex-direction: column; align-items: center; justify-content: flex-start; padding: 5px;
 }
 .bh-compass-rose {
-  position: relative; width: 80%; height: 80%;
+  position: relative; width: 100%;
   rotate: 0deg;
-  transition-property: rotate;
-  transition-duration: 0.29s;
-  transition-timing-function: ease-out;
+  transition-property: rotate; transition-duration: 0.29s; transition-timing-function: ease-out;
 }
 .bh-compass-dir {
-  position: absolute; left: 50%; top: 50%; width: 18px; height: 16px;
-  margin-left: -9px; margin-top: -8px;
-  font-size: 12px; -unity-font-style: bold; -unity-text-align: middle-center;
-  color: var(--pg-text, white);
-  transition-property: rotate;
-  transition-duration: 0.29s;
-  transition-timing-function: ease-out;
+  position: absolute; width: 34%; height: 34%;
+  font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center;
+  color: var(--pg-text, white); margin: 0; padding: 0;
+  transition-property: rotate; transition-duration: 0.29s; transition-timing-function: ease-out;
 }
-.bh-compass-n { translate: 0 -24px; color: var(--pg-danger, rgb(255, 90, 90)); }
-.bh-compass-s { translate: 0 24px; }
-.bh-compass-e { translate: 24px 0; }
-.bh-compass-w { translate: -24px 0; }
+.bh-compass-n { left: 33%; top: 0; color: var(--pg-danger, rgb(200, 40, 40)); }
+.bh-compass-s { left: 33%; bottom: 0; }
+.bh-compass-e { right: 0; top: 33%; }
+.bh-compass-w { left: 0; top: 33%; }
 .bh-compass-needle {
-  position: absolute; left: 50%; top: 50%;
-  width: 2px; height: 14px; margin-left: -1px; margin-top: -14px;
-  background-color: var(--pg-danger, rgb(255, 90, 90));
+  position: absolute; left: 48%; top: 28%; width: 4%; height: 22%;
+  background-color: var(--pg-danger, rgb(200, 40, 40));
 }
+.bh-compass-mode { flex-grow: 1; justify-content: center; align-items: center; margin-top: 2px; }
+.bh-camera-label { font-size: 10px; color: var(--pg-accent, rgb(106, 169, 255)); -unity-font-style: bold; -unity-text-align: middle-center; }
+.bh-mobile .bh-compass { width: 6%; }
 
 /* MINI-LOG TEMPORÁRIO — histórico compacto, só com unidade selecionada */
 .bh-minilog {
@@ -268,7 +259,7 @@
 .bh-reaction .bh-prompt-text { white-space: normal; }
 
 /* INSPEÇÃO COM ÍCONES (2026-11-13) */
-.bh-inspect { width: 21%; min-width: 240px; max-height: 92%; overflow: hidden; }   /* % da tela; nunca maior que a tela */
+.bh-inspect { width: 15%; min-width: 0; max-height: 92%; overflow: hidden; padding: 6px 8px; }   /* % da tela; menor (2026-11-15) */
 .bh-itoggle {
   position: absolute; top: 6px; right: 8px; height: 18px; padding: 0 6px; margin: 0;
   font-size: 10px; color: rgb(189, 217, 255); background-color: rgb(26, 41, 87);
@@ -441,5 +432,17 @@
 .bh-reaction .bh-reaction-btn:active { background-color: rgb(255, 222, 140); }
 
 /* INSPEÇÃO NO CELULAR (2026-11-15): faixa estreita — nome, vida, Mana/Stamina e armas; o resto na "ficha". */
-.bh-mobile .bh-inspect { width: 22%; min-width: 0; padding: 6px 8px; }
-.bh-mobile .bh-portrait { width: 34px; height: 40px; }
+.bh-mobile .bh-inspect { width: 19%; min-width: 0; padding: 4px 6px; }
+.bh-mobile .bh-portrait { width: 26px; height: 30px; }
+.bh-mobile .bh-unit-name { font-size: 12px; }
+.bh-mobile .bh-hp-text { font-size: 9px; margin-top: 0; }
+.bh-mobile .bh-ibar { margin-top: 1px; }
+.bh-mobile .bh-ibar-text { font-size: 10px; min-width: 32px; }
+.bh-mobile .bh-igrid { margin-top: 3px; }
+
+/* INSPEÇÃO MENOR (2026-11-15): retrato, nomes e chips enxutos também no PC. */
+.bh-portrait { width: 36px; height: 44px; }
+.bh-inspect-head { margin-bottom: 3px; gap: 6px; }
+.bh-unit-name { font-size: 13px; }
+.bh-ichip-icon { width: 14px; height: 14px; margin-right: 3px; }
+.bh-ichip-text { font-size: 11px; }

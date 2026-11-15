@@ -257,7 +257,8 @@ namespace PangeaSkirmish
             _timerText        = r.Q<Label>("timer-text");
             _cameraModeText   = r.Q<Label>("camera-mode-text");
             _compassRose      = r.Q<VisualElement>("compass-rose");
-            KeepAspect(r.Q<VisualElement>("compass"), 1f);
+            KeepAspect(r.Q<VisualElement>("compass"), 1.25f);         // rosa quadrada + linha do modo da câmera
+            KeepAspect(r.Q<VisualElement>("compass-rose"), 1f);
             _compassLabels    = new[] { r.Q<Label>("compass-n"), r.Q<Label>("compass-e"),
                                         r.Q<Label>("compass-s"), r.Q<Label>("compass-w") };
             // Toque/clique na bússola gira a vista (GDD-022): metade esquerda = anti-horário, direita = horário.
@@ -482,6 +483,13 @@ namespace PangeaSkirmish
             float w = _inspectPanel.layout.width, h = _inspectPanel.layout.height;
             float W = parent.layout.width, H = parent.layout.height;
             if (float.IsNaN(w) || float.IsNaN(H) || w <= 0f || W <= 0f) return;
+            // Celular (2026-11-15): fixa no canto de cima à esquerda — perto da unidade cobria o mapa.
+            if (MobileHUD.Active)
+            {
+                _inspectPanel.style.left = W * 0.01f;
+                _inspectPanel.style.top = H * 0.02f;
+                return;
+            }
             Vector2 Screen(Unit x) => RuntimePanelUtils.CameraTransformWorldToPanel(panel, x.HeadWorld, cam);
             Vector2 me = Screen(_inspectedUnit);
             float gap = W * 0.02f, top = H * 0.11f, bottomReserve = H * 0.18f;   // em % da tela: em px fixos a bolha saía por baixo no celular   // topo: barra de fase e dica   // topo: barra de fase; baixo: barras de ação e ticks
@@ -1053,7 +1061,8 @@ namespace PangeaSkirmish
             if (_phaseText != null) _phaseText.text = s;
             // O topo só aparece quando a partida escreve a fase (antes mostrava "Phase/Timer" de exemplo).
             var top = Root?.Q<VisualElement>("topbar");
-            if (top != null) top.style.display = string.IsNullOrEmpty(s) ? DisplayStyle.None : DisplayStyle.Flex;
+            // No celular o canto de cima é da inspeção (2026-11-15): o topo com fase e tempo não aparece.
+            if (top != null) top.style.display = string.IsNullOrEmpty(s) || MobileHUD.Active ? DisplayStyle.None : DisplayStyle.Flex;
         }
         public void SetTimer(float sec)         { if (_timerText != null) _timerText.text = sec.ToString("0.0") + "s"; }
         public void SetTimerWarning(bool warn)  { if (_timerText != null) _timerText.style.color = warn ? Tuning.Get().timerWarningColor : Tuning.Get().timerNormalColor; }
