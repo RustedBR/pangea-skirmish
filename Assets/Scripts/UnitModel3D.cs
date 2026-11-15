@@ -162,7 +162,7 @@ namespace PangeaSkirmish
         /// Acessórios guardam o ajuste por par corpo + item (2026-11-15): "Warrior+IronSword" e "Warrior+IronAxe"
         /// são ajustes diferentes, e um Mago com espada não herda a inclinação do cajado.
         /// </summary>
-        private Transform WrapRig(Transform item, string partName, string itemModel)
+        private Transform WrapRig(Transform item, string partName, string itemModel, string defaultBody = null)
         {
             if (item == null) return null;
             var rig = new GameObject(partName + "Rig").transform;
@@ -170,10 +170,22 @@ namespace PangeaSkirmish
             item.SetParent(rig, false);
             string key = RigOffsets.PairKey(ModelName, itemModel);
             _rigKeys[partName] = key;
-            RigOffsets.Apply(rig, key, partName);
+            var asset = RigOffsets.Get();
+            string from = "";
+            if (asset != null)
+            {
+                from = asset.ResolveAccessory(ModelName, itemModel, partName, partName == "Weapon" ? "ArmR" : "ArmL",
+                                              defaultBody, out var p, out var r, out var sc);
+                rig.localPosition = p; rig.localRotation = r; rig.localScale = sc;
+            }
+            _rigSources[partName] = from;
             _rigs[partName] = rig;
             return rig;
         }
+
+        private readonly Dictionary<string, string> _rigSources = new Dictionary<string, string>();
+        /// <summary>De onde veio o ajuste do acessório: a própria chave, outro corpo (espelhado) ou "" (pose padrão).</summary>
+        public string RigSource(string partName) => _rigSources.TryGetValue(partName, out var k) ? k : RigKey(partName);
 
         private readonly Dictionary<string, string> _rigKeys = new Dictionary<string, string>();
         /// <summary>Chave em que o ajuste da peça é salvo: o modelo do corpo, ou corpo+item nos acessórios.</summary>
@@ -198,6 +210,10 @@ namespace PangeaSkirmish
             if (!string.IsNullOrEmpty(u.modelId) && World3D.Has(u.modelId)) return u.modelId;
             return CharacterModelFor(u.definitionId, u.unitName, weapon);
         }
+
+        /// <summary>Corpo em que o item foi pensado (Warrior para espadas/machados, Mage para cajados, Archer para arcos).</summary>
+        public static string DefaultBodyFor(string itemId) =>
+            CharacterModelFor("", "", WeaponCatalog.Get(itemId) ?? new WeaponDef { id = itemId });
 
         /// <summary>Mesma regra sem uma Unit (prévia da criação de personagem).</summary>
         public static string CharacterModelFor(string definitionId, string unitName, WeaponDef weapon)
@@ -250,7 +266,7 @@ namespace PangeaSkirmish
             if (go == null) return;
             go.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
             go.transform.localRotation = Quaternion.Euler(18f, 0f, 0f);
-            WrapRig(go.transform, "Offhand", model);
+            WrapRig(go.transform, "Offhand", model, DefaultBodyFor(model));
         }
 
         private void EquipShield()
@@ -263,7 +279,7 @@ namespace PangeaSkirmish
             go.transform.localPosition = new Vector3(-0.07f, -0.22f, 0.05f);
             go.transform.localRotation = Quaternion.Euler(0f, -70f, 0f);
             go.transform.localScale = Vector3.one * 0.85f;
-            WrapRig(go.transform, "Shield", "Shield");
+            WrapRig(go.transform, "Shield", "Shield", "Tank");   // escudo nasce no Tanque
         }
 
         private void EquipWeaponModel(WeaponDef w)
@@ -278,7 +294,7 @@ namespace PangeaSkirmish
                     own.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
                     WeaponModelName = w.id;
                     SetWeapon(own.transform, StyleFor(w.id));
-                    WrapRig(own.transform, "Weapon", w.id);
+                    WrapRig(own.transform, "Weapon", w.id, DefaultBodyFor(w.id));
                     return;
                 }
             }
@@ -297,7 +313,7 @@ namespace PangeaSkirmish
             // Mão: ponta de baixo do braço (o pivô fica no ombro, a ~0.32 acima da mão).
             go.transform.localPosition = new Vector3(0f, -0.29f, 0.07f);
             SetWeapon(go.transform, StyleFor(model));
-            WrapRig(go.transform, "Weapon", model);
+            WrapRig(go.transform, "Weapon", model, DefaultBodyFor(model));
         }
 
         public static AttackStyle StyleFor(string weaponOrModel)

@@ -23,12 +23,36 @@ namespace PangeaSkirmish
             ("leap", "Salto", 0.6f), ("death", "Morrer", 2.2f),
         };
 
-        /// <summary>Atores: id da arma (define o estilo do golpe) ou "Fera".</summary>
-        public static readonly (string id, string label)[] Actors =
+        /// <summary>
+        /// Atores: toda arma do catálogo (2026-11-15; antes eram 5 fixas) e a Fera. O id é o da arma.
+        /// </summary>
+        public static (string id, string label)[] Actors
         {
-            ("IronSword", "Espada (cortar)"), ("IronAxe", "Machado (rachar)"), ("ArcaneStaff", "Cajado (estocar)"),
-            ("ShortBow", "Arco (atirar)"), ("Fera", "Fera (morder)"),
-        };
+            get
+            {
+                if (_actors != null) return _actors;
+                var list = new List<(string, string)>();
+                foreach (var w in WeaponCatalog.All())
+                    list.Add((w.id, $"{w.displayName} ({w.id}){(Equipment.IsTwoHanded(w) ? " · 2 mãos" : "")}"));
+                list.Add(("Fera", "Fera (morder)"));
+                return _actors = list.ToArray();
+            }
+        }
+        private static (string id, string label)[] _actors;
+
+        /// <summary>Mão esquerda possível: nada, armas de 1 mão e escudos.</summary>
+        public static (string id, string label)[] Offhands
+        {
+            get
+            {
+                if (_offhands != null) return _offhands;
+                var list = new List<(string, string)> { ("", "Nada") };
+                foreach (var w in WeaponCatalog.All()) if (!Equipment.IsTwoHanded(w)) list.Add((w.id, w.displayName + " (arma)"));
+                foreach (var it in ItemCatalog.All) if (it.isShield) list.Add((it.id, it.displayName + " (escudo)"));
+                return _offhands = list.ToArray();
+            }
+        }
+        private static (string id, string label)[] _offhands;
 
         public RenderTexture Texture { get; private set; }
         public Unit Actor { get; private set; }
@@ -94,6 +118,9 @@ namespace PangeaSkirmish
         /// <summary>Corpo forçado (Unit.modelId); vazio usa o da arma, como no jogo.</summary>
         public string BodyId { get; private set; } = "";
         public void SetBody(string body) { BodyId = body ?? ""; Respawn(); }
+        /// <summary>Item da mão esquerda (arma de 1 mão ou escudo); ignorado com arma de 2 mãos.</summary>
+        public string OffhandId { get; private set; } = "";
+        public void SetOffhand(string id) { OffhandId = id ?? ""; Respawn(); }
 
         public void SetView(View v) { CurrentView = v; PlaceCamera(); }
 
@@ -107,6 +134,7 @@ namespace PangeaSkirmish
             u.team = Team.Player;
             u.weaponId = monster ? "Claws" : ActorId;
             if (!monster && !string.IsNullOrEmpty(BodyId)) u.modelId = BodyId;
+            if (!monster && !Equipment.IsTwoHanded(ActorId)) u.offhandId = OffhandId;
             u.stats = new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5, Footprint = monster ? 2 : 3 }.ToAttributeStats();
             var tint = RuntimeTuning.Active != null ? RuntimeTuning.Active.playerTeamColor : Color.white;
             u.Init(_grid, new Vector2Int(3, 3), tint, "Sprites/TinyTactics/Warrior");
