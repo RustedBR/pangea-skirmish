@@ -98,7 +98,7 @@ namespace PangeaSkirmish
                     ow.transform.localRotation = Quaternion.Euler(18f, 0f, 0f);
                 }
             }
-            if ((BodyModel == "Tank" || (offItem != null && offItem.isShield)) && armL != null && World3D.Has("Shield"))
+            if (offItem != null && offItem.isShield && armL != null && World3D.Has("Shield"))   // Tanque sem escudo fixo (2026-11-15)
             {
                 var sh = World3D.Spawn("Shield", armL);
                 if (sh != null)

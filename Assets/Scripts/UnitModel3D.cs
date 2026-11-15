@@ -120,7 +120,7 @@ namespace PangeaSkirmish
                 _legL = MakePivot("LegL", 0f, 1f, 0f);
                 _legR = MakePivot("LegR", 0f, 1f, 0f);
                 EquipWeaponModel(weapon);
-                if (ModelName == "Tank") EquipShield();
+                // O Tanque não nasce mais com escudo fixo (2026-11-15): mostra o que estiver na mão esquerda (EquipOffhand).
             }
 
             if (teamColor.a > 0.01f && teamColor != Color.white)
