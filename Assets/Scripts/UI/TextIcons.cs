@@ -23,7 +23,7 @@ namespace PangeaSkirmish
             ("■","p_defensive"), ("○","p_neutral"), ("▲","p_aggressive"), ("✶","p_concentrated"), ("≈","p_serene"),
             ("❂","stamina"), ("⚡","stamina"), ("▼","chev_down"), ("▾","chev_down"), ("▴","chev_up"),
             ("▶","play"), ("◀","play_l"), ("✎","pencil"), ("🔥","burn"), ("🌋","burn"), ("★","star"),
-            ("👁","eye"), ("💥","boom"), ("💨","wind"), ("→","arrow_r"), ("←","arrow_l"), ("−","minus"), ("≥","geq"), ("✓","check"),
+            ("👁","eye"), ("💥","boom"), ("💨","wind"), ("→","arrow_r"), ("←","arrow_l"), ("−","minus"), ("≥","geq"), ("✓","check"), ("↷","round_next"), ("☀","sun"), ("◐","dusk"), ("☾","moon"), ("➜","arrow_r"), ("⬢","star"),   // ↷: no WebGL a fonte não tem o glifo
             // Incrementos de magia e caixa de marcar (2026-11-15): área de uso privado do Unicode, só a UI escreve.
             (BoostPower,"boost_power"), (BoostEffect,"boost_effect"), (BoostRange,"boost_range"), (BoostArea,"boost_area"),
             (BoostQuick,"boost_quick"), (BoxOn,"box_on"), (BoxOff,"box_off"),
@@ -59,6 +59,8 @@ namespace PangeaSkirmish
 
         private UIDocument _doc;
         private readonly List<TextElement> _buf = new List<TextElement>();
+        private Dictionary<TextElement, string> _seen = new Dictionary<TextElement, string>();
+        private Dictionary<TextElement, string> _seenNext = new Dictionary<TextElement, string>();
 
         /// <summary>Garante o componente em todos os UIDocument da cena.</summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -80,15 +82,22 @@ namespace PangeaSkirmish
             if (_doc == null) _doc = GetComponent<UIDocument>();
             var root = _doc != null ? _doc.rootVisualElement : null;
             if (root == null) return;
+            // Desempenho (2026-11-15): a varredura rodava a cada quadro em toda a UI. Agora roda a cada 3 quadros e
+            // pula o texto que não mudou desde a última vez (mesma string).
+            if (Time.frameCount % 3 != 0) return;
             _buf.Clear();
             root.Query<TextElement>().ToList(_buf);
+            _seenNext.Clear();
             foreach (var t in _buf)
             {
                 string s = t.text;
                 if (string.IsNullOrEmpty(s)) continue;
+                if (_seen.TryGetValue(t, out var last) && ReferenceEquals(last, s)) { _seenNext[t] = s; continue; }
                 string r = Apply(s);
                 if (!ReferenceEquals(r, s)) { t.enableRichText = true; t.text = r; }
+                _seenNext[t] = t.text;
             }
+            (_seen, _seenNext) = (_seenNext, _seen);   // só guarda quem ainda existe
         }
     }
 }

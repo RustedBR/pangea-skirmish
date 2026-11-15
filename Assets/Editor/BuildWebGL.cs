@@ -96,6 +96,10 @@ public static class BuildWebGL
         // Netlify está congelado, fica 1. Se reativar o Netlify, voltar para 0.
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
         PlayerSettings.WebGL.decompressionFallback = true;
+        // Desempenho (2026-11-15): cada Debug.Log capturava a pilha de chamadas no WebGL, e a batalha loga a cada
+        // ação. Log e aviso sem pilha; erros e exceções continuam com ela.
+        PlayerSettings.SetStackTraceLogType(LogType.Log, StackTraceLogType.None);
+        PlayerSettings.SetStackTraceLogType(LogType.Warning, StackTraceLogType.None);
         // TEMPLATE OBRIGATÓRIO: forçar o custom PangeaSkirmish (free-aspect + 3-chaves).
         // Se o build usar o template DEFAULT, o index.html fica com dataUrl vazio
         // ("DefaultCompany"/"My project") e o jogo NAO CARREGA (404 no wasm).

@@ -50,6 +50,10 @@ namespace PangeaSkirmish
                 if (ps != null) ps.referenceResolution = MobileReference;
                 Application.targetFrameRate = 30;
                 QualitySettings.SetQualityLevel(0, true);
+                // Desempenho (2026-11-15): todos os níveis de qualidade usam o mesmo URP, então o nível 0 quase não
+                // aliviava nada. No celular o 3D desenha a 75% da resolução (a UI segue nítida) e sem HDR.
+                SetUrp("renderScale", 0.75f);
+                SetUrp("supportsHDR", false);
             }
             return hud;
         }
@@ -58,8 +62,23 @@ namespace PangeaSkirmish
         /// No Device Simulator o PanelSettings e a qualidade mudam como no aparelho; no editor essas mudanças
         /// ficariam gravadas no projeto. Guarda os originais e devolve ao sair do Play.
         /// </summary>
+        /// <summary>Muda uma propriedade do URP ativo por reflexão (este assembly não referencia o URP).</summary>
+        private static void SetUrp(string prop, object value)
+        {
+            var rp = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
+            var pi = rp != null ? rp.GetType().GetProperty(prop) : null;
+            if (pi != null && pi.CanWrite) pi.SetValue(rp, value);
+        }
+        private static object GetUrp(string prop)
+        {
+            var rp = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
+            var pi = rp != null ? rp.GetType().GetProperty(prop) : null;
+            return pi != null ? pi.GetValue(rp) : null;
+        }
+
         private static void KeepEditorSettings(PanelSettings ps)
         {
+            object scale = GetUrp("renderScale"), hdr = GetUrp("supportsHDR");
             var res = ps != null ? ps.referenceResolution : default;
             int quality = QualitySettings.GetQualityLevel();
             int fps = Application.targetFrameRate;
@@ -68,6 +87,8 @@ namespace PangeaSkirmish
                 Application.quitting -= Restore;
                 if (ps != null) ps.referenceResolution = res;
                 QualitySettings.SetQualityLevel(quality, true);
+                if (scale != null) SetUrp("renderScale", scale);
+                if (hdr != null) SetUrp("supportsHDR", hdr);
                 Application.targetFrameRate = fps;
             }
             Application.quitting += Restore;
@@ -92,8 +113,8 @@ namespace PangeaSkirmish
             _back = Make("← Voltar", "mobile-back", () => PointerInput.RequestBack());
             // Posições e tamanhos em % da tela (2026-11-14).
             _back.style.left = Length.Percent(1); _back.style.top = Length.Percent(2); _back.style.width = Length.Percent(11);
-            _full = Make("⛶", "mobile-full", () => Screen.fullScreen = true);
-            _full.style.left = Length.Percent(12.5f); _full.style.top = Length.Percent(2); _full.style.width = Length.Percent(4.5f);
+            _full = Make("Tela cheia", "mobile-full", () => Screen.fullScreen = true);   // "⛶" não existe na fonte do WebGL: botão vazio
+            _full.style.left = Length.Percent(12.5f); _full.style.top = Length.Percent(2); _full.style.width = Length.Percent(11);
             _confirm = Make("✓ Confirmar", "mobile-confirm", () => PointerInput.RequestConfirm());
             _confirm.AddToClassList("pg-button--primary");
             _confirm.style.right = Length.Percent(1); _confirm.style.top = Length.Percent(42); _confirm.style.width = Length.Percent(16); _confirm.style.height = Length.Percent(10);
@@ -104,7 +125,7 @@ namespace PangeaSkirmish
             _portrait.style.left = 0; _portrait.style.right = 0; _portrait.style.top = 0; _portrait.style.bottom = 0;
             _portrait.style.backgroundColor = new Color(0.04f, 0.06f, 0.14f, 0.97f);
             _portrait.style.alignItems = Align.Center; _portrait.style.justifyContent = Justify.Center;
-            var msg = new Label("↻\nGire o celular para jogar\n(modo paisagem)");
+            var msg = new Label("Gire o celular para jogar\n(modo paisagem)");
             msg.AddToClassList("pg-title"); msg.style.whiteSpace = WhiteSpace.Normal; msg.style.fontSize = 28;
             _portrait.Add(msg);
             root.Add(_portrait);

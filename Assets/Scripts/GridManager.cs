@@ -430,6 +430,7 @@ namespace PangeaSkirmish
             topGo.transform.localScale = new Vector3(spriteScale, spriteScale * World3D.GroundStretch, 1f);
             sr.sprite = GetTileFillSprite();
             sr.color = Color.clear;
+            sr.enabled = false;   // destaque invisível: 900 sprites a menos por quadro (liga ao destacar)
             _tiles[x, y] = sr;
             _baseColors[x, y] = Color.clear;
             RefreshBlock(x, y);
@@ -1009,6 +1010,7 @@ namespace PangeaSkirmish
                     newSprite = tileDatabase.GetTile(_terrainNames[x, y]);
                 _tiles[x, y].sprite = newSprite != null ? newSprite : _blockSprite;
                 _tiles[x, y].color = Color.white;
+                _tiles[x, y].enabled = true;
             }
         }
 
@@ -1498,6 +1500,7 @@ namespace PangeaSkirmish
             // Mundo 3D: o Top é uma camada sobre o bloco — destaque translúcido.
             if (c.a > 0.01f) c.a = Mathf.Min(c.a, 0.34f);
             _tiles[cell.x, cell.y].color = c;
+            _tiles[cell.x, cell.y].enabled = c.a > 0.01f;   // sem destaque, o sprite não entra no desenho
         }
     }
 }

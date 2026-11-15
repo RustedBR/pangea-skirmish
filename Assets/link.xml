@@ -15,4 +15,12 @@
   <assembly fullname="Unity.Services.Lobbies" preserve="all"/>
   <assembly fullname="Unity.Services.Authentication" preserve="all"/>
   <assembly fullname="Unity.Services.Core" preserve="all"/>
+
+  <!-- MobileHUD muda renderScale e supportsHDR do URP por reflexão (2026-11-15): preserva os setters. -->
+  <assembly fullname="Unity.RenderPipelines.Universal.Runtime">
+    <type fullname="UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset">
+      <property name="renderScale"/>
+      <property name="supportsHDR"/>
+    </type>
+  </assembly>
 </linker>
