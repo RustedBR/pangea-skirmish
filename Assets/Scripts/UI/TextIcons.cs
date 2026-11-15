@@ -13,6 +13,9 @@ namespace PangeaSkirmish
     /// </summary>
     public class TextIcons : MonoBehaviour
     {
+        public const string BoostPower = "\uE010", BoostEffect = "\uE011", BoostRange = "\uE012", BoostArea = "\uE013",
+                            BoostQuick = "\uE014", BoxOn = "\uE020", BoxOff = "\uE021";
+
         public static readonly (string sym, string icon)[] Map =
         {
             ("⚔","dmg"), ("◎","hit"), ("⌖","hit"), ("✚","hit"), ("✕","x"), ("✦","mana"), ("◆","power"),
@@ -20,7 +23,10 @@ namespace PangeaSkirmish
             ("■","p_defensive"), ("○","p_neutral"), ("▲","p_aggressive"), ("✶","p_concentrated"), ("≈","p_serene"),
             ("❂","stamina"), ("⚡","stamina"), ("▼","chev_down"), ("▾","chev_down"), ("▴","chev_up"),
             ("▶","play"), ("◀","play_l"), ("✎","pencil"), ("🔥","burn"), ("🌋","burn"), ("★","star"),
-            ("👁","eye"), ("💥","boom"), ("💨","wind"), ("→","arrow_r"), ("←","arrow_l"), ("−","minus"), ("≥","geq"),
+            ("👁","eye"), ("💥","boom"), ("💨","wind"), ("→","arrow_r"), ("←","arrow_l"), ("−","minus"), ("≥","geq"), ("✓","check"),
+            // Incrementos de magia e caixa de marcar (2026-11-15): área de uso privado do Unicode, só a UI escreve.
+            (BoostPower,"boost_power"), (BoostEffect,"boost_effect"), (BoostRange,"boost_range"), (BoostArea,"boost_area"),
+            (BoostQuick,"boost_quick"), (BoxOn,"box_on"), (BoxOff,"box_off"),
         };
 
         private static HashSet<char> _first;

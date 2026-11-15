@@ -979,7 +979,7 @@ namespace PangeaSkirmish
                 if (Loot.CanEquip(mine, it, out string why))
                     opts.Add(($"Equipar{(cur != null ? $"  <size=12>(o seu {cur.displayName} vai para o grupo)</size>" : "")}",
                               () => ps.LootTakeServerRpc(id, idx, itemId)));
-                else opts.Add(($"<color=#b9c4dc>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
+                else opts.Add(($"<color=#6b4a1e>Não dá para equipar: {why}</color>", () => ShowLootMenu(LootView.Item)));
                 opts.Add(($"Vender  <size=12>+{Loot.SellPrice(it)} moedas</size>", () => ps.LootSellServerRpc(id, idx, itemId)));
                 opts.Add(("← Voltar", () => ShowLootMenu(LootView.List)));
                 _hud.ShowChoiceTitled("ITENS DO GRUPO", $"{head}\n{Loot.Describe(it)}\n{Loot.Details(it, cur)}", opts.ToArray());
@@ -1182,7 +1182,7 @@ namespace PangeaSkirmish
                 string tgt = q.Attack.TargetUnit != null ? $" em {q.Attack.TargetUnit.unitName}" : "";
                 var opts = new List<(string, System.Action)>();
                 bool canP = mine.CanIncrementNext(0), canA = mine.CanIncrementNext(1);
-                string Cost(int st, bool tick) => $"<size=12><color=#b9c4dc>{st} Stamina{(tick ? " · +1 tick" : "")}</color></size>";
+                string Cost(int st, bool tick) => $"<size=12><color=#6b4a1e>{st} Stamina{(tick ? " · +1 tick" : "")}</color></size>";
                 if (canP) opts.Add(($"<b>Golpe poderoso</b>   ~{now} → <b>~{Dmg(true, q.IsAimed)}</b> de dano\n{Cost(Unit.IncrementCost(0), true)}", () => Submit(0)));
                 if (canA) opts.Add(($"<b>Mirar</b>   ~{now} → <b>~{Dmg(q.IsBonus, true)}</b> de dano, mais acerto\n{Cost(Unit.IncrementCost(1), false)}", () => Submit(1)));
                 if (canP && canA && mine.currentStamina >= Unit.IncrementCost(0) + Unit.IncrementCost(1))
