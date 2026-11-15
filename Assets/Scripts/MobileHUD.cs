@@ -29,8 +29,10 @@ namespace PangeaSkirmish
         {
             Active = false; PointerOver = false;
             bool forced = !string.IsNullOrEmpty(Application.absoluteURL) && Application.absoluteURL.Contains("mobile=1");
-            if (!Application.isMobilePlatform && !forced) return;
-            Create(applyDeviceSettings: Application.isMobilePlatform);
+            // UnityEngine.Device: no aparelho é igual ao Application; no editor responde pelo Device Simulator (2026-11-15).
+            bool mobile = UnityEngine.Device.Application.isMobilePlatform;
+            if (!mobile && !forced) return;
+            Create(applyDeviceSettings: mobile);
         }
 
         /// <summary>Cria a HUD de toque (também usado pelos testes).</summary>
@@ -44,11 +46,31 @@ namespace PangeaSkirmish
             {
                 // UI maior: todas as telas usam o mesmo PanelSettings. Só no aparelho (não regrava o asset no editor).
                 var ps = Resources.Load<PanelSettings>(PangeaScreen.PanelSettingsResource);
+                if (Application.isEditor) KeepEditorSettings(ps);
                 if (ps != null) ps.referenceResolution = MobileReference;
                 Application.targetFrameRate = 30;
                 QualitySettings.SetQualityLevel(0, true);
             }
             return hud;
+        }
+
+        /// <summary>
+        /// No Device Simulator o PanelSettings e a qualidade mudam como no aparelho; no editor essas mudanças
+        /// ficariam gravadas no projeto. Guarda os originais e devolve ao sair do Play.
+        /// </summary>
+        private static void KeepEditorSettings(PanelSettings ps)
+        {
+            var res = ps != null ? ps.referenceResolution : default;
+            int quality = QualitySettings.GetQualityLevel();
+            int fps = Application.targetFrameRate;
+            void Restore()
+            {
+                Application.quitting -= Restore;
+                if (ps != null) ps.referenceResolution = res;
+                QualitySettings.SetQualityLevel(quality, true);
+                Application.targetFrameRate = fps;
+            }
+            Application.quitting += Restore;
         }
 
         private void Awake()
