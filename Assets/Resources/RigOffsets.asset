@@ -18,6 +18,11 @@ MonoBehaviour:
     position: {x: -0.16, y: -0.3, z: 0.26}
     euler: {x: 24.400084, y: 72.2, z: 94.40001}
     scale: {x: 1, y: 1, z: 1}
+  - model: Warrior+IronAxe
+    part: Weapon
+    position: {x: -0.16, y: -0.3, z: 0.26}
+    euler: {x: 24.400084, y: 72.2, z: 94.40001}
+    scale: {x: 1, y: 1, z: 1}
   - model: Mage
     part: ArmR
     position: {x: 0, y: 0, z: 0}
