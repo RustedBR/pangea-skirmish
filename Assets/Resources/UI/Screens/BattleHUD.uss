@@ -408,3 +408,23 @@
 .bh-mobile .bh-spellblock { width: 23.6%; }
 .bh-mobile .bh-spellblock-name { font-size: 14px; }
 .bh-mobile .bh-spellmenu-desc { height: 15%; font-size: 14px; }
+
+/* GRADE DE AÇÕES EM PERGAMINHO (2026-11-15): botão claro com borda marrom; os ícones novos
+   (act_*) têm contorno escuro e leem bem nele. O azul escuro escondia os ícones. */
+.bh-abtn {
+  background-color: rgb(236, 220, 180); border-color: rgb(120, 84, 40); border-width: 2px; border-radius: 5px;
+}
+.bh-abtn:hover { background-color: rgb(248, 236, 204); border-color: rgb(150, 96, 16); }
+.bh-abtn--on { background-color: rgb(255, 222, 140); border-color: rgb(112, 68, 8); }
+.bh-abtn--off { background-color: rgb(196, 184, 156); border-color: rgb(140, 124, 96); }
+.bh-abtn-cap { color: rgb(52, 34, 14); }
+.bh-abtn--on .bh-abtn-cap { color: rgb(52, 34, 14); }
+.bh-abtn-key { color: rgb(112, 68, 8); }
+.bh-abtn-badge { color: rgb(70, 46, 20); }
+.bh-abtn--on .bh-abtn-badge, .bh-abtn--on .bh-abtn-glyph { color: rgb(52, 34, 14); }
+.bh-abtn-glyph { color: rgb(52, 34, 14); }
+.bh-abtn-icon { width: 50%; height: 50%; top: 10%; }   /* em % do botão, que segue a tela */
+
+/* Dica ao passar o mouse nos botões: respiro entre o texto e a moldura do pergaminho. */
+.bh-abar-tip { padding: 14px 18px; }
+.bh-mobile .bh-abar-tip { padding: 16px 20px; }
