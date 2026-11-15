@@ -73,6 +73,31 @@ namespace PangeaSkirmish.UI
             });
         }
 
+        /// <summary>
+        /// Diminui a fonte do rótulo até o texto caber na largura do pai (mínimo minSize). A caixa vem em % da
+        /// tela e encolhe em telas pequenas; com fonte fixa o texto era cortado (auditoria de UI, 2026-11-14).
+        /// </summary>
+        public static void FitText(Label l, float minSize = 7f)
+        {
+            if (l == null) return;
+            float baseSize = -1f;
+            void Fit()
+            {
+                var p = l.parent;
+                if (p == null || string.IsNullOrEmpty(l.text)) return;
+                float avail = p.contentRect.width - l.resolvedStyle.marginLeft - l.resolvedStyle.marginRight;
+                if (float.IsNaN(avail) || avail <= 0f) return;
+                if (baseSize < 0f) baseSize = l.resolvedStyle.fontSize;
+                if (baseSize <= 0f) return;
+                l.style.fontSize = baseSize;
+                float need = l.MeasureTextSize(l.text, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
+                float size = need > avail ? Mathf.Max(minSize, Mathf.Floor(baseSize * avail / need)) : baseSize;
+                if (Mathf.Abs(l.resolvedStyle.fontSize - size) > 0.1f || need > avail) l.style.fontSize = size;
+            }
+            l.RegisterCallback<AttachToPanelEvent>(_ => l.parent?.RegisterCallback<GeometryChangedEvent>(__ => Fit()));
+            l.RegisterCallback<GeometryChangedEvent>(_ => Fit());
+        }
+
         /// <summary>Texto para busca simples: minúsculo e sem acento ("Água" acha "agua"). 2026-11-14.</summary>
         public static string Fold(string t)
         {

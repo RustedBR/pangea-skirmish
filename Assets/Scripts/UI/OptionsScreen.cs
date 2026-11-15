@@ -38,9 +38,11 @@ namespace PangeaSkirmish.UI
             if (_musicSlider != null)
             {
                 _musicSlider.value = GameSettings.MusicVolume;
+                ShowPercent(_musicSlider);
                 _musicSlider.RegisterValueChangedCallback(evt =>
                 {
                     GameSettings.MusicVolume = evt.newValue;
+                    ShowPercent(_musicSlider);
                     ApplyAudio();
                 });
             }
@@ -48,9 +50,11 @@ namespace PangeaSkirmish.UI
             if (_sfxSlider != null)
             {
                 _sfxSlider.value = GameSettings.SfxVolume;
+                ShowPercent(_sfxSlider);
                 _sfxSlider.RegisterValueChangedCallback(evt =>
                 {
                     GameSettings.SfxVolume = evt.newValue;
+                    ShowPercent(_sfxSlider);
                     AudioManager.I?.Play(AudioManager.I.sfxUIClick); // feedback sonoro
                 });
             }
@@ -86,7 +90,7 @@ namespace PangeaSkirmish.UI
         {
             var audio = AudioManager.I;
             if (audio != null && audio.musicSource != null)
-                audio.musicSource.volume = GameSettings.MusicVolume;
+                audio.musicSource.volume = GameSettings.MusicGain;
         }
 
         private void ApplyResolution(string label)
@@ -120,6 +124,16 @@ namespace PangeaSkirmish.UI
             if (parts.Length == 2 && int.TryParse(parts[0], out int w) && int.TryParse(parts[1], out int h))
                 return (w, h);
             return (0, 0);
+        }
+
+        /// <summary>Escreve a posição do slider em % no rótulo dele ("Música · 70%").</summary>
+        private void ShowPercent(Slider s)
+        {
+            if (s == null || Root == null) return;
+            var lbl = Root.Q<Label>(s.name == "opt-music" ? "lbl-music" : "lbl-sfx");
+            if (lbl == null) return;
+            string baseText = s.name == "opt-music" ? "Música" : "Efeitos (SFX)";
+            lbl.text = $"{baseText} · {Mathf.RoundToInt(s.value * 100)}%";
         }
     }
 }

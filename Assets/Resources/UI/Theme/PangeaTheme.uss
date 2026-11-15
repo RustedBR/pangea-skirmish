@@ -324,7 +324,7 @@
     --pg-on-ink: rgb(244, 234, 208);           /* texto sobre botão/faixa azul */
     /* acentos sobre o pergaminho */
     --pg-accent: rgb(46, 92, 170);
-    --pg-gold: rgb(150, 96, 16);
+    --pg-gold: rgb(112, 68, 8);   /* 4,6:1 sobre o pergaminho (era 2,9:1) */
     --pg-danger: rgb(168, 44, 44);
     --pg-ok: rgb(34, 116, 70);
 

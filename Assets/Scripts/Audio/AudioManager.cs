@@ -60,7 +60,7 @@ namespace PangeaSkirmish
             _musicSource.playOnAwake = false;
             _musicSource.loop = true;
             // Respeita volume salvo em GameSettings (PlayerPrefs)
-            _musicSource.volume = GameSettings.MusicVolume;
+            _musicSource.volume = GameSettings.MusicGain;
 
             string path = "Audio/";
             sfxStep          = Resources.Load<AudioClip>(path + "sfx_step");
@@ -87,7 +87,7 @@ namespace PangeaSkirmish
         public void Play(AudioClip clip)
         {
             if (clip == null || _sfxSource == null) return;
-            _sfxSource.PlayOneShot(clip, GameSettings.SfxVolume);
+            _sfxSource.PlayOneShot(clip, GameSettings.SfxGain);
         }
 
         private readonly System.Collections.Generic.Dictionary<string, AudioClip> _named =
@@ -111,7 +111,7 @@ namespace PangeaSkirmish
             var clip = Named(name) ?? fallback;
             if (clip == null || _sfxSource == null) return;
             LastNamed = name;
-            _sfxSource.PlayOneShot(clip, GameSettings.SfxVolume * volume);
+            _sfxSource.PlayOneShot(clip, GameSettings.SfxGain * volume);
         }
 
         /// <summary>Último som pedido por nome (testes).</summary>
@@ -120,13 +120,13 @@ namespace PangeaSkirmish
         public void PlayAtPoint(AudioClip clip, Vector3 pos)
         {
             if (clip == null) return;
-            AudioSource.PlayClipAtPoint(clip, pos, GameSettings.SfxVolume);
+            AudioSource.PlayClipAtPoint(clip, pos, GameSettings.SfxGain);
         }
 
         public void PlayMusic(AudioClip clip)
         {
             if (clip == null || _musicSource == null) return;
-            _musicSource.volume = GameSettings.MusicVolume;
+            _musicSource.volume = GameSettings.MusicGain;
             if (_musicSource.clip == clip && _musicSource.isPlaying) return;
             _musicSource.Stop();
             _musicSource.clip = clip;

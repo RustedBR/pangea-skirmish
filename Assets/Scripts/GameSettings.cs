@@ -34,12 +34,31 @@ namespace PangeaSkirmish
         {
             if (_loaded) return;
             _loaded = true;
-            _musicVolume = PlayerPrefs.GetFloat(KEY_MUSIC, 1f);
-            _sfxVolume   = PlayerPrefs.GetFloat(KEY_SFX, 1f);
+            _musicVolume = PlayerPrefs.GetFloat(KEY_MUSIC, 0.7f);
+            _sfxVolume   = PlayerPrefs.GetFloat(KEY_SFX, 0.75f);
             _resWidth    = PlayerPrefs.GetInt(KEY_WIDTH, Screen.width > 0 ? Screen.width : 1920);
             _resHeight   = PlayerPrefs.GetInt(KEY_HEIGHT, Screen.height > 0 ? Screen.height : 1080);
             _fullscreen  = PlayerPrefs.GetInt(KEY_FULL, 1) == 1;
         }
+
+        // ── Volume percebido (2026-11-14): a música estourava. O slider (0–1) passa por uma curva em
+        //    decibéis — cada trecho do slider muda o volume na mesma proporção que o ouvido sente — e o
+        //    100% fica abaixo do volume cheio do arquivo. Use MusicGain/SfxGain ao tocar som. ──
+        /// <summary>Volume real no 100% do slider (fração do volume cheio do arquivo).</summary>
+        public const float MusicMaxGain = 0.35f, SfxMaxGain = 0.5f;
+        /// <summary>Faixa da curva: 0% do slider → silêncio; 1% → −RangeDb dB abaixo do máximo.</summary>
+        public const float RangeDb = 40f;
+
+        /// <summary>Slider (0–1) → ganho, em decibéis. 0 = mudo; 50% ≈ 10% do máximo; 100% = máximo.</summary>
+        public static float SliderToGain(float slider, float maxGain)
+        {
+            if (slider <= 0.005f) return 0f;
+            float db = (Mathf.Clamp01(slider) - 1f) * RangeDb;
+            return maxGain * Mathf.Pow(10f, db / 20f);
+        }
+
+        public static float MusicGain => SliderToGain(MusicVolume, MusicMaxGain);
+        public static float SfxGain   => SliderToGain(SfxVolume, SfxMaxGain);
 
         public static float MusicVolume
         {
@@ -82,7 +101,7 @@ namespace PangeaSkirmish
 
             var audio = AudioManager.I;
             if (audio != null && audio.musicSource != null)
-                audio.musicSource.volume = _musicVolume;
+                audio.musicSource.volume = MusicGain;
         }
     }
 }
