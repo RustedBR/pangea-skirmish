@@ -30,6 +30,7 @@ namespace PangeaSkirmish.Editor
         private AnimationStage _stage;
         private int _actor;
         private int _body;
+        private int _offhand;
         private float _speed = 1f;
         private string _part = "Weapon";
         private Vector2 _scroll;
@@ -220,6 +221,15 @@ namespace PangeaSkirmish.Editor
                 for (int i = 0; i < bodies.Length; i++) bodies[i] = AnimationStage.Bodies[i] == "" ? "Corpo padrão da arma" : AnimationStage.Bodies[i];
                 int b = EditorGUILayout.Popup("Corpo", _body, bodies);
                 if (b != _body) { _body = b; _stage.SetBody(AnimationStage.Bodies[_body]); }
+                if (!Equipment.IsTwoHanded(AnimationStage.Actors[_actor].id))
+                {
+                    var offs = AnimationStage.Offhands;
+                    var ol = new string[offs.Length];
+                    for (int i = 0; i < ol.Length; i++) ol[i] = offs[i].label;
+                    int o = EditorGUILayout.Popup("Mão esquerda", Mathf.Clamp(_offhand, 0, offs.Length - 1), ol);
+                    if (o != _offhand) { _offhand = o; _stage.SetOffhand(offs[_offhand].id); }
+                }
+                else EditorGUILayout.LabelField("Mão esquerda", "— (arma de 2 mãos)");
             }
             var m = Model;
             EditorGUILayout.LabelField("Modelo", m != null ? m.ModelName : "—");
@@ -248,7 +258,12 @@ namespace PangeaSkirmish.Editor
 
                 if (m.Rigs.TryGetValue(_part, out var sel) && sel != null)
                 {
-                    EditorGUILayout.HelpBox($"Este ajuste vale para: {m.RigKey(_part)}", MessageType.None);
+                    string key = m.RigKey(_part), src = m.RigSource(_part);
+                    string info = key == m.ModelName ? $"Este ajuste vale para todo {m.ModelName}."
+                        : src == key ? $"Ajuste próprio de {key}."
+                        : src == "" ? $"{key}: pose padrão (nenhum corpo tem ajuste desta arma)."
+                        : $"{key}: espelhado de {src}, seguindo o braço. Mexa e salve para ter ajuste próprio.";
+                    EditorGUILayout.HelpBox(info, MessageType.None);
                     DrawPieceFields(sel);
                 }
             }
@@ -299,6 +314,17 @@ namespace PangeaSkirmish.Editor
             EditorGUILayout.EndHorizontal();
         }
 
+        private static bool IsMirroredUntouched(RigOffsets asset, UnitModel3D m, string part, Transform rig)
+        {
+            string key = m.RigKey(part);
+            int plus = key.IndexOf('+');
+            if (plus < 0) return false;
+            string item = key.Substring(plus + 1);
+            string def = part == "Shield" ? "Tank" : UnitModel3D.DefaultBodyFor(item);
+            asset.ResolveAccessory(m.ModelName, item, part, part == "Weapon" ? "ArmR" : "ArmL", def, out var p, out var r, out var sc);
+            return (rig.localPosition - p).sqrMagnitude < 1e-6f && Quaternion.Angle(rig.localRotation, r) < 0.05f && (rig.localScale - sc).sqrMagnitude < 1e-6f;
+        }
+
         private static Vector3 WrapEuler(Vector3 e)
         {
             float W(float a) { a %= 360f; return a > 180f ? a - 360f : a < -180f ? a + 360f : a; }
@@ -344,7 +370,10 @@ namespace PangeaSkirmish.Editor
             foreach (var kv in m.Rigs)
             {
                 if (kv.Value == null) continue;
-                asset.Set(m.RigKey(kv.Key), kv.Key, kv.Value.localPosition, kv.Value.localEulerAngles, kv.Value.localScale);
+                string key = m.RigKey(kv.Key);
+                // Acessório espelhado de outro corpo e não mexido: não vira ajuste próprio (continua seguindo a origem).
+                if (key != m.ModelName && asset.Find(key, kv.Key) == null && IsMirroredUntouched(asset, m, kv.Key, kv.Value)) continue;
+                asset.Set(key, kv.Key, kv.Value.localPosition, kv.Value.localEulerAngles, kv.Value.localScale);
                 n++;
             }
             EditorUtility.SetDirty(asset);

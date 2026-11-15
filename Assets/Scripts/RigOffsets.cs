@@ -53,6 +53,36 @@ namespace PangeaSkirmish
             e.position = pos; e.euler = euler; e.scale = scale;
         }
 
+        private static Matrix4x4 Trs(Entry e) => e == null ? Matrix4x4.identity : Matrix4x4.TRS(e.position, Quaternion.Euler(e.euler), e.scale);
+
+        /// <summary>
+        /// Ajuste de um acessório (arma, mão esquerda, escudo) no corpo <paramref name="body"/> (2026-11-15).
+        /// Com ajuste próprio do par corpo+item, usa ele. Sem, espelha o item de outro corpo — primeiro o corpo
+        /// padrão da arma — mantendo a mesma posição em relação à mão: o braço ajustado de cada corpo leva a arma junto.
+        /// Devolve de onde veio ("" = sem ajuste, a pose padrão).
+        /// </summary>
+        public string ResolveAccessory(string body, string item, string part, string armPart, string preferredSource,
+                                       out Vector3 pos, out Quaternion rot, out Vector3 scale)
+        {
+            pos = Vector3.zero; rot = Quaternion.identity; scale = Vector3.one;
+            var own = Find(PairKey(body, item), part);
+            if (own != null) { pos = own.position; rot = Quaternion.Euler(own.euler); scale = own.scale; return PairKey(body, item); }
+            Entry src = null; string srcBody = null;
+            if (!string.IsNullOrEmpty(preferredSource) && preferredSource != body)
+            { src = Find(PairKey(preferredSource, item), part); if (src != null) srcBody = preferredSource; }
+            if (src == null)
+                foreach (var e in entries)
+                    if (e.part == part && e.model.EndsWith("+" + item) && !e.model.StartsWith(body + "+"))
+                    { src = e; srcBody = e.model.Substring(0, e.model.Length - item.Length - 1); break; }
+            if (src == null) return "";
+            // Mesma pose em relação ao braço: alvo = braçoAlvo · braçoOrigem⁻¹ · armaOrigem (todos no espaço do ombro).
+            var m = Trs(Find(body, armPart)) * Trs(Find(srcBody, armPart)).inverse * Trs(src);
+            pos = m.GetColumn(3);
+            rot = m.rotation;
+            scale = m.lossyScale;
+            return PairKey(srcBody, item);
+        }
+
         /// <summary>Aplica o ajuste salvo no nó Rig (ou zera, se não há ajuste).</summary>
         public static void Apply(Transform rig, string model, string part)
         {
