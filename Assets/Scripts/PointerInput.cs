@@ -55,7 +55,8 @@ namespace PangeaSkirmish
 
         /// <summary>True quando o último input foi toque (ou o aparelho é celular).</summary>
         public static bool IsTouch { get; private set; }
-        public static bool IsMobile => Application.isMobilePlatform;
+        /// <summary>Celular? UnityEngine.Device também responde pelo Device Simulator do editor (2026-11-15).</summary>
+        public static bool IsMobile => UnityEngine.Device.Application.isMobilePlatform;
 
         public static bool Available { get { Tick(); return _available; } }
         public static Vector2 Position { get { Tick(); return _pos; } }
