@@ -8,6 +8,8 @@
 // criado 100% por código.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -203,9 +205,78 @@ namespace PangeaSkirmish
             // Toast/chat para todos
             PlayerDisconnectedClientRpc(playerName);
 
-            // Durante batalha: eliminar unidades do jogador desconectado
+            // Durante batalha: NÃO elimina na hora — dá uma janela de graça para o
+            // jogador reconectar (ReconnectController). Se ele voltar dentro da janela,
+            // as unidades dele são preservadas e o estado é re-entregue.
             if (_phase.Value == RoomPhase.Battle && LockstepBattleSync.Instance != null)
+            {
+                MpDiag.Log("RoomManager", $"Cliente {clientId} saiu — aguardando {ReconnectGraceSeconds}s p/ reconexão antes de eliminar unidades.");
+                var co = StartCoroutine(EliminateAfterGrace(clientId));
+                if (_pendingElimination.ContainsKey(clientId)) StopCoroutine(_pendingElimination[clientId]);
+                _pendingElimination[clientId] = co;
+            }
+        }
+
+        /// <summary>Janela de graça antes de eliminar unidades de um cliente desconectado.</summary>
+        private const float ReconnectGraceSeconds = 90f;
+        // Armazena a corrotina pendente de eliminação por clientId (cancela se voltar).
+        private readonly Dictionary<ulong, Coroutine> _pendingElimination = new Dictionary<ulong, Coroutine>();
+
+        private IEnumerator EliminateAfterGrace(ulong clientId)
+        {
+            // Podar mapa já-finalizado.
+            if (_pendingElimination.ContainsKey(clientId)) _pendingElimination.Remove(clientId);
+
+            float t = ReconnectGraceSeconds;
+            while (t > 0f)
+            {
+                yield return null;
+                t -= Time.deltaTime;
+                // Cliente voltou? cancela a eliminação.
+                if (NetworkManager.Singleton != null && NetworkManager.Singleton.ConnectedClients.ContainsKey(clientId))
+                { MpDiag.Log("RoomManager", $"Cliente {clientId} reconectou — eliminação cancelada."); yield break; }
+            }
+            if (LockstepBattleSync.Instance != null)
                 LockstepBattleSync.Instance.EliminateDisconnectedPlayer(clientId);
+        }
+
+        /// <summary>Cliente reconectou à partida: pede ao host para reentregar o estado completo
+        /// (slot + unidades + snapshot) para a sessão atual. Só funciona se o RoomManager replicado
+        /// ainda existe (host vivo).</summary>
+        [ServerRpc(RequireOwnership = false)]
+        public void RequestRejoinServerRpc(ServerRpcParams rpc = default)
+        {
+            OnClientRejoined(rpc.Receive.SenderClientId);
+        }
+
+        /// <summary>
+        /// Host: cliente voltou (reconexão). Re-adiciona o slot e pede re-entrega de estado,
+        /// remapeando o ownerId antigo → novo (NGO troca o clientId na reconexão; sem isso o
+        /// reconectado não retoma o controle das próprias unidades).
+        /// </summary>
+        public void OnClientRejoined(ulong clientId)
+        {
+            if (!IsServer) return;
+            MpDiag.Log("RoomManager", $"Cliente {clientId} reconectou — reocupando slot (anterior={RuntimeMultiplayerSession.PreviousClientId}).");
+
+            // Se havia eliminação pendente para este cliente, cancela.
+            if (_pendingElimination.TryGetValue(clientId, out var co) && co != null) StopCoroutine(co);
+            if (_pendingElimination.ContainsKey(clientId)) _pendingElimination.Remove(clientId);
+
+            // Se o clientId foi trocado na reconexão, remapeia as unidades do id antigo.
+            ulong oldId = RuntimeMultiplayerSession.PreviousClientId;
+            if (oldId != 0 && oldId != clientId && PlacementSync.Instance != null)
+                PlacementSync.Instance.RemapOwner(oldId, clientId);
+
+            // Re-adiciona slot com o nome salvo (ou genérico até o SetPlayerNameRpc).
+            string name = string.IsNullOrEmpty(RuntimeMultiplayerSession.PendingRelayCode)
+                ? $"Jogador({clientId})" : RuntimeMultiplayerSession.PlayerName;
+            AddSlot(clientId, name);
+
+            // Durante batalha: o host re-entrega o estado completo (unidades + snapshot)
+            // para o cliente que voltou, via RPC direcionado (não broadcast).
+            if (_phase.Value == RoomPhase.Battle && PlacementSync.Instance != null)
+                PlacementSync.Instance.HostReplayUnitsTo(clientId, NetworkManager.Singleton.LocalClientId);
         }
 
         [ClientRpc]

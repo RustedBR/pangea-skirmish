@@ -504,8 +504,57 @@ namespace PangeaSkirmish
             AdvanceRoundClientRpc();
         }
 
+        /// <summary>Snapshot direcionado a UM cliente (reconexão). Serializa o estado canônico
+        /// do host e envia via RPC com TargetClientIds; no fim NÃO avança o round (o cliente que
+        /// voltou só precisa alinhar), em vez do AdvanceRoundClientRpc do resync de DESYNC.</summary>
+        public void SendStateSnapshotToClient(ulong targetClientId)
+        {
+            var snapshot = new StateSnapshot();
+            var sorted = new List<Unit>(_units);
+            sorted.Sort((a, b) => UnitRegistry.GetId(a).CompareTo(UnitRegistry.GetId(b)));
+            foreach (var u in sorted)
+            {
+                if (u == null) continue;
+                snapshot.entries.Add(new UnitStateEntry
+                {
+                    unitId   = UnitRegistry.GetId(u),
+                    hp       = u.currentHP,
+                    mana     = u.currentMana,
+                    anchorX  = u.anchor.x,
+                    anchorY  = u.anchor.y,
+                    isDead   = u.IsDead,
+                });
+            }
+            string json = JsonUtility.ToJson(snapshot);
+            byte[] gz   = NetCompression.GzipCompress(Encoding.UTF8.GetBytes(json));
+            StartCoroutine(SendSnapshotChunks(gz, new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams { TargetClientIds = new[] { targetClientId } }
+            }, advanceRound: false));
+        }
+
+        /// <summary>Envia o snapshot (gz) em chunks; reusa a máquina de buffer do cliente.</summary>
+        private IEnumerator SendSnapshotChunks(byte[] gz, ClientRpcParams target, bool advanceRound)
+        {
+            int total  = gz.Length;
+            int offset = 0;
+            int seq    = 0;
+            while (offset < total)
+            {
+                int len   = Mathf.Min(ChunkSize, total - offset);
+                var chunk = new byte[len];
+                Array.Copy(gz, offset, chunk, 0, len);
+                bool last = (offset + len) >= total;
+                StateSnapshotChunkClientRpc(chunk, seq, total, last, target);
+                offset += len;
+                seq++;
+                yield return null;
+            }
+            if (advanceRound) AdvanceRoundClientRpc();
+        }
+
         [ClientRpc]
-        private void StateSnapshotChunkClientRpc(byte[] chunk, int seq, int totalBytes, bool last)
+        private void StateSnapshotChunkClientRpc(byte[] chunk, int seq, int totalBytes, bool last, ClientRpcParams target = default)
         {
             if (IsServer) return; // host não precisa aplicar
 

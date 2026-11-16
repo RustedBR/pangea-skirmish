@@ -24,6 +24,9 @@ namespace PangeaSkirmish
         // Heartbeat cancelation
         private static bool _heartbeatActive;
 
+        /// <summary>ID (GUID) do lobby ativo; usado para persistir a reconexão.</summary>
+        public static string CurrentLobbyId => _currentLobbyId;
+
         // -------------------------------------------------------------------------
         // Criar lobby (host)
         // -------------------------------------------------------------------------
