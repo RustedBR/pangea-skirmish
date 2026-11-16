@@ -49,6 +49,87 @@ namespace PangeaSkirmish
         private List<Unit> _allUnits = new List<Unit>();
         private Unit _controlled;
 
+        // ---- Presets por unitId (host) — usado para reentregar unidades a um cliente
+        // que RECONECTOU (ReconnectController). Só o host precisa ter; preenchido no spawn.
+        private readonly Dictionary<uint, string> _unitPresets = new Dictionary<uint, string>();
+        private Dictionary<uint, (ulong owner, int team, int x, int y)> _unitSpawn = new Dictionary<uint, (ulong, int, int, int)>();
+
+        /// <summary>
+        /// Host: reentrega TODAS as unidades + presets ao cliente <paramref name="targetClientId"/>
+        /// que reconectou, via RPC direcionado. <paramref name="hostClientId"/> é o clientId do host
+        /// (para não se auto-reexibir). Depois o host dispara o snapshot de estado do Lockstep.
+        /// </summary>
+        public void HostReplayUnitsTo(ulong targetClientId, ulong hostClientId)
+        {
+            if (!IsServer) return;
+            if (_allUnits.Count == 0) return;
+            var target = new ClientRpcParams { Send = new ClientRpcSendParams { TargetClientIds = new[] { targetClientId } } };
+            int sent = 0;
+            foreach (var u in _allUnits)
+            {
+                uint id = UnitRegistry.GetId(u);
+                if (u == null) continue;
+                if (!_unitPresets.TryGetValue(id, out var presetJson) || string.IsNullOrEmpty(presetJson)) continue;
+                if (!_unitSpawn.TryGetValue(id, out var sp)) sp = (u.ownerId, u.teamId, u.anchor.x, u.anchor.y);
+                ReplayUnitClientRpc(id, u.ownerId, u.teamId, presetJson, sp.x, sp.y, target);
+                sent++;
+            }
+            MpDiag.Log("Replay", $"Host reentregou {sent} unidades ao cliente {targetClientId} (de {_allUnits.Count}).");
+
+            // Estado vivo (HP/mana/anchor/dano): o Lockstep re-aplica snapshot direcionado.
+            if (LockstepBattleSync.Instance != null)
+                LockstepBattleSync.Instance.SendStateSnapshotToClient(targetClientId);
+        }
+
+        /// <summary>
+        /// Host: troca o dono de todas as unidades do id antigo para o id novo (clientId trocado
+        /// na reconexão). Atualiza _unitSpawn (para futuras reentregas usarem o id novo) e o
+        /// ownerId efetivo de cada Unit. Team é preservado.
+        /// </summary>
+        public void RemapOwner(ulong oldOwner, ulong newOwner)
+        {
+            if (!IsServer) return;
+            if (oldOwner == 0 || oldOwner == newOwner) return;
+
+            // Serialize para poder localizar units por id (reconstruir o dicionário id→unit).
+            var idToUnit = new Dictionary<uint, int>();  // unitId → índice no _allUnits
+            var rootUnits = new SortedDictionary<uint, Unit>();
+            int i = 0;
+            foreach (var u in _allUnits)
+            {
+                if (u == null) { i++; continue; }
+                uint id = UnitRegistry.GetId(u);
+                rootUnits[id] = u;
+                idToUnit[id] = i;
+                i++;
+            }
+
+            // Reconstruir _unitSpawn trocando o owner.
+            var spawn2 = new Dictionary<uint, (ulong owner, int team, int x, int y)>();
+            foreach (var kv in _unitSpawn)
+            {
+                var sp = kv.Value;
+                ulong owner = (sp.owner == oldOwner) ? newOwner : sp.owner;
+                spawn2[kv.Key] = (owner, sp.team, sp.x, sp.y);
+            }
+            _unitSpawn = spawn2;
+
+            // Trocar ownerId nas unidades vivas.
+            foreach (var kv in rootUnits)
+            {
+                var u = kv.Value;
+                if (u == null) continue;
+                if (u.ownerId == oldOwner)
+                {
+                    u.ownerId = newOwner;
+                    MpDiag.Log("Replay", $"Unidade {kv.Key} remapeada: owner {oldOwner} -> {newOwner}");
+                }
+            }
+
+            // UnitRegistry/team do slot: o slot novo já foi criado via AddSlot; nada mais a fazer
+            // (hostilidade usa teamId/ownerId, ambos preservados na remap).
+        }
+
         // ClientId REAL desta instância em runtime. NÃO usar RuntimeMultiplayerSession.LocalClientId,
         // que é capturado logo após StartClient (antes do NGO atribuir o id ao cliente → fica 0).
         private static ulong LocalId =>
@@ -290,6 +371,8 @@ namespace PangeaSkirmish
             _placements.Add((senderId, unitId));
 
             string presetJson = JsonUtility.ToJson(preset);
+            _unitPresets[unitId] = presetJson;
+            _unitSpawn[unitId] = (senderId, slotTeam, x, y);
             SpawnUnitClientRpc(unitId, senderId, slotTeam, presetJson, x, y);
 
             // Marcar Placed no slot (chamada DIRETA — já estamos no host; via RPC o NGO
@@ -593,6 +676,8 @@ namespace PangeaSkirmish
                         foreach (var c2 in cells) _occupiedCells.Add(c2);
                         uint unitId = _nextUnitId++;
                         string json = JsonUtility.ToJson(BeastAI.BuildPreset(spawned, layer, budget, size, fp));
+                        _unitPresets[unitId] = json;
+                        _unitSpawn[unitId] = (BeastAI.OwnerId, BeastAI.TeamId, x, y);
                         SpawnUnitClientRpc(unitId, BeastAI.OwnerId, BeastAI.TeamId, json, x, y);
                         spawned++;
                         placed = true;
@@ -607,6 +692,27 @@ namespace PangeaSkirmish
 
         [ClientRpc]
         private void SpawnUnitClientRpc(uint unitId, ulong ownerId, int team, string presetJson, int x, int y)
+        {
+            CreateUnitLocally(unitId, ownerId, team, presetJson, x, y);
+        }
+
+        /// <summary>
+        /// Host reenvia UMA unidade para o cliente que RECONECTOU (clientId alvo) via RPC
+        /// direcionado (não broadcast), para não duplicar nos clientes que ficaram conectados.
+        /// O preset é o que o host guardou no spawn original.
+        /// </summary>
+        [ClientRpc]
+        private void ReplayUnitClientRpc(uint unitId, ulong ownerId, int team, string presetJson, int x, int y, ClientRpcParams target = default)
+        {
+            CreateUnitLocally(unitId, ownerId, team, presetJson, x, y);
+            MpDiag.Log("Replay", $"Unidade {unitId} reentregue (owner={ownerId} team={team} at ({x},{y})).");
+        }
+
+        /// <summary>
+        /// Versão local da criação de unidade (sem NetworkObject). Após criar, dispara a
+        /// (re)sinálnização do RoundManager/UnitRegistry se a batalha já rola.
+        /// </summary>
+        private void CreateUnitLocally(uint unitId, ulong ownerId, int team, string presetJson, int x, int y)
         {
             if (_grid == null) return;
 

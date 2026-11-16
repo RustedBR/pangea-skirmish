@@ -224,6 +224,8 @@ namespace PangeaSkirmish
             // senão HandleClientConnected/Disconnected nunca disparam (LocalClientId do
             // cliente ficava 0 e a detecção de queda do host não funcionava).
             bootstrap.SubscribeCallbacks();
+            var rc = go.AddComponent<ReconnectController>();  // cria antes, reusa o DontDestroyOnLoad
+            DontDestroyOnLoad(rc.gameObject);
             return bootstrap;
         }
 
@@ -274,14 +276,35 @@ namespace PangeaSkirmish
         {
             OnClientDisconnected?.Invoke(clientId);
 
-            // Cliente detecta que o servidor (host) caiu: clientId == ServerClientId
-            if (!_networkManager.IsServer && clientId == Unity.Netcode.NetworkManager.ServerClientId)
+            // Somente no CLIENTE (não estamos mais escutando como host p/ algo próprio).
+            if (_networkManager.IsServer) return;
+
+            // 1) Host caiu → não há como reconectar (sem migração de host). Volta ao menu.
+            if (clientId == Unity.Netcode.NetworkManager.ServerClientId)
             {
                 Debug.LogWarning("[NetBootstrap] Host desconectou — voltando ao menu principal.");
                 RuntimeMultiplayerSession.Reset();
                 _networkManager.Shutdown();
                 UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+                return;
             }
+
+            // 2) O CLIENTE local perdeu a conexão com o Relay (queda) mas o host vive.
+            //    Se havia uma partida pendente gravada, tenta reconectar em vez de
+            //    resetar. O ReconnectController re-join no lobby/relay + re-entrega de
+            //    estado (o host mantém as unidades por uma janela de graça).
+            if (RuntimeMultiplayerSession.HasPendingSession && !RuntimeMultiplayerSession.IsHost)
+            {
+                Debug.LogWarning("[NetBootstrap] Conexão perdida — tentando reconectar à partida.");
+                // Guarda o clientId que o cliente TINHA (NGO dá um novo na reconexão).
+                RuntimeMultiplayerSession.PreviousClientId = _networkManager.LocalClientId;
+                RuntimeMultiplayerSession.IsMultiplayer = false; // evita tratamentos de 'host caiu' duplicado
+                ReconnectController.EnsureExists().NotifyConnectionLost();
+                return;
+            }
+
+            // 3) Outros casos (ex.: caiu mas sem sessão pendente) — volta ao menu.
+            RuntimeMultiplayerSession.Reset();
         }
 
         // -------------------------------------------------------------------------

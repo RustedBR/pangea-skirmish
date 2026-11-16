@@ -1008,6 +1008,7 @@ namespace PangeaSkirmish
 
                 RuntimeMultiplayerSession.PlayerName = playerName;
                 Debug.Log($"[MP] Sala criada (host): jogador={playerName} sala={roomName} loopback={bootstrap.useLoopback} codigo={joinCode}");
+                RuntimeMultiplayerSession.SavePendingSession(joinCode, LobbyService.CurrentLobbyId, wasHost: true);
                 SetLobbyStatus("Sala criada!");
                 EnterRoom(joinCode);
             }
@@ -1160,6 +1161,7 @@ namespace PangeaSkirmish
                 await bootstrap.JoinRelayAsync(code);
 
                 Debug.Log($"[MP] Entrou na sala (cliente): jogador={playerName} codigo={code}");
+                RuntimeMultiplayerSession.SavePendingSession(code, LobbyService.CurrentLobbyId, wasHost: false);
                 SetLobbyStatus("Conectado!");
                 EnterRoom(code);
                 StartCoroutine(SendNameAfterConnect(playerName));
@@ -1185,6 +1187,7 @@ namespace PangeaSkirmish
 
         private void OnClickLeaveRoom()
         {
+            RuntimeMultiplayerSession.ClearPendingSession();
             _inRoom = false;
             StopAutoRefresh();
             if (_boundRoom && RoomManager.Instance != null)
@@ -1249,6 +1252,7 @@ namespace PangeaSkirmish
                 StopAutoRefresh();
                 await bootstrap.JoinRelayAsync(code);
                 Debug.Log($"[MP] Entrou na sala por código (cliente): jogador={playerName} codigo={code}");
+                RuntimeMultiplayerSession.SavePendingSession(code, LobbyService.CurrentLobbyId, wasHost: false);
                 SetLobbyStatus("Conectado!");
                 EnterRoom(code);
                 StartCoroutine(SendNameAfterConnect(playerName));
