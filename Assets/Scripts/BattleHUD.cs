@@ -461,6 +461,24 @@ namespace PangeaSkirmish
         }
 
         // ── INSPEÇÃO DA UNIDADE (bolha sob demanda — somou o painel fixo) ──
+        /// <summary>Fade por opacidade (USó UI Toolkit): em vez de sumir com display:none direto,
+        /// apaga gradualmente. Preserva o elemento no layout (visibility) para não provocar tremor
+        /// ao voltar. Usado p/ esconder inspeção/histórico/dicas/planejamento quando a câmera mexe.</summary>
+        private void SetFade(VisualElement el, bool hidden)
+        {
+            if (el == null) return;
+            if (hidden)
+            {
+                el.style.opacity = 0f;
+                el.style.visibility = Visibility.Hidden;
+            }
+            else
+            {
+                el.style.opacity = 1f;
+                el.style.visibility = Visibility.Visible;
+            }
+        }
+
         public void ShowUnitInfo(Unit u)
         {
             _inspectedUnit = u;
@@ -481,10 +499,14 @@ namespace PangeaSkirmish
         /// </summary>
         private void LateUpdate()
         {
-            // Inspeção some enquanto o jogador move a câmera e volta quando ela para (2026-11-14).
-            if (_inspectPanel != null)
-                _inspectPanel.style.visibility = Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f
-                    ? Visibility.Hidden : Visibility.Visible;
+            // Câmera mexeu: esconde (com fade) inspeção, histórico, dicas e planejamento de round;
+            // volta quando ela para. (2026-11-16: item de HUD aprovado) Usa um helper de fade p/
+            // não "sumir direto" — aplica opacity, não display, preservando o layout.
+            bool camMoving = Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f;
+            SetFade(_inspectPanel, camMoving);
+            SetFade(_miniLog, camMoving);
+            SetFade(Root?.Q<VisualElement>("intent-band"), camMoving);
+            SetFade(_ticksBar, camMoving);
             if (_inspectPanel == null || _inspectedUnit == null || _inspectPanel.resolvedStyle.display != DisplayStyle.Flex) return;
             var cam = Camera.main; var panel = _inspectPanel.panel; var parent = _inspectPanel.parent;
             if (cam == null || panel == null || parent == null) return;
@@ -1420,7 +1442,7 @@ namespace PangeaSkirmish
                 row.Add(name);
 
                 var track = new VisualElement { pickingMode = PickingMode.Ignore };
-                track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 28;
+                track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 32;
                 track.style.position = Position.Relative;
                 string uid = UnitRegistry.GetId(u).ToString();
                 int used = start;          // coluna absoluta (0..cols) onde o próximo bloco começa
@@ -1830,9 +1852,13 @@ namespace PangeaSkirmish
             var bc = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f);
             ss.borderTopColor = ss.borderBottomColor = ss.borderLeftColor = ss.borderRightColor = bc;
             ss.paddingLeft = ss.paddingRight = 0; ss.overflow = Overflow.Hidden;
+            // Texto do tick (2026-11-15): só enquadramento/padding do label. Fonte um ponto
+            // maior + respiro vertical p/ o texto não encostar nas bordas do bloco. Sem mudança
+            // de fundo/semântica — a largura proporcional (flexGrow) não é tocada.
             var l = new Label(text) { pickingMode = PickingMode.Ignore };
-            l.style.paddingLeft = 5; l.style.paddingRight = 5;
-            l.style.fontSize = 11; l.style.whiteSpace = WhiteSpace.NoWrap; l.style.overflow = Overflow.Hidden;
+            l.style.paddingLeft = 6; l.style.paddingRight = 6;
+            l.style.paddingTop = 2; l.style.paddingBottom = 2;
+            l.style.fontSize = 12; l.style.whiteSpace = WhiteSpace.NoWrap; l.style.overflow = Overflow.Hidden;
             l.style.unityTextAlign = TextAnchor.MiddleCenter; l.style.textOverflow = TextOverflow.Ellipsis;
             l.style.unityFontStyleAndWeight = strong ? FontStyle.Bold : FontStyle.Normal;
             l.style.color = (color.r + color.g + color.b) > 1.9f ? new Color(0.06f, 0.08f, 0.16f) : Color.white;

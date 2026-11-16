@@ -1243,6 +1243,7 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Enquadra um grupo de posições (respeita câmera Manual).</summary>
+        private Vector3 _lastFrameCenter; private float _lastFrameSize = -1f;
         private IEnumerator FrameGroup(List<Vector3> positions)
         {
             if (_camCtrl == null || _camCtrl.Mode == CameraMode.Manual) yield break;
@@ -1261,6 +1262,15 @@ namespace PangeaSkirmish
             }
             c = new Vector3((minX + maxX) * 0.5f, 0f, (minZ + maxZ) * 0.5f);
             float size = Mathf.Max(CalcZoomForPositions(all.ToArray(), 3.5f), Tuning.Get().tickFrameMinSize);
+            // Item 2 (2026-11-16): se a câmera já cobre este alvo (mesmo centro+tamanho de um
+            // tick anterior), pula o reframe e o WaitUntilSettled — evita "enquadra a cada tick"
+            // que era um dos maiores custos de tempo do combate. Só enquadra quando muda.
+            if (_lastFrameSize > 0f
+                && Mathf.Abs(c.x - _lastFrameCenter.x) < 0.01f
+                && Mathf.Abs(c.z - _lastFrameCenter.z) < 0.01f
+                && Mathf.Abs(size - _lastFrameSize) < 0.05f)
+                yield break;
+            _lastFrameCenter = c; _lastFrameSize = size;
             _camCtrl.FocusOnArea(c, size);
             yield return _camCtrl.WaitUntilSettled(camMoveDuration);
         }
@@ -1918,8 +1928,16 @@ namespace PangeaSkirmish
             }
             if (!mp)
             {
-                // Solo: janela local para a primeira unidade do jogador.
+                // Solo: a primeira unidade do jogador.
                 var (me, myOpts) = list[0];
+                // Item 5 (2026-11-16): se o jogador P̶ PRÉ-MARCOU UMA reação no plano (botão "−")
+                // e ela é válida agora, resolve NA HORA — não abre janela de espera. O ritmo fica
+                // bem mais rápido; a janela só abre quando não há reação padrão marcada.
+                if (myOpts.Contains(me.defaultReaction))
+                {
+                    DoApply(me, me.defaultReaction, trigger);
+                    yield break;
+                }
                 ReactionKind pick = ReactionKind.None; bool done = false;
                 _hud.ShowReactionMenu(me, myOpts, time, k => { pick = k; done = true; });
                 float t = time;

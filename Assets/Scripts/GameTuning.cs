@@ -137,7 +137,7 @@ namespace PangeaSkirmish
         [Tooltip("Raio da área em células = área da magia × este valor. 2 = uma Explosão pega o alvo e quem está colado nele.")]
         public float spellAreaMult = 2f;
         [Tooltip("Pausa (s) depois que as magias de um tick resolvem, para o projétil e o impacto serem vistos.")]
-        public float spellFxPause = 0.45f;
+        public float spellFxPause = 0.28f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
         public int ticksMove = 1;
         [Tooltip("Ticks do ataque desarmado. Armas: 1 mão = 1, 2 mãos = 2 (Arco Longo 3); feras usam beastClawTicks.")]
@@ -248,7 +248,7 @@ namespace PangeaSkirmish
 
         [Header("═══ UNIDADES: ANIMAÇÃO & MOVIMENTO ═══")]
         [Tooltip("Duração do golpe (charging → attack x4 → release), em segundos. Menor = ataque mais seco; maior = mais legível.")]
-        public float attackAnimDuration = 0.4f;
+        public float attackAnimDuration = 0.30f;
         [Tooltip("Frames por segundo da caminhada durante o movimento. Maior = pernas mais rápidas (não muda a velocidade real).")]
         public float walkAnimFps = 8f;
         [Tooltip("Segundos entre os frames do balanço parado (alterna 2 poses eretas). Maior = idle mais calmo.")]
@@ -347,19 +347,19 @@ namespace PangeaSkirmish
 
         [Header("═══ RITMO DO ROUND ═══")]
         [Tooltip("Duração (s) do movimento da câmera entre focos de ação.")]
-        public float camMoveDuration = 0.45f;
+        public float camMoveDuration = 0.30f;
         [Tooltip("Pausa (s) antes de cada ação executar. Maior = ritmo mais teatral.")]
         public float preActionPause = 0.35f;
         [Tooltip("Pausa (s) depois de cada ação. Maior = mais tempo para ler o resultado.")]
-        public float postActionPause = 0.55f;
+        public float postActionPause = 0.30f;
         [Tooltip("Segundos segurando a exibição da iniciativa no início da fase de ação.")]
         public float initiativeHold = 1.1f;
         [Tooltip("Pausa (s) entre slots de ação consecutivos.")]
-        public float slotPause = 0.3f;
+        public float slotPause = 0.18f;
         [Tooltip("Pausa (s) após o banner 'Round N' antes do planejamento abrir.")]
-        public float roundBannerHold = 0.4f;
+        public float roundBannerHold = 0.22f;
         [Tooltip("Pausa (s) entre o fim da fase de ação e o próximo round.")]
-        public float roundEndPause = 0.5f;
+        public float roundEndPause = 0.30f;
         [Tooltip("Pausa extra (s) após recolher as tags de iniciativa.")]
         public float initiativeCollapseExtraPause = 0.2f;
         [Tooltip("Pausa (s) entre o label de ataque aparecer e a câmera/animação seguirem.")]
@@ -725,7 +725,7 @@ namespace PangeaSkirmish
         // ═════════════════════════ REAÇÕES (Ações Bônus rework) ═════════════════════════
         [Header("═══ REAÇÕES (Ações Bônus) ═══")]
         [Tooltip("Tempo (s) que o jogador tem para escolher a reação. Expira → não reage. Válido em SP e MP. Marcus 2026-07-10: 10x (50s) — era 5s e 'piscava'.")]
-        public float reactionChoiceTime   = 3f;
+        public float reactionChoiceTime   = 10f;
         [Tooltip("Legado (não usado): a chance de esquiva é StatFormulas.dodgePerAGI e a fração de tiles é dodgeFracPerAGI.")]
         public float dodgeReactionPerAGI  = 0.09f;
         [Tooltip("Legado (não usado): o Bloquear agora é fixo, ver blockFlatPerVIT.")]
