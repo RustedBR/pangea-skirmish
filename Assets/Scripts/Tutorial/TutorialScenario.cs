@@ -57,6 +57,57 @@ namespace PangeaSkirmish
             moved.gate = () => d.PlayerUnit != null && d.PlayerUnit.anchor != d.PlayerUnit.spawnAnchor;
             L.Add(moved);
 
+            // ── Capítulo 3: Ataque ──────────────────────────────────────────────
+            int feraHp0 = 0;
+            var attack = new TutorialLesson("attack", 3, "Ataque a fera", "Ataque corpo a corpo",
+                "Mova até a Fera de Treino, use Atacar (tecla 2) clicando nela e confirme o round (Enter). O dano corpo a corpo escala com STR.",
+                "Ataque causou dano na fera.");
+            attack.setup = () =>
+            {
+                if (d.Fera != null) { d.Fera.currentHP = 300; feraHp0 = d.Fera.currentHP; } // fera tanque p/ sobreviver às lições
+                if (d.PlayerUnit != null) { d.PlayerUnit.currentHP = 45; d.PlayerUnit.GainStamina(10); }
+            };
+            attack.gate = () => d.Fera != null && d.Fera.currentHP < feraHp0;
+            L.Add(attack);
+
+            // ── Capítulo 4: Reações ─────────────────────────────────────────────
+            L.Add(new TutorialLesson("reactions", 4, "Reações de defesa", "Reações (leitura)",
+                "Quando um inimigo ataca, você pode reagir: Defender (Bloquear por VIT ou Esquivar por AGI), Contra-atacar ou Interpor. Reações custam Stamina e você só pode usar UMA por round. Prepare uma reação padrão no plano para responder automaticamente.",
+                "Conceito apresentado."));
+
+            // ── Capítulo 5: Magia — básico ──────────────────────────────────────
+            int mana0 = 0;
+            var cast = new TutorialLesson("cast", 5, "Conjure Brasa (Fogo)", "Conjurar magia elemental",
+                "Abra a aba Magia, escolha Brasa (Fogo), mire na fera e confirme o round. Magia Elemental gasta Mana. Veja a Mana cair.",
+                "Magia conjurada — Mana gasta.");
+            cast.setup = () =>
+            {
+                if (d.PlayerUnit != null) { d.PlayerUnit.currentMana = 20; mana0 = d.PlayerUnit.currentMana; }
+                if (d.Fera != null && d.Fera.currentHP < 50) d.Fera.currentHP = 300;
+            };
+            cast.gate = () => d.PlayerUnit != null && d.PlayerUnit.currentMana < mana0;
+            L.Add(cast);
+
+            // ── Capítulo 6: Magia — avançado ────────────────────────────────────
+            L.Add(new TutorialLesson("advanced", 6, "Área, status e incrementos", "Magia avançada (leitura)",
+                "Magias de área (Explosão), status (Queimando/Encharcado), zonas (Magma/Lama), barreira (Muralha) e cura (Bálsamo, a única área que toca aliados). Os incrementos (Potência/Área/Alcance/Duração/Rápida) melhoram a magia por mais Mana. Conjuração elemental pode ser interrompida por dano.",
+                "Conceito apresentado."));
+
+            // ── Capítulo 7: Magia Física ────────────────────────────────────────
+            L.Add(new TutorialLesson("physical", 7, "Magia Física do corpo", "Magia física (leitura)",
+                "Magias Físicas amplificam o corpo e gastam metade Stamina: Fúria (próximo ataque ×2.5), Salto (move por cima de obstáculos), Pele de pedra (redução de dano) e Curva (ataque à distância segue o alvo). Não são interrompidas.",
+                "Conceito apresentado."));
+
+            // ── Capítulo 8: Atributos e progressão ──────────────────────────────
+            L.Add(new TutorialLesson("progression", 8, "Atributos e progressão", "Progressão (leitura)",
+                "6 atributos: Corpo (STR, VIT, AGI, DEX) e Mente (INT, WIS). Vitórias dão XP → nível → mais pontos para distribuir. Orçamento: 15 + 5×(nível−1). Edite seu personagem no Perfil. Personagens de nível>2 só podem redistribuir pontos (nome/arma travados).",
+                "Conceito apresentado."));
+
+            // ── Capítulo 9: Coop ────────────────────────────────────────────────
+            L.Add(new TutorialLesson("coop", 9, "Coop: a descida", "Coop (leitura)",
+                "No Coop, desça camadas rumo ao Inferno. Descanse para recuperar Vida/Mana/Stamina, abra baús (loot) e equipe. Cada camada é mais difícil e os conduítes mais fundos ressoam mais forte. Recuar (subir) é sempre livre.",
+                "Conceito apresentado."));
+
             return L;
         }
     }

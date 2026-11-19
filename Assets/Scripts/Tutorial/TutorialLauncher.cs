@@ -46,7 +46,7 @@ namespace PangeaSkirmish
             UnitRegistry.Clear();
 
             // Jogador: atributos equilibrados para mostrar bem cada mecânica.
-            var player = CreateUnit("Herói do Tutorial", Team.Player, new Vector2Int(10, 15),
+            var player = CreateUnit("Herói do Tutorial", Team.Player, new Vector2Int(16, 15),
                 tuning.playerTeamColor, grid,
                 new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5, Footprint = 1, AttackRange = 1 },
                 isPlayerChar: true, weaponId: "Hatchet", ownerId: 0);

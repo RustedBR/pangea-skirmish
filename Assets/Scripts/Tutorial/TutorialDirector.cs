@@ -26,6 +26,8 @@ namespace PangeaSkirmish
         public TutorialLesson CurrentLesson => _runner?.Current;
         public string Progress => _runner?.ProgressText() ?? "";
         public TutorialRunner.State RunnerState => _runner?.CurrentState ?? TutorialRunner.State.Idle;
+        /// <summary>Motor exposto para debug/testes (dirigir lições via MCP).</summary>
+        public TutorialRunner Runner => _runner;
 
         public void Init(Unit player, Unit fera, RoundManager round, PlanningController planner,
                          BattleHUD hud, CameraController camCtrl, GridManager grid)
