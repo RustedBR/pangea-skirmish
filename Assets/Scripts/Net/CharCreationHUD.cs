@@ -18,6 +18,7 @@ namespace PangeaSkirmish
 
         // ---- Estado em edição -----------------------------------------------
         private CharacterPreset _editing;
+        private CharacterPreset _editSource;   // preset original ao editar (p/ preservar campos travados)
         private int _budget;
 
         /// <summary>Confirmou: recebe uma cópia do personagem pronto (orçamento exato).</summary>
@@ -363,6 +364,7 @@ namespace PangeaSkirmish
         public void Edit(CharacterPreset p)
         {
             if (p == null || p.stats == null) return;
+            _editSource = p;
             ApplyPreset(p);
             var title = Root?.Q<Label>("cc-title");
             if (title != null) title.text = "Editar Personagem";
@@ -408,6 +410,7 @@ namespace PangeaSkirmish
             for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
 
             _budget = PlayerProfile.BudgetFor(_editing);   // GDD-024: o nível dá mais pontos
+            UnityEngine.Debug.Log($"[Perfil][EDIT] '{_editing.presetName}' nível={PlayerProfile.Level(_editing)} orçamento={_budget} pontos atuais={PlayerProfile.Points(_editing)} travado={PlayerProfile.IsLocked(_editing)}");
             if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
             SyncSprite();
             SyncWeapon();
@@ -507,7 +510,27 @@ namespace PangeaSkirmish
         // =========================================================================
         private void OnConfirm()
         {
-            if (SumAttrs() != _budget) return;
+            if (SumAttrs() != _budget)
+            {
+                UnityEngine.Debug.Log($"[Perfil][CONFIRM-BLOQUEADO] '{_editing.presetName}' pontos={SumAttrs()} != orçamento={_budget} — distribua todos os pontos antes de confirmar");
+                return;
+            }
+            // Personagem travado (nível > 2): só os pontos mudam. Preserva nome/arma/equipamento/
+            // aparência/nível/xp do original — senão o WhyEditBlocked recusa o save (bug: o nome
+            // esvaziava no editor e virava auto-nome, criando um personagem novo em vez de atualizar).
+            if (_editSource != null && PlayerProfile.IsLocked(_editSource))
+            {
+                _editing.presetName = _editSource.presetName;
+                _editing.weaponId   = _editSource.weaponId;
+                _editing.offhandId  = _editSource.offhandId ?? "";
+                _editing.headId     = _editSource.headId ?? "";
+                _editing.torsoId    = _editSource.torsoId ?? "";
+                _editing.legsId     = _editSource.legsId ?? "";
+                _editing.modelId    = _editSource.modelId ?? "";
+                _editing.spritePath = _editSource.spritePath;
+                _editing.level      = _editSource.level;
+                _editing.xp         = _editSource.xp;
+            }
             _editing.presetName = (_editing.presetName ?? "").Trim();
             if (_editing.presetName.Length == 0) _editing.presetName = PlayerProfile.NextCharacterName();
             if (_editing.presetName.Length > PlayerProfile.MaxNameLength)

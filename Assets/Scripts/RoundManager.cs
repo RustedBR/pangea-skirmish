@@ -1051,6 +1051,7 @@ namespace PangeaSkirmish
             var ps = PlacementSync.Instance;
             if (mine == null || p == null || ps == null) { ShowDescentChoice(); return; }
             int free = PlayerProfile.BudgetFor(p) - PlayerProfile.Points(p);
+            Debug.Log($"[Perfil][DESCANSO] '{p.presetName}' nível={PlayerProfile.Level(p)} orçamento={PlayerProfile.BudgetFor(p)} pontos={PlayerProfile.Points(p)} livres={free}");
             var opts = new List<(string, System.Action)>();
             if (free > 0)
                 foreach (Attr a in System.Enum.GetValues(typeof(Attr)))

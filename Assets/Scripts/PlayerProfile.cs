@@ -136,6 +136,9 @@ namespace PangeaSkirmish
             if (_data == null) return;
             PlayerPrefs.SetString(Key, JsonUtility.ToJson(_data));
             PlayerPrefs.Save();
+            var s = Selected;
+            if (s != null)
+                UnityEngine.Debug.Log($"[Perfil][SAVE] '{s.presetName}' nível={Level(s)} xp={s.xp} pontos={Points(s)}/{BudgetFor(s)} (livres={BudgetFor(s) - Points(s)})");
         }
 
         public static void SetName(string name)
