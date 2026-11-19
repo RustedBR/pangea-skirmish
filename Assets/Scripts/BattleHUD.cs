@@ -461,8 +461,48 @@ namespace PangeaSkirmish
         }
 
         // ── INSPEÇÃO DA UNIDADE (bolha sob demanda — somou o painel fixo) ──
+
+        private bool _camHidden;   // menus escondidos por movimento de câmera (até o próximo clique)
+
+        /// <summary>Restaura os menus escondidos por movimento de câmera (fade in). Chamado
+        /// quando o jogador clica numa unidade (inspeção) ou numa ação (barra de planejamento).</summary>
+        private void ReopenAfterCamera()
+        {
+            if (!_camHidden) return;
+            _camHidden = false;
+            FadeIn(_inspectPanel); FadeIn(_miniLog);
+            FadeIn(Root?.Q<VisualElement>("intent-band"));
+            FadeIn(_ticksBar);
+        }
+
+        /// <summary>Fade out real (0.18s) e depois display None, se for o caso. Preserva o mostrar/esconder
+        /// nativo: só a opacidade é tocada aqui.</summary>
+        private System.Collections.IEnumerator FadeOutAndHide(VisualElement el)
+        {
+            if (el == null || el.resolvedStyle.display == DisplayStyle.None) yield break;
+            float t = 0f;
+            while (t < _camFadeSeconds)
+            {
+                t += Time.unscaledDeltaTime;
+                el.style.opacity = 1f - Mathf.Clamp01(t / _camFadeSeconds);
+                yield return null;
+            }
+            el.style.opacity = 0f;
+            yield return null;
+        }
+        private const float _camFadeSeconds = 1.2f;
+
+        /// <summary>Fade in rápido de volta (0.15s) ao reabrir por clique.</summary>
+        private void FadeIn(VisualElement el)
+        {
+            if (el == null) return;
+            el.style.opacity = 1f;
+        }
+
+
         public void ShowUnitInfo(Unit u)
         {
+            ReopenAfterCamera();   // clique numa unidade reaparece os menus
             _inspectedUnit = u;
             if (u == null) { HideUnitInfo(); return; }
             if (_unitPreview != null) _unitPreview.Visible = true;
@@ -481,10 +521,18 @@ namespace PangeaSkirmish
         /// </summary>
         private void LateUpdate()
         {
-            // Inspeção some enquanto o jogador move a câmera e volta quando ela para (2026-11-14).
-            if (_inspectPanel != null)
-                _inspectPanel.style.visibility = Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f
-                    ? Visibility.Hidden : Visibility.Visible;
+            // Câmera mexeu (2026-11-16): esconde inspeção, histórico, dicas e planejamento de round
+            // com fade e MANTER escondido — NÃO reabre quando a câmera para. Reabre só quando o
+            // jogador CLICAR (unidade→inspeção, ação→barra de planejamento), via ReopenAfterCamera.
+            if (!_camHidden
+                && Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f)
+            {
+                _camHidden = true;
+                StartCoroutine(FadeOutAndHide(_inspectPanel));
+                StartCoroutine(FadeOutAndHide(_miniLog));
+                StartCoroutine(FadeOutAndHide(Root?.Q<VisualElement>("intent-band")));
+                StartCoroutine(FadeOutAndHide(_ticksBar));
+            }
             if (_inspectPanel == null || _inspectedUnit == null || _inspectPanel.resolvedStyle.display != DisplayStyle.Flex) return;
             var cam = Camera.main; var panel = _inspectPanel.panel; var parent = _inspectPanel.parent;
             if (cam == null || panel == null || parent == null) return;
@@ -772,6 +820,7 @@ namespace PangeaSkirmish
         // ── BARRA DE TICKS (GDD-016 §7) — substitui o seq-bar de chips fixos ──
         public void SetActionSequence(List<ActionType> seq, List<ScheduledAction> scheduled = null)
         {
+            ReopenAfterCamera();   // clicar numa ação reaparece a barra de planejamento
             if (seq == null || seq.Count == 0)
             {
                 _selectedSeqIndex = -1;
@@ -1420,7 +1469,7 @@ namespace PangeaSkirmish
                 row.Add(name);
 
                 var track = new VisualElement { pickingMode = PickingMode.Ignore };
-                track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 28;
+                track.style.flexDirection = FlexDirection.Row; track.style.flexGrow = 1; track.style.height = 32;
                 track.style.position = Position.Relative;
                 string uid = UnitRegistry.GetId(u).ToString();
                 int used = start;          // coluna absoluta (0..cols) onde o próximo bloco começa
@@ -1830,9 +1879,13 @@ namespace PangeaSkirmish
             var bc = new Color(color.r * 0.7f, color.g * 0.7f, color.b * 0.7f);
             ss.borderTopColor = ss.borderBottomColor = ss.borderLeftColor = ss.borderRightColor = bc;
             ss.paddingLeft = ss.paddingRight = 0; ss.overflow = Overflow.Hidden;
+            // Texto do tick (2026-11-15): só enquadramento/padding do label. Fonte um ponto
+            // maior + respiro vertical p/ o texto não encostar nas bordas do bloco. Sem mudança
+            // de fundo/semântica — a largura proporcional (flexGrow) não é tocada.
             var l = new Label(text) { pickingMode = PickingMode.Ignore };
-            l.style.paddingLeft = 5; l.style.paddingRight = 5;
-            l.style.fontSize = 11; l.style.whiteSpace = WhiteSpace.NoWrap; l.style.overflow = Overflow.Hidden;
+            l.style.paddingLeft = 6; l.style.paddingRight = 6;
+            l.style.paddingTop = 2; l.style.paddingBottom = 2;
+            l.style.fontSize = 12; l.style.whiteSpace = WhiteSpace.NoWrap; l.style.overflow = Overflow.Hidden;
             l.style.unityTextAlign = TextAnchor.MiddleCenter; l.style.textOverflow = TextOverflow.Ellipsis;
             l.style.unityFontStyleAndWeight = strong ? FontStyle.Bold : FontStyle.Normal;
             l.style.color = (color.r + color.g + color.b) > 1.9f ? new Color(0.06f, 0.08f, 0.16f) : Color.white;
