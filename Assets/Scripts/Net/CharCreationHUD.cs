@@ -102,9 +102,7 @@ namespace PangeaSkirmish
                 // era o que fazia o OnConfirm auto-nomear "Personagem N+1" ao editar (bug do save).
                 _nameInput.RegisterValueChangedCallback(evt =>
                 {
-                    if (string.IsNullOrEmpty(evt.newValue))
-                        UnityEngine.Debug.Log($"[Perfil][NOME-VAZIO] TextField emitiu valor vazio (ignorado) — nome mantido='{_editing.presetName}'");
-                    else _editing.presetName = evt.newValue;
+                    if (!string.IsNullOrEmpty(evt.newValue)) _editing.presetName = evt.newValue;
                 });
             }
 
@@ -417,7 +415,6 @@ namespace PangeaSkirmish
             for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
 
             _budget = PlayerProfile.BudgetFor(_editing);   // GDD-024: o nível dá mais pontos
-            UnityEngine.Debug.Log($"[Perfil][EDIT] '{_editing.presetName}' nível={PlayerProfile.Level(_editing)} orçamento={_budget} pontos atuais={PlayerProfile.Points(_editing)} travado={PlayerProfile.IsLocked(_editing)}");
             if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
             SyncSprite();
             SyncWeapon();
@@ -517,11 +514,7 @@ namespace PangeaSkirmish
         // =========================================================================
         private void OnConfirm()
         {
-            if (SumAttrs() != _budget)
-            {
-                UnityEngine.Debug.Log($"[Perfil][CONFIRM-BLOQUEADO] '{_editing.presetName}' pontos={SumAttrs()} != orçamento={_budget} — distribua todos os pontos antes de confirmar");
-                return;
-            }
+            if (SumAttrs() != _budget) return;
             // Personagem travado (nível > 2): só os pontos mudam. Preserva nome/arma/equipamento/
             // aparência/nível/xp do original — senão o WhyEditBlocked recusa o save (bug: o nome
             // esvaziava no editor e virava auto-nome, criando um personagem novo em vez de atualizar).
