@@ -1,0 +1,80 @@
+# Build & Deploy WebGL — Pangea Skirmish
+#
+# COMO FUNCIONA:
+#   - Gatilho: push no master (merge de PR no master dispara) + botão manual "Run workflow".
+#   - Job: checkout -> cache da Library -> Unity Editor (game-ci) builda WebGL via
+#     BuildWebGL.Build (headless) -> script deploy-ghpages-clean.sh publica na gh-pages.
+#   - Resultado: todo merge no master builda e deploya sozinho em
+#     https://rustedbr.github.io/pangea-skirmish/
+#
+# PRÉ-REQUISITO (uma vez só): licença Unity Personal ativada localmente no Unity Hub.
+#   Secrets necessários no repo (Settings > Secrets and variables > Actions):
+#     UNITY_LICENSE   = conteúdo do arquivo ~/.local/share/unity3d/Unity/Unity_lic.ulf
+#     UNITY_EMAIL     = email da conta Unity
+#     UNITY_PASSWORD  = senha da conta Unity
+#   (Guia de ativação: https://game.ci/docs/github/activation/)
+
+name: Build & Deploy WebGL
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch: {}   # permite rodar manualmente na aba Actions
+
+# Evita dois deploys simultâneos (o último vence; não cancela um build em curso).
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # necessário para pushar na branch gh-pages
+
+jobs:
+  build-deploy:
+    name: Build WebGL + deploy gh-pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      # Cache da Library: sem isso todo build reimporta tudo (lento). A chave muda
+      # quando Assets/Packages/ProjectSettings mudam; restore-keys reaproveita o anterior.
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-WebGL-
+
+      # Unity Editor num container. buildMethod = seu método headless (Assets/Editor/BuildWebGL.cs),
+      # que já aplica a config canônica (IL2CPP, stripping Medium, Brotli + fallback,
+      # exceptionSupport None) e gera em Build/WebGL/.
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.6.6f1
+          targetPlatform: WebGL
+          buildMethod: BuildWebGL.Build
+          # Se o build IL2CPP estourar memória, descomente e aumente:
+          # dockerMemoryLimit: 15500m
+
+      # Publica na gh-pages. O script injeta o project_id UGS, arruma os URLs do index.html,
+      # guarda dos 100MB/arquivo e publica como commit órfão (gh-pages sempre 1 commit).
+      # O set-url com GITHUB_TOKEN dá autenticação pro push do script dentro do CI.
+      - name: Deploy to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          chmod +x scripts/deploy-ghpages-clean.sh
+          ./scripts/deploy-ghpages-clean.sh
