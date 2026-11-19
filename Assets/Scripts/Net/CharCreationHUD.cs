@@ -98,7 +98,14 @@ namespace PangeaSkirmish
             if (_nameInput != null)
             {
                 _nameInput.value = _editing.presetName;
-                _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
+                // Não deixa um evento de valor vazio (foco/blur do TextField) zerar o nome —
+                // era o que fazia o OnConfirm auto-nomear "Personagem N+1" ao editar (bug do save).
+                _nameInput.RegisterValueChangedCallback(evt =>
+                {
+                    if (string.IsNullOrEmpty(evt.newValue))
+                        UnityEngine.Debug.Log($"[Perfil][NOME-VAZIO] TextField emitiu valor vazio (ignorado) — nome mantido='{_editing.presetName}'");
+                    else _editing.presetName = evt.newValue;
+                });
             }
 
             // Sprite picker
@@ -532,7 +539,8 @@ namespace PangeaSkirmish
                 _editing.xp         = _editSource.xp;
             }
             _editing.presetName = (_editing.presetName ?? "").Trim();
-            if (_editing.presetName.Length == 0) _editing.presetName = PlayerProfile.NextCharacterName();
+            if (_editing.presetName.Length == 0)
+                _editing.presetName = _editSource != null ? _editSource.presetName : PlayerProfile.NextCharacterName();
             if (_editing.presetName.Length > PlayerProfile.MaxNameLength)
                 _editing.presetName = _editing.presetName.Substring(0, PlayerProfile.MaxNameLength);
 
