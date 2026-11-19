@@ -13,6 +13,7 @@ namespace PangeaSkirmish.UI
         protected override string UxmlResource => "UI/Screens/MainMenu";
 
         public Action OnMultiplayer;
+        public Action OnTutorial;
         public Action OnProfile;
         public Action OnOptions;
         public Action OnQuit;
@@ -28,6 +29,8 @@ namespace PangeaSkirmish.UI
 
             var mp = Root.Q<Button>("btn-multiplayer");
             if (mp != null) mp.clicked += () => OnMultiplayer?.Invoke();
+            var tut = Root.Q<Button>("btn-tutorial");
+            if (tut != null) tut.clicked += () => OnTutorial?.Invoke();
             var pf = Root.Q<Button>("btn-profile");
             if (pf != null) pf.clicked += () => OnProfile?.Invoke();
             var opt = Root.Q<Button>("btn-options");
