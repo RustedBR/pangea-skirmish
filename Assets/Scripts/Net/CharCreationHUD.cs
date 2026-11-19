@@ -18,6 +18,7 @@ namespace PangeaSkirmish
 
         // ---- Estado em edição -----------------------------------------------
         private CharacterPreset _editing;
+        private CharacterPreset _editSource;   // preset original ao editar (p/ preservar campos travados)
         private int _budget;
 
         /// <summary>Confirmou: recebe uma cópia do personagem pronto (orçamento exato).</summary>
@@ -97,7 +98,12 @@ namespace PangeaSkirmish
             if (_nameInput != null)
             {
                 _nameInput.value = _editing.presetName;
-                _nameInput.RegisterValueChangedCallback(evt => _editing.presetName = evt.newValue);
+                // Não deixa um evento de valor vazio (foco/blur do TextField) zerar o nome —
+                // era o que fazia o OnConfirm auto-nomear "Personagem N+1" ao editar (bug do save).
+                _nameInput.RegisterValueChangedCallback(evt =>
+                {
+                    if (!string.IsNullOrEmpty(evt.newValue)) _editing.presetName = evt.newValue;
+                });
             }
 
             // Sprite picker
@@ -363,6 +369,7 @@ namespace PangeaSkirmish
         public void Edit(CharacterPreset p)
         {
             if (p == null || p.stats == null) return;
+            _editSource = p;
             ApplyPreset(p);
             var title = Root?.Q<Label>("cc-title");
             if (title != null) title.text = "Editar Personagem";
@@ -508,8 +515,25 @@ namespace PangeaSkirmish
         private void OnConfirm()
         {
             if (SumAttrs() != _budget) return;
+            // Personagem travado (nível > 2): só os pontos mudam. Preserva nome/arma/equipamento/
+            // aparência/nível/xp do original — senão o WhyEditBlocked recusa o save (bug: o nome
+            // esvaziava no editor e virava auto-nome, criando um personagem novo em vez de atualizar).
+            if (_editSource != null && PlayerProfile.IsLocked(_editSource))
+            {
+                _editing.presetName = _editSource.presetName;
+                _editing.weaponId   = _editSource.weaponId;
+                _editing.offhandId  = _editSource.offhandId ?? "";
+                _editing.headId     = _editSource.headId ?? "";
+                _editing.torsoId    = _editSource.torsoId ?? "";
+                _editing.legsId     = _editSource.legsId ?? "";
+                _editing.modelId    = _editSource.modelId ?? "";
+                _editing.spritePath = _editSource.spritePath;
+                _editing.level      = _editSource.level;
+                _editing.xp         = _editSource.xp;
+            }
             _editing.presetName = (_editing.presetName ?? "").Trim();
-            if (_editing.presetName.Length == 0) _editing.presetName = PlayerProfile.NextCharacterName();
+            if (_editing.presetName.Length == 0)
+                _editing.presetName = _editSource != null ? _editSource.presetName : PlayerProfile.NextCharacterName();
             if (_editing.presetName.Length > PlayerProfile.MaxNameLength)
                 _editing.presetName = _editing.presetName.Substring(0, PlayerProfile.MaxNameLength);
 
