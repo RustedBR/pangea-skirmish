@@ -15,7 +15,7 @@
   color: rgb(244, 234, 208);
   -unity-font-style: bold;
   -unity-text-align: middle-center;
-  background-color: rgb(34, 48, 96);
+  background-color: rgb(42, 52, 48);
   border-radius: 4px;
   padding: 2px 4px;
   margin-bottom: 4px;
@@ -38,12 +38,12 @@
   padding: 6px 16px; border-radius: 12px;
   display: none;
 }
-.bh-intent-tag  { font-size: 14px; margin-right: 10px; flex-shrink: 0; color: var(--pg-accent, rgb(106, 169, 255)); -unity-font-style: bold; -unity-text-align: middle-center; }
+.bh-intent-tag  { font-size: 14px; margin-right: 10px; flex-shrink: 0; color: var(--pg-accent, rgb(242, 181, 68)); -unity-font-style: bold; -unity-text-align: middle-center; }
 .bh-intent-hint { font-size: 14px; color: var(--pg-text, white); flex-grow: 1; flex-shrink: 1; -unity-text-align: middle-left; white-space: normal; }
 .bh-intent-keys { flex-direction: row; gap: 4px; }
 .bh-intent-key  {
-  font-size: 11px; color: rgb(238, 242, 255); background-color: rgb(18, 26, 56);
-  border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid;
+  font-size: 11px; color: rgb(237, 230, 214); background-color: rgb(30, 37, 34);
+  border-width: 1px; border-color: rgb(46, 56, 51); border-style: solid;
   border-radius: 4px; padding: 1px 5px; -unity-text-align: middle-center; min-width: 16px;
 }
 
@@ -74,7 +74,7 @@
   background-color: var(--pg-danger, rgb(200, 40, 40));
 }
 .bh-compass-mode { flex-grow: 1; justify-content: center; align-items: center; margin-top: 2px; }
-.bh-camera-label { font-size: 10px; color: var(--pg-accent, rgb(106, 169, 255)); -unity-font-style: bold; -unity-text-align: middle-center; }
+.bh-camera-label { font-size: 10px; color: var(--pg-accent, rgb(242, 181, 68)); -unity-font-style: bold; -unity-text-align: middle-center; }
 .bh-mobile .bh-compass { width: 6%; }
 
 /* MINI-LOG TEMPORÁRIO — histórico compacto, só com unidade selecionada */
@@ -83,10 +83,10 @@
   flex-direction: column; display: none;
 }
 .bh-minilog-content { flex-direction: column; gap: 3px; overflow: hidden; }
-.bh-minilog-content .bh-log-line { background-color: var(--pg-inset, rgba(18, 26, 56, 0.5)); border-radius: 4px; padding: 2px 5px; min-width: 0; overflow: hidden; }
+.bh-minilog-content .bh-log-line { background-color: var(--pg-inset, rgba(30, 37, 34, 0.5)); border-radius: 4px; padding: 2px 5px; min-width: 0; overflow: hidden; }
 .bh-minilog-content .bh-log-line-text { font-size: 11px; -unity-text-align: middle-left; white-space: normal; flex-shrink: 1; min-width: 0; }
 .bh-minilog-content .bh-round-hdr {
-  background-color: rgb(26, 41, 87); border-radius: 4px; text-align: center;
+  background-color: rgb(34, 43, 40); border-radius: 4px; text-align: center;
   font-size: 10px; color: rgb(244, 234, 208); padding: 2px 4px; margin-top: 2px;
 }
 .bh-minilog-content .bh-round-hdr-text { font-size: 10px; color: rgb(244, 234, 208); -unity-text-align: middle-center; -unity-font-style: bold; }
@@ -96,22 +96,22 @@
    primeiro filho da raiz; ver BattleHUD.Bind). z-index não existe no USS. */
 .bh-inspect {
   position: absolute; left: 300px; top: 250px; width: 290px;
-  padding: 10px; border-radius: 10px; border-color: rgb(106, 134, 200);
+  padding: 10px; border-radius: 10px; border-color: rgb(74, 86, 80);
   box-shadow: 0 6px 18px rgba(0,0,0,0.5);
   display: none;
 }
 .bh-inspect-head { flex-direction: row; align-items: center; gap: 8px; margin-bottom: 6px; }
 .bh-inspect-info { flex-grow: 1; }
 .bh-portrait {
-  width: 46px; height: 56px; background-color: rgb(10, 18, 41);
-  border-width: 1px; border-color: rgb(120, 160, 220); border-style: solid; border-radius: 4px;
+  width: 46px; height: 56px; background-color: rgb(14, 18, 17);
+  border-width: 1px; border-color: rgb(58, 69, 64); border-style: solid; border-radius: 4px;
   flex-shrink: 0;
 }
 .bh-portrait-img { width: 100%; height: 100%; }
 .bh-unit-name { font-size: 14px; color: var(--pg-text, white); -unity-font-style: bold; -unity-text-align: middle-center; }
-.bh-hp-bg { width: 100%; height: 10px; background-color: rgb(10, 18, 41); border-radius: 4px; margin-top: 3px; }
+.bh-hp-bg { width: 100%; height: 10px; background-color: rgb(14, 18, 17); border-radius: 4px; margin-top: 3px; }
 .bh-hp-fill { width: 100%; height: 100%; background-color: rgb(90, 220, 120); border-radius: 4px; }
-.bh-hp-text { font-size: 10px; color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-text-align: middle-center; margin-top: 2px; }
+.bh-hp-text { font-size: 10px; color: var(--pg-text-dim, rgb(185, 176, 156)); -unity-text-align: middle-center; margin-top: 2px; }
 .bh-ap-text { font-size: 11px; color: var(--pg-gold, rgb(255, 204, 85)); -unity-text-align: middle-center; }
 .bh-stats-text { font-size: 10px; color: var(--pg-text, white); white-space: normal; -unity-text-align: middle-center; margin-top: 4px; line-height: 1.5; }
 
@@ -124,29 +124,29 @@
 .bh-ticks-track { flex-direction: row; gap: 3px; align-items: stretch; height: 34px; }
 .bh-tick {
   flex-grow: 1; border-radius: 4px; background-color: var(--pg-inset, rgba(18, 26, 56, 0.85));
-  border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid;
-  font-size: 11px; color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-text-align: middle-center;
+  border-width: 1px; border-color: rgb(46, 56, 51); border-style: solid;
+  font-size: 11px; color: var(--pg-text-dim, rgb(185, 176, 156)); -unity-text-align: middle-center;
 }
-.bh-tick.used-move { background-color: rgb(74, 144, 226); border-color: rgb(74, 144, 226); color: #08103a; -unity-font-style: bold; }
+.bh-tick.used-move { background-color: rgb(74, 144, 226); border-color: rgb(74, 144, 226); color: #1B1408; -unity-font-style: bold; }
 .bh-tick.used-atk  { background-color: rgb(226, 87, 74); border-color: rgb(226, 87, 74); color: #fff; -unity-font-style: bold; }
-.bh-tick.used-bonus{ background-color: rgb(255, 204, 85); border-color: rgb(255, 204, 85); color: #08103a; -unity-font-style: bold; }
+.bh-tick.used-bonus{ background-color: rgb(255, 204, 85); border-color: rgb(255, 204, 85); color: #1B1408; -unity-font-style: bold; }
 .bh-tick.used-conc { background-color: rgb(150, 120, 255); border-color: rgb(150, 120, 255); color: #fff; -unity-font-style: bold; }
 .bh-ticks-queue { flex-direction: row; gap: 4px; margin-top: 6px; justify-content: center; }
 .bh-qact {
   flex-direction: row; align-items: center; justify-content: center; gap: 4px;
   padding: 4px 8px; border-radius: 5px;
-  background-color: rgb(18, 26, 56); border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid;
+  background-color: rgb(30, 37, 34); border-width: 1px; border-color: rgb(46, 56, 51); border-style: solid;
   font-size: 11px; -unity-font-style: bold; -unity-text-align: middle-center;
 }
 .bh-qact-n {
   width: 15px; height: 15px; border-radius: 3px; background-color: rgb(10, 16, 40);
-  color: rgb(238, 242, 255); font-size: 10px; -unity-text-align: middle-center;
+  color: rgb(237, 230, 214); font-size: 10px; -unity-text-align: middle-center;
 }
-.bh-qact.move  { color: rgb(210, 228, 255); } .bh-qact.move .bh-qact-n  { background-color: rgb(74, 144, 226); color: #08103a; }
+.bh-qact.move  { color: rgb(210, 228, 255); } .bh-qact.move .bh-qact-n  { background-color: rgb(74, 144, 226); color: #1B1408; }
 .bh-qact.atk   { color: #ffe1de; }           .bh-qact.atk .bh-qact-n   { background-color: rgb(226, 87, 74); color: #fff; }
-.bh-qact.bonus { color: #fff3cf; }           .bh-qact.bonus .bh-qact-n { background-color: rgb(255, 204, 85); color: #08103a; }
+.bh-qact.bonus { color: #fff3cf; }           .bh-qact.bonus .bh-qact-n { background-color: rgb(255, 204, 85); color: #1B1408; }
 .bh-qact.conc  { color: #ece5ff; }           .bh-qact.conc .bh-qact-n  { background-color: rgb(150, 120, 255); color: #fff; }
-.bh-qact-cost { font-size: 10px; color: rgb(159, 176, 208); }
+.bh-qact-cost { font-size: 10px; color: rgb(185, 176, 156); }
 
 /* Tooltip */
 .bh-tooltip {
@@ -163,30 +163,30 @@
 .bh-intent-btn {
   margin: 0; padding: 0 6px; min-width: 0;
   height: 34px; border-radius: 6px; cursor: pointer;
-  background-color: rgb(18, 26, 56);
-  border-width: 1px; border-color: rgb(42, 58, 106); border-style: solid; border-top-color: rgb(106, 134, 200);
-  color: rgb(238, 242, 255); font-size: 13px;
+  background-color: rgb(30, 37, 34);
+  border-width: 1px; border-color: rgb(46, 56, 51); border-style: solid; border-top-color: rgb(74, 86, 80);
+  color: rgb(237, 230, 214); font-size: 13px;
   -unity-text-align: middle-center;
 }
-.bh-intent-btn:hover { background-color: rgb(106, 169, 255); color: #08103a; }
-.bh-intent-btn.armed { background-color: rgb(106, 169, 255); border-color: rgb(106, 169, 255); color: #08103a; -unity-font-style: bold; }
+.bh-intent-btn:hover { background-color: rgb(242, 181, 68); color: #1B1408; }
+.bh-intent-btn.armed { background-color: rgb(242, 181, 68); border-color: rgb(242, 181, 68); color: #1B1408; -unity-font-style: bold; }
 .bh-intent-dim { opacity: 0.45; }
 .bh-intents-actions { flex-direction: row; gap: 5px; margin-top: 2px; }
 .bh-actbtn {
   margin: 0; padding: 0 4px; min-width: 0; flex-shrink: 1; flex-basis: 0;
   flex-grow: 1; height: 32px; border-radius: 6px; border-width: 1px;
-  border-color: rgb(42, 58, 106); border-style: solid;
+  border-color: rgb(46, 56, 51); border-style: solid;
   font-size: 12px; -unity-font-style: bold; cursor: pointer; -unity-text-align: middle-center;
 }
-.bh-act-confirm { background-color: rgb(106, 169, 255); border-color: rgb(106, 169, 255); color: #08103a; }
-.bh-act-clear   { color: rgb(255, 90, 90); border-color: rgb(255, 90, 90); background-color: rgb(18, 26, 56); }
+.bh-act-confirm { background-color: rgb(242, 181, 68); border-color: rgb(242, 181, 68); color: #1B1408; }
+.bh-act-clear   { color: rgb(255, 90, 90); border-color: rgb(255, 90, 90); background-color: rgb(30, 37, 34); }
 
 /* REACTION MENU — modal central (aprovado no mockup v4.1) */
 .bh-reaction {
   position: absolute; left: 0.6%; bottom: 40px;   /* canto inferior esquerdo, acima do LOG (2026-11-13) */
   width: 21.9%; min-height: 140px;
   flex-direction: column; align-items: stretch; gap: 6px; padding: 14px;
-   border-color: rgb(106, 134, 200);
+   border-color: rgb(74, 86, 80);
   display: none;
 }
 .bh-reaction-buttons { flex-direction: column; gap: 6px; align-self: stretch; }
@@ -230,25 +230,25 @@
   position: absolute; left: 50%; bottom: 120px; translate: -50% 0;
   flex-direction: row; align-items: center; padding: 5px 6px; display: none;
 }
-.bh-abar-sep { width: 1px; height: 40px; background-color: rgb(74, 104, 170); margin: 0 5px; }
+.bh-abar-sep { width: 1px; height: 40px; background-color: rgb(74, 86, 80); margin: 0 5px; }
 .bh-abtn {
   width: 54px; height: 50px; margin: 0 2px; padding: 0;
-  background-color: rgb(26, 41, 87); border-radius: 6px;
-  border-width: 1px; border-color: rgb(74, 104, 170); border-style: solid;
+  background-color: rgb(34, 43, 40); border-radius: 6px;
+  border-width: 1px; border-color: rgb(74, 86, 80); border-style: solid;
   align-items: center; justify-content: center;
 }
-.bh-abtn:hover { background-color: rgb(41, 61, 117); border-color: rgb(106, 169, 255); }
-.bh-abtn--on { background-color: rgb(106, 169, 255); border-color: rgb(189, 217, 255); }
-.bh-abtn--on .bh-abtn-glyph { color: rgb(8, 14, 34); }
-.bh-abtn--on .bh-abtn-badge { color: rgb(8, 14, 34); }
-.bh-abtn--off { opacity: 1; background-color: rgb(92, 98, 122); border-color: rgb(70, 74, 92); }
+.bh-abtn:hover { background-color: rgb(42, 52, 48); border-color: rgb(242, 181, 68); }
+.bh-abtn--on { background-color: rgb(242, 181, 68); border-color: rgb(255, 214, 140); }
+.bh-abtn--on .bh-abtn-glyph { color: rgb(27, 20, 8); }
+.bh-abtn--on .bh-abtn-badge { color: rgb(27, 20, 8); }
+.bh-abtn--off { opacity: 1; background-color: rgb(30, 37, 34); border-color: rgb(46, 56, 51); }
 .bh-abtn--off .bh-abtn-icon, .bh-abtn--off .bh-abtn-cap, .bh-abtn--off .bh-abtn-badge { opacity: 0.55; }
-.bh-abtn-glyph { font-size: 20px; color: rgb(238, 242, 255); -unity-text-align: middle-center; -unity-font-style: bold; margin-top: -4px; }
+.bh-abtn-glyph { font-size: 20px; color: rgb(237, 230, 214); -unity-text-align: middle-center; -unity-font-style: bold; margin-top: -4px; }
 .bh-abtn-key {
-  position: absolute; top: 1px; left: 3px; font-size: 9px; color: rgb(159, 176, 208); -unity-font-style: bold;
+  position: absolute; top: 1px; left: 3px; font-size: 9px; color: rgb(185, 176, 156); -unity-font-style: bold;
 }
 .bh-abtn-badge {
-  position: absolute; bottom: 1px; left: 0; right: 0; font-size: 9px; color: rgb(189, 217, 255);
+  position: absolute; bottom: 1px; left: 0; right: 0; font-size: 9px; color: rgb(255, 214, 140);
   -unity-text-align: middle-center; white-space: nowrap; overflow: hidden;
 }
 .bh-abar-tip {
@@ -262,23 +262,23 @@
 .bh-inspect { width: 15%; min-width: 0; max-height: 92%; overflow: hidden; padding: 6px 8px; }   /* % da tela; menor (2026-11-15) */
 .bh-itoggle {
   position: absolute; top: 6px; right: 8px; height: 18px; padding: 0 6px; margin: 0;
-  font-size: 10px; color: rgb(189, 217, 255); background-color: rgb(26, 41, 87);
-  border-width: 1px; border-color: rgb(74, 104, 170); border-radius: 4px;
+  font-size: 10px; color: rgb(255, 214, 140); background-color: rgb(34, 43, 40);
+  border-width: 1px; border-color: rgb(74, 86, 80); border-radius: 4px;
 }
-.bh-itoggle:hover { border-color: rgb(106, 169, 255); }
+.bh-itoggle:hover { border-color: rgb(242, 181, 68); }
 .bh-ibar { flex-direction: row; align-items: center; margin-top: 3px; }
-.bh-ibar-bg { flex-grow: 1; height: 8px; background-color: rgb(10, 18, 41); border-radius: 3px; margin: 0 6px; overflow: hidden; }
+.bh-ibar-bg { flex-grow: 1; height: 8px; background-color: rgb(14, 18, 17); border-radius: 3px; margin: 0 6px; overflow: hidden; }
 .bh-ibar-fill { height: 100%; border-radius: 3px; }
 .bh-ibar-text { font-size: 11px; color: var(--pg-text, rgb(220, 228, 245)); min-width: 44px; -unity-text-align: middle-right; }
 .bh-igrid { flex-direction: row; flex-wrap: wrap; margin-top: 6px; }
 .bh-ichip {
   flex-direction: row; align-items: center; margin: 2px 4px 2px 0; padding: 2px 6px 2px 3px;
-  background-color: rgb(34, 48, 96); border-radius: 4px; border-width: 1px; border-color: rgb(46, 42, 60);
+  background-color: rgb(42, 52, 48); border-radius: 4px; border-width: 1px; border-color: rgb(46, 42, 60);
 }
-.bh-ichip:hover { border-color: rgb(106, 169, 255); }
+.bh-ichip:hover { border-color: rgb(242, 181, 68); }
 .bh-ichip--state { border-color: rgb(120, 100, 180); }
 .bh-ichip-icon { width: 16px; height: 16px; -unity-background-scale-mode: scale-to-fit; margin-right: 4px; }
-.bh-ichip-text { font-size: 12px; color: rgb(238, 242, 255); -unity-font-style: bold; }
+.bh-ichip-text { font-size: 12px; color: rgb(237, 230, 214); -unity-font-style: bold; }
 .bh-ihint { font-size: 11px; color: var(--pg-gold, rgb(255, 204, 85)); white-space: normal; margin-top: 4px; min-height: 0; }
 
 /* PLACAS DE VIDA NA TELA (2026-11-13) — presas acima de cada unidade, tamanho fixo em pixels */
@@ -286,12 +286,12 @@
 .up-plate {
   position: absolute; width: 132px; translate: -50% -100%; transform-origin: 50% 100%;
   padding: 3px 5px 4px 5px; border-radius: 5px;
-  background-color: rgba(8, 12, 26, 0.86); border-width: 1px; border-color: rgb(74, 104, 170);
+  background-color: rgba(8, 12, 26, 0.86); border-width: 1px; border-color: rgb(74, 86, 80);
 }
 .up-plate--ally { border-color: rgb(90, 150, 240); }
 .up-plate--enemy { border-color: rgb(220, 90, 80); }
 .up-head { flex-direction: row; align-items: center; justify-content: center; margin-bottom: 2px; }
-.up-name { font-size: 13px; color: rgb(238, 242, 255); -unity-font-style: bold; -unity-text-align: middle-center;
+.up-name { font-size: 13px; color: rgb(237, 230, 214); -unity-font-style: bold; -unity-text-align: middle-center;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 108px; padding: 0; margin: 0; }
 .up-icon { width: 16px; height: 16px; -unity-background-scale-mode: scale-to-fit; margin-right: 2px; flex-shrink: 0; }
 .up-icon--small { width: 13px; height: 13px; }
@@ -317,7 +317,7 @@
 .bh-itoggle { flex-direction: row; align-items: center; }
 .bh-itoggle { padding: 0 6px 0 4px; height: 20px; }
 .bh-itoggle-icon { width: 10px; height: 10px; margin-right: 3px; flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
-.bh-itoggle-text { font-size: 10px; color: rgb(189, 217, 255); padding: 0; margin: 0; -unity-text-align: middle-left; }
+.bh-itoggle-text { font-size: 10px; color: rgb(255, 214, 140); padding: 0; margin: 0; -unity-text-align: middle-left; }
 
 /* DOIS POLEGARES (2026-11-14, celular e PC): ações em grade no canto inferior esquerdo; no direito,
    Postura/Reação, atalhos recolhidos e Confirmar grande. A fila de ticks fica no meio. */
@@ -331,7 +331,7 @@
   position: absolute; bottom: 2px; left: 0; right: 0; font-size: 10px; color: rgb(244, 234, 208);
   -unity-text-align: middle-center; -unity-font-style: bold; white-space: nowrap; overflow: hidden;
 }
-.bh-abtn--on .bh-abtn-cap { color: rgb(8, 14, 34); }
+.bh-abtn--on .bh-abtn-cap { color: rgb(27, 20, 8); }
 .bh-abtn-badge { bottom: auto; top: 2px; left: auto; right: 4px; font-size: 10px; -unity-text-align: middle-right; }
 .bh-abar-tip { left: 0.6%; translate: 0 0; width: 14.4%; }
 .bh-minilog { top: 7.0%; bottom: auto; }      /* canto superior esquerdo: embaixo ficam a grade e os menus */
@@ -368,22 +368,22 @@
 }
 .bh-spellmenu > .unity-scroll-view { flex-grow: 1; flex-shrink: 1; }
 .bh-spellmenu-top { flex-direction: row; align-items: center; margin-bottom: 6px; }
-.bh-spellmenu-res { font-size: 12px; color: var(--pg-text-dim, rgb(159, 176, 208)); margin: 0 10px; -unity-font-style: bold; }
+.bh-spellmenu-res { font-size: 12px; color: var(--pg-text-dim, rgb(185, 176, 156)); margin: 0 10px; -unity-font-style: bold; }
 .bh-spellmenu-search { width: 34%; margin: 0; }
 .bh-spellmenu-search .unity-base-text-field__input { font-size: 13px; padding: 4px 8px; }
 .bh-spellgroup { margin-bottom: 6px; }
 .bh-spellgroup-head { flex-direction: row; align-items: center; margin-bottom: 3px; }
 .bh-spellgroup-icon { width: 18px; height: 18px; margin-right: 5px; -unity-background-scale-mode: scale-to-fit; }
 .bh-spellgroup-name { font-size: 13px; -unity-font-style: bold; }
-.bh-spellgroup-count { font-size: 11px; color: var(--pg-text-dim, rgb(159, 176, 208)); margin-left: 6px; }
+.bh-spellgroup-count { font-size: 11px; color: var(--pg-text-dim, rgb(185, 176, 156)); margin-left: 6px; }
 .bh-spellgrid { flex-direction: row; flex-wrap: wrap; }
 .bh-spellblock {
   width: 15.4%; min-height: 0; margin: 0 1.2% 1.2% 0; padding: 6px 6px 6px 28px;
-  background-color: rgb(34, 48, 96); border-radius: 5px;
+  background-color: rgb(42, 52, 48); border-radius: 5px;
   border-width: 1px; border-left-width: 4px; border-color: rgb(46, 42, 60);
   flex-direction: column; justify-content: center; align-items: flex-start;
 }
-.bh-spellblock:hover, .bh-spellblock:focus { background-color: rgb(50, 70, 132); }
+.bh-spellblock:hover, .bh-spellblock:focus { background-color: rgb(58, 69, 64); }
 .bh-spellblock--off { background-color: rgb(92, 98, 122); }
 .bh-spellblock--off > * { opacity: 0.6; }
 .bh-spellblock-icon { position: absolute; left: 5px; top: 6px; width: 18px; height: 18px; -unity-background-scale-mode: scale-to-fit; }
@@ -392,7 +392,7 @@
 .bh-spellblock-meta { font-size: 10px; white-space: normal; color: rgb(185, 196, 220); -unity-text-align: middle-left; }
 .bh-spellmenu-desc {
   height: 13%; flex-shrink: 0; overflow: hidden; margin-top: 6px; padding: 4px 6px;
-  font-size: 12px; white-space: normal; color: var(--pg-text, rgb(238, 242, 255));
+  font-size: 12px; white-space: normal; color: var(--pg-text, rgb(237, 230, 214));
   background-color: var(--pg-inset, rgba(0, 0, 0, 0.2)); border-radius: 4px;
 }
 .bh-mobile .bh-spellmenu { width: 64%; height: 70%; bottom: 8%; }
@@ -400,36 +400,36 @@
 .bh-mobile .bh-spellblock-name { font-size: 14px; }
 .bh-mobile .bh-spellmenu-desc { height: 15%; font-size: 14px; }
 
-/* GRADE DE AÇÕES EM PERGAMINHO (2026-11-15): botão claro com borda marrom; os ícones novos
-   (act_*) têm contorno escuro e leem bem nele. O azul escuro escondia os ícones. */
+/* GRADE DE AÇÕES (tema grafite, 2026-11-22 — redesign do tutorial): botão escuro, borda clara;
+   ativo = âmbar no contorno com fundo quente, como no canvas do tutorial. */
 .bh-abtn {
-  background-color: rgb(236, 220, 180); border-color: rgb(120, 84, 40); border-width: 2px; border-radius: 5px;
+  background-color: rgb(34, 43, 40); border-color: rgb(74, 86, 80); border-width: 1px; border-radius: 10px;
 }
-.bh-abtn:hover { background-color: rgb(248, 236, 204); border-color: rgb(150, 96, 16); }
-.bh-abtn--on { background-color: rgb(255, 222, 140); border-color: rgb(112, 68, 8); }
-.bh-abtn--off { background-color: rgb(196, 184, 156); border-color: rgb(140, 124, 96); }
-.bh-abtn-cap { color: rgb(52, 34, 14); }
-.bh-abtn--on .bh-abtn-cap { color: rgb(52, 34, 14); }
-.bh-abtn-key { color: rgb(112, 68, 8); }
-.bh-abtn-badge { color: rgb(70, 46, 20); }
-.bh-abtn--on .bh-abtn-badge, .bh-abtn--on .bh-abtn-glyph { color: rgb(52, 34, 14); }
-.bh-abtn-glyph { color: rgb(52, 34, 14); }
+.bh-abtn:hover { background-color: rgb(42, 52, 48); border-color: rgb(242, 181, 68); }
+.bh-abtn--on { background-color: rgb(42, 36, 24); border-color: rgb(242, 181, 68); border-width: 2px; }
+.bh-abtn--off { background-color: rgb(30, 37, 34); border-color: rgb(46, 56, 51); }
+.bh-abtn-cap { color: rgb(237, 230, 214); }
+.bh-abtn--on .bh-abtn-cap { color: rgb(242, 181, 68); }
+.bh-abtn-key { color: rgb(185, 176, 156); }
+.bh-abtn-badge { color: rgb(255, 214, 140); }
+.bh-abtn--on .bh-abtn-badge, .bh-abtn--on .bh-abtn-glyph { color: rgb(242, 181, 68); }
+.bh-abtn-glyph { color: rgb(237, 230, 214); }
 .bh-abtn-icon { width: 50%; height: 50%; top: 10%; }   /* em % do botão, que segue a tela */
 
 /* Dica ao passar o mouse nos botões: respiro entre o texto e a moldura do pergaminho. */
 .bh-abar-tip { padding: 14px 18px; }
 .bh-mobile .bh-abar-tip { padding: 16px 20px; }
 
-/* JANELAS DE ESCOLHA EM PERGAMINHO (2026-11-15): incrementar magia, reação e escolhas usam o mesmo
+/* JANELAS DE ESCOLHA (2026-11-15): incrementar magia, reação e escolhas usam o mesmo
    botão claro da grade de ações; ícones de traço grosso e caixa de marcar leem bem nele. O texto quebra
    linha em vez de sair do botão. */
 .bh-reaction .bh-reaction-btn {
-  background-color: rgb(236, 220, 180); border-color: rgb(120, 84, 40); border-width: 2px; border-radius: 5px;
-  color: rgb(52, 34, 14); white-space: normal; flex-shrink: 1; max-width: 100%; overflow: hidden;
+  background-color: rgb(34, 43, 40); border-color: rgb(74, 86, 80); border-width: 1px; border-radius: 10px;
+  color: rgb(237, 230, 214); white-space: normal; flex-shrink: 1; max-width: 100%; overflow: hidden;
   -unity-text-align: middle-left; padding: 8px 12px;
 }
-.bh-reaction .bh-reaction-btn:hover { background-color: rgb(248, 236, 204); border-color: rgb(150, 96, 16); }
-.bh-reaction .bh-reaction-btn:active { background-color: rgb(255, 222, 140); }
+.bh-reaction .bh-reaction-btn:hover { background-color: rgb(42, 52, 48); border-color: rgb(242, 181, 68); }
+.bh-reaction .bh-reaction-btn:active { background-color: rgb(42, 36, 24); }
 
 /* INSPEÇÃO NO CELULAR (2026-11-15): faixa estreita — nome, vida, Mana/Stamina e armas; o resto na "ficha". */
 .bh-mobile .bh-inspect { width: 19%; min-width: 0; padding: 4px 6px; }

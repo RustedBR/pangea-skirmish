@@ -22,6 +22,7 @@
 
             <ui:Toggle label="Tela Cheia (Fullscreen)" name="opt-fullscreen" class="pg-toggle options__toggle" />
 
+            <ui:Button text="Restaurar layout da HUD" name="opt-reset-hud" tooltip="Volta todas as janelas da batalha ao lugar e ao tamanho originais (as que você moveu com Alt + arrastar ou redimensionou)." class="pg-button options__btn" />
             <ui:VisualElement name="spacer2" style="height: 16px;" />
             <ui:Button text="Voltar" name="opt-back" class="pg-button pg-button--primary options__btn" />
         </ui:VisualElement>

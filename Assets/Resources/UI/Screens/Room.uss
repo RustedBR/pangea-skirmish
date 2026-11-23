@@ -13,12 +13,12 @@
 .room__or { -unity-text-align: middle-center; margin-top: 8px; margin-bottom: 6px; }
 .room__loopback {
     margin-top: 10px;
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
 }
 .room__loopback .unity-toggle__checkmark {
-    background-color: var(--pg-accent, rgb(106, 169, 255));
+    background-color: var(--pg-accent, rgb(242, 181, 68));
 }
-.room__loopback:hover { color: var(--pg-text, rgb(238, 242, 255)); }
+.room__loopback:hover { color: var(--pg-text, rgb(237, 230, 214)); }
 .room__status {
     -unity-text-align: middle-center;
     color: var(--pg-gold, rgb(255, 204, 85));
@@ -41,7 +41,7 @@
 }
 .room__header-left { flex-direction: row; align-items: center; }
 .room__header-right { flex-direction: row; align-items: center; }
-.room__header-title { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--pg-text, rgb(238, 242, 255)); margin-right: 12px; }
+.room__header-title { font-size: 18px; -unity-font-style: bold; letter-spacing: 2px; color: var(--pg-text, rgb(237, 230, 214)); margin-right: 12px; }
 .room__code-row { flex-direction: row; align-items: center; }
 .room__code {
     font-size: 18px;
@@ -51,7 +51,7 @@
     margin-right: 8px;
 }
 .room__copy-btn { padding-top: 4px; padding-bottom: 4px; padding-left: 10px; padding-right: 10px; }
-.room__phase { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 13px; }
+.room__phase { color: var(--pg-text-dim, rgb(185, 176, 156)); font-size: 13px; }
 
 .room__body { flex-grow: 1; flex-direction: row; }
 .room__col { margin: 4px; }
@@ -64,15 +64,15 @@
 .room__char { flex-shrink: 0; }
 .room__char-row { flex-direction: row; align-items: center; }
 .room__char-step { width: 34px; padding-left: 0; padding-right: 0; flex-shrink: 0; }
-.room__char-name { flex-grow: 1; color: var(--pg-text, rgb(238, 242, 255)); font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.room__char-info { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 11px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
-.room__player-char { color: var(--pg-text-dim, rgb(159, 176, 208)); font-size: 12px; flex-shrink: 1; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
+.room__char-name { flex-grow: 1; color: var(--pg-text, rgb(237, 230, 214)); font-size: 15px; -unity-font-style: bold; -unity-text-align: middle-center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room__char-info { color: var(--pg-text-dim, rgb(185, 176, 156)); font-size: 11px; white-space: normal; -unity-text-align: middle-center; margin-top: 4px; }
+.room__player-char { color: var(--pg-text-dim, rgb(185, 176, 156)); font-size: 12px; flex-shrink: 1; min-width: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
 .room__player-char--missing { color: var(--pg-gold, rgb(255, 204, 85)); -unity-font-style: italic; }
 .room__col--chat { flex-grow: 1; flex-shrink: 1; min-width: 0; }
 .room__col--host { width: 13%; }
 .room__col-title {
     -unity-font-style: bold;
-    color: var(--pg-text-dim, rgb(159, 176, 208));
+    color: var(--pg-text-dim, rgb(185, 176, 156));
     margin-bottom: 6px;
 }
 .room__scroll { flex-grow: 1; }
@@ -84,7 +84,7 @@
 .room__mode-btn { flex-grow: 1; flex-basis: 0; padding-left: 4px; padding-right: 4px; font-size: 13px; margin-left: 2px; margin-right: 2px; }
 .room__mode-btn--active { background-color: var(--pg-ok, rgb(90, 209, 138)); color: rgb(8, 20, 12); }
 .room__step-btn { width: 40px; }
-.room__step-value { width: 60px; -unity-text-align: middle-center; color: var(--pg-text, rgb(238, 242, 255)); }
+.room__step-value { width: 60px; -unity-text-align: middle-center; color: var(--pg-text, rgb(237, 230, 214)); }
 .room__ctrl-label { margin-top: 8px; margin-bottom: 2px; font-size: 12px; }
 .room__advance { font-size: 16px; padding-top: 10px; padding-bottom: 10px; }
 
@@ -101,7 +101,7 @@
 }
 /* O nome encolhe com reticências; time e botão nunca encolhem nem são cortados. */
 .room__player-name {
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     flex-grow: 1; flex-shrink: 1; min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     margin-right: 6px;
@@ -116,13 +116,13 @@
 .room__copy-feedback { color: var(--pg-ok, rgb(90, 209, 138)); margin-left: 8px; min-width: 70px; }
 
 /* linha de chat (criada em código) */
-.room__chat-line { color: var(--pg-text, rgb(238, 242, 255)); white-space: normal; padding-top: 1px; padding-bottom: 1px; }
-.room__chat-line--system { color: var(--pg-text-dim, rgb(159, 176, 208)); -unity-font-style: italic; }
+.room__chat-line { color: var(--pg-text, rgb(237, 230, 214)); white-space: normal; padding-top: 1px; padding-bottom: 1px; }
+.room__chat-line--system { color: var(--pg-text-dim, rgb(185, 176, 156)); -unity-font-style: italic; }
 
 /* lista de salas (browser) */
 .room__room-list { max-height: 220px; margin-top: 6px; }
 .room__room-empty {
-    color: var(--pg-text-dim, rgb(159, 176, 208));
+    color: var(--pg-text-dim, rgb(185, 176, 156));
     -unity-text-align: middle-center;
     padding-top: 14px;
     padding-bottom: 14px;
@@ -136,12 +136,12 @@
     padding-bottom: 6px;
     padding-left: 8px;
     padding-right: 8px;
-    background-color: var(--pg-inset, rgb(18, 26, 56));
+    background-color: var(--pg-inset, rgb(30, 37, 34));
     margin-bottom: 4px;
 }
-.room__room-row:hover { background-color: var(--pg-accent, rgb(106, 169, 255)); }
-.room__room-name { color: var(--pg-text, rgb(238, 242, 255)); flex-grow: 1; font-size: 15px; }
-.room__room-slots { color: var(--pg-text-dim, rgb(159, 176, 208)); margin-left: 8px; }
+.room__room-row:hover { background-color: var(--pg-accent, rgb(242, 181, 68)); }
+.room__room-name { color: var(--pg-text, rgb(237, 230, 214)); flex-grow: 1; font-size: 15px; }
+.room__room-slots { color: var(--pg-text-dim, rgb(185, 176, 156)); margin-left: 8px; }
 .room__refresh-btn { margin-top: 4px; align-self: stretch; }
 
 /* edição de nome da sala (host) */
@@ -159,7 +159,7 @@
 }
 .room__overlay-label {
     font-size: 22px;
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     -unity-text-align: middle-center;
     white-space: normal;
 }
@@ -184,14 +184,14 @@
     position: absolute;
     background-color: rgba(8, 12, 28, 0.96);
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: var(--pg-accent, rgb(106, 169, 255)); border-right-color: var(--pg-accent, rgb(106, 169, 255)); border-top-color: var(--pg-accent, rgb(106, 169, 255)); border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
+    border-left-color: var(--pg-accent, rgb(242, 181, 68)); border-right-color: var(--pg-accent, rgb(242, 181, 68)); border-top-color: var(--pg-accent, rgb(242, 181, 68)); border-bottom-color: var(--pg-accent, rgb(242, 181, 68));
     border-radius: 6px;
     padding: 6px 8px;
     max-width: 30%;
     white-space: normal;
 }
 .room__tooltip-txt {
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     font-size: 12px;
     white-space: normal;
 }
@@ -208,14 +208,14 @@
     margin-bottom: 2px;
 }
 .tuning__label {
-    color: var(--pg-text-dim, rgb(159, 176, 208));
+    color: var(--pg-text-dim, rgb(185, 176, 156));
     flex-grow: 1;
     font-size: 12px;
     white-space: normal;
     margin-right: 6px;
 }
 .tuning__value {
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     font-size: 12px;
     min-width: 56px;
     -unity-text-align: middle-right;
@@ -233,12 +233,12 @@
     margin-bottom: 3px;
     padding: 3px 6px;
     border-bottom-width: 1px;
-    border-bottom-color: rgb(42, 58, 106);
+    border-bottom-color: rgb(46, 56, 51);
     border-bottom-style: solid;
 }
 .tuning__hdr-icon { width: 18px; height: 18px; flex-shrink: 0; -unity-background-scale-mode: scale-to-fit; }
 .tuning__hdr-label {
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     font-size: 12px;
     -unity-font-style: bold;
     -unity-text-align: middle-left;
@@ -251,24 +251,24 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--pg-inset, rgb(18, 26, 56));
+    background-color: var(--pg-inset, rgb(30, 37, 34));
     border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;
-    border-left-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-right-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-top-color: var(--pg-panel-border, rgb(42, 58, 106));
-    border-bottom-color: var(--pg-panel-border, rgb(42, 58, 106));
+    border-left-color: var(--pg-panel-border, rgb(46, 56, 51));
+    border-right-color: var(--pg-panel-border, rgb(46, 56, 51));
+    border-top-color: var(--pg-panel-border, rgb(46, 56, 51));
+    border-bottom-color: var(--pg-panel-border, rgb(46, 56, 51));
     border-radius: 6px;
     padding: 6px 10px;
     margin-top: 8px;
 }
 .opt-text { flex-grow: 1; margin-right: 12px; }
 .opt-label {
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     font-size: 13px;
     flex-grow: 1;
 }
 .opt-desc {
-    color: var(--pg-text-dim, rgb(159, 176, 208));
+    color: var(--pg-text-dim, rgb(185, 176, 156));
     font-size: 12px;
     margin-top: 2px;
     white-space: normal;
@@ -287,12 +287,12 @@
     min-width: 48px;
     height: 28px;
     -unity-text-align: middle-center;
-    color: var(--pg-accent, rgb(106, 169, 255));
+    color: var(--pg-accent, rgb(242, 181, 68));
     font-size: 15px;
     -unity-font-style: bold;
     background-color: var(--pg-inset, rgb(10, 16, 38));
-    border-top-width: 1px; border-top-color: var(--pg-accent, rgb(106, 169, 255));
-    border-bottom-width: 1px; border-bottom-color: var(--pg-accent, rgb(106, 169, 255));
+    border-top-width: 1px; border-top-color: var(--pg-accent, rgb(242, 181, 68));
+    border-bottom-width: 1px; border-bottom-color: var(--pg-accent, rgb(242, 181, 68));
 }
 
 /* ---- Ícones BDragon (Opção C — steppers da aba Room, aprovados na imagem 2) ---- */
@@ -313,7 +313,7 @@
 }
 .room__scroll .unity-scroller__low-button,
 .room__scroll .unity-scroller__high-button {
-    background-color: var(--pg-accent, rgb(106, 169, 255));
+    background-color: var(--pg-accent, rgb(242, 181, 68));
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
     border-bottom-left-radius: 4px;
@@ -322,7 +322,7 @@
 /* setas < > com cor escura sobre fundo azul (contraste) */
 .room__scroll .unity-scroller__low-button:hover,
 .room__scroll .unity-scroller__high-button:hover {
-    background-color: var(--pg-panel-highlight, rgb(106, 134, 200));
+    background-color: var(--pg-panel-highlight, rgb(74, 86, 80));
 }
 .room__scroll .unity-scroller-slider {
     background-color: rgba(10, 16, 40, 0.9);
@@ -345,4 +345,4 @@
 .tuning__preset { flex-direction: row; margin: 0 6px 6px 0; }
 .tuning__preset-load { margin: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
 .tuning__preset-del { margin: 0; width: 30px; border-top-left-radius: 0; border-bottom-left-radius: 0; }
-.tuning__preset-empty { font-size: 12px; color: var(--pg-text-dim, rgb(159, 176, 208)); white-space: normal; }
+.tuning__preset-empty { font-size: 12px; color: var(--pg-text-dim, rgb(185, 176, 156)); white-space: normal; }
