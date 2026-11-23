@@ -208,7 +208,9 @@ namespace PangeaSkirmish
             var bgGo = new GameObject("Bg");
             bgGo.transform.SetParent(go.transform, false);
             var bg = bgGo.AddComponent<SpriteRenderer>();
-            bg.sprite = GetBgSprite(bgColor, new Color32(0x22, 0x22, 0x22, 255));
+            // Tema grafite + âmbar (2026-11-23): fundo grafite igual ao das janelas da HUD; a cor semântica vira a borda.
+            var edge = bgColor; edge.a = 255;
+            bg.sprite = GetBgSprite(new Color32(0x14, 0x18, 0x16, 235), edge);
             bg.sortingOrder = SortOrderBase;
             var tSeq = Tuning.Get();
             float seqScale = tSeq.seqLabelScale;

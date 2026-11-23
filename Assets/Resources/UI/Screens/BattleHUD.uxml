@@ -9,18 +9,6 @@
       <ui:Label name="timer-text" text="" class="bh-timer" />
     </ui:VisualElement>
 
-    <!-- BANDA DE INTENÇÃO (GDD-016): faixa central no topo, NÃO cobre mais o botão Confirmar.
-         Substitui a dica de intenção que antes usava o prompt-panel de canto. -->
-    <ui:VisualElement name="intent-band" class="bh-window bh-intentband">
-      <ui:Label name="intent-tag" text="" class="bh-intent-tag" />
-      <ui:Label name="intent-hint" text="" class="bh-intent-hint" />
-      <ui:VisualElement class="bh-intent-keys">
-        <ui:Label text="1" class="bh-intent-key" />
-        <ui:Label text="2" class="bh-intent-key" />
-        <ui:Label text="3" class="bh-intent-key" />
-      </ui:VisualElement>
-    </ui:VisualElement>
-
     <!-- BÚSSOLA + MODO DA CÂMERA (2026-11-15): uma caixa só; letras dentro da moldura, modo embaixo. -->
     <ui:VisualElement name="compass" class="bh-window bh-compass" picking-mode="Ignore">
       <ui:VisualElement name="compass-rose" class="bh-compass-rose" picking-mode="Ignore">

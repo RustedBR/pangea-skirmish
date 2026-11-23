@@ -17,7 +17,8 @@ namespace PangeaSkirmish.UI
     {
         private const float SnapMargin = 0.006f;     // folga do canto, fração da tela
         private const float SnapRangeX = 0.14f;      // até onde (fração da largura) o canto "puxa"
-        private const float SnapRangeY = 0.18f;      // idem na altura
+        private const float SnapRangeY = 0.18f;
+        private const float SnapEdgeRange = 0.05f;   // puxada das bordas (esquerda/direita/topo/base), fração do eixo      // idem na altura
         private const float MinScale = 0.4f;
         private const float MaxScale = 1.25f;
         private const string KeyPrefix = "hud.layout.";
@@ -71,15 +72,14 @@ namespace PangeaSkirmish.UI
         // ── Puxador de tamanho ────────────────────────────────────────────────
         private static void BuildGrip(State st)
         {
-            var grip = new Label("◢") { pickingMode = PickingMode.Position, tooltip = "Arraste para reduzir ou ampliar a janela" };
+            // Puxador DESENHADO (um canto de duas bordas): a fonte da versão web não tem o glifo ◢.
+            var grip = new VisualElement { pickingMode = PickingMode.Position, tooltip = "Arraste para reduzir ou ampliar a janela" };
             grip.style.position = Position.Absolute;
-            grip.style.right = 1; grip.style.bottom = 1;
-            grip.style.width = 16; grip.style.height = 16;
-            grip.style.fontSize = 12;
-            grip.style.unityTextAlign = TextAnchor.LowerRight;
-            grip.style.color = new Color(0.95f, 0.71f, 0.27f, 1f);
+            grip.style.right = 2; grip.style.bottom = 2;
+            grip.style.width = 14; grip.style.height = 14;
+            grip.style.borderRightWidth = 3; grip.style.borderBottomWidth = 3;
+            grip.style.borderRightColor = grip.style.borderBottomColor = new Color(0.95f, 0.71f, 0.27f, 1f);
             grip.style.opacity = 0f;
-            grip.style.paddingRight = grip.style.paddingBottom = 1;
             st.Grip = grip;
             st.El.Add(grip);
             st.El.RegisterCallback<PointerEnterEvent>(_ => grip.style.opacity = 0.9f);
@@ -236,6 +236,17 @@ namespace PangeaSkirmish.UI
                 float dd = dx * dx + dy * dy;
                 if (dd < bestD) { bestD = dd; best = c; snapped = true; }
             }
+            if (snapped) return best;
+
+            // Sem canto por perto: encaixa em cada borda da tela por eixo (lados esquerdo/direito = "cantos verticais",
+            // e topo/base), mantendo a outra coordenada onde o jogador soltou.
+            float mx = W * SnapMargin, my = H * SnapMargin;
+            float rx = W * SnapEdgeRange, ry = H * SnapEdgeRange;
+            float xl = mx, xr = W - size.x - mx, yt = my, yb = H - size.y - my;
+            if (Mathf.Abs(tl.x - xl) <= rx) { best.x = xl; snapped = true; }
+            else if (Mathf.Abs(tl.x - xr) <= rx) { best.x = xr; snapped = true; }
+            if (Mathf.Abs(tl.y - yt) <= ry) { best.y = yt; snapped = true; }
+            else if (Mathf.Abs(tl.y - yb) <= ry) { best.y = yb; snapped = true; }
             return best;
         }
 
@@ -328,7 +339,7 @@ namespace PangeaSkirmish.UI
         /// para a tela de Opções restaurar também os que só existem quando abertos (ex.: lista de magias).</summary>
         public static readonly string[] AllIds =
         {
-            "battle.actions", "battle.ticks", "battle.intents", "battle.choice", "battle.spells", "tutorial.card",
+            "battle.actions", "battle.ticks", "battle.intents", "battle.choice", "battle.spells", "battle.inspect", "tutorial.card",
         };
 
         /// <summary>Opções › "Restaurar layout da HUD": apaga as posições e tamanhos salvos de TODOS os painéis.

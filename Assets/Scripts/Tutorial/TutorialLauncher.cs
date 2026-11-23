@@ -14,6 +14,22 @@ namespace PangeaSkirmish
     {
         public static bool Active { get; private set; }
 
+        /// <summary>True entre RestartAtLesson e o Attach da cena nova: a cena está recarregando DENTRO do tutorial.</summary>
+        public static bool IsRestarting { get; private set; }
+
+        /// <summary>
+        /// Sai do modo tutorial por completo (Launcher, sessão e HUD). Estado ESTÁTICO: se ficar ligado, a próxima
+        /// partida normal monta o tutorial (GameBootstrap) e perde o relógio e a derrota (TutorialSession).
+        /// Chamado ao sair da cena de tutorial por qualquer caminho e ao abrir o menu principal.
+        /// </summary>
+        public static void Deactivate()
+        {
+            Active = false; IsRestarting = false;
+            _resumeLessonId = null;
+            TutorialSession.End();
+            TutorialHud.Clear();
+        }
+
         /// <summary>Chamado pelo menu (botão Tutorial). Carrega a batalha em modo solo de tutorial.</summary>
         public static void Start()
         {
@@ -33,6 +49,7 @@ namespace PangeaSkirmish
         public static void RestartAtLesson(string lessonId)
         {
             _resumeLessonId = lessonId;
+            IsRestarting = true;
             TutorialHud.Clear();
             RuntimeMultiplayerSession.IsMultiplayer = false;
             SceneManager.LoadScene("Battle", LoadSceneMode.Single);
@@ -47,9 +64,7 @@ namespace PangeaSkirmish
         /// <summary>Fim do tutorial (botão do mapa de capítulos): volta ao menu principal.</summary>
         public static void ReturnToMenu()
         {
-            Active = false;
-            TutorialSession.End();
-            TutorialHud.Clear();
+            Deactivate();
             SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
         }
 
@@ -59,6 +74,8 @@ namespace PangeaSkirmish
         /// </summary>
         public static void Attach(GameBootstrap gb)
         {
+            IsRestarting = false;
+            TutorialSession.Begin();   // também depois de um reset de cena (o OnDestroy da cena anterior a desligou)
             var grid = gb.MpGrid;
             var hud = gb.MpHUD;
             var planner = gb.MpPlanner;

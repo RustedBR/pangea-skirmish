@@ -36,7 +36,8 @@ namespace PangeaSkirmish
         private VisualElement _root, _card, _segments, _steps, _cardButtons;
         private Label _header, _counter, _title, _instruction, _hint;
         private VisualElement _fbCard, _fbIcon;
-        private Label _fbTag, _fbTitle, _fbText, _fbKey;
+        private Label _fbTag, _fbTitle, _fbText, _fbKey, _fbBang;
+        private VisualElement _fbTick;
         private Button _fbPrimary, _fbSecondary, _repeat, _skip, _continue;
         private VisualElement _ring;
         private Label _ringTag;
@@ -201,7 +202,17 @@ namespace PangeaSkirmish
             _fbIcon = new VisualElement { pickingMode = PickingMode.Ignore };
             _fbIcon.style.width = 40; _fbIcon.style.height = 40; Radius(_fbIcon, 20);
             _fbIcon.style.alignItems = Align.Center; _fbIcon.style.justifyContent = Justify.Center;
-            _fbIcon.Add(L("✓", 22, new Color32(16, 20, 15, 255), true));
+            // O ✓ é DESENHADO (duas bordas giradas 45°): a fonte da versão web não tem o glifo e o círculo ficava vazio.
+            _fbTick = new VisualElement { pickingMode = PickingMode.Ignore };
+            _fbTick.style.width = 11; _fbTick.style.height = 20;
+            _fbTick.style.borderRightWidth = 4; _fbTick.style.borderBottomWidth = 4;
+            _fbTick.style.borderRightColor = _fbTick.style.borderBottomColor = (Color)new Color32(16, 20, 15, 255);
+            _fbTick.style.rotate = new Rotate(new Angle(45f, AngleUnit.Degree));
+            _fbTick.style.marginBottom = 5;
+            _fbIcon.Add(_fbTick);
+            _fbBang = L("!", 24, new Color32(16, 20, 15, 255), true);
+            _fbBang.style.display = DisplayStyle.None;
+            _fbIcon.Add(_fbBang);
             _fbCard.Add(_fbIcon);
             _fbTag = L("MECÂNICA APRENDIDA", 11, COkText, true); _fbTag.style.marginTop = 6; _fbTag.style.letterSpacing = 1;
             _fbCard.Add(_fbTag);
@@ -319,7 +330,8 @@ namespace PangeaSkirmish
             _feedbackOpen = true; _feedbackOk = ok;
             TutorialHud.BlockPlanInput = true;
             _fbIcon.style.backgroundColor = ok ? COk : CDanger;
-            ((Label)_fbIcon[0]).text = ok ? "✓" : "!";
+            _fbTick.style.display = ok ? DisplayStyle.Flex : DisplayStyle.None;
+            _fbBang.style.display = ok ? DisplayStyle.None : DisplayStyle.Flex;
             _fbTag.text = ok ? "MECÂNICA APRENDIDA" : "NÃO FUNCIONOU";
             _fbTag.style.color = ok ? COkText : CDanger;
             _fbTitle.text = title;
@@ -393,7 +405,7 @@ namespace PangeaSkirmish
                 var top = new VisualElement { pickingMode = PickingMode.Ignore };
                 top.style.flexDirection = FlexDirection.Row; top.style.justifyContent = Justify.SpaceBetween;
                 top.Add(L($"CAP. {kv.Key}", 13, done ? COkText : CAccent, true));
-                if (done) top.Add(L("✓ concluído", 11, COkText, true));
+                if (done) top.Add(L("concluído", 11, COkText, true));
                 card.Add(top);
                 var nm = L(ChapterShort[ch], 16, CStrong, true); nm.style.marginTop = 2; nm.style.marginBottom = 8;
                 card.Add(nm);
@@ -408,14 +420,18 @@ namespace PangeaSkirmish
                 scroll.Add(card);
             }
 
+            var row = new VisualElement { pickingMode = PickingMode.Ignore };
+            row.style.flexDirection = FlexDirection.Row; row.style.justifyContent = Justify.SpaceBetween; row.style.marginTop = 8;
+            var home = Btn("Menu principal", () => TutorialLauncher.ReturnToMenu(), false);
+            home.style.flexGrow = 0; home.style.width = Length.Percent(24);
+            row.Add(home);
             if (canClose)
             {
-                var row = new VisualElement { pickingMode = PickingMode.Ignore };
-                row.style.flexDirection = FlexDirection.Row; row.style.justifyContent = Justify.FlexEnd; row.style.marginTop = 8;
                 var back = Btn("Voltar à lição", () => OnCloseMenu?.Invoke(), false);
                 back.style.flexGrow = 0; back.style.width = Length.Percent(24);
-                row.Add(back); _menu.Add(row);
+                row.Add(back);
             }
+            _menu.Add(row);
             _menu.style.display = DisplayStyle.Flex;
             gameObject.SetActive(true);
         }
@@ -473,7 +489,7 @@ namespace PangeaSkirmish
                 c.Add(dots);
                 foreach (var l in kv.Value)
                     if (l.result == TutorialResult.Failed)
-                    { var f = L($"✗ {l.mechanic}: {l.detail}", 12, CDanger); f.style.marginTop = 6; c.Add(f); }
+                    { var f = L($"Falhou em {l.mechanic}: {l.detail}", 12, CDanger); f.style.marginTop = 6; c.Add(f); }
                 grid.Add(c);
             }
             var row = new VisualElement { pickingMode = PickingMode.Ignore };

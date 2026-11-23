@@ -109,6 +109,12 @@ namespace PangeaSkirmish
             {
                 if (u == null || u.stats == null) continue;
                 seen.Add(u);
+                // Unidade escondida (ex.: aliado de treino fora da lição): sem placa.
+                if (!u.gameObject.activeInHierarchy)
+                {
+                    if (_plates.TryGetValue(u, out var hiddenPlate)) hiddenPlate.root.style.display = DisplayStyle.None;
+                    continue;
+                }
                 if (!_plates.TryGetValue(u, out var p)) { p = Build(u); _plates[u] = p; }
                 if (u.IsDead) { p.root.style.display = DisplayStyle.None; continue; }
 
