@@ -14,7 +14,7 @@
 
 ## 1. Estrutura **[CANON]**
 
-Três atributos do **Corpo**, que alimentam o **Stamina**, e três da **Mente**, que alimentam a **Mana**.
+Quatro atributos do **Corpo** (STR, VIT, AGI, DEX), que alimentam a **Stamina**, e dois da **Mente** (INT, WIS), que alimentam a **Mana**.
 
 | Corpo (Stamina) | Mente (Mana) |
 |---|---|
@@ -33,7 +33,7 @@ Três atributos do **Corpo**, que alimentam o **Stamina**, e três da **Mente**,
 | **VIT** | Força do Bloqueio: 3% por ponto, até 60% | como hoje |
 | **VIT** | Stamina máxima: +0,5 por ponto | **[PROPOSTA]** |
 | **AGI** | Esquiva: +2% por ponto. Força da reação de Esquivar: +3% por ponto | **[CANON]** fica com a AGI |
-| **AGI** | Tiles por andada: `2 + AGI/2`, até 6 | **[CANON]** fica com a AGI; fórmula é **[PROPOSTA]** |
+| **AGI** | Tiles por andada: `4 + 0,67·AGI`, até 8 *(alinhado ao código 2026-11-22)* | **[CANON]** fica com a AGI; fórmula é **[PROPOSTA]** |
 | **AGI** | Iniciativa: d20 + AGI + DEX | **[CANON]** como hoje |
 | **DEX** | Acerto: +3% por ponto. Crítico: +2% por ponto. Dano extra do Mirar | como hoje |
 | **DEX** | **Rapidez das ações:** quanto mais DEX, menos ticks cada ação leva (ataque, conjuração, concentrar) | **[CANON]** |
@@ -214,10 +214,10 @@ Queixas jogando com intenções e ticks: STR quase não muda o dano; VIT quase n
 |---|---|---|
 | Vida | 5 + 3·VIT | **20 + 4·VIT** |
 | Dano de STR | 2 por ponto | **2,5 por ponto** |
-| Golpe poderoso | +3 de dano | **+4** |
+| Golpe poderoso | +3 de dano | **dano base ×1,5** *(alinhado ao código 2026-11-22)* |
 | Bloqueio (VIT) | 3% por ponto | **5% por ponto** (teto 60%) |
 | Esquiva (AGI) | 2% por ponto; reação +3% | **5% por ponto; reação +5%** |
-| Andada (AGI) | 2 + AGI/2, teto 6 | **2 + 0,67·AGI, teto 6**: AGI 6 já chega ao máximo |
+| Andada (AGI) | 2 + AGI/2, teto 6 | **4 + 0,67·AGI, teto 8** *(alinhado ao código 2026-11-22)* |
 | Teto da AGI | 20 | **6** (acima não rende) |
 | Stamina máxima | 3 + 0,5·(STR+VIT) | **1 + 0,25·(STR+VIT)** |
 | Regeneração de Stamina | 1 a cada 2 ticks | **1 a cada 3 ticks** |

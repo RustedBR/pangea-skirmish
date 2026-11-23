@@ -54,7 +54,7 @@ The camera is an orthographic 2D camera with two modes: **Auto** (follows battle
 
 ### Edge Pan
 
-- **Margin**: Pixels from screen edge to activate (default 18)
+- **Margin**: Pixels from screen edge to activate (default 15)
 - **Speed**: Scaled by current zoom level
 - **Reference zoom**: For speed normalization
 
@@ -76,9 +76,10 @@ The camera is an orthographic 2D camera with two modes: **Auto** (follows battle
 | camInitialSize | 12 | Initial zoom |
 | zoomSize | 5 | Planning phase zoom |
 | zoomSpeed | 2 | Scroll zoom speed |
-| zoomMin | 3 | Minimum zoom |
+| zoomMin | 5 | Minimum zoom |
 | zoomMax | 20 | Maximum zoom |
-| edgeMargin | 18 | Edge-pan activation margin |
+| edgeMargin | 15 | Edge-pan activation margin |
+| — | — | Q/E rotate the camera; pinch zooms on touch (CameraController) |
 | edgePanSpeed | 12 | Edge-pan speed |
 | dragSpeed | 1 | Right-click drag speed |
 | camManualTimeout | 2s | Manual mode timeout |
