@@ -74,6 +74,8 @@ namespace PangeaSkirmish
 
         /// <summary>Orientação atual da vista em graus (0/90/180/270).</summary>
         public int Orientation => _orientation;
+        /// <summary>Zoom alvo (tamanho ortográfico) — lido pelos gates do tutorial.</summary>
+        public float TargetSize => _targetSize;
 
         /// <summary>
         /// True enquanto o tabuleiro está visualmente girando.
@@ -226,6 +228,7 @@ namespace PangeaSkirmish
         public void CycleView(bool clockwise)
         {
             if (!enableViewRotate) return;
+            RotateInputCount++;
             ApplyOrientationAnchored(_orientation + (clockwise ? 90 : -90));
             // Virar a vista conta como input manual (pausa auto-focus).
             if (_mode == CameraMode.Auto)
@@ -428,6 +431,12 @@ namespace PangeaSkirmish
         /// <summary>Último instante (unscaled) em que o jogador arrastou ou deu zoom (HUD esconde a inspeção).</summary>
         public static float LastManualMoveTime = -99f;
 
+        // Contadores de input manual (GDD-027): gates da lição de câmera comparam com a
+        // baseline capturada no setup. Assim pan, zoom e rotação são lições separadas.
+        public int PanInputCount { get; private set; }
+        public int ZoomInputCount { get; private set; }
+        public int RotateInputCount { get; private set; }
+
         private void LateUpdate()
         {
             if (_cam == null) return;
@@ -535,6 +544,7 @@ namespace PangeaSkirmish
             if (Mathf.Abs(pinch) > 0.5f)
             {
                 _targetSize = Mathf.Clamp(_targetSize * (1f - pinch / Mathf.Max(1, Screen.height) * 2f), zoomMin, zoomMax);
+                ZoomInputCount++;
                 return true;
             }
             if (Mouse.current == null || PointerInput.IsTouch) return false;
@@ -547,6 +557,7 @@ namespace PangeaSkirmish
             if (Mathf.Abs(scroll) > 0.01f)
             {
                 _targetSize = Mathf.Clamp(_targetSize - scroll * zoomSpeed * Tuning.Get().zoomScrollFactor, zoomMin, zoomMax);
+                ZoomInputCount++;
                 return true;
             }
             return false;
@@ -565,6 +576,7 @@ namespace PangeaSkirmish
                 Vector2 d = PointerInput.DragDelta;
                 // d.x → X mundo, d.y → Z mundo (mundo XZ sob câmera 45°).
                 _targetXY = ClampCenter(_targetXY + new Vector2(-d.x, -d.y * World3D.GroundStretch) * worldPerPixel * dragSpeed);
+                PanInputCount++;
                 return true;
             }
 
@@ -588,6 +600,7 @@ namespace PangeaSkirmish
                         Vector2 pan = new Vector2(dir.x, dir.y).normalized;
                         pan.y *= World3D.GroundStretch; // chão inclinado: 1 de tela = 2 de profundidade
                         _targetXY = ClampCenter(_targetXY + pan * speed * Time.deltaTime);
+                        PanInputCount++;
                         return true;
                     }
                 }

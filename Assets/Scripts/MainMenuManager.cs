@@ -53,6 +53,7 @@ namespace PangeaSkirmish
 
             _menuScreen = UI.PangeaScreen.Spawn<UI.MainMenuScreen>("MainMenuScreen");
             _menuScreen.OnMultiplayer = OnPlay;
+            _menuScreen.OnTutorial    = () => TutorialLauncher.Start();
             _menuScreen.OnProfile     = () => ShowProfile("");
             _menuScreen.OnOptions     = ShowOptions;
             _menuScreen.OnQuit        = () => Application.Quit();

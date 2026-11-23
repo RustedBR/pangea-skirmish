@@ -38,7 +38,7 @@ Alvo de calibração: cerca de 9 de dano por tick.
 | Cetro | quadrado 2×2 | 4 | 5 | 2 | 6 | 20 |
 | Varinha de Aprendiz | quadrado 2×2 | 4 | 2 | 1 | 5 | 8 |
 | Cajado Arcano | linha 3 | 3 | 6 | 2 | 7 | 18 |
-| Arco Curto | 1 tile | 1 | 9 | 1 | 8 | 9 |
+| Arco Curto | 1 tile | 1 | 25 | 2 | 8 | 25 |
 | Arco Longo | 1 tile | 1 | 28 | 3 | 10 | 28 |
 
 Armas de 1 tile ficam viáveis pelo **dano por tile alto** **[CANON]**, não por regra especial.

@@ -126,6 +126,10 @@ namespace PangeaSkirmish
             round.Setup(grid, planner, hud, cam, camCtrl,
                 new System.Collections.Generic.List<Unit>(), null, tileFx);
 
+            // Tutorial (GDD-027): modo solo de tutorial — spawna jogador + fera e liga o director,
+            // sem passar pelo PlacementSync (que é o fluxo multiplayer). Aditivo.
+            if (TutorialLauncher.Active) { TutorialLauncher.Attach(this); return; }
+
             hud.ShowWaitingForPlacement();
 
             // Notificar PlacementSync de que o grid está pronto

@@ -1341,19 +1341,48 @@ namespace PangeaSkirmish
 
         public List<Vector2Int> GetReachableAnchors(Vector2Int from, int budget, int selfFootprint, List<Unit> blockerUnits)
         {
+            // Busca em largura (2026-11-22): uma casa só é alcançável se existir uma sequência de passos
+            // legais até ela dentro do orçamento — cada passo (8 vizinhos, custo 1) respeita CanStepBetween
+            // (altura máxima por passo, paredes, rampas). Antes o alcance era uma caixa e só o passo
+            // ADJACENTE checava altura: dava para subir 2 de altura de uma vez e atravessar paredes.
+            // Unidades não bloqueiam a passagem (como antes); só impedem terminar em cima delas.
+            budget = Mathf.Max(0, budget);
+            int side = budget * 2 + 1;
+            var dist = new int[side, side];
+            for (int ix = 0; ix < side; ix++)
+                for (int iy = 0; iy < side; iy++) dist[ix, iy] = -1;
+            dist[budget, budget] = 0;
+
+            var queue = new Queue<Vector2Int>();
+            queue.Enqueue(from);
+            while (queue.Count > 0)
+            {
+                var cur = queue.Dequeue();
+                int dcur = dist[cur.x - from.x + budget, cur.y - from.y + budget];
+                if (dcur >= budget) continue;
+                for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    var nxt = new Vector2Int(cur.x + dx, cur.y + dy);
+                    int ix = nxt.x - from.x + budget, iy = nxt.y - from.y + budget;
+                    if (ix < 0 || iy < 0 || ix >= side || iy >= side) continue;
+                    if (dist[ix, iy] >= 0) continue;
+                    if (!IsAnchorInBounds(nxt, selfFootprint)) continue;
+                    if (!CanStepBetween(cur, nxt)) continue;
+                    dist[ix, iy] = dcur + 1;
+                    queue.Enqueue(nxt);
+                }
+            }
+
+            // Resultado na mesma ordem de antes (dx externo, dy interno): o desempate da IA não muda.
             var result = new List<Vector2Int>();
             for (int dx = -budget; dx <= budget; dx++)
             for (int dy = -budget; dy <= budget; dy++)
             {
+                if (dist[dx + budget, dy + budget] < 0) continue;
                 var anchor = new Vector2Int(from.x + dx, from.y + dy);
                 if (!IsAnchorInBounds(anchor, selfFootprint)) continue;
-                // Regra (b): parede de altura — só vizinhos adjacentes checam passo.
-                // (célula distante passa pela checagem de cada passo no pathfinding real,
-                //  mas p/ highlight de alcance usamos o passo direto adjacente.)
-                if (Mathf.Abs(dx) <= 1 && Mathf.Abs(dy) <= 1 && (dx != 0 || dy != 0))
-                {
-                    if (!CanStepBetween(from, anchor)) continue;
-                }
                 bool blocked = false;
                 foreach (var u in blockerUnits)
                 {

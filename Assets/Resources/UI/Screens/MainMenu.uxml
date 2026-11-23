@@ -14,6 +14,7 @@
                 </ui:VisualElement>
 
                 <ui:Button text="Jogar" name="btn-multiplayer" class="pg-button pg-button--primary main-menu__btn main-menu__btn--play" />
+                <ui:Button text="Tutorial" name="btn-tutorial" class="pg-button main-menu__btn" />
                 <ui:Button text="Perfil e personagens" name="btn-profile" class="pg-button main-menu__btn" />
                 <ui:Button text="Opções" name="btn-options" class="pg-button main-menu__btn" />
                 <ui:Button text="Sair" name="btn-quit" class="pg-button pg-button--danger main-menu__btn" />

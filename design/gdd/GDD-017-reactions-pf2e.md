@@ -18,7 +18,7 @@
 
 | Reação | Ideia do PF2e | Gatilho | Efeito |
 |---|---|---|---|
-| **Bloquear** **[CANON]** | Shield Block: reduz o dano pela **dureza** do escudo | Vai ser atingida por um golpe | Reduz o dano por um valor **FIXO**: `VIT × 0,25 + dureza da arma` |
+| **Bloquear** **[CANON]** | Shield Block: reduz o dano pela **dureza** do escudo | Vai ser atingida por um golpe | Reduz o dano por um valor **FIXO**: `VIT × 0,75 + dureza da arma` *(alinhado ao código 2026-11-22)* |
 | **Esquiva ágil** **[CANON]** | Nimble Dodge: bônus de defesa contra **um** ataque, declarado antes da rolagem | Vai ser atacada | +9% de esquiva por ponto de AGI naquele ataque |
 | **Golpe reativo** **[CANON]** | Reactive Strike | Um inimigo em que você entrou andando sai do seu alcance sem atacar | Golpe de oportunidade (a regra atual) |
 | **Interceptar** **[CANON]** | Intercept Attack: recebe o dano no lugar de um aliado | Um aliado **adjacente** está em risco: golpe fatal ou vida abaixo de 40% | O guardião, com mais vida que ele, recebe o golpe com as **suas** defesas |

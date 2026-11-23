@@ -36,9 +36,9 @@ O corpo fazendo o "triplo". Complementa as reações do GDD-017 (que continuam c
 
 | Magia | Atributo | Stamina | Ticks base | Efeito |
 |---|---|---|---|---|
-| **Fúria** | STR | 3 | 1 (preparo) | O próximo ataque desta fila causa **dano × 2** (não acumula com Golpe poderoso: vale o maior). |
-| **Salto** | AGI | 2 | 1 | Move até **3 × MoveStep** tiles em linha reta, **ignorando** obstáculos e ameaças (sem ataque de oportunidade). Não termina em tile ocupado. |
-| **Pele de pedra** | VIT | 3 | 1 (preparo) | Até o fim do próximo ponto de decisão, redução de dano físico **×3** (armadura % e flat triplicadas, teto 90%). Ataques à distância são os mais afetados. |
+| **Fúria** | STR | 2 | 1 (preparo) | O próximo ataque desta fila causa **dano × 2,5** (não acumula com Golpe poderoso: vale o maior). |
+| **Salto** | AGI | 3 | 1 | Move até **2 × MoveStep** tiles em linha reta, **ignorando** obstáculos e ameaças (sem ataque de oportunidade). Não termina em tile ocupado. |
+| **Pele de pedra** | VIT | 2 | 1 (preparo) | Até o fim do próximo ponto de decisão, redução de dano físico **×5** (armadura % e flat triplicadas, teto 90%). Ataques à distância são os mais afetados. |
 | **Olho certeiro** | DEX | 2 | 1 (preparo) | O próximo ataque **não pode errar** e tem chance de crítico **+30%**. |
 
 Notas:
@@ -74,7 +74,7 @@ Cada magia mostra **de que foi montada** (os elementos), para abrir combinação
 | 12 | **Chama arcana** | Fogo + Mágico | 4 | 2 | 5 | 0 | Dano `5 + POT×1,3` de Fogo que ignora metade da armadura. Sem Queimando. |
 | 13 | **Maré mental** | Água + Mágico | 3 | 2 | 4 | 0 | **Drena** `2 + POT×0,5` de Mana do alvo e devolve metade ao conjurador. |
 | 14 | **Muralha** | Terra + Mágico | 4 | 2 | 3 | linha de 3 | Cria **barreira** de 3 tiles por 4 ticks: bloqueia movimento e projéteis. HP da barreira `8 + POT×2`. |
-| 15 | **Passo do vento** | Ar + Mágico | 3 | 1 | 5 | 0 | **Teleporta** um aliado (ou a si) até 5 tiles para um tile livre visível. Sem ataque de oportunidade. |
+| 15 | **Passo do vento** | Ar + Mágico | 3 | 1 | 5 | 0 | **Teleporta quem conjura** (não um aliado) até 5 tiles para um tile livre visível. Sem ataque de oportunidade. |
 
 ---
 

@@ -103,6 +103,19 @@ namespace PangeaSkirmish.UI
                 });
             }
 
+            // Restaurar layout da HUD: apaga as posições/tamanhos salvos de todos os painéis (Alt+arrastar / ◢).
+            var resetHud = Root.Q<Button>("opt-reset-hud");
+            if (resetHud != null)
+            {
+                const string label = "Restaurar layout da HUD";
+                resetHud.clicked += () =>
+                {
+                    HudLayout.ResetAll();
+                    resetHud.text = "Layout restaurado ✓";
+                    resetHud.schedule.Execute(() => resetHud.text = label).StartingIn(2000);
+                };
+            }
+
             var back = Root.Q<Button>("opt-back");
             if (back != null) back.clicked += () => OnBack?.Invoke();
         }

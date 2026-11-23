@@ -76,6 +76,9 @@ namespace PangeaSkirmish
             RefreshSequenceVisuals();
         }
 
+        /// <summary>Modo atual de planejamento (gates do tutorial leem se o jogador armou Andar/Atacar).</summary>
+        public PlanMode Mode => _mode;
+
         public void Begin(Unit controlled)
         {
             _controlled = controlled;
@@ -411,7 +414,7 @@ namespace PangeaSkirmish
             var T = Tuning.Get();
             string Ticks(ActionType t) { int d = TickRules.Duration(_controlled, t, false); return $"{d} tick{(d == 1 ? "" : "s")}"; }
             var w = WeaponCatalog.Get(_controlled.weaponId);
-            return new List<BattleHUD.ActionBarItem>
+            var items = new List<BattleHUD.ActionBarItem>
             {
                 // Andar (2026-11-14): no toque, a ação vem primeiro — arma o movimento e um toque no tile já põe na fila.
                 new BattleHUD.ActionBarItem { Id = "move", Glyph = "➜", Icon = "act_move", Key = "1", Name = "Andar",
@@ -470,6 +473,19 @@ namespace PangeaSkirmish
                         _controlled.defaultReaction = DefaultReactionCycle[((i < 0 ? 0 : i) + (back ? -1 : 1) + n) % n];
                     } },
             };
+            // Tutorial (GDD-027): só as ações da lição atual aparecem e funcionam.
+            if (TutorialHud.Active && TutorialHud.Actions != null)
+            {
+                items.RemoveAll(it => it != null && !TutorialHud.Actions.Contains(it.Id));
+                items.RemoveAll(it => it == null); // sem separadores de grupo vazios no tutorial
+            }
+            return items;
+        }
+
+        /// <summary>Tutorial (GDD-027): reconstrói a barra de ações com o foco atual (filtra por lição).</summary>
+        public void RebuildActionBar()
+        {
+            if (_active && _hud != null) _hud.SetActionBarItems(BuildActionBar());
         }
 
         private static string ReactionIcon(ReactionKind k)
@@ -1070,14 +1086,16 @@ namespace PangeaSkirmish
         private bool HandleIntentInput()
         {
             ShowIntentHint();   // o passo da dica acompanha o plano
+            // Tutorial (anexo §2.6): com um card de feedback aberto, Espaço/Enter são do card — não do plano.
+            if (TutorialHud.Active && TutorialHud.BlockPlanInput) return false;
             if (_hud.HandleActionBarKeys()) return true;
             var kb = Keyboard.current;
             if (kb != null)
             {
-                if (kb.backspaceKey.wasPressedThisFrame && _controlled.actionSequence.Count > 0) { OnUndoClick(); return true; }
+                if (kb.backspaceKey.wasPressedThisFrame && _controlled.actionSequence.Count > 0 && TutorialHud.AllowsRound("undo")) { OnUndoClick(); return true; }
                 bool confirmKey = kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame
                                || kb.spaceKey.wasPressedThisFrame;
-                if (confirmKey && _controlled.actionSequence.Count > 0) { OnConfirmRequested?.Invoke(); return true; }
+                if (confirmKey && _controlled.actionSequence.Count > 0 && TutorialHud.AllowsRound("confirm")) { OnConfirmRequested?.Invoke(); return true; }
             }
 
             // Só o botão esquerdo: o direito já é o arrasto da câmera.
@@ -1097,6 +1115,7 @@ namespace PangeaSkirmish
         {
             if (unit != null && !unit.IsDead && unit.IsHostileTo(_controlled))
             {
+                if (!TutorialHud.Allows("attack")) return false;   // tutorial: atacar só na lição de ataque
                 bool dbl = _lastEnemyClicked == unit && Time.unscaledTime - _lastEnemyClickTime < 0.4f;
                 _lastEnemyClicked = unit; _lastEnemyClickTime = Time.unscaledTime;
                 FreeAppendAttack(unit, fill: dbl && !shift);
@@ -1105,6 +1124,7 @@ namespace PangeaSkirmish
             var cell = HitAnchor();
             if (!cell.HasValue || !_grid.IsAnchorInBounds(cell.Value, _controlled.stats.Footprint)) return false;
             if (unit != null && unit != _controlled) return false;
+            if (!TutorialHud.Allows("move")) return false;     // tutorial: andar só nas lições de movimento
             if (_retargetIdx >= 0) { RetargetMove(_retargetIdx, cell.Value); return true; }
             FreeAppendMove(cell.Value);
             return true;

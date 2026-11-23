@@ -70,7 +70,7 @@
 
 .cc-side-title {
     font-size: 14px;
-    color: var(--pg-text-dim, rgb(159, 176, 208));
+    color: var(--pg-text-dim, rgb(185, 176, 156));
     margin-bottom: 8px;
     -unity-text-align: middle-center;
 }
@@ -85,7 +85,7 @@
 }
 /* Ficha: números derivados do que está escolhido agora. */
 .cc-derived {
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     font-size: 13px;
     white-space: normal;
     background-color: rgba(0, 0, 0, 0.25);
@@ -111,7 +111,7 @@
     padding: 6px 10px;
 }
 .cc-weapon-info {
-    color: var(--pg-text-dim, rgb(159, 176, 208));
+    color: var(--pg-text-dim, rgb(185, 176, 156));
     font-size: 12px;
     white-space: normal;
     margin-left: 96px;
@@ -148,7 +148,7 @@
 .cc-value {
     width: 30%;
     -unity-text-align: middle-center;
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     margin-left: 6px;
     margin-right: 6px;
 }
@@ -168,7 +168,7 @@
 .cc-step-value {
     width: 50px;
     -unity-text-align: middle-center;
-    color: var(--pg-text, rgb(238, 242, 255));
+    color: var(--pg-text, rgb(237, 230, 214));
     margin-left: 6px;
     margin-right: 6px;
 }

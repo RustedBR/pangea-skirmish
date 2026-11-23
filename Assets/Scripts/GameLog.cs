@@ -96,6 +96,14 @@ namespace PangeaSkirmish
 
         public static void Clear() { lock (_lock) _lines.Clear(); ErrorCount = 0; }
 
+        /// <summary>Tutorial (GDD-027): suprime o histórico de batalha (botão LOG + painel) durante o tutorial.</summary>
+        public static void SetSuppressed(bool suppressed)
+        {
+            if (_instance == null) return;
+            if (_instance._tab != null) _instance._tab.style.display = suppressed ? DisplayStyle.None : DisplayStyle.Flex;
+            if (suppressed) { _instance._open = false; if (_instance._panel != null) _instance._panel.style.display = DisplayStyle.None; }
+        }
+
         /// <summary>Log inteiro em texto, com cabeçalho de contexto, pronto para colar num relato de bug.</summary>
         public static string Dump()
         {

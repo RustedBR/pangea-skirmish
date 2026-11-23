@@ -23,10 +23,10 @@
     border-right-width: 2px;
     border-top-width: 2px;
     border-bottom-width: 2px;
-    border-left-color: rgb(106, 134, 200);
-    border-right-color: rgb(106, 134, 200);
-    border-top-color: rgb(106, 134, 200);
-    border-bottom-color: rgb(106, 134, 200);
+    border-left-color: rgb(74, 86, 80);
+    border-right-color: rgb(74, 86, 80);
+    border-top-color: rgb(74, 86, 80);
+    border-bottom-color: rgb(74, 86, 80);
 }
 
 /* Pontos cardeais. Posicionados nos 4 lados do círculo. */
