@@ -143,6 +143,7 @@ namespace PangeaSkirmish
             if (_ticksBar == null || u == null) return;
             var pop = new VisualElement { name = "spell-menu" };
             pop.AddToClassList("bh-window"); pop.AddToClassList("bh-spellmenu");
+            HudLayout.Register(pop, "battle.spells");
 
             var top = new VisualElement(); top.AddToClassList("bh-spellmenu-top");
             var head = new Label("MAGIA"); head.AddToClassList("bh-title"); head.style.flexGrow = 1; head.style.marginBottom = 0;
@@ -174,7 +175,7 @@ namespace PangeaSkirmish
                 var gi = new VisualElement(); gi.AddToClassList("bh-spellgroup-icon");
                 var gtex = IconTex(icon); if (gtex != null) gi.style.backgroundImage = new StyleBackground(gtex);
                 var gl = new Label(el == SpellElement.Physical ? "Física" : ElementInfo.Name(el)); gl.AddToClassList("bh-spellgroup-name");
-                gl.style.color = Color.Lerp(ElementInfo.Color(el), Color.black, 0.55f);   // escuro: tons claros (Ar) sumiam no pergaminho
+                gl.style.color = Color.Lerp(ElementInfo.Color(el), Color.white, 0.15f);   // fundo escuro (tema grafite): clareia um pouco
                 var gc = new Label(""); gc.AddToClassList("bh-spellgroup-count");
                 gh.Add(gi); gh.Add(gl); gh.Add(gc);
                 var grid = new VisualElement(); grid.AddToClassList("bh-spellgrid");
@@ -302,6 +303,10 @@ namespace PangeaSkirmish
             // Intenções automáticas (Investir, Golpear e recuar, Recuar) saíram em 2026-11-15: só o modo livre.
             for (int n = 1; n <= 5; n++) { var ib = r.Q<Button>("btn-intent-" + n); if (ib != null) ib.style.display = DisplayStyle.None; }
             HookUiPointerDown();
+            // Layout personalizável (Alt+arrastar move, puxador ◢ redimensiona): painéis fixos da HUD.
+            HudLayout.Register(_ticksBar, "battle.ticks");
+            HudLayout.Register(_intentsPanel, "battle.intents");
+            HudLayout.Register(_reactionMenu, "battle.choice");
             _confirmButton    = r.Q<Button>("btn-confirm");
             _undoButton       = r.Q<Button>("btn-undo");
             _clearButton      = r.Q<Button>("btn-clear");
@@ -500,6 +505,23 @@ namespace PangeaSkirmish
         }
 
 
+        /// <summary>Tocou/passou o mouse num chip de atributo da ficha ("STR".."WIS"). Lido pelo tutorial (8.2).</summary>
+        public static event System.Action<string> InspectChipTouched;
+
+        /// <summary>A ficha da unidade está expandida (mostra os 6 atributos)? Lido pelo tutorial.</summary>
+        public bool InspectExpanded => _inspectExpanded;
+
+        /// <summary>Recolhe/expande a ficha (o tutorial recolhe ao começar a lição da ficha).</summary>
+        public void SetInspectExpanded(bool expanded)
+        {
+            if (_inspectExpanded == expanded) return;
+            _inspectExpanded = expanded;
+            RefreshUnitInfo();
+        }
+
+        /// <summary>Última unidade aberta na ficha (gates do tutorial, anexo §4.2).</summary>
+        public Unit InspectedUnit => _inspectedUnit;
+
         public void ShowUnitInfo(Unit u)
         {
             ReopenAfterCamera();   // clique numa unidade reaparece os menus
@@ -524,7 +546,8 @@ namespace PangeaSkirmish
             // Câmera mexeu (2026-11-16): esconde inspeção, histórico, dicas e planejamento de round
             // com fade e MANTER escondido — NÃO reabre quando a câmera para. Reabre só quando o
             // jogador CLICAR (unidade→inspeção, ação→barra de planejamento), via ReopenAfterCamera.
-            if (!_camHidden
+            // Tutorial: a barra de ticks e a ficha são parte da lição — nunca somem com a câmera.
+            if (!_camHidden && !TutorialHud.Active
                 && Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f)
             {
                 _camHidden = true;
@@ -787,7 +810,10 @@ namespace PangeaSkirmish
                 void A(string icon, string key, float v, string tip)
                 {
                     string col = key == up ? "#7fe08a" : key == down ? "#ff8a7a" : "#eef2ff";
-                    attrs.Add(Chip(icon, $"<color={col}>{key} {v:0}</color>", tip));
+                    var chip = Chip(icon, $"<color={col}>{key} {v:0}</color>", tip);
+                    chip.RegisterCallback<PointerEnterEvent>(_ => InspectChipTouched?.Invoke(key));
+                    chip.RegisterCallback<ClickEvent>(_ => InspectChipTouched?.Invoke(key));
+                    attrs.Add(chip);
                 }
                 A("str", "STR", s.STR, "Força: dano por tile das armas de perto, Stamina.");
                 A("vit", "VIT", s.VIT, "Vitalidade: vida, defesa física fixa, Bloquear, Stamina, limite de peso.");
@@ -961,6 +987,7 @@ namespace PangeaSkirmish
                 Root.Q<VisualElement>("root")?.Add(_actionBar);
                 if (_actionBar.parent == null) Root.Add(_actionBar);
                 _actionBar.parent.Add(_actionTip);
+                HudLayout.Register(_actionBar, "battle.actions");
                 _actionTip.style.display = DisplayStyle.None;
                 // Fica logo acima da barra de ticks, acompanhando a altura dela.
                 if (_ticksBar != null) _ticksBar.RegisterCallback<GeometryChangedEvent>(_ => PlaceActionBar());
@@ -1040,6 +1067,19 @@ namespace PangeaSkirmish
             // A grade fica fixa no canto inferior esquerdo (USS); a dica aparece logo acima dela.
             float h = _actionBar.layout.height;
             if (float.IsNaN(h) || h <= 0f) h = 150f;
+            if (HudLayout.IsCustom(_actionBar))
+            {
+                // Barra movida pelo jogador: a dica fica logo acima dela, onde quer que esteja.
+                var par = _actionTip?.parent;
+                if (par != null && par.layout.width > 0f && par.layout.height > 0f)
+                {
+                    var wb = _actionBar.worldBound; var pb = par.worldBound;
+                    _actionTip.style.translate = new Translate(0, 0);
+                    _actionTip.style.left = Length.Percent((wb.xMin - pb.xMin) / par.layout.width * 100f);
+                    _actionTip.style.bottom = Length.Percent((pb.yMax - wb.yMin) / par.layout.height * 100f + 1f);
+                }
+                return;
+            }
             if (_actionTip != null) _actionTip.style.bottom = 30 + h + 8;
         }
 
@@ -1066,8 +1106,33 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Teclas da barra (chamado pelo planejamento a cada frame). Devolve true se usou a tecla.</summary>
+        /// <summary>
+        /// Atalhos 1..n da janela de escolha aberta (REAGIR, INCREMENTAR, RECOMPENSA, DESCANSO).
+        /// Devolve true se uma tecla escolheu um botão. Só vale com a janela visível.
+        /// </summary>
+        public bool HandleChoiceKeys()
+        {
+            if (_reactionMenu == null || _reactionButtons == null || Keyboard.current == null) return false;
+            if (_reactionMenu.resolvedStyle.display != DisplayStyle.Flex) return false;
+            var kb = Keyboard.current;
+            var keys = new[] { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9 };
+            int i = 0;
+            foreach (var child in _reactionButtons.Children())
+            {
+                if (child is not Button b || i >= keys.Length) continue;
+                if (kb[keys[i]].wasPressedThisFrame && b.enabledSelf)
+                {
+                    using (var ev = ClickEvent.GetPooled()) { ev.target = b; b.SendEvent(ev); }
+                    return true;
+                }
+                i++;
+            }
+            return false;
+        }
+
         public bool HandleActionBarKeys()
         {
+            if (HandleChoiceKeys()) return true;   // janela aberta: 1..n escolhem a opção, não a ação
             if (!_actionBarWanted || Keyboard.current == null) return false;
             var kb = Keyboard.current;
             foreach (var (item, _, _) in _barButtons)
@@ -1128,6 +1193,28 @@ namespace PangeaSkirmish
         public void HideTimer()                 { if (_timerText != null) _timerText.text = ""; }
         public void SetTimerVisible(bool v)     { if (_timerText != null) _timerText.style.display = v ? DisplayStyle.Flex : DisplayStyle.None; }
         public void SetConfirmVisible(bool v)   { if (_confirmButton != null) _confirmButton.style.display = v ? DisplayStyle.Flex : DisplayStyle.None; }
+
+        /// <summary>Tutorial (GDD-027): mostra/esconde painéis conforme o foco da lição atual. Aditivo.</summary>
+        public void SetTutorialVisibility()
+        {
+            if (!TutorialHud.Active) return;
+            if (_actionBar != null)    _actionBar.style.display    = TutorialHud.ActionBar ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_intentsPanel != null) _intentsPanel.style.display = TutorialHud.Round     ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_ticksBar != null)     { _ticksBar.style.display = TutorialHud.TickBar ? DisplayStyle.Flex : DisplayStyle.None; _ticksBar.style.opacity = 1f; }
+            if (_inspectPanel != null) { _inspectPanel.style.display = TutorialHud.UnitInfo ? DisplayStyle.Flex : DisplayStyle.None; _inspectPanel.style.opacity = 1f; }
+            if (_miniLog != null)      _miniLog.style.display      = DisplayStyle.None; // histórico de batalha não existe no tutorial
+            var top = Root?.Q<VisualElement>("topbar");
+            if (top != null) top.style.display = TutorialHud.Topbar ? DisplayStyle.Flex : DisplayStyle.None;
+            var band = Root?.Q<VisualElement>("intent-band");
+            if (band != null) band.style.display = TutorialHud.Topbar ? DisplayStyle.Flex : DisplayStyle.None;
+            var compass = Root?.Q<VisualElement>("compass");
+            if (compass != null) compass.style.display = TutorialHud.Topbar ? DisplayStyle.Flex : DisplayStyle.None;
+            // Só os botões de round da lição aparecem (e funcionam).
+            if (_confirmButton != null) _confirmButton.style.display = TutorialHud.AllowsRound("confirm") ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_undoButton != null)    _undoButton.style.display    = TutorialHud.AllowsRound("undo")    ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_clearButton != null)   _clearButton.style.display   = TutorialHud.AllowsRound("clear")   ? DisplayStyle.Flex : DisplayStyle.None;
+            if (_stanceRow != null)     _stanceRow.style.display     = _stanceRow.childCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        }
         public bool IsPromptVisible             { get { if (_promptPanel == null) return false; return _promptPanel.style.display == DisplayStyle.Flex; } }
 
         // ── LOG DE BATALHA (mini-log, mostrado junto da inspeção) ──
@@ -1174,7 +1261,7 @@ namespace PangeaSkirmish
             bool note = !string.IsNullOrEmpty(_planNote) && Time.unscaledTime < _planNoteUntil;
             if (note) t += "\n" + _planNote;
             _ticksRowsHeader.text = t;
-            _ticksRowsHeader.style.color = note ? new Color(0.56f, 0.35f, 0.05f) : new Color(0.14f, 0.16f, 0.27f);
+            _ticksRowsHeader.style.color = note ? new Color(0.95f, 0.71f, 0.27f) : new Color(0.73f, 0.69f, 0.61f);
         }
 
         /// <summary>Aviso curto no cabeçalho da barra (ex.: sem tick livre para o incremento).</summary>
@@ -1317,7 +1404,7 @@ namespace PangeaSkirmish
             if (_ticksRows == null)
             {
                 _ticksRowsHeader = new Label { pickingMode = PickingMode.Ignore };
-                _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.14f, 0.16f, 0.27f);
+                _ticksRowsHeader.style.fontSize = 11; _ticksRowsHeader.style.color = new Color(0.73f, 0.69f, 0.61f);
                 _ticksRowsHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
                 _ticksRowsHeader.style.unityTextAlign = TextAnchor.UpperLeft;
                 _ticksRowsHeader.style.flexGrow = 1; _ticksRowsHeader.style.whiteSpace = WhiteSpace.Normal;
@@ -1329,7 +1416,7 @@ namespace PangeaSkirmish
                 _headerRow.Add(_ticksRowsHeader); _headerRow.Add(_pipsRow);
                 _ticksRows = new VisualElement { name = "ticks-rows" };
                 _previewLine = new Label { pickingMode = PickingMode.Ignore };
-                _previewLine.style.fontSize = 11; _previewLine.style.color = new Color(0.37f, 0.38f, 0.45f);
+                _previewLine.style.fontSize = 11; _previewLine.style.color = new Color(0.73f, 0.69f, 0.61f);
                 _previewLine.style.marginTop = 4; _previewLine.style.whiteSpace = WhiteSpace.Normal;
                 _ticksBar.Add(_headerRow);
                 _ticksBar.Add(_ticksRows);
@@ -1389,12 +1476,12 @@ namespace PangeaSkirmish
             ruler.style.flexDirection = FlexDirection.Row; ruler.style.marginBottom = 2;
             var rpad = new Label("") { pickingMode = PickingMode.Ignore };
             rpad.style.width = 78; rpad.style.fontSize = 9; rpad.style.unityTextAlign = TextAnchor.MiddleLeft;
-            rpad.style.color = new Color(0.37f, 0.38f, 0.45f);
+            rpad.style.color = new Color(0.73f, 0.69f, 0.61f);
             ruler.Add(rpad);
             var rtrack = new VisualElement { pickingMode = PickingMode.Ignore };
             rtrack.style.flexDirection = FlexDirection.Row; rtrack.style.flexGrow = 1; rtrack.style.position = Position.Relative;
             // Faixa clara atrás dos números (2026-11-15): sobre o pergaminho eles ficavam pequenos e apagados.
-            rtrack.style.backgroundColor = new Color(1f, 0.97f, 0.88f, 0.85f);
+            rtrack.style.backgroundColor = new Color(0.13f, 0.17f, 0.16f, 0.95f);   // tema grafite
             rtrack.style.borderTopLeftRadius = rtrack.style.borderTopRightRadius = rtrack.style.borderBottomLeftRadius = rtrack.style.borderBottomRightRadius = 3;
             for (int k = 0; k < cols; k++)
             {
@@ -1402,11 +1489,11 @@ namespace PangeaSkirmish
                 var rl = new Label(next ? (k == R ? "próx 1" : (k - R + 1).ToString()) : (k + 1).ToString()) { pickingMode = PickingMode.Ignore };
                 rl.style.flexGrow = 1; rl.style.flexBasis = 0; rl.style.fontSize = 14; rl.style.height = 20;
                 rl.style.unityTextAlign = TextAnchor.MiddleCenter; rl.style.marginRight = 0;
-                rl.style.color = now ? new Color(0.06f, 0.08f, 0.16f) : next ? new Color(0.36f, 0.28f, 0.18f) : past ? new Color(0.55f, 0.52f, 0.46f) : new Color(0.12f, 0.12f, 0.16f);
+                rl.style.color = now ? new Color(0.11f, 0.08f, 0.03f) : next ? new Color(0.73f, 0.69f, 0.61f) : past ? new Color(0.45f, 0.48f, 0.46f) : new Color(0.93f, 0.90f, 0.84f);
                 rl.style.unityFontStyleAndWeight = FontStyle.Bold;
-                if (now) { rl.style.backgroundColor = new Color(1f, 0.85f, 0.45f, 0.85f); rl.style.borderTopLeftRadius = rl.style.borderTopRightRadius = 3; }
+                if (now) { rl.style.backgroundColor = new Color(0.95f, 0.71f, 0.27f, 1f); rl.style.borderTopLeftRadius = rl.style.borderTopRightRadius = 3; }
                 rl.style.borderBottomWidth = now ? 2 : 1;
-                rl.style.borderBottomColor = next ? new Color(0.62f, 0.56f, 0.46f) : new Color(0.50f, 0.40f, 0.27f);
+                rl.style.borderBottomColor = next ? new Color(0.29f, 0.34f, 0.31f) : new Color(0.23f, 0.27f, 0.25f);
                 rtrack.Add(rl);
             }
             if (cols > R) rtrack.Add(RoundDivider(R, cols));
@@ -2121,10 +2208,11 @@ namespace PangeaSkirmish
                     };
                     btn.AddToClassList("pg-button");
                     btn.AddToClassList("bh-reaction-btn");
+                    btn.text = $"{_reactionButtons.childCount + 1} · " + btn.text;
                     _reactionButtons.Add(btn);
                 }
                 var skip = new Button(() => _reactionPick?.Invoke(ReactionKind.None))
-                { text = options.Count == 1 ? "Não" : "Não reagir" };
+                { text = $"{_reactionButtons.childCount + 1} · " + (options.Count == 1 ? "Não" : "Não reagir") };
                 skip.AddToClassList("pg-button");
                 _reactionButtons.Add(skip);
             }
@@ -2153,7 +2241,7 @@ namespace PangeaSkirmish
                 foreach (var (label, onPick) in options)
                 {
                     var act = onPick;
-                    var btn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIConfirm); act?.Invoke(); }) { text = label };
+                    var btn = new Button(() => { AudioManager.I?.Play(AudioManager.I.sfxUIConfirm); act?.Invoke(); }) { text = $"{_reactionButtons.childCount + 1} · {label}" };
                     btn.AddToClassList("pg-button");
                     btn.AddToClassList("bh-reaction-btn");
                     _reactionButtons.Add(btn);
@@ -2175,6 +2263,7 @@ namespace PangeaSkirmish
             void Place()
             {
                 var parent = _reactionMenu.parent;
+                if (HudLayout.IsCustom(_reactionMenu)) return;   // o jogador posicionou: não mexe
                 if (parent == null || _actionBar == null || _actionBar.resolvedStyle.display == DisplayStyle.None) return;
                 float top = _actionBar.worldBound.yMin, pb = parent.worldBound.yMax;
                 if (float.IsNaN(top) || top <= 0f) return;

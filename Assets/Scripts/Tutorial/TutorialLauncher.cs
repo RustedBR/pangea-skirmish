@@ -18,8 +18,39 @@ namespace PangeaSkirmish
         public static void Start()
         {
             Active = true;
+            TutorialSession.Begin();   // sem relógio de decisão nem derrota (RoundManager lê a flag)
             RuntimeMultiplayerSession.IsMultiplayer = false;   // caminho single-player intacto
             SceneManager.LoadScene("Battle", LoadSceneMode.Single);
+        }
+
+        /// <summary>Lição a retomar depois de recarregar a cena (Repetir / escolher outra lição no meio).</summary>
+        private static string _resumeLessonId;
+
+        /// <summary>
+        /// Reset de cena: recarrega a batalha de tutorial do zero (posições, vida, Stamina/Mana, status, zonas,
+        /// terreno e contador de rounds) e retoma na lição indicada, sem passar pelo menu.
+        /// </summary>
+        public static void RestartAtLesson(string lessonId)
+        {
+            _resumeLessonId = lessonId;
+            TutorialHud.Clear();
+            RuntimeMultiplayerSession.IsMultiplayer = false;
+            SceneManager.LoadScene("Battle", LoadSceneMode.Single);
+        }
+
+        /// <summary>Devolve (e esquece) a lição a retomar; null = abrir o menu de lições.</summary>
+        public static string ConsumeResume()
+        {
+            var id = _resumeLessonId; _resumeLessonId = null; return id;
+        }
+
+        /// <summary>Fim do tutorial (botão do mapa de capítulos): volta ao menu principal.</summary>
+        public static void ReturnToMenu()
+        {
+            Active = false;
+            TutorialSession.End();
+            TutorialHud.Clear();
+            SceneManager.LoadScene("MainMenu", LoadSceneMode.Single);
         }
 
         /// <summary>
@@ -61,11 +92,22 @@ namespace PangeaSkirmish
             UnitRegistry.Register(1, player);
             UnitRegistry.Register(2, fera);
 
+            player.tutorialSafe = true;   // GDD-027 §5: a fera nunca mata o herói (vida mínima 1)
+
+            // Aliado de treino (Cap. 4, Interpor): nasce escondido e FORA da lista de unidades; a lição o coloca em cena.
+            var ally = CreateUnit("Aliado de Treino", Team.Player, new Vector2Int(2, 2),
+                Color.Lerp(tuning.playerTeamColor, Color.white, 0.35f), grid,
+                new UnitStatBlock { STR = 5, VIT = 5, DEX = 5, AGI = 5, INT = 5, WIS = 5, Footprint = 1, AttackRange = 1 },
+                isPlayerChar: false, weaponId: "Hatchet", ownerId: 0);
+            ally.tutorialSafe = true; ally.tutorialAlly = true;
+            ally.gameObject.SetActive(false);
+
             var units = new List<Unit> { player, fera };
             planner.Setup(grid, cam, units);
             round.Setup(grid, planner, hud, cam, camCtrl, units, player, tileFx);
 
             var director = gb.gameObject.AddComponent<TutorialDirector>();
+            director.SetAlly(ally, units);
             director.Init(player, fera, round, planner, hud, camCtrl, grid);
 
             round.Begin();

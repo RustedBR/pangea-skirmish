@@ -17,6 +17,10 @@ namespace PangeaSkirmish
         public string modelId = "";
         public Team team = Team.Player;
         public bool isPlayerCharacter = false;
+        /// <summary>Tutorial (GDD-027): o elenco de treino nunca cai a 0 de HP. Game over não existe no tutorial.</summary>
+        public bool tutorialSafe = false;
+        /// <summary>Aliado de treino do tutorial (Cap. 4, Interpor): só espera; nunca age nem planeja.</summary>
+        public bool tutorialAlly = false;
         public string weaponId = ""; // id da arma equipada (setado antes de Init) — mão direita
         // Equipamento (GDD-021): mão esquerda, cabeça, torso, pernas.
         public string offhandId = "", headId = "", torsoId = "", legsId = "";
@@ -1383,7 +1387,8 @@ namespace PangeaSkirmish
         {
             amount = StatusEffectSystem.ReduceIncomingDamage(statusEffects, amount);
             if (amount <= 0) return;
-            currentHP = Mathf.Max(0, currentHP - amount);
+            // Tutorial: o dano pode zerar a barra visual, mas nunca mata (GDD-027 §8).
+            currentHP = Mathf.Max(tutorialSafe ? 1 : 0, currentHP - amount);
             // Conjuração Elemental em andamento: acumula dano; passou do limite → interrompida (GDD-019 §1).
             if (queue.Count > 0 && queue[0].Type == ActionType.Spell)
             {

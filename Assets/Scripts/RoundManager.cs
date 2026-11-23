@@ -56,6 +56,17 @@ namespace PangeaSkirmish
         // ---- Coop: Descida ao Inferno (GDD-015 §3) ----
         /// <summary>Camada atual da descida (1 = superfície).</summary>
         public int Layer { get; private set; } = 1;
+        /// <summary>Número do round atual (sobe quando um round termina de resolver). Gates do tutorial.</summary>
+        public int RoundNumber => _round;
+        /// <summary>Reações aplicadas na batalha (tutorial: o jogador reagiu de verdade).</summary>
+        public int ReactionsApplied { get; private set; }
+        /// <summary>Quantos Interpor foram aplicados (LastReaction é zerado a cada nova pergunta de reação, então não serve).</summary>
+        public int InterceptsApplied { get; private set; }
+        /// <summary>Última reação aplicada e quem reagiu (gates/feedback do tutorial).</summary>
+        public ReactionKind LastReaction => _lastApplied;
+        public Unit LastReactor => _lastReactor;
+        /// <summary>O grupo já descansou nesta camada (tutorial, Cap. 9).</summary>
+        public bool RestedThisLayer => _restedThisLayer;
         private bool _awaitingDescent;   // camada vencida, esperando "descer ou recuar"
         public const string DeepestLayerKey = "pangea.coop.deepestLayer";
 
@@ -261,6 +272,17 @@ namespace PangeaSkirmish
             yield return _camCtrl.WaitUntilSettled(duration + Tuning.Get().attackFocusSettleExtra);
         }
 
+        /// <summary>Plano = "Esperar" até encher o round (tutorial: fera passiva e aliado de treino).</summary>
+        private static void FillWaits(Unit u)
+        {
+            u.actionSequence.Clear(); u.plannedMoveCount = 0; u.RecomputeTickBudget();
+            while (u.CanFit(ActionType.Wait))
+            {
+                u.actionSequence.Add(new ScheduledAction { Type = ActionType.Wait });
+                u.RecomputeTickBudget();
+            }
+        }
+
         // -------------------- FASE DE PLANEJAMENTO --------------------
         private void EnterPlanning()
         {
@@ -275,6 +297,23 @@ namespace PangeaSkirmish
                 if (!u.IsDead) u.BeginPlanning();
             LogTimeline();   // barra de ticks no modo planejamento (só HUD; não mexe na simulação)
             float decisionTime = Tuning.Get().decisionTime;
+
+            // Tutorial (GDD-027 §8): sem timer de decisão — o jogador planeja no ritmo dele.
+            // O director controla o avanço das lições; o round só resolve quando ConfirmPlan.
+            if (TutorialSession.Active)
+            {
+                _hud.SetPhase("Tutorial — planeje e confirme");
+                _hud.SetTimerVisible(false);
+                _hud.SetTimerWarning(false);
+                _timer = float.PositiveInfinity;
+                if (_playerUnit != null && !_playerUnit.IsDead)
+                {
+                    _planner.Begin(_playerUnit);
+                    _hud.ShowUnitInfo(_playerUnit);
+                    _hud.SetConfirmVisible(true);
+                }
+                return;
+            }
 
             if (RuntimeMultiplayerSession.IsMultiplayer)
             {
@@ -370,6 +409,8 @@ namespace PangeaSkirmish
             HandleInspectClick();
 
             if (_phase != RoundPhase.Planning) return;
+            // Tutorial: o relógio de decisão fica desligado (GDD-027 §8).
+            if (TutorialSession.Active) return;
             // Pausa o relógio enquanto o jogador monta a jogada, até o teto por ponto de decisão.
             float pauseBudget = Tuning.Get().planningPauseBudget;
             if (_planner != null && _planner.IsEngaged && _pauseUsed < pauseBudget && !_waitingLockstep)
@@ -443,6 +484,20 @@ namespace PangeaSkirmish
         {
             yield return new WaitForSeconds(0.25f);
             if (_phase == RoundPhase.Planning) ConfirmPlan();
+        }
+
+        /// <summary>
+        /// Tutorial (GDD-027): o director reposiciona o elenco e reabre o planejamento sem
+        /// resolver o round. Cancela qualquer rotina em andamento (banner, resolução) para o
+        /// jogador voltar a planejar imediatamente.
+        /// </summary>
+        public void TutorialReplan()
+        {
+            if (!TutorialSession.Active) return;
+            StopAllCoroutines();
+            _phase = RoundPhase.Planning;
+            _planner?.End();
+            EnterPlanning();
         }
 
         public void ConfirmPlan()
@@ -539,10 +594,18 @@ namespace PangeaSkirmish
             foreach (var u in _units)
             {
                 if (u.IsDead) continue;
-                if (BeastAI.Controls(u))
+                if (u.tutorialAlly)
+                {
+                    // Aliado de treino (tutorial, Cap. 4): espera o round inteiro, sem decidir nada.
+                    if (u.IsBusy) continue;
+                    FillWaits(u);
+                }
+                else if (BeastAI.Controls(u))
                 {
                     if (u.IsBusy) continue;          // fera com ação em andamento segue nela (a IA planeja do zero)
-                    BeastAI.Plan(u, _units, _grid);
+                    if (TutorialHud.Active && TutorialHud.BeastIdle)
+                        FillWaits(u);                // tutorial (anexo §2.10): antes das reações a fera só espera o round inteiro
+                    else BeastAI.Plan(u, _units, _grid);
                 }
                 else if (u.IsBusy && u.carriedTicks <= 0) continue;   // ocupada sem ter passado pelo planejamento: segue na fila
                 u.BuildQueueFromPlan();
@@ -2081,6 +2144,7 @@ namespace PangeaSkirmish
             if (_reactionApplied) return;
             _reactionApplied = true;
             _lastApplied = kind;
+            ReactionsApplied++;
             reactor.ConsumeReaction(kind);
             // Reagir custa 1 tick da fila (2026-11-13): a reação acontece na hora, no tick do gatilho;
             // a ação em andamento recomeça do zero, ou a fila anda 1 tick se nada estava em andamento.
@@ -2126,6 +2190,7 @@ namespace PangeaSkirmish
                     break;
                 case ReactionKind.Intercept:
                     _interceptedBy = reactor;    // o golpe divide os tiles do protegido com quem interpôs
+                    InterceptsApplied++;
                     reactor.PlayReactionAnim(ReactionKind.Intercept);
                     BattleFeedback.Status(reactor, "Interpôs!", new Color(1f, 0.86f, 0.40f));
                     break;
@@ -2306,6 +2371,13 @@ namespace PangeaSkirmish
 
         private void GameOver(string message)
         {
+            // Tutorial (GDD-027 §8): nunca há derrota/vitória — o elenco é imortal e o
+            // director decide quando o tutorial termina.
+            if (TutorialSession.Active)
+            {
+                Debug.Log("[Tutorial] GameOver suprimido: " + message);
+                return;
+            }
             _phase = RoundPhase.GameOver;
             bool victory = message.StartsWith("Vitória") || message.Contains("venceu");
             AudioManager.I?.Play(victory ? AudioManager.I.sfxVictory : AudioManager.I.sfxDefeat);
