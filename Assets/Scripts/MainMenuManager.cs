@@ -51,6 +51,10 @@ namespace PangeaSkirmish
 
             PlayerProfile.Load();
 
+            // Estado do tutorial é estático: chegar ao menu principal SEMPRE sai do modo tutorial, senão a próxima
+            // partida normal sobe o tutorial (GameBootstrap) e perde o relógio e a derrota (TutorialSession).
+            TutorialLauncher.Deactivate();
+
             _menuScreen = UI.PangeaScreen.Spawn<UI.MainMenuScreen>("MainMenuScreen");
             _menuScreen.OnMultiplayer = OnPlay;
             _menuScreen.OnTutorial    = () => TutorialLauncher.Start();

@@ -111,7 +111,7 @@ namespace PangeaSkirmish.UI
                 resetHud.clicked += () =>
                 {
                     HudLayout.ResetAll();
-                    resetHud.text = "Layout restaurado ✓";
+                    resetHud.text = "Layout restaurado";
                     resetHud.schedule.Execute(() => resetHud.text = label).StartingIn(2000);
                 };
             }

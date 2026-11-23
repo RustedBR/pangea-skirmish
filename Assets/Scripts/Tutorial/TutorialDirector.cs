@@ -91,19 +91,23 @@ namespace PangeaSkirmish
             _runner.OnBeforeEnter = () =>
             {
                 // Round em andamento (animação/resolução): para tudo e volta ao planejamento limpo.
-                if (Round != null && Round.Phase != RoundPhase.Planning) Round.TutorialReplan();
+                // IMPORTANTE: só nesse caso as unidades são zeradas. Em Planejamento o plano da lição anterior
+                // tem de sobreviver (Esperar → Desfazer; Andar → Confirmar).
+                if (Round != null && Round.Phase != RoundPhase.Planning)
+                {
+                    foreach (var u in new[] { PlayerUnit, Fera })
+                    {
+                        if (u == null) continue;
+                        // A fila e os ticks "atravessando" o round interrompido não podem vazar para a lição nova.
+                        u.queue.Clear(); u.carriedTicks = 0; u.enteredReach.Clear();
+                        u.remainingReactions = 1; u.SetAttackMarked(false);
+                    }
+                    Round.TutorialReplan();   // EnterPlanning já faz BeginPlanning em todos
+                }
                 if (_runner.Current == null || !TutorialHeroEditor.IsEditorLesson(_runner.Current.id)) TutorialHeroEditor.Close();
                 if (_runner.Current == null || _runner.Current.id != "intercept") DeactivateAlly();
                 Hud?.HideReactionMenu();            // janela REAGIR/escolha aberta no meio do round
                 Hud?.HidePrompt();
-                foreach (var u in new[] { PlayerUnit, Fera })
-                {
-                    if (u == null) continue;
-                    // Round interrompido: a fila e os ticks "atravessando" o round não podem vazar para a lição nova.
-                    u.queue.Clear(); u.carriedTicks = 0; u.enteredReach.Clear();
-                    u.remainingReactions = 1; u.SetAttackMarked(false);
-                    u.BeginPlanning();
-                }
                 _overlay?.SetHint(null);
                 _hintShown = null; _stepsShown = -1;
                 TutorialHud.BlockPlanInput = false;
@@ -191,6 +195,14 @@ namespace PangeaSkirmish
             if (TutorialHud.Active && Hud != null) Hud.SetTutorialVisibility();
         }
 
-        private void OnDestroy() { TutorialHeroEditor.Close(); TutorialSession.End(); TutorialHud.Clear(); GameLog.SetSuppressed(false); }
+        private void OnDestroy()
+        {
+            TutorialHeroEditor.Close(); GameLog.SetSuppressed(false);
+            // Recarregando a cena dentro do tutorial (Repetir/escolher lição): o modo tutorial continua ligado.
+            // Qualquer outra saída (voltar ao menu da batalha, fechar a cena...) desliga TUDO, senão a próxima partida
+            // normal vira tutorial.
+            if (TutorialLauncher.IsRestarting) TutorialHud.Clear();
+            else TutorialLauncher.Deactivate();
+        }
     }
 }

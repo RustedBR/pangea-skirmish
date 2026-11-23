@@ -307,6 +307,7 @@ namespace PangeaSkirmish
             HudLayout.Register(_ticksBar, "battle.ticks");
             HudLayout.Register(_intentsPanel, "battle.intents");
             HudLayout.Register(_reactionMenu, "battle.choice");
+            HudLayout.Register(_inspectPanel, "battle.inspect");   // ficha: segue a unidade até o jogador movê-la
             _confirmButton    = r.Q<Button>("btn-confirm");
             _undoButton       = r.Q<Button>("btn-undo");
             _clearButton      = r.Q<Button>("btn-clear");
@@ -358,29 +359,10 @@ namespace PangeaSkirmish
             if (_mpWaitingOverlay != null) _mpWaitingOverlay.style.display = DisplayStyle.None;
             HideUnitInfo();
             if (_reactionMenu != null) _reactionMenu.style.display = DisplayStyle.None;
-            HideIntentBand();
 
             // Tooltip no indicador de câmera
             r.Q<VisualElement>("camera-mode").RegisterCallback<PointerEnterEvent>(_ => ShowCameraTooltip());
             r.Q<VisualElement>("camera-mode").RegisterCallback<PointerLeaveEvent>(_ => HideCameraTooltip());
-        }
-
-        // ── BANDA DE INTENÇÃO (GDD-016) — faixa própria do topo, não cobre o Confirmar ──
-        public void ShowIntentBand(string tag, string hint)
-        {
-            var band = Root?.Q<VisualElement>("intent-band");
-            if (band == null) return;
-            var tagLbl = band.Q<Label>("intent-tag");
-            if (tagLbl != null) tagLbl.text = tag;
-            var hintLbl = band.Q<Label>("intent-hint");
-            if (hintLbl != null) hintLbl.text = hint;
-            // Celular (2026-11-15): a dica é de teclado ([1], [Enter], [Esc]) — fica escondida.
-            band.style.display = MobileHUD.Active ? DisplayStyle.None : DisplayStyle.Flex;
-        }
-        public void HideIntentBand()
-        {
-            var band = Root?.Q<VisualElement>("intent-band");
-            if (band != null) band.style.display = DisplayStyle.None;
         }
 
         // ── HIT-TEST REAL DE UI TOOLKIT (fix do bug de confirmação) ──
@@ -467,42 +449,18 @@ namespace PangeaSkirmish
 
         // ── INSPEÇÃO DA UNIDADE (bolha sob demanda — somou o painel fixo) ──
 
-        private bool _camHidden;   // menus escondidos por movimento de câmera (até o próximo clique)
+        // Fade dinâmico (HudAutoFade): com a câmera mexendo, só o que NÃO está em uso fica translúcido.
+        private readonly HudAutoFade _autoFade = new HudAutoFade();
+        private bool _autoFadeReady;
+        private float _inspectShownAt = -99f;
 
         /// <summary>Restaura os menus escondidos por movimento de câmera (fade in). Chamado
         /// quando o jogador clica numa unidade (inspeção) ou numa ação (barra de planejamento).</summary>
         private void ReopenAfterCamera()
         {
-            if (!_camHidden) return;
-            _camHidden = false;
-            FadeIn(_inspectPanel); FadeIn(_miniLog);
-            FadeIn(Root?.Q<VisualElement>("intent-band"));
-            FadeIn(_ticksBar);
+            _autoFade.NotifyInteraction();   // o jogador voltou a jogar (clicou unidade/ação): tudo volta já
         }
 
-        /// <summary>Fade out real (0.18s) e depois display None, se for o caso. Preserva o mostrar/esconder
-        /// nativo: só a opacidade é tocada aqui.</summary>
-        private System.Collections.IEnumerator FadeOutAndHide(VisualElement el)
-        {
-            if (el == null || el.resolvedStyle.display == DisplayStyle.None) yield break;
-            float t = 0f;
-            while (t < _camFadeSeconds)
-            {
-                t += Time.unscaledDeltaTime;
-                el.style.opacity = 1f - Mathf.Clamp01(t / _camFadeSeconds);
-                yield return null;
-            }
-            el.style.opacity = 0f;
-            yield return null;
-        }
-        private const float _camFadeSeconds = 1.2f;
-
-        /// <summary>Fade in rápido de volta (0.15s) ao reabrir por clique.</summary>
-        private void FadeIn(VisualElement el)
-        {
-            if (el == null) return;
-            el.style.opacity = 1f;
-        }
 
 
         /// <summary>Tocou/passou o mouse num chip de atributo da ficha ("STR".."WIS"). Lido pelo tutorial (8.2).</summary>
@@ -525,6 +483,7 @@ namespace PangeaSkirmish
         public void ShowUnitInfo(Unit u)
         {
             ReopenAfterCamera();   // clique numa unidade reaparece os menus
+            _inspectShownAt = Time.unscaledTime;   // ficha recém-aberta conta como "em uso" por alguns segundos
             _inspectedUnit = u;
             if (u == null) { HideUnitInfo(); return; }
             if (_unitPreview != null) _unitPreview.Visible = true;
@@ -541,22 +500,34 @@ namespace PangeaSkirmish
         /// sem cobrir unidades. Testa algumas posições e fica com a que esconde menos unidades;
         /// o fallback é colada na borda esquerda.
         /// </summary>
+        /// <summary>
+        /// Fade dinâmico (2026-11-23): câmera mexendo escurece só o que não está em uso. Painéis de planejamento
+        /// (barra de ticks e faixa de dica) ficam inteiros enquanto o jogador planeja; a ficha fica inteira por
+        /// alguns segundos depois de aberta e enquanto o mouse está em cima; o histórico só escurece.
+        /// Clique ou tecla de jogo devolve tudo na hora. No tutorial não há fade.
+        /// </summary>
+        private void UpdateAutoFade()
+        {
+            if (!_autoFadeReady && _inspectPanel != null && _ticksBar != null)
+            {
+                _autoFade.Add(_inspectPanel, () => Time.unscaledTime - _inspectShownAt < 3f, 0.30f);
+                _autoFade.Add(_miniLog, null, 0.20f);
+                _autoFade.Add(_ticksBar, () => _actionBarWanted, 0.35f);
+                _autoFadeReady = true;
+            }
+            // Jogar = clique/toque ou tecla que NÃO é de câmera (a tecla de câmera atualiza LastManualMoveTime no mesmo quadro).
+            var ms = Mouse.current; var kb = Keyboard.current; var ts = Touchscreen.current;
+            bool click = (ms != null && ms.leftButton.wasPressedThisFrame) || (ts != null && ts.primaryTouch.press.wasPressedThisFrame);
+            bool key = kb != null && kb.anyKey.wasPressedThisFrame && Time.unscaledTime - CameraController.LastManualMoveTime > 0.05f;
+            if (click || key) _autoFade.NotifyInteraction();
+            _autoFade.Update(TutorialHud.Active);
+        }
+
         private void LateUpdate()
         {
-            // Câmera mexeu (2026-11-16): esconde inspeção, histórico, dicas e planejamento de round
-            // com fade e MANTER escondido — NÃO reabre quando a câmera para. Reabre só quando o
-            // jogador CLICAR (unidade→inspeção, ação→barra de planejamento), via ReopenAfterCamera.
-            // Tutorial: a barra de ticks e a ficha são parte da lição — nunca somem com a câmera.
-            if (!_camHidden && !TutorialHud.Active
-                && Time.unscaledTime - CameraController.LastManualMoveTime < 0.3f)
-            {
-                _camHidden = true;
-                StartCoroutine(FadeOutAndHide(_inspectPanel));
-                StartCoroutine(FadeOutAndHide(_miniLog));
-                StartCoroutine(FadeOutAndHide(Root?.Q<VisualElement>("intent-band")));
-                StartCoroutine(FadeOutAndHide(_ticksBar));
-            }
+            UpdateAutoFade();
             if (_inspectPanel == null || _inspectedUnit == null || _inspectPanel.resolvedStyle.display != DisplayStyle.Flex) return;
+            if (HudLayout.IsCustom(_inspectPanel)) return;   // o jogador posicionou a ficha: ela não segue mais a unidade
             var cam = Camera.main; var panel = _inspectPanel.panel; var parent = _inspectPanel.parent;
             if (cam == null || panel == null || parent == null) return;
             float w = _inspectPanel.layout.width, h = _inspectPanel.layout.height;
@@ -1170,7 +1141,7 @@ namespace PangeaSkirmish
             if (_intentsPanel != null)
                 _intentsPanel.style.display = v ? DisplayStyle.Flex : DisplayStyle.None;
             if (v && u != null) UpdateAPDisplay(u);
-            if (!v) { HideUnitInfo(); HideIntentBand(); }
+            if (!v) { HideUnitInfo(); }
         }
         public void UpdateAPDisplay(Unit u)
         {
@@ -1205,8 +1176,6 @@ namespace PangeaSkirmish
             if (_miniLog != null)      _miniLog.style.display      = DisplayStyle.None; // histórico de batalha não existe no tutorial
             var top = Root?.Q<VisualElement>("topbar");
             if (top != null) top.style.display = TutorialHud.Topbar ? DisplayStyle.Flex : DisplayStyle.None;
-            var band = Root?.Q<VisualElement>("intent-band");
-            if (band != null) band.style.display = TutorialHud.Topbar ? DisplayStyle.Flex : DisplayStyle.None;
             var compass = Root?.Q<VisualElement>("compass");
             if (compass != null) compass.style.display = TutorialHud.Topbar ? DisplayStyle.Flex : DisplayStyle.None;
             // Só os botões de round da lição aparecem (e funcionam).

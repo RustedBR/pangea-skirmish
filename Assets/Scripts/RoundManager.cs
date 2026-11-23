@@ -1920,7 +1920,9 @@ namespace PangeaSkirmish
             Vector2 screen = PointerInput.Position;
             var world = RaycastGround(screen);
             var cell = _grid.WorldToCell(world);
-            return new Vector2Int(cell.x - 1, cell.y - 1);
+            int fp = _playerUnit != null ? _playerUnit.stats.Footprint : AttributeStats.DefaultFootprint;
+            int off = (fp - 1) / 2;   // cursor no centro do footprint (3x3 → -1; 1x1 → 0)
+            return new Vector2Int(cell.x - off, cell.y - off);
         }
 
         private Vector3 RaycastGround(Vector2 screenPos)
@@ -2253,7 +2255,7 @@ namespace PangeaSkirmish
             yield return FocusCamera(u.transform.position, zoomSize, camMoveDuration);
 
             // Destaque dos tiles alcançáveis (mesma cor da seleção de movimento) + cursor losango.
-            _grid.HighlightAnchors(reachable, _grid.highlightColor);
+            _grid.HighlightAnchors(reachable, _grid.highlightColor, true, ((_playerUnit != null ? _playerUnit.stats.Footprint : 3) - 1) / 2);
             var ghost = BuildStepGhost(fp);
             _hud.ShowPrompt("Passo extra: clique num tile  •  Esc = pular");
 

@@ -76,6 +76,23 @@ namespace PangeaSkirmish
             RefreshSequenceVisuals();
         }
 
+        /// <summary>Tutorial: põe um bloco de Esperar na fila (mesmo efeito do botão Esperar).</summary>
+        public bool TutorialAddWait()
+        {
+            if (!_active || _controlled == null) return false;   // planejador ainda não ativo (cena acabou de carregar)
+            OnWaitClick();
+            return true;
+        }
+
+        /// <summary>Tutorial: põe uma andada até o tile na fila (mesmo efeito de Andar + clicar no tile).</summary>
+        public bool TutorialAddMove(Vector2Int dest)
+        {
+            if (!_active || _controlled == null) return false;
+            OnMoveClick();
+            CommitMove(dest);
+            return true;
+        }
+
         /// <summary>Modo atual de planejamento (gates do tutorial leem se o jogador armou Andar/Atacar).</summary>
         public PlanMode Mode => _mode;
 
@@ -108,7 +125,6 @@ namespace PangeaSkirmish
             _hud.SetSpellMenuUnit(_controlled);
             _previewUnit = null; _previewCell = null;
             _hud.SetActionBarItems(BuildActionBar());
-            ShowIntentHint();
             SyncButtonStates();
             RefreshSequenceVisuals();
             ShowSelfAttackRange(); // range visível assim que a unidade é selecionada
@@ -331,7 +347,7 @@ namespace PangeaSkirmish
             _quickStepReachable = _grid.GetReachableAnchors(dest, 1, fp, blockers);
             _quickStepReachable.RemoveAll(a => a == dest);
 
-            _grid.HighlightAnchors(_quickStepReachable, ColTileTarget);
+            _grid.HighlightAnchors(_quickStepReachable, ColTileTarget, true, (_controlled.stats.Footprint - 1) / 2);
             EnsureCursorGhost();
             SetCursorGhostColor(ColTileTarget);
             _hud.ShowPrompt("Passo extra: clique num tile ao lado do destino");
@@ -803,7 +819,7 @@ namespace PangeaSkirmish
                                _controlled.stats.Footprint, blockers);
             _reachable.Add(from);
 
-            _grid.HighlightAnchors(_reachable);
+            _grid.HighlightAnchors(_reachable, (_controlled.stats.Footprint - 1) / 2);
             EnsureCursorGhost();
             SetMode(PlanMode.MovePicking);
         }
@@ -1054,26 +1070,6 @@ namespace PangeaSkirmish
 
         // ------------------------------------------------------------------ MODO INTENÇÃO
 
-        /// <summary>Tecla em destaque na dica do topo.</summary>
-        private static string K(string key) => $"<color=#8f5a0c><b>[{key}]</b></color>";
-
-        /// <summary>
-        /// Dica do topo em passo a passo (2026-11-13): uma frase só, que muda com o que o
-        /// jogador já fez no round. Antes era uma linha cheia de atalhos difícil de ler.
-        /// </summary>
-        private void ShowIntentHint()
-        {
-            if (_controlled == null) return;
-            int max = Tuning.Get().maxQueueTicks;
-            int used = Mathf.Clamp(max - _controlled.remainingAP, 0, max);
-            // Só o modo livre (2026-11-15): as intenções automáticas (Investir, Golpear e recuar) saíram.
-            string tag = "Planejando", hint;
-            if (used == 0)        hint = $"Passo 1 · {K("1")} Andar, {K("2")} Atacar, {K("3")} Mirar livre… ou {K("Clique")} no chão/inimigo";
-            else if (used < max)  hint = $"Passo 2 · {used}/{max} ticks usados. Adicione mais ou {K("Enter")} confirma o round  ·  {K("Esc")} desfaz";
-            else                  hint = $"Round cheio · {K("Enter")} confirma  ·  {K("Esc")} desfaz";
-            if (tag != _lastHintTag || hint != _lastHint) { _lastHintTag = tag; _lastHint = hint; _hud.ShowIntentBand(tag, hint); }
-        }
-        private string _lastHintTag, _lastHint;
         private bool PointerOverUI()
         {
             // O EventSystem UGUI não enxerga UI Toolkit. Usa o picking real do painel
@@ -1085,7 +1081,6 @@ namespace PangeaSkirmish
         /// <summary>Teclas e cliques do Modo Intenção. Devolve true se consumiu o input do frame.</summary>
         private bool HandleIntentInput()
         {
-            ShowIntentHint();   // o passo da dica acompanha o plano
             // Tutorial (anexo §2.6): com um card de feedback aberto, Espaço/Enter são do card — não do plano.
             if (TutorialHud.Active && TutorialHud.BlockPlanInput) return false;
             if (_hud.HandleActionBarKeys()) return true;
@@ -1222,7 +1217,7 @@ namespace PangeaSkirmish
                 if (GridManager.FootprintGap(from, fp, a, fp) <= reach) _attackable.Add(a);
             }
             var col = ElementInfo.Color(s.PrimaryElement);
-            _grid.HighlightAnchors(_attackable, col);
+            _grid.HighlightAnchors(_attackable, col, true, (_controlled.stats.Footprint - 1) / 2);
             EnsureCursorGhost();
             SetCursorGhostColor(col);
             SetMode(PlanMode.SpellTilePicking);
@@ -1321,10 +1316,9 @@ namespace PangeaSkirmish
             var a = _controlled.actionSequence[seqIdx];
             if (a.Type != ActionType.Move || a.Index >= _controlled.plannedPath.Count) return;
             if (!CanReachFrom(PositionBefore(seqIdx), c))
-            { _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.EffectiveMoveStep} tiles"); ShowIntentHint(); return; }
+            { _hud.ShowPlanNote($"Longe demais: uma andada cobre até {_controlled.EffectiveMoveStep} tiles"); return; }
             _controlled.plannedPath[a.Index] = c;
             RecomputePlannedAnchor();
-            ShowIntentHint();
             RebuildPlanVisuals();
         }
 
@@ -1502,8 +1496,40 @@ namespace PangeaSkirmish
             SyncButtonStates();
         }
 
+        // Depuração do picking (F9): ponto vermelho onde o raio do mouse toca o chão + log da célula/âncora.
+        private GameObject _pickDot; private bool _pickDebug;
+        private void UpdatePickDebug()
+        {
+            var kb = Keyboard.current;
+            if (kb != null && kb.f9Key.wasPressedThisFrame)
+            {
+                _pickDebug = !_pickDebug;
+                if (!_pickDebug && _pickDot != null) Destroy(_pickDot);
+                Debug.Log("[Picking] depuração " + (_pickDebug ? "LIGADA" : "desligada"));
+            }
+            if (!_pickDebug || _cam == null || _grid == null) return;
+            if (_pickDot == null)
+            {
+                _pickDot = new GameObject("PickDot");
+                var sr = _pickDot.AddComponent<SpriteRenderer>();
+                sr.sprite = GhostSprite(); sr.color = Color.red; sr.sortingOrder = 6000;
+                _pickDot.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                _pickDot.transform.localScale = new Vector3(0.12f, 0.24f, 1f);
+            }
+            if (_grid.ScreenToGround(_cam, PointerInput.Position, out var w))
+            {
+                _pickDot.transform.position = w + Vector3.up * 0.05f;
+                if (Keyboard.current.f10Key.wasPressedThisFrame)
+                {
+                    var c = _grid.WorldToCell(w); var a = HitAnchor();
+                    Debug.Log($"[Picking] mouse={PointerInput.Position} mundo={w} célula={c} âncora={a} fp={_controlled?.stats.Footprint} orient={_grid.ViewOrientation} offset={_grid.positionOffset} cam={_cam.transform.position}/{_cam.transform.eulerAngles} ortho={_cam.orthographic}/{_cam.orthographicSize}");
+                }
+            }
+        }
+
         private void Update()
         {
+            UpdatePickDebug();
             // Ação armada (andar, atacar, mirar, magia): no toque, UM toque no alvo já confirma (2026-11-14).
             // Celular (2026-11-15): com ação armada, o toque no alvo mostra a prévia e o ✓ confirma.
             ArmedForTouch = _active && _mode != PlanMode.Idle;
@@ -1511,10 +1537,10 @@ namespace PangeaSkirmish
 
             // ESC: cancela a troca de destino; senão volta no menu (quando não está em nenhum modo de picking)
             if (_retargetIdx >= 0 && PointerInput.BackThisFrame)
-            { _retargetIdx = -1; ShowIntentHint(); return; }
+            { _retargetIdx = -1; return; }
             if (_mode == PlanMode.SpellTilePicking && PointerInput.BackThisFrame)
             {
-                _pendingSpell = null; HideCursorGhost(); ClearCursorShape(); SetMode(PlanMode.Idle); ShowIntentHint(); return;
+                _pendingSpell = null; HideCursorGhost(); ClearCursorShape(); SetMode(PlanMode.Idle); return;
             }
             if (_mode == PlanMode.Idle && PointerInput.BackThisFrame)
             {
@@ -1718,6 +1744,9 @@ namespace PangeaSkirmish
             // Fix (2026-07-29): Attach guarda a âncora lógica e já posiciona, para
             // o waypoint acompanhar a reindexação da rotação de vista.
             GridAnchored.Attach(g, anchor, fp);
+            // O marcador nasce antes de haver unidade controlada (footprint 3 por padrão): reescala para o
+            // footprint real, senão um herói 1x1 ganha um marcador 3x3 que não casa com o cursor.
+            g.transform.localScale = new Vector3(fp, fp * World3D.GroundStretch, 1f);
             g.SetActive(true);
         }
 
@@ -1769,7 +1798,7 @@ namespace PangeaSkirmish
             if (_controlled == null || _controlled.actionSequence.Count == 0 || _cam == null) return;
             var s = _controlled.stats;
             string txt = $"fim do plano · Mana {_controlled.ProjectedManaEnd}/{s.MaxMana} · Stamina {_controlled.ProjectedStaminaEnd}/{s.MaxStamina}";
-            _planResourceLabel = BattleLabel.CreateTag(_cam, world, txt, Color.white, new Color32(0x1d, 0x2d, 0x5a, 225));
+            _planResourceLabel = BattleLabel.CreateTag(_cam, world, txt, new Color(0.93f, 0.90f, 0.84f), new Color32(0xF2, 0xB5, 0x44, 255));
         }
 
         private void RefreshModelGhosts()
@@ -1934,7 +1963,7 @@ namespace PangeaSkirmish
                 if (i < _ghostLabels.Count)
                 {
                     _ghostLabels[i].SetText(num);
-                    _ghostLabels[i].SetColor(col);
+                    // cor semântica fica na borda, definida na criação
                     _ghostLabels[i].transform.position = pos;
                 }
                 else
@@ -1986,7 +2015,11 @@ namespace PangeaSkirmish
         {
             var cell = HitCell();
             if (!cell.HasValue) return null;
-            return new Vector2Int(cell.Value.x - 1, cell.Value.y - 1);
+            // O cursor fica no CENTRO do footprint: 3x3 → âncora = célula-1; 1x1 → a própria célula
+            // (antes fixo em -1: com unidade de 1 tile o marcador saía um tile para cima/esquerda do mouse).
+            int fp = _controlled != null ? _controlled.stats.Footprint : AttributeStats.DefaultFootprint;
+            int off = (fp - 1) / 2;
+            return new Vector2Int(cell.Value.x - off, cell.Value.y - off);
         }
 
         private List<Unit> BlockerUnits(Unit self)

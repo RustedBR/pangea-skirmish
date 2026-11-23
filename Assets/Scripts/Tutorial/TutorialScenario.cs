@@ -107,8 +107,26 @@ namespace PangeaSkirmish
             int undoCount0 = 0;
             var undo = new TutorialLesson("undo", 1, "Desfaça o último bloco", "Desfazer",
                 "Mudou de ideia? Use <b>Desfazer</b> (Backspace ou toque) para tirar o último bloco. Só funciona antes de confirmar.", "", "btn-undo");
-            undo.setup = () => { if (d.PlayerUnit != null) undoCount0 = d.PlayerUnit.actionSequence.Count; };
-            undo.gate = () => d.PlayerUnit != null && undoCount0 > 0 && d.PlayerUnit.actionSequence.Count < undoCount0;
+            bool undoArmed = false;
+            undo.setup = () =>
+            {
+                undoArmed = false; undoCount0 = 0;
+                if (d.PlayerUnit != null && d.PlayerUnit.actionSequence.Count > 0)
+                { undoCount0 = d.PlayerUnit.actionSequence.Count; undoArmed = true; }   // o bloco veio da lição anterior
+            };
+            undo.gate = () =>
+            {
+                var u = d.PlayerUnit; if (u == null) return false;
+                if (!undoArmed)
+                {
+                    // Entrada pelo menu: o plano está vazio e o planejador pode ainda não estar ativo. Cria o bloco
+                    // assim que der (a lição é consultada a cada quadro) e só então passa a valer.
+                    if (u.actionSequence.Count == 0) d.Planner?.TutorialAddWait();
+                    if (u.actionSequence.Count > 0) { undoCount0 = u.actionSequence.Count; undoArmed = true; }
+                    return false;
+                }
+                return u.actionSequence.Count < undoCount0;
+            };
             undo.feedbackFn = () => d.PlayerUnit != null
                 ? $"Bloco removido: o plano voltou a <b>{d.PlayerUnit.PlannedTicks()} de {Tuning.Get().maxQueueTicks}</b> ticks. <b>Desfazer</b> tira só o último bloco; <b>Limpar</b> tira o plano inteiro. Depois de confirmar, nenhum dos dois funciona."
                 : null;
@@ -127,8 +145,23 @@ namespace PangeaSkirmish
             int rounds0 = 0;
             var confirm = new TutorialLesson("confirm", 1, "Confirme o round", "Confirmar round",
                 "Use <b>Confirmar</b> (Enter ou toque) para o tempo andar. Depois disso o plano não muda.", "", "btn-confirm");
-            confirm.setup = () => rounds0 = d.RoundsResolved;
-            confirm.gate = () => d.RoundsResolved > rounds0;
+            bool confirmArmed = false;
+            confirm.setup = () =>
+            {
+                rounds0 = d.RoundsResolved;
+                confirmArmed = d.PlayerUnit != null && d.PlayerUnit.plannedMoveCount > 0;   // a andada veio da lição anterior
+            };
+            confirm.gate = () =>
+            {
+                var h = d.PlayerUnit;
+                if (!confirmArmed && h != null)
+                {
+                    // Só Confirmar fica liberado: sem andada na fila (entrada pelo menu), cria uma assim que o planejador estiver ativo.
+                    if (h.plannedMoveCount == 0) d.Planner?.TutorialAddMove(h.anchor + new Vector2Int(-2, 0));
+                    confirmArmed = h.plannedMoveCount > 0;
+                }
+                return d.RoundsResolved > rounds0;
+            };
             confirm.assertion = () => d.PlayerUnit != null && d.PlayerUnit.anchor != d.PlayerUnit.spawnAnchor ? null : "herói não andou no round";
             confirm.feedbackFn = () => $"Round resolvido em <b>{Tuning.Get().ticksPerRound} ticks</b>. Sua andada aconteceu e você está a <b>{(d.PlayerUnit != null && d.Fera != null ? Cheb(d.PlayerUnit.anchor, d.Fera.anchor) : 0)} células</b> da fera.";
             L.Add(confirm);
@@ -752,12 +785,12 @@ namespace PangeaSkirmish
                 var e = TutorialHeroEditor.Editor; if (e == null) return null;
                 string[] names = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
                 var v = e.Editing.stats; float[] now = { v.STR, v.VIT, v.DEX, v.AGI, v.INT, v.WIS };
-                string attr = ""; for (int i = 0; i < 6; i++) if (now[i] != ptVals0[i]) attr += $"{names[i]} {ptVals0[i]:0} → {now[i]:0}  ";
+                string attr = ""; for (int i = 0; i < 6; i++) if (now[i] != ptVals0[i]) attr += $"{names[i]} {ptVals0[i]:0} para {now[i]:0}  ";
                 var cs = e.CurrentStats(); var parts = new List<string>();
-                if (cs.MaxHP != ptBefore.hp) parts.Add($"Vida {ptBefore.hp} → {cs.MaxHP}");
-                if (cs.MaxStamina != ptBefore.stam) parts.Add($"Stamina {ptBefore.stam} → {cs.MaxStamina}");
-                if (cs.MaxMana != ptBefore.mana) parts.Add($"Mana {ptBefore.mana} → {cs.MaxMana}");
-                if (cs.PhysicalDefense != ptBefore.def) parts.Add($"Defesa {ptBefore.def} → {cs.PhysicalDefense}");
+                if (cs.MaxHP != ptBefore.hp) parts.Add($"Vida {ptBefore.hp} para {cs.MaxHP}");
+                if (cs.MaxStamina != ptBefore.stam) parts.Add($"Stamina {ptBefore.stam} para {cs.MaxStamina}");
+                if (cs.MaxMana != ptBefore.mana) parts.Add($"Mana {ptBefore.mana} para {cs.MaxMana}");
+                if (cs.PhysicalDefense != ptBefore.def) parts.Add($"Defesa {ptBefore.def} para {cs.PhysicalDefense}");
                 int bud = PlayerProfile.BudgetFor(e.Editing);
                 return $"<b>{attr.Trim()}</b>" + (parts.Count > 0 ? ": " + string.Join(", ", parts) : "") + $". Pontos {TutorialHeroEditor.Sum(e.Editing)} de {bud}.";
             };
@@ -854,7 +887,7 @@ namespace PangeaSkirmish
                     chestMsg = $"Você vendeu <b>{it.displayName}</b> por <b>{gain} moedas</b>. O baú ficou com {chestStash.Count} itens.";
                     d.Hud?.HideReactionMenu();
                 }));
-                opts.Add(("← Voltar", () => showChestList()));
+                opts.Add(("Voltar", () => showChestList()));
                 d.Hud?.ShowChoiceTitled("ITENS DO GRUPO", $"{Loot.Describe(it)}\n{Loot.Details(it, cur)}", opts.ToArray());
             };
             var chest = new TutorialLesson("chest", 9, "O baú do grupo", "Baú de itens (Loot)",

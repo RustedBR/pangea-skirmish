@@ -1467,15 +1467,16 @@ namespace PangeaSkirmish
         }
 
         // ---- Highlight (tint do tile central do anchor + contorno estilizado) ----
-        public void HighlightAnchors(IEnumerable<Vector2Int> anchors)
-            => HighlightAnchors(anchors, highlightColor);
+        public void HighlightAnchors(IEnumerable<Vector2Int> anchors, int centerOffset = 1)
+            => HighlightAnchors(anchors, highlightColor, true, centerOffset);
 
-        public void HighlightAnchors(IEnumerable<Vector2Int> anchors, Color color, bool clearFirst = true)
+        /// <summary>centerOffset = (footprint-1)/2: o tile marcado é o CENTRO do footprint (3x3 → +1, 1x1 → 0).</summary>
+        public void HighlightAnchors(IEnumerable<Vector2Int> anchors, Color color, bool clearFirst = true, int centerOffset = 1)
         {
             if (clearFirst) ClearHighlight();
             foreach (var a in anchors)
             {
-                var center = new Vector2Int(a.x + 1, a.y + 1);
+                var center = new Vector2Int(a.x + centerOffset, a.y + centerOffset);
                 if (center.x < 0 || center.y < 0 || center.x >= width || center.y >= height) continue;
                 SetTileColor(center, color);
                 if (!_highlighted.Contains(center)) _highlighted.Add(center);

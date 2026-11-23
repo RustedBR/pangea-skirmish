@@ -789,25 +789,30 @@ namespace PangeaSkirmish
             // NÃO ScreenToWorldPoint (2D, plano Z=0 que não existe mais).
             Vector3 world;
             if (!_grid.ScreenToGround(_cam, screen, out world)) world = Vector3.zero;
-            var cell = _grid.WorldToCell(world);
+            var hit = _grid.WorldToCell(world);
+            // O cursor fica no CENTRO do footprint: a âncora é o canto, então recua (fp-1)/2 (3x3 → -1).
+            // Antes a célula sob o mouse virava a âncora E ainda ganhava +1 no destaque: o 3x3 saía 2 tiles
+            // para baixo/direita do cursor (some com a rotação da visão porque o desvio é lógico).
+            int fp = GetMyFootprint();
+            int off = (fp - 1) / 2;
+            var cell = new Vector2Int(hit.x - off, hit.y - off);
 
-            // Preview do footprint (3x3) sob o cursor — item (A). Só redesenha quando
-            // a célula muda, e restaura o highlight da zona quando fora do alvo.
+            // Preview do footprint sob o cursor — só redesenha quando a célula muda, e restaura o
+            // highlight da zona quando fora do alvo.
             if (cell != _lastHover)
             {
                 _lastHover = cell;
-                int fp = GetMyFootprint();
                 bool validTarget = _grid.IsAnchorInBounds(cell, fp) && _myZoneHighlights.Contains(cell);
                 if (validTarget)
                     _grid.HighlightAnchors(FootprintCells(cell, fp),
-                        _tuning != null ? _tuning.playerFootprintColor : Color.cyan);
+                        _tuning != null ? _tuning.playerFootprintColor : Color.cyan, true, 0);   // células reais do footprint
                 else
                     _grid.HighlightAnchors(_myZoneHighlights, _grid.highlightColor);
             }
 
             if (PointerInput.ClickThisFrame)
             {
-                Debug.Log($"[PlacementSync] clique em {cell} — naZona={_myZoneHighlights.Contains(cell)}");
+                Debug.Log($"[PlacementSync] clique em {hit} (âncora {cell}) — naZona={_myZoneHighlights.Contains(cell)}");
                 if (_myZoneHighlights.Contains(cell))
                 {
                     PlaceUnitServerRpc(cell.x, cell.y);
