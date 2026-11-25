@@ -223,8 +223,9 @@ namespace PangeaSkirmish
             if (s.range <= 0) return s.range;
             var T = Tuning.Get();
             var w = WeaponCatalog.Get(u.weaponId);
-            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT) + (w != null ? w.spellRangeBonus : 0)
-                  + (Equipment.HasEffect(u, ItemEffect.Conduit) ? 1 : 0);
+            // GDD-028 1:1: alcance = 1 (base da magia) + INT×1. Sem multiplicadores ou bônus extras.
+            int r = Mathf.RoundToInt(s.range * T.spellRangeMult + u.stats.INT * T.spellRangePerINT)
+                  + (w != null ? w.spellRangeBonus : 0);
             return u.IsDulled ? Mathf.Max(1, r - T.dullRangePenalty) : Mathf.Max(1, r);
         }
 

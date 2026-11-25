@@ -54,6 +54,12 @@ MonoBehaviour:
     magicResistPerWIS: 1
     manaRegenBase: 2
     manaRegenPerWIS: 0.5
+  spellPotPerINT: 1
+  spellBaseMult: 1
+  spellValueMult: 1
+  spellTickDamageMult: 1
+  spellRangeMult: 1
+  spellRangePerINT: 1
   weapons:
   - id: Hatchet
     displayName: Machado
@@ -64,7 +70,7 @@ MonoBehaviour:
     shapeLength: 3
     attackTicks: 1
     blockHardness: 2
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 1
   - id: IronAxe
@@ -76,7 +82,7 @@ MonoBehaviour:
     shapeLength: 6
     attackTicks: 2
     blockHardness: 2
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 6
   - id: WoodenSword
@@ -88,7 +94,7 @@ MonoBehaviour:
     shapeLength: 6
     attackTicks: 1
     blockHardness: 3
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
   - id: IronSword
@@ -100,7 +106,7 @@ MonoBehaviour:
     shapeLength: 3
     attackTicks: 1
     blockHardness: 3
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 3
   - id: WoodenStaff
@@ -112,7 +118,7 @@ MonoBehaviour:
     shapeLength: 9
     attackTicks: 2
     blockHardness: 2
-    spellPowerMult: 1.1
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 2
   - id: Scepter
@@ -124,8 +130,8 @@ MonoBehaviour:
     shapeLength: 6
     attackTicks: 1
     blockHardness: 2
-    spellPowerMult: 1.15
-    spellRangeBonus: 1
+    spellPowerMult: 1
+    spellRangeBonus: 0
     elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
@@ -136,7 +142,7 @@ MonoBehaviour:
     shapeLength: 3
     attackTicks: 2
     blockHardness: 0
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
   - id: LongBow
@@ -148,7 +154,7 @@ MonoBehaviour:
     shapeLength: 3
     attackTicks: 3
     blockHardness: 0
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 5
   - id: ApprenticeWand
@@ -160,7 +166,7 @@ MonoBehaviour:
     shapeLength: 6
     attackTicks: 1
     blockHardness: 1
-    spellPowerMult: 1.0
+    spellPowerMult: 1
     spellRangeBonus: 0
     elementAffinity: 4
   - id: ArcaneStaff
@@ -172,8 +178,8 @@ MonoBehaviour:
     shapeLength: 9
     attackTicks: 2
     blockHardness: 2
-    spellPowerMult: 1.3
-    spellRangeBonus: 2
+    spellPowerMult: 1
+    spellRangeBonus: 0
     elementAffinity: 6
   attributeMin: 1
   attributeMax: 20

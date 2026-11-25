@@ -141,47 +141,47 @@ namespace PangeaSkirmish
         private static readonly SpellDef[] _defaults =
         {
             // ---- Física (GDD-019 §2, GDD-020 §6): metade Mana, metade Stamina; 1 tick de preparo ----
-            P("Fury",      "Fúria",         Attr.STR, 2, 1, SpellEffect.PrepFury,      mult: 2.5f,
+            P("Fury",      "Fúria",         Attr.STR, 1, 1, SpellEffect.PrepFury, mult: 1f,
               desc: "O próximo ataque causa dano ×{mult} em cada tile que pegar. Não soma com Golpe poderoso: vale o maior."),
-            P("Leap",      "Salto",         Attr.AGI, 3, 1, SpellEffect.Leap,          mult: 2f, range: -1,
+            P("Leap",      "Salto",         Attr.AGI, 1, 1, SpellEffect.Leap, mult: 1f, range: -1,
               desc: "Salta até {reach} células por cima de obstáculos e ameaças. O salto não provoca oportunidade (começar a conjurar no alcance de alguém provoca)."),
-            P("StoneSkin", "Pele de pedra", Attr.VIT, 2, 1, SpellEffect.PrepStoneSkin, mult: 5f,
+            P("StoneSkin", "Pele de pedra", Attr.VIT, 1, 1, SpellEffect.PrepStoneSkin, mult: 1f,
               desc: "Por 1 round, a defesa física fixa (VIT + armadura) conta ×{mult} contra dano físico (VIT 10 sem armadura → −{skinEx} por golpe)."),
-            P("Curve",     "Curva",         Attr.AGI, 2, 1, SpellEffect.PrepCurve,
+            P("Curve",     "Curva",         Attr.AGI, 1, 1, SpellEffect.PrepCurve,
               desc: "O seu próximo ataque à distância (arma ou magia, inclusive de área) faz curva: segue o alvo se ele se mover ou esquivar, e contorna Muralha, Tempestade de areia e quem estiver no caminho."),
 
             // ---- Elemental puras (GDD-019 §3.1): Mana ----
-            E("Ember",      "Brasa",          Fire,  2, 2, 4, 0, SpellEffect.Damage, 4, 1.0f, dur: 1, tickDmg: 1, status: "Burning",
+            E("Ember",      "Brasa",          Fire, 1, 1, 1, 0, SpellEffect.Damage, 1, 0f, dur: 1, tickDmg: 1, status: "Burning",
               desc: "~{amount} de dano de Fogo e Queimando: {tick} de dano por tick por {dur}."),
-            E("WaterJet",   "Jato d'água",    Water, 2, 2, 4, 0, SpellEffect.Damage, 3, 0.8f, dur: 1, status: "Soaked",
+            E("WaterJet",   "Jato d'água",    Water, 1, 1, 1, 0, SpellEffect.Damage, 1, 0f, dur: 1, status: "Soaked",
               desc: "~{amount} de dano de Água e Encharcado: −1 tile de andada por {dur}. Apaga Queimando."),
-            E("StoneShard", "Lasca de pedra", Earth, 2, 2, 3, 0, SpellEffect.CancelMove, 3, 0.8f,
+            E("StoneShard", "Lasca de pedra", Earth, 1, 1, 1, 0, SpellEffect.CancelMove, 1, 0f,
               desc: "~{amount} de dano de Terra. Se o alvo estiver andando, cancela o passo seguinte."),
-            E("Gust",       "Rajada",         Air,   2, 1, 3, 0, SpellEffect.Push, 2, 0.5f, push: 1,
+            E("Gust",       "Rajada",         Air, 1, 1, 1, 0, SpellEffect.Push, 1, 0f, push: 1,
               desc: "~{amount} de dano de Ar e empurra {push} tile para longe (+1 com INT 8 ou mais)."),
             E("ArcaneSight","Visão arcana",   Magic, 1, 1, -1, 0, SpellEffect.Foresight, dur: 2,
               desc: "Por {dur}, vê a fila inimiga 2 ticks além do normal."),
 
             // ---- Elemental pares (GDD-019 §3.2): Mana ----
-            E("Explosion",  "Explosão",            new[]{ SpellElement.Fire,  SpellElement.Air },   5, 3, 5, 1, SpellEffect.Damage, 6, 1.2f, push: 1,
+            E("Explosion",  "Explosão",            new[]{ SpellElement.Fire,  SpellElement.Air }, 1, 1, 1, 1, SpellEffect.Damage, 1, 0f, push: 1,
               desc: "Área {area}: ~{amount} de dano de Fogo em quem estiver inteiro dentro (menos em quem só a ponta pegar). Empurra {push} tile para fora do centro."),
-            E("Balm",       "Bálsamo",             new[]{ SpellElement.Water, SpellElement.Earth }, 4, 2, 3, 1, SpellEffect.Heal, 5, 1.0f,
+            E("Balm",       "Bálsamo",             new[]{ SpellElement.Water, SpellElement.Earth }, 1, 1, 1, 1, SpellEffect.Heal, 1, 0f,
               desc: "Área {area}: cura ~{amount} de vida dos aliados e tira Queimando e Encharcado. É a única área que toca aliados."),
-            E("Steam",      "Vapor",               new[]{ SpellElement.Fire,  SpellElement.Water }, 3, 2, 4, 1, SpellEffect.ZoneSteam, dur: 1,
-              desc: "Área {area} de vapor por {dur}: quem estiver dentro tem −20% de acerto e não pode ser alvo de Olho certeiro."),
-            E("Magma",      "Magma",               new[]{ SpellElement.Fire,  SpellElement.Earth }, 4, 3, 3, 1, SpellEffect.ZoneLava, dur: 1, tickDmg: 1,
+            E("Steam",      "Vapor",               new[]{ SpellElement.Fire,  SpellElement.Water }, 1, 1, 1, 1, SpellEffect.ZoneSteam, dur: 1,
+              desc: "Área {area} de vapor por {dur}: quem estiver dentro tem −10% de acerto e não pode ser alvo de Olho certeiro."),
+            E("Magma",      "Magma",               new[]{ SpellElement.Fire,  SpellElement.Earth }, 1, 1, 1, 1, SpellEffect.ZoneLava, dur: 1, tickDmg: 1,
               desc: "Área {area} de lava por {dur}: {tick} de dano por tick em quem pisar nela. Não fere o conjurador."),
-            E("Mud",        "Lama",                new[]{ SpellElement.Water, SpellElement.Air },   3, 2, 4, 1, SpellEffect.ZoneMud, dur: 1,
+            E("Mud",        "Lama",                new[]{ SpellElement.Water, SpellElement.Air }, 1, 1, 1, 1, SpellEffect.ZoneMud, dur: 1,
               desc: "Área {area} de lama por {dur}: dentro dela a andada cai para 1 tile."),
-            E("Sandstorm",  "Tempestade de areia", new[]{ SpellElement.Earth, SpellElement.Air },   3, 2, 4, 2, SpellEffect.ZoneSandstorm, dur: 1,
-              desc: "Área {area} por {dur}: ataques à distância que cruzam a área erram 50% das vezes."),
-            E("ArcaneFlame","Chama arcana",        new[]{ SpellElement.Fire,  SpellElement.Magic }, 4, 2, 5, 0, SpellEffect.Damage, 5, 1.3f, pierce: 0.5f,
+            E("Sandstorm",  "Tempestade de areia", new[]{ SpellElement.Earth, SpellElement.Air }, 1, 1, 1, 2, SpellEffect.ZoneSandstorm, dur: 1,
+              desc: "Área {area} por {dur}: ataques à distância que cruzam a área erram 10% das vezes."),
+            E("ArcaneFlame","Chama arcana",        new[]{ SpellElement.Fire,  SpellElement.Magic }, 1, 1, 1, 0, SpellEffect.Damage, 1, 0f, pierce: 0.5f,
               desc: "~{amount} de dano de Fogo que ignora metade da defesa mágica (WIS). Não queima."),
-            E("MindTide",   "Maré mental",         new[]{ SpellElement.Water, SpellElement.Magic }, 3, 2, 4, 0, SpellEffect.DrainMana, 2, 0.5f,
+            E("MindTide",   "Maré mental",         new[]{ SpellElement.Water, SpellElement.Magic }, 1, 1, 1, 0, SpellEffect.DrainMana, 1, 0f,
               desc: "Drena até ~{drain} de Mana do alvo e devolve metade a você."),
-            E("Rampart",    "Muralha",             new[]{ SpellElement.Earth, SpellElement.Magic }, 4, 2, 3, 3, SpellEffect.Barrier, 3, 2.0f, dur: 1,
+            E("Rampart",    "Muralha",             new[]{ SpellElement.Earth, SpellElement.Magic }, 1, 1, 1, 3, SpellEffect.Barrier, 1, 0f, dur: 1,
               desc: "Muralha de {wall} células por {dur}, com {amount} de vida: bloqueia passagem e projéteis de todos."),
-            E("WindStep",   "Passo do vento",      new[]{ SpellElement.Air,   SpellElement.Magic }, 3, 1, 5, 0, SpellEffect.Teleport,
+            E("WindStep",   "Passo do vento",      new[]{ SpellElement.Air,   SpellElement.Magic }, 1, 1, 1, 0, SpellEffect.Teleport,
               desc: "Teleporta você para um tile livre a até {reach} células. Não provoca oportunidade ao chegar."),
         };
 
@@ -250,7 +250,7 @@ namespace PangeaSkirmish
                 // Físicas (2026-11-14): Potência sobe o multiplicador (Fúria, Pele de pedra), Alcance o Salto,
                 // Efeito a duração da Pele de pedra.
                 case SpellBoost.Power:  return s.baseAmount > 0f || s.potFactor > 0f || s.tickDamage > 0
-                                            || (s.IsPhysical && s.multiplier > 1f && s.effect != SpellEffect.Leap);
+                                            || (s.IsPhysical && s.multiplier >= 1f && s.effect != SpellEffect.Leap);
                 case SpellBoost.Effect: return s.durationRounds > 0 || s.effect == SpellEffect.PrepStoneSkin;
                 case SpellBoost.Range:  return (s.range > 0 && s.effect != SpellEffect.Leap) || s.effect == SpellEffect.Leap;
                 case SpellBoost.Area:   return s.area > 0;
@@ -290,7 +290,7 @@ namespace PangeaSkirmish
                 switch (b)
                 {
                     case SpellBoost.Power:
-                        if (s.IsPhysical && s.multiplier > 1f) d.multiplier = s.multiplier * PhysicalPowerMult;
+                        if (s.IsPhysical && s.multiplier >= 1f) d.multiplier = s.multiplier * PhysicalPowerMult;
                         d.baseAmount *= PowerMult; d.potFactor *= PowerMult;
                         d.tickDamage = Mathf.RoundToInt(d.tickDamage * PowerMult);
                         d.ticksBase += 1;
