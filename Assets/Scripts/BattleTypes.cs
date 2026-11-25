@@ -19,7 +19,7 @@ namespace PangeaSkirmish
         [Header("HP / Mana")]
         public float hpBase    = 10f;
         public float hpPerVIT  = 1f;
-        public float manaBase  = 6f;
+        public float manaBase  = 1f;
         public float manaPerWIS = 1f;
 
         [Header("Dano")]
@@ -116,7 +116,8 @@ namespace PangeaSkirmish
 
         /// <summary>HP base + VIT × hpPerVIT × multiplicador de tamanho (maior = mais HP por VIT).</summary>
         public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT * UnitSize.Of(Footprint).hpPerVit);
-        public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS);
+        /// <summary>Mana = base 1 + WIS × multiplicador de tamanho (Tiny ×6 → Gargantuan ×0,33).</summary>
+        public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS * UnitSize.Of(Footprint).manaPerInt);
         /// <summary>
         /// GDD-020: dano de CADA tile que o golpe pega no alvo. Dano da arma × (1 + atributo × %):
         /// STR para corpo a corpo, DEX para distância. A porcentagem não favorece armas largas nem estreitas.
@@ -179,7 +180,9 @@ namespace PangeaSkirmish
             get
             {
                 var T = Tuning.Get();
-                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + (STR + VIT + DEX) * T.staminaPerBodyPoint));
+                // Stamina inversa à mana: quanto menor a unidade, menos stamina por ponto de corpo.
+                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase +
+                       (STR + VIT + DEX) * T.staminaPerBodyPoint * UnitSize.Of(Footprint).staminaMult));
             }
         }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
