@@ -114,7 +114,8 @@ namespace PangeaSkirmish
         /// <summary>Arma à distância: o dano escala com a DEX (antes não escalava com nada: o Arco Longo batia 1).</summary>
         public bool dexScalesDamage = false;
 
-        public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT);
+        /// <summary>HP base + VIT × hpPerVIT × multiplicador de tamanho (maior = mais HP por VIT).</summary>
+        public int MaxHP => Mathf.RoundToInt(F.hpBase + VIT * F.hpPerVIT * UnitSize.Of(Footprint).hpPerVit);
         public int MaxMana => Mathf.RoundToInt(F.manaBase + WIS * F.manaPerWIS);
         /// <summary>
         /// GDD-020: dano de CADA tile que o golpe pega no alvo. Dano da arma × (1 + atributo × %):
@@ -148,7 +149,8 @@ namespace PangeaSkirmish
             get
             {
                 var T = Tuning.Get();
-                int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
+                // Unidades menores andam mais por ponto de AGI; maiores, menos (PF2e por analogia).
+                int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI * UnitSize.Of(Footprint).movePerAgi);
                 tiles = Mathf.Min(tiles, Mathf.Max(1, T.maxTilesPerMove)) - OverWeight;   // peso acima do limite (GDD-021 §4)
                 return Mathf.Max(1, tiles);
             }
@@ -205,7 +207,8 @@ namespace PangeaSkirmish
         public int ManaRegen => Mathf.RoundToInt(F.manaRegenBase + WIS * F.manaRegenPerWIS);
 
         public float HitChance => Mathf.Clamp01(F.baseHitChance + DEX * F.hitPerDEX);
-        public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI - OverWeight * 0.04f);
+        /// <summary>Unidades menores esquivam melhor (multiplicador inverso ao tamanho).</summary>
+        public float DodgeChance => Mathf.Clamp01(AGI * F.dodgePerAGI * UnitSize.Of(Footprint).dodge - OverWeight * 0.04f);
         public float CritChance => Mathf.Clamp01(DEX * F.critPerDEX);
         public int PhysicalDefense => F.armorBase + Mathf.RoundToInt(VIT * F.armorPerVIT) + ArmorPhys;
         /// <summary>Redução percentual do dano físico pela VIT (0..armorPctMax).</summary>
@@ -295,7 +298,8 @@ namespace PangeaSkirmish
                 stats.WeaponDamage = w.damage;
                 stats.ShapeTiles = AttackShape.CenteredTiles(w);
                 stats.AttackTicks = Mathf.Max(1, w.attackTicks);
-                stats.AttackRange = baseRange + w.range;
+                // Reach por tamanho (PF2e Table 9-1): Large +1, Huge +2, Gargantuan +3, Tiny -1.
+                stats.AttackRange = Mathf.Max(1, baseRange + w.range + UnitSize.Of(stats.Footprint).reach);
                 stats.strScalesDamage = w.range <= (tuning != null ? tuning.strDamageMaxRange : 4);
                 stats.dexScalesDamage = !stats.strScalesDamage;
             }
@@ -304,7 +308,8 @@ namespace PangeaSkirmish
                 stats.WeaponDamage = tuning != null ? tuning.unarmedDamage : 1;
                 stats.ShapeTiles = 1;
                 stats.AttackTicks = tuning != null ? Mathf.Max(1, tuning.ticksUnarmed) : 1;
-                stats.AttackRange = baseRange + (tuning != null ? tuning.unarmedRange : 0);
+                stats.AttackRange = Mathf.Max(1, baseRange + (tuning != null ? tuning.unarmedRange : 0)
+                                                  + UnitSize.Of(stats.Footprint).reach);
                 stats.strScalesDamage = true;
                 stats.dexScalesDamage = false;
             }
