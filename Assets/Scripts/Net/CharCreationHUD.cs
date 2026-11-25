@@ -68,7 +68,7 @@ namespace PangeaSkirmish
                     // 15 pontos (GDD-024): 2 em cada e o resto em STR, VIT e AGI.
                     STR = each + (_budget - each * 6 > 0 ? 1 : 0), VIT = each + (_budget - each * 6 > 1 ? 1 : 0),
                     DEX = each, AGI = each + (_budget - each * 6 > 2 ? 1 : 0), INT = each, WIS = each,
-                    Footprint = 3,
+                    Footprint = AttributeStats.DefaultFootprint,
                     // AttackRange vem da arma (não 0 — senão a unidade nasce sem alcance)
                     AttackRange = WeaponCatalog.Get("Hatchet")?.range ?? 1
                 }

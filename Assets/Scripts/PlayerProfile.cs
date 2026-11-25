@@ -59,6 +59,16 @@ namespace PangeaSkirmish
         }
 
         /// <summary>Personagens de antes do GDD-024 (sem nível) entram no nível em que os pontos cabem: 30 → 4.</summary>
+        /// <summary>GDD-028: personagens criados antes do rebalance tinham footprint 3 salvo. Promove para 9.</summary>
+        private static bool MigrateFootprint(CharacterPreset c)
+        {
+            if (c == null || c.stats == null) return false;
+            if (c.stats.Footprint == AttributeStats.DefaultFootprint) return false;
+            Debug.Log($"[Perfil] migrando footprint de '{c.presetName}': {c.stats.Footprint} → {AttributeStats.DefaultFootprint}");
+            c.stats.Footprint = AttributeStats.DefaultFootprint;
+            return true;
+        }
+
         public static void MigrateLevel(CharacterPreset c)
         {
             if (c == null || c.level > 0) return;
@@ -115,7 +125,9 @@ namespace PangeaSkirmish
             }
             if (_data.characters == null) _data.characters = new List<CharacterPreset>();
             _data.characters.RemoveAll(c => c == null || c.stats == null);
-            foreach (var c in _data.characters) { Equipment.EnsureKit(c); MigrateLevel(c); }   // GDD-021: personagens antigos ganham o kit da arma
+            bool footprintMigrated = false;
+            foreach (var c in _data.characters) { Equipment.EnsureKit(c); MigrateLevel(c); footprintMigrated |= MigrateFootprint(c); }   // GDD-021: kit antigo; GDD-028: footprint 9×9
+            if (footprintMigrated) Save();
             Debug.Log($"[Perfil] carregado: nome='{_data.playerName}', {_data.characters.Count} personagem(ns), em uso={_data.selected}");
         }
 

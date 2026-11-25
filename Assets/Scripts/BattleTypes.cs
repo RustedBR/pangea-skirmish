@@ -79,7 +79,7 @@ namespace PangeaSkirmish
     public class UnitStatBlock
     {
         public float STR = 1f, VIT = 1f, DEX = 1f, AGI = 1f, INT = 1f, WIS = 1f;
-        public int   Footprint   = 3;
+        public int   Footprint   = AttributeStats.DefaultFootprint;   // GDD-028: unidade padrão 9×9
         public int   AttackRange = 1;
 
         public AttributeStats ToAttributeStats() => new AttributeStats
