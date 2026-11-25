@@ -265,6 +265,47 @@ namespace PangeaSkirmish
             climb.feedbackFn = () => "Do chão ao mirante a diferença é <b>2</b>, mas pelo degrau cada passo sobe <b>1</b>: o caminho existe e o mirante entrou na área verde. Descer segue a mesma regra.";
             L.Add(climb);
 
+            // ── Colisão (GDD-028 fase 4): unidades e terreno bloqueiam passagem de verdade ──
+            Vector2Int colHerói = Vector2Int.zero, colFera = Vector2Int.zero;
+            bool unitBlocked = false, wallBlocked = false; Vector2Int colWall = Vector2Int.zero;
+            var colUnit = new TutorialLesson("colUnit", 2, "Unidades bloqueiam", "Colisão de unidades",
+                "Unidades ocupam seu footprint no grid e bloqueiam a passagem. Veja o herói registrar sua posição: a célula da fera deixa de estar livre e o passo é recusado.",
+                "Colisão de unidade registrada e passo recusado.");
+            colUnit.kind = TutorialLessonKind.Demo;
+            colUnit.demo = () =>
+            {
+                if (d.Grid == null || d.PlayerUnit == null || d.Fera == null) return;
+                var col = d.Grid.Collision; colHerói = d.PlayerUnit.anchor; colFera = d.Fera.anchor;
+                UnitCollisionBridge.SyncAll(d.Grid);
+                // ignore = jogador (não a fera): queremos provar que a fera bloqueia para quem tenta entrar.
+                unitBlocked = !col.IsFootprintFree(colFera, d.Fera.stats.Footprint, d.PlayerUnit)
+                              && !UnitCollisionBridge.CanOccupy(d.Grid, colFera, d.PlayerUnit.stats.Footprint, d.PlayerUnit);
+            };
+            colUnit.gate = () => unitBlocked && d.Grid != null && d.Grid.Collision.OccupantAt(colFera.x, colFera.y) != null;
+            colUnit.assertion = () => colUnit.gate() ? null : "colisão de unidade não registrada no grid";
+            colUnit.feedbackFn = () => $"Cada unidade ocupa <b>{d.PlayerUnit.stats.Footprint}×{d.PlayerUnit.stats.Footprint} células</b>. A fera bloqueia as dela: você precisa contornar, não pode passar por cima.";
+            L.Add(colUnit);
+
+            var colWallLesson = new TutorialLesson("colWall", 2, "Terreno bloqueia", "Colisão de terreno",
+                "Estruturas sólidas (como a Muralha) viram ocupantes reais: bloqueiam movimento e projéteis. Veja uma coluna de pedra ser registrada e recusar o passo.",
+                "Estrutura sólida registrada e passo recusado.");
+            colWallLesson.kind = TutorialLessonKind.Demo;
+            colWallLesson.demo = () =>
+            {
+                if (d.Grid == null || d.PlayerUnit == null) return;
+                var col = d.Grid.Collision;
+                colWall = d.PlayerUnit.anchor + new Vector2Int(2, 0);
+                if (!d.Grid.Collision.InBounds(colWall.x, colWall.y)) colWall = d.PlayerUnit.anchor + new Vector2Int(-2, 0);
+                col.AddStructure(colWall.x, colWall.y, 0, solid: true);
+                // AddStructure marca walkable=false (não cria occupant): a checa correta é IsWalkable/CanOccupy.
+                wallBlocked = !col.IsWalkable(colWall.x, colWall.y)
+                              && !UnitCollisionBridge.CanOccupy(d.Grid, colWall, 1, d.PlayerUnit);
+            };
+            colWallLesson.gate = () => wallBlocked && d.Grid != null && !d.Grid.Collision.IsWalkable(colWall.x, colWall.y);
+            colWallLesson.assertion = () => colWallLesson.gate() ? null : "estrutura sólida não bloqueou a célula";
+            colWallLesson.feedbackFn = () => "Muralha e colunas são obstáculos: nem unidades nem projéteis atravessam. Use as laterais ou conjure outra magia.";
+            L.Add(colWallLesson);
+
             // ── Capítulo 3: Ataque ──────────────────────────────────────────────
             int feraHp0 = 0;
             var attack = new TutorialLesson("attack", 3, "Ataque a fera", "Ataque corpo a corpo",
