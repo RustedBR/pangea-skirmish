@@ -23,7 +23,6 @@ namespace PangeaSkirmish
             public int footprint;
             public float hpPerVit;
             public float manaPerInt;    // WIS → Mana (inverso ao tamanho)
-            public float staminaMult;   // STR+VIT+DEX → Stamina (inverso da mana)
             public int reach;
             public float dodge;
         }
@@ -33,12 +32,12 @@ namespace PangeaSkirmish
         // HP por VIT = 1 por lado do quadrado (Tiny 1, Small 2, Medium 3, Large 4, Huge 5, Gargantuan 6).
         public static readonly Row[] Table =
         {
-            new Row { category = SizeCategory.Tiny,       footprint = 1, hpPerVit = 1f, manaPerInt = 6f, staminaMult = 0.1667f, reach = 0, dodge = 3.00f },
-            new Row { category = SizeCategory.Small,      footprint = 2, hpPerVit = 2f, manaPerInt = 4f, staminaMult = 0.25f, reach = 1, dodge = 2.00f },
-            new Row { category = SizeCategory.Medium,     footprint = 3, hpPerVit = 3f, manaPerInt = 2f, staminaMult = 0.5f, reach = 1, dodge = 1.00f },
-            new Row { category = SizeCategory.Large,      footprint = 4, hpPerVit = 4f, manaPerInt = 1f, staminaMult = 1f, reach = 2, dodge = 0.50f },
-            new Row { category = SizeCategory.Huge,       footprint = 5, hpPerVit = 5f, manaPerInt = 0.5f, staminaMult = 2f, reach = 3, dodge = 0.40f },
-            new Row { category = SizeCategory.Gargantuan, footprint = 6, hpPerVit = 6f, manaPerInt = 0.33f, staminaMult = 3f, reach = 4, dodge = 0.33f },
+            new Row { category = SizeCategory.Tiny,       footprint = 1, hpPerVit = 1f, manaPerInt = 6f, reach = 0, dodge = 3.00f },
+            new Row { category = SizeCategory.Small,      footprint = 2, hpPerVit = 2f, manaPerInt = 4f, reach = 1, dodge = 2.00f },
+            new Row { category = SizeCategory.Medium,     footprint = 3, hpPerVit = 3f, manaPerInt = 2f, reach = 1, dodge = 1.00f },
+            new Row { category = SizeCategory.Large,      footprint = 4, hpPerVit = 4f, manaPerInt = 1f, reach = 2, dodge = 0.50f },
+            new Row { category = SizeCategory.Huge,       footprint = 5, hpPerVit = 5f, manaPerInt = 0.5f, reach = 3, dodge = 0.40f },
+            new Row { category = SizeCategory.Gargantuan, footprint = 6, hpPerVit = 6f, manaPerInt = 0.33f, reach = 4, dodge = 0.33f },
         };
 
         public static Row Of(int footprint)

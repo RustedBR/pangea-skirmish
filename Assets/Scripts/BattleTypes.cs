@@ -180,9 +180,8 @@ namespace PangeaSkirmish
             get
             {
                 var T = Tuning.Get();
-                // Stamina inversa à mana: quanto menor a unidade, menos stamina por ponto de corpo.
-                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase +
-                       (STR + VIT + DEX) * T.staminaPerBodyPoint * UnitSize.Of(Footprint).staminaMult));
+                // Cada ponto de atributo vale 1 na sua própria conta; o tamanho NÃO multiplica a stamina.
+                return Mathf.Max(1, Mathf.RoundToInt(T.staminaBase + (STR + VIT + DEX) * T.staminaPerBodyPoint));
             }
         }
         public int ActionPoints => Mathf.Max(Tuning.Get().minActionPoints, Mathf.RoundToInt(AGI * F.apPerAGI));
