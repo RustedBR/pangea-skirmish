@@ -12,7 +12,6 @@ namespace PangeaSkirmish
     ///
     /// Efeitos (maior = mais resistente e mais alcance, porém mais lento e mais fácil de acertar):
     ///   HP por VIT   → multiplicador
-    ///   Movimento/AGI → multiplicador (inverso ao HP)
     ///   Alcance      → bônus em tiles (PF2e: Large +1, Huge +2, Gargantuan +3; Tiny −1)
     ///   Esquiva      → multiplicador (inverso ao tamanho)
     /// </summary>
@@ -23,7 +22,6 @@ namespace PangeaSkirmish
             public SizeCategory category;
             public int footprint;
             public float hpPerVit;
-            public float movePerAgi;
             public int reach;
             public float dodge;
         }
@@ -33,12 +31,12 @@ namespace PangeaSkirmish
         // HP por VIT = 1 por lado do quadrado (Tiny 1, Small 2, Medium 3, Large 4, Huge 5, Gargantuan 6).
         public static readonly Row[] Table =
         {
-            new Row { category = SizeCategory.Tiny,       footprint = 1, hpPerVit = 1f, movePerAgi = 2.00f, reach = -1, dodge = 3.00f },
-            new Row { category = SizeCategory.Small,      footprint = 2, hpPerVit = 2f, movePerAgi = 1.50f, reach =  0, dodge = 2.00f },
-            new Row { category = SizeCategory.Medium,     footprint = 3, hpPerVit = 3f, movePerAgi = 1.00f, reach =  0, dodge = 1.00f },
-            new Row { category = SizeCategory.Large,      footprint = 4, hpPerVit = 4f, movePerAgi = 0.75f, reach =  1, dodge = 0.50f },
-            new Row { category = SizeCategory.Huge,       footprint = 5, hpPerVit = 5f, movePerAgi = 0.60f, reach =  2, dodge = 0.40f },
-            new Row { category = SizeCategory.Gargantuan, footprint = 6, hpPerVit = 6f, movePerAgi = 0.50f, reach =  3, dodge = 0.33f },
+            new Row { category = SizeCategory.Tiny,       footprint = 1, hpPerVit = 1f, reach = 0, dodge = 3.00f },
+            new Row { category = SizeCategory.Small,      footprint = 2, hpPerVit = 2f, reach = 1, dodge = 2.00f },
+            new Row { category = SizeCategory.Medium,     footprint = 3, hpPerVit = 3f, reach = 1, dodge = 1.00f },
+            new Row { category = SizeCategory.Large,      footprint = 4, hpPerVit = 4f, reach = 2, dodge = 0.50f },
+            new Row { category = SizeCategory.Huge,       footprint = 5, hpPerVit = 5f, reach = 3, dodge = 0.40f },
+            new Row { category = SizeCategory.Gargantuan, footprint = 6, hpPerVit = 6f, reach = 4, dodge = 0.33f },
         };
 
         public static Row Of(int footprint)

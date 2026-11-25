@@ -149,8 +149,8 @@ namespace PangeaSkirmish
             get
             {
                 var T = Tuning.Get();
-                // Unidades menores andam mais por ponto de AGI; maiores, menos (PF2e por analogia).
-                int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI * UnitSize.Of(Footprint).movePerAgi);
+                // Movimento por AGI é o mesmo para todos os tamanhos (decisão do Marcus).
+                int tiles = Mathf.RoundToInt(T.moveTilesBase + AGI * T.moveTilesPerAGI);
                 tiles = Mathf.Min(tiles, Mathf.Max(1, T.maxTilesPerMove)) - OverWeight;   // peso acima do limite (GDD-021 §4)
                 return Mathf.Max(1, tiles);
             }
