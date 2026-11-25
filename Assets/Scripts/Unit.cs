@@ -478,7 +478,7 @@ namespace PangeaSkirmish
         /// <summary>Chance de acerto com o embotamento aplicado.</summary>
         public float EffectiveHitChance =>
             Mathf.Clamp01(stats.HitChance - (IsDulled ? Tuning.Get().dullHitPenalty : 0f)
-                          - (SpellField.Current != null && SpellField.Current.InZone(this, SpellEffect.ZoneSteam) ? 0.20f : 0f));
+                          - (SpellField.Current != null && SpellField.Current.InZone(this, SpellEffect.ZoneSteam) ? 0.10f : 0f));
 
         public Vector2Int FinalAnchor => hasPlannedBonus ? plannedBonusAnchor : plannedAnchor;
 

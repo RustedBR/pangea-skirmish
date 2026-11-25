@@ -369,7 +369,7 @@ namespace PangeaSkirmish
                     if (b.Hp <= 0) { field.Remove(b); log.Add($"   a {b.Name} desmorona"); }
                     return log;
                 }
-                if (field.SandstormOnLine(caster.anchor, t.anchor) && BattleRng.Roll10000() < 5000)
+                if (field.SandstormOnLine(caster.anchor, t.anchor) && BattleRng.Roll10000() < 1000)
                 { BattleFeedback.Miss(t); log.Add($"{head}: <color=#6f6a5e>perdeu-se na tempestade de areia</color>"); return log; }
             }
 

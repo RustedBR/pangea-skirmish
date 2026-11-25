@@ -151,7 +151,7 @@ namespace PangeaSkirmish
               desc: "O seu próximo ataque à distância (arma ou magia, inclusive de área) faz curva: segue o alvo se ele se mover ou esquivar, e contorna Muralha, Tempestade de areia e quem estiver no caminho."),
 
             // ---- Elemental puras (GDD-019 §3.1): Mana ----
-            E("Ember",      "Brasa",          Fire,  2, 2, 4, 0, SpellEffect.Damage, 4, 1.0f, dur: 1, tickDmg: 2, status: "Burning",
+            E("Ember",      "Brasa",          Fire,  2, 2, 4, 0, SpellEffect.Damage, 4, 1.0f, dur: 1, tickDmg: 1, status: "Burning",
               desc: "~{amount} de dano de Fogo e Queimando: {tick} de dano por tick por {dur}."),
             E("WaterJet",   "Jato d'água",    Water, 2, 2, 4, 0, SpellEffect.Damage, 3, 0.8f, dur: 1, status: "Soaked",
               desc: "~{amount} de dano de Água e Encharcado: −1 tile de andada por {dur}. Apaga Queimando."),
@@ -169,7 +169,7 @@ namespace PangeaSkirmish
               desc: "Área {area}: cura ~{amount} de vida dos aliados e tira Queimando e Encharcado. É a única área que toca aliados."),
             E("Steam",      "Vapor",               new[]{ SpellElement.Fire,  SpellElement.Water }, 3, 2, 4, 1, SpellEffect.ZoneSteam, dur: 1,
               desc: "Área {area} de vapor por {dur}: quem estiver dentro tem −20% de acerto e não pode ser alvo de Olho certeiro."),
-            E("Magma",      "Magma",               new[]{ SpellElement.Fire,  SpellElement.Earth }, 4, 3, 3, 1, SpellEffect.ZoneLava, dur: 1, tickDmg: 3,
+            E("Magma",      "Magma",               new[]{ SpellElement.Fire,  SpellElement.Earth }, 4, 3, 3, 1, SpellEffect.ZoneLava, dur: 1, tickDmg: 1,
               desc: "Área {area} de lava por {dur}: {tick} de dano por tick em quem pisar nela. Não fere o conjurador."),
             E("Mud",        "Lama",                new[]{ SpellElement.Water, SpellElement.Air },   3, 2, 4, 1, SpellEffect.ZoneMud, dur: 1,
               desc: "Área {area} de lama por {dur}: dentro dela a andada cai para 1 tile."),
@@ -179,7 +179,7 @@ namespace PangeaSkirmish
               desc: "~{amount} de dano de Fogo que ignora metade da defesa mágica (WIS). Não queima."),
             E("MindTide",   "Maré mental",         new[]{ SpellElement.Water, SpellElement.Magic }, 3, 2, 4, 0, SpellEffect.DrainMana, 2, 0.5f,
               desc: "Drena até ~{drain} de Mana do alvo e devolve metade a você."),
-            E("Rampart",    "Muralha",             new[]{ SpellElement.Earth, SpellElement.Magic }, 4, 2, 3, 3, SpellEffect.Barrier, 8, 2.0f, dur: 1,
+            E("Rampart",    "Muralha",             new[]{ SpellElement.Earth, SpellElement.Magic }, 4, 2, 3, 3, SpellEffect.Barrier, 3, 2.0f, dur: 1,
               desc: "Muralha de {wall} células por {dur}, com {amount} de vida: bloqueia passagem e projéteis de todos."),
             E("WindStep",   "Passo do vento",      new[]{ SpellElement.Air,   SpellElement.Magic }, 3, 1, 5, 0, SpellEffect.Teleport,
               desc: "Teleporta você para um tile livre a até {reach} células. Não provoca oportunidade ao chegar."),

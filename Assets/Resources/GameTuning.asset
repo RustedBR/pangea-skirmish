@@ -25,9 +25,9 @@ MonoBehaviour:
   aimDexMultiplier: 1
   statFormulas:
     hpBase: 30
-    hpPerVIT: 3
+    hpPerVIT: 1
     manaBase: 6
-    manaPerWIS: 1.5
+    manaPerWIS: 1
     weaponBase: 1
     dmgPerSTR: 3.5
     dmgPerDEXRanged: 3
@@ -41,8 +41,8 @@ MonoBehaviour:
     incrementAttackDamage: 4
     incrementMoveTiles: 1
     baseHitChance: 0.9
-    hitPerDEX: 0.03
-    dodgePerAGI: 0.05
+    hitPerDEX: 0.01
+    dodgePerAGI: 0.01
     critPerDEX: 0.02
     critDamageMul: 1.5
     damageVariance: 0.15
@@ -179,7 +179,7 @@ MonoBehaviour:
   attributeMax: 20
   agiMax: 20
   moveTilesBase: 12
-  moveTilesPerAGI: 2
+  moveTilesPerAGI: 1
   maxTilesPerMove: 24
   staminaBase: 1
   staminaPerBodyPoint: 0.25

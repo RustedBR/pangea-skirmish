@@ -10,23 +10,23 @@ public class CombatRulesTests
 
     // ── Dano ──
     [Test]
-    public void Melee_ScalesWithStr_At6PercentPerPoint()
+    public void Melee_ScalesWithStr_1To1()
     {
         var st = TestKit.Stats(str: 10, dex: 0);
         WeaponDef.ApplyTo(st, WeaponCatalog.Get("IronSword"), _t);
         Assert.IsTrue(st.strScalesDamage);
-        Assert.AreEqual(0.06f, _t.statFormulas.dmgPctPerAttr, 1e-4f, "STR: 6% por ponto");
-        Assert.AreEqual(WeaponCatalog.Get("IronSword").damage * (1f + 10 * 0.06f), st.DamagePerTile, 0.05f);   // os 80% de 1 mão entram em Equipment.ApplyTo
+        Assert.AreEqual(1f, _t.statFormulas.dmgPctPerAttr, 1e-4f, "GDD-028 1:1: STR 1 ponto = +1 dano/tile (sem fração)");
+        Assert.AreEqual(WeaponCatalog.Get("IronSword").damage + 10f, st.DamagePerTile, 0.05f);   // GDD-028: arma + STR (1:1 aditivo); 80% de 1 mão em ApplyTo
     }
 
     [Test]
-    public void Ranged_ScalesWithDex_At2PercentPerPoint()
+    public void Ranged_ScalesWithDex_1To1()
     {
         var st = TestKit.Stats(str: 0, dex: 10);
         WeaponDef.ApplyTo(st, WeaponCatalog.Get("LongBow"), _t);
         Assert.IsTrue(st.dexScalesDamage);
-        Assert.AreEqual(0.02f, _t.statFormulas.dexDmgPctPerAttr, 1e-4f, "DEX à distância: 2% por ponto (STR segue 6%)");
-        Assert.AreEqual(WeaponCatalog.Get("LongBow").damage * (1f + 10 * 0.02f), st.DamagePerTile, 0.05f);
+        Assert.AreEqual(1f, _t.statFormulas.dexDmgPctPerAttr, 1e-4f, "GDD-028 1:1: DEX 1 ponto = +1 dano/tile (sem fração)");
+        Assert.AreEqual(WeaponCatalog.Get("LongBow").damage + 10f, st.DamagePerTile, 0.05f);
     }
 
     [Test]
@@ -71,9 +71,9 @@ public class CombatRulesTests
 
     // ── Magias ──
     [Test]
-    public void SpellValues_At75Percent_AndFreeAimBonus()
+    public void SpellValues_1To1_AndFreeAimBonus()
     {
-        Assert.AreEqual(0.75f, _t.spellValueMult, 1e-4f);
+        Assert.AreEqual(1f, _t.spellValueMult, 1e-4f, "GDD-028 1:1: sem redução de 25% no valor das magias");
         var u = TestKit.Unit(intel: 6);
         try
         {

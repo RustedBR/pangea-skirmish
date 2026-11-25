@@ -18,9 +18,9 @@ namespace PangeaSkirmish
     {
         [Header("HP / Mana")]
         public float hpBase    = 10f;
-        public float hpPerVIT  = 2f;
+        public float hpPerVIT  = 1f;
         public float manaBase  = 6f;
-        public float manaPerWIS = 1.5f;
+        public float manaPerWIS = 1f;
 
         [Header("Dano")]
         public float weaponBase = 2f;
@@ -29,9 +29,9 @@ namespace PangeaSkirmish
         [Tooltip("Legado (antes do dano por tile). O dano agora é dano por tile × (1 + STR × dmgPctPerAttr, ou DEX × dexDmgPctPerAttr à distância).")]
         public float dmgPerDEXRanged = 3f;
         [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) aumenta o dano por tile nesta fração.")]
-        public float dmgPctPerAttr = 0.06f;
+        public float dmgPctPerAttr = 1f;
         [Tooltip("GDD-020: DEX (arma de longo alcance) usa esta fração por ponto. Menor que o STR p/ ranged não estourar (balance 2026-11-14).")]
-        public float dexDmgPctPerAttr = 0.02f;   // 2026-11-14: 4% → 2% (DEX à distância desbalanceava); STR segue 6%
+        public float dexDmgPctPerAttr = 1f;   // 2026-11-14: 4% → 2% (DEX à distância desbalanceava); STR segue 6%
 
         [Header("Iniciativa")]
         public float iniPerAGI = 1f;
@@ -49,8 +49,8 @@ namespace PangeaSkirmish
 
         [Header("Precisão / Esquiva")]
         public float baseHitChance = 0.70f;
-        public float hitPerDEX    = 0.03f;
-        public float dodgePerAGI   = 0.02f;
+        public float hitPerDEX    = 0.01f;
+        public float dodgePerAGI   = 0.01f;
         public float critPerDEX    = 0.01f;
         public float critDamageMul = 1.5f;
         public float damageVariance = 0.15f;
@@ -124,10 +124,10 @@ namespace PangeaSkirmish
         {
             get
             {
+                // GDD-028 (1:1): 1 ponto de atributo = +1 dano por tile, somado ao dano da arma.
+                // Sem multiplicadores ocultos (antes: ×(1 + STR×0.06) / ×(1 + DEX×0.02)).
                 float attr = strScalesDamage ? STR : dexScalesDamage ? DEX : 0f;
-                // DEX (ranged) usa seu próprio multiplicador; STR (melee) usa dmgPctPerAttr (GDD-020 §7, balance 2026-11-14).
-                float pct = strScalesDamage ? F.dmgPctPerAttr : F.dexDmgPctPerAttr;
-                return (WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) * (1f + Mathf.Max(0f, attr) * pct);
+                return (WeaponDamage >= 0 ? WeaponDamage : F.weaponBase) + Mathf.Max(0f, attr);
             }
         }
         /// <summary>Tiles que a forma da arma pega num alvo 3×3 quando centralizada nele (clique na unidade).</summary>

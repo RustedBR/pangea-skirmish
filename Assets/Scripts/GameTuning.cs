@@ -38,7 +38,7 @@ namespace PangeaSkirmish
         public float dodgeAgiPerMoveTile = 5f;   // round = 4 ticks, planejado por inteiro (2026-11-13)
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
         public float moveTilesBase = 12f;
-        public float moveTilesPerAGI = 2f;
+        public float moveTilesPerAGI = 1f;
         [Tooltip("Teto de tiles que uma ação de andar cobre.")]
         public int maxTilesPerMove = 6;
 
@@ -123,13 +123,13 @@ namespace PangeaSkirmish
         [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
         public float conduitPotBonus = 0.25f;
         [Tooltip("Potência mágica por ponto de INT. Dano/cura = (base × spellBaseMult + INT × spellPotPerINT × fator da magia) × conduíte da arma × spellValueMult.")]
-        public float spellPotPerINT = 1.5f;
+        public float spellPotPerINT = 1f;
         [Tooltip("Multiplicador do valor base das magias (dano, cura, HP da Muralha).")]
         public float spellBaseMult = 2.25f;
         [Tooltip("Multiplicador geral do valor das magias (dano, cura, muralha, dano por tick). Rebalance 2026-11-14: 0,75.")]
-        public float spellValueMult = 0.75f;
+        public float spellValueMult = 1f;
         [Tooltip("Multiplicador do dano por tick (Queimando, Magma).")]
-        public float spellTickDamageMult = 2f;
+        public float spellTickDamageMult = 1f;
         [Tooltip("Alcance em células = alcance da magia × este valor + INT × spellRangePerINT. Uma unidade ocupa 3 células: sem isto o alcance 3 do Magma era corpo a corpo.")]
         public float spellRangeMult = 6f;
         [Tooltip("Células de alcance ganhas por ponto de INT.")]
