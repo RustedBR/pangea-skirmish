@@ -45,6 +45,12 @@ namespace PangeaSkirmish
         // ---- Índices de navegação -------------------------------------------
         private int _spriteIdx;
         private int _weaponIdx;
+        private int _sizeIdx = 2;   // Medium por padrão
+
+        /// <summary>Jogadores podem escolher de Tiny até Large (GDD-028).</summary>
+        private static readonly int[] SizeFootprints = { 1, 2, 3, 4 };
+        private static readonly string[] SizeNames = { "Tiny (1×1)", "Small (2×2)", "Medium (3×3)", "Large (4×4)" };
+        private Label _sizeLbl;
 
         private static readonly string[] AttrNames = { "STR", "VIT", "DEX", "AGI", "INT", "WIS" };
 
@@ -68,7 +74,7 @@ namespace PangeaSkirmish
                     // 15 pontos (GDD-024): 2 em cada e o resto em STR, VIT e AGI.
                     STR = each + (_budget - each * 6 > 0 ? 1 : 0), VIT = each + (_budget - each * 6 > 1 ? 1 : 0),
                     DEX = each, AGI = each + (_budget - each * 6 > 2 ? 1 : 0), INT = each, WIS = each,
-                    Footprint = AttributeStats.DefaultFootprint,
+                    Footprint = 3,   // Medium: jogador escolhe de Tiny a Large no picker
                     // AttackRange vem da arma (não 0 — senão a unidade nasce sem alcance)
                     AttackRange = WeaponCatalog.Get("Hatchet")?.range ?? 1
                 }
@@ -92,6 +98,7 @@ namespace PangeaSkirmish
                 _spritePreview.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(_preview3D.Texture));
             }
             _weaponLbl  = r.Q<Label>("weapon-label");
+            _sizeLbl    = r.Q<Label>("size-label");
             _statusLbl  = r.Q<Label>("status-label");
             _confirmBtn = r.Q<Button>("confirm-btn");
 
@@ -117,6 +124,10 @@ namespace PangeaSkirmish
                 _lookIdx = (_lookIdx + 1) % CharacterLookCatalog.All.Length;
                 SyncSprite();
             });
+
+            // Tamanho (GDD-028): Tiny → Small → Medium → Large
+            r.Q<Button>("size-prev")?.RegisterCallback<ClickEvent>(_ => StepSize(-1));
+            r.Q<Button>("size-next")?.RegisterCallback<ClickEvent>(_ => StepSize(+1));
 
             // Arma picker
             r.Q<Button>("weapon-prev")?.RegisterCallback<ClickEvent>(_ =>
@@ -155,6 +166,7 @@ namespace PangeaSkirmish
             }
             Hover(r.Q<Button>("sprite-prev")?.parent, () => $"<b>Aparência — {CharacterLookCatalog.All[_lookIdx].displayName}</b>\n{CharacterLookCatalog.All[_lookIdx].blurb}\nÉ só visual: não muda nenhum número.");
             Hover(r.Q<Button>("weapon-prev")?.parent, WeaponHelp);
+            Hover(r.Q<Button>("size-prev")?.parent, SizeHelp);
 
             // Confirmar / voltar
             _confirmBtn?.RegisterCallback<ClickEvent>(_ => OnConfirm());
@@ -383,6 +395,8 @@ namespace PangeaSkirmish
                                           "eq-prev-left", "eq-next-left", "eq-prev-head", "eq-next-head",
                                           "eq-prev-torso", "eq-next-torso", "eq-prev-legs", "eq-next-legs" })
                     r?.Q<Button>(n)?.SetEnabled(false);
+                Root?.Q<Button>("size-prev")?.SetEnabled(false);
+                Root?.Q<Button>("size-next")?.SetEnabled(false);
                 _nameInput?.SetEnabled(false);
             }
         }
@@ -413,6 +427,11 @@ namespace PangeaSkirmish
             var ws = WeaponCatalog.All();
             _weaponIdx = 0;
             for (int k = 0; k < ws.Length; k++) if (ws[k].id == _editing.weaponId) { _weaponIdx = k; break; }
+
+            _sizeIdx = 2;
+            for (int k = 0; k < SizeFootprints.Length; k++)
+                if (SizeFootprints[k] == _editing.stats.Footprint) { _sizeIdx = k; break; }
+            SyncSize();
 
             _budget = PlayerProfile.BudgetFor(_editing);   // GDD-024: o nível dá mais pontos
             if (_nameInput != null) _nameInput.SetValueWithoutNotify(_editing.presetName);
@@ -495,6 +514,30 @@ namespace PangeaSkirmish
                     ? $"Peso {wt} / {lim} — <color=#a82c2c>{wt - lim} acima: −{wt - lim} na andada e no Esquivar, −{(wt - lim) * 4}% de esquiva</color>"
                     : $"Peso {wt} / {lim}";
             }
+        }
+
+        private void StepSize(int dir)
+        {
+            if (PlayerProfile.IsLocked(_editSource)) return;
+            _sizeIdx = (_sizeIdx + dir + SizeFootprints.Length) % SizeFootprints.Length;
+            SyncSize();
+        }
+
+        private void SyncSize()
+        {
+            if (_sizeIdx < 0 || _sizeIdx >= SizeFootprints.Length) _sizeIdx = 2;
+            if (_editing != null && _editing.stats != null) _editing.stats.Footprint = SizeFootprints[_sizeIdx];
+            if (_sizeLbl != null) _sizeLbl.text = SizeNames[_sizeIdx];
+            RefreshDerived();
+            RefreshHoverInfo();
+        }
+
+        private string SizeHelp()
+        {
+            var sz = UnitSize.Of(SizeFootprints[_sizeIdx]);
+            return $"<b>Tamanho — {sz.category}</b>\nOcupa {SizeFootprints[_sizeIdx]}×{SizeFootprints[_sizeIdx]} células.\n" +
+                   $"Vida: ×{sz.hpPerVit:0.#} de HP por VIT.\nAlcance de ataque: {sz.reach:+0;-0;0} tiles.\n" +
+                   $"Esquiva: ×{sz.dodge:0.##}.\nJogadores podem escolher de Tiny a Large.";
         }
 
         private void SyncWeapon()

@@ -29,6 +29,13 @@
                         </ui:VisualElement>
 
                         <ui:VisualElement class="cc-row">
+                            <ui:Label text="Tamanho:" class="pg-label--dim cc-row-label" />
+                            <ui:Button name="size-prev" text="&lt;" class="pg-button cc-step" />
+                            <ui:Label name="size-label" text="Medium (3×3)" class="cc-value cc-value--wide" />
+                            <ui:Button name="size-next" text="&gt;" class="pg-button cc-step" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="cc-row">
                             <ui:Label text="Mão dir.:" class="pg-label--dim cc-row-label" />
                             <ui:Button name="weapon-prev" text="&lt;" class="pg-button cc-step" />
                             <ui:Label name="weapon-label" text="Machado" class="cc-value cc-value--wide" />
