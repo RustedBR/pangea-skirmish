@@ -83,6 +83,10 @@ namespace PangeaSkirmish
         {
             Zones.Add(z);
             if (grid == null) return;
+            // GDD-028: Muralha é estrutura real — registra ocupação (bloqueia passagem e projéteis).
+            if (z.Kind == SpellEffect.Barrier && grid.Collision != null)
+                foreach (var c in z.Cells)
+                    grid.Collision.Occupy(c, 1, z);
             var col = ZoneColor(z.Kind);
             foreach (var c in z.Cells)
             {

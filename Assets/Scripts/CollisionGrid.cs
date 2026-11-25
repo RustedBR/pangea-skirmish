@@ -58,6 +58,16 @@ namespace PangeaSkirmish
             return _walkable[x, y];
         }
 
+        /// <summary>True se TODAS as células do footprint são walkable (para anchors de unidade).</summary>
+        public bool IsWalkableArea(Vector2Int anchor, int size)
+        {
+            int s = Mathf.Max(1, size);
+            for (int dx = 0; dx < s; dx++)
+                for (int dy = 0; dy < s; dy++)
+                    if (!IsWalkable(anchor.x + dx, anchor.y + dy)) return false;
+            return true;
+        }
+
         // ── z-level (altura efetiva) ──
         public void SetZLevel(int x, int y, int z)
         {

@@ -161,6 +161,8 @@ namespace PangeaSkirmish
         private IEnumerator StartRound()
         {
             _round++;
+            // GDD-028: sincroniza a colisão real (unidades vivas + muralhas) no início de cada round.
+            if (_grid != null) UnitCollisionBridge.SyncAll(_grid);
             // Reações renovam por "round de ticks" (ver AdvanceGlobalTick), não por ponto de decisão.
             if (_round == 1) foreach (var u in _units) if (!u.IsDead) u.ResetReactionsForRound();
             AudioManager.I?.Play(AudioManager.I.sfxRound);

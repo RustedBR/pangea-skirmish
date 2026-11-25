@@ -505,6 +505,7 @@ namespace PangeaSkirmish
         public static event System.Action<Unit, int, bool> OnDamageTaken;
 
         private GridManager _grid;
+        public GridManager Grid => _grid;
         private SpriteRenderer _sr;
         private WeaponOverlay _weapon;
         private UnitModel3D _model;   // corpo 3D (mundo 3D); o sprite vira só estado

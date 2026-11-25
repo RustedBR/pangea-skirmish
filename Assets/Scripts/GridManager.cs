@@ -87,7 +87,20 @@ namespace PangeaSkirmish
 
         // Camada unificada de Colisão & Ocupação (Parte A). Data-only, alimentada aqui.
         private CollisionGrid _collision;
-        public CollisionGrid Collision => _collision;
+        // Lazy getter (GDD-028): em testes EditMode o AddComponent não roda Awake, então
+        // _collision ficava null e os testes de colisão estouravam NRE. Inicializa sob demanda.
+        public CollisionGrid Collision
+        {
+            get
+            {
+                if (_collision == null)
+                {
+                    _collision = new CollisionGrid();
+                    if (width > 0 && height > 0) _collision.SyncFrom(this);
+                }
+                return _collision;
+            }
+        }
 
         private readonly List<Vector2Int> _highlighted = new List<Vector2Int>();
         private readonly Dictionary<Vector2Int, SpriteRenderer> _highlightBorders = new();
@@ -660,7 +673,7 @@ namespace PangeaSkirmish
             }
 
             // Parte A: sincronizar camada de colisão/ocupação com o terreno
-            if (_collision != null) _collision.SyncFrom(this);
+            Collision.SyncFrom(this); // GDD-028: garante a camada de colisão mesmo sem Awake (EditMode)
 
             // Reconstruir sprites
             _tilesRoot = new GameObject("Tiles").transform;
@@ -831,7 +844,7 @@ namespace PangeaSkirmish
             }
 
             // Parte A: sincronizar camada de colisão/ocupação com o terreno recém-construído
-            if (_collision != null) _collision.SyncFrom(this);
+            Collision.SyncFrom(this); // GDD-028: garante a camada de colisão mesmo sem Awake (EditMode)
 
             int raised = 0;
             for (int x = 0; x < width; x++)
@@ -1260,7 +1273,8 @@ namespace PangeaSkirmish
         {
             if (anchor.x < 0 || anchor.y < 0 ||
                 anchor.x + size > width || anchor.y + size > height) return false;
-            // Verificar se algum cell do footprint é void
+            // Verificar se algum cell do footprint é void / não caminhável (colisão real de terreno).
+            if (_collision != null) return _collision.IsWalkableArea(anchor, size);
             for (int dx = 0; dx < size; dx++)
                 for (int dy = 0; dy < size; dy++)
                     if (IsVoid(anchor.x + dx, anchor.y + dy)) return false;
@@ -1406,7 +1420,12 @@ namespace PangeaSkirmish
             var objFrom = GetObjectName(from.x, from.y);
             if (!string.IsNullOrEmpty(objFrom) && IsObjectWall(objFrom)) return false;
 
-            int dh = GetHeight(to.x, to.y) - GetHeight(from.x, from.y);
+            // Colisão real: célula de destino precisa ser walkable no CollisionGrid.
+            if (_collision != null && !_collision.IsWalkable(to.x, to.y)) return false;
+            // z-level jogável (rampa): usa a altura efetiva do CollisionGrid (tile + estruturas).
+            int dh = _collision != null
+                ? _collision.GetZLevel(to.x, to.y) - _collision.GetZLevel(from.x, from.y)
+                : GetHeight(to.x, to.y) - GetHeight(from.x, from.y);
             if (Mathf.Abs(dh) <= MaxStepClimb) return true;
 
             // Rampa na direção certa faz ponte (ignora limite de step).
