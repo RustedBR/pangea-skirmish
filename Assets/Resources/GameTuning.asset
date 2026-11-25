@@ -24,7 +24,7 @@ MonoBehaviour:
   strDamageMaxRange: 0
   aimDexMultiplier: 1
   statFormulas:
-    hpBase: 30
+    hpBase: 1
     hpPerVIT: 1
     manaBase: 1
     manaPerWIS: 1
@@ -47,7 +47,7 @@ MonoBehaviour:
     critDamageMul: 1.5
     damageVariance: 0.15
     armorBase: 0
-    armorPerVIT: 0.5
+    armorPerVIT: 1
     armorPctPerVIT: 0
     armorPctMax: 0.6
     magicResistBase: 0

@@ -17,7 +17,7 @@ namespace PangeaSkirmish
     public class StatFormulas
     {
         [Header("HP / Mana")]
-        public float hpBase    = 10f;
+        public float hpBase    = 1f;
         public float hpPerVIT  = 1f;
         public float manaBase  = 1f;
         public float manaPerWIS = 1f;
@@ -58,7 +58,7 @@ namespace PangeaSkirmish
         [Header("Defesa / Mitigação")]
         public int armorBase     = 0;
         [Tooltip("Defesa fixa por ponto de VIT (GDD-020 §7). 0,5 = 1 de defesa a cada 2 de VIT (balanceamento 2026-11-13).")]
-        public float armorPerVIT = 0.5f;
+        public float armorPerVIT = 1f;
         [Tooltip("Redução PERCENTUAL de dano físico por ponto de VIT, somada à defesa fixa (armorPerVIT). 0 = desligada (valor atual).")]
         public float armorPctPerVIT = 0f;
         public float armorPctMax    = 0.6f;
