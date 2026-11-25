@@ -37,8 +37,8 @@ namespace PangeaSkirmish
         [Tooltip("Esquivar anda 1 + AGI / este valor tiles.")]
         public float dodgeAgiPerMoveTile = 5f;   // round = 4 ticks, planejado por inteiro (2026-11-13)
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
-        public float moveTilesBase = 2f;
-        public float moveTilesPerAGI = 0.67f;
+        public float moveTilesBase = 12f;
+        public float moveTilesPerAGI = 2f;
         [Tooltip("Teto de tiles que uma ação de andar cobre.")]
         public int maxTilesPerMove = 6;
 
@@ -131,11 +131,11 @@ namespace PangeaSkirmish
         [Tooltip("Multiplicador do dano por tick (Queimando, Magma).")]
         public float spellTickDamageMult = 2f;
         [Tooltip("Alcance em células = alcance da magia × este valor + INT × spellRangePerINT. Uma unidade ocupa 3 células: sem isto o alcance 3 do Magma era corpo a corpo.")]
-        public float spellRangeMult = 2f;
+        public float spellRangeMult = 6f;
         [Tooltip("Células de alcance ganhas por ponto de INT.")]
-        public float spellRangePerINT = 0.5f;
+        public float spellRangePerINT = 1.5f;
         [Tooltip("Raio da área em células = área da magia × este valor. 2 = uma Explosão pega o alvo e quem está colado nele.")]
-        public float spellAreaMult = 2f;
+        public float spellAreaMult = 6f;
         [Tooltip("Pausa (s) depois que as magias de um tick resolvem, para o projétil e o impacto serem vistos.")]
         public float spellFxPause = 0.28f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
@@ -173,7 +173,7 @@ namespace PangeaSkirmish
         [Tooltip("Alcance natural da unidade além do footprint, em tiles (gap). Efetivo = base + arma.")]
         public int baseAttackRange = 1;
         [Tooltip("Armas com range (da arma, sem o base) ACIMA disso escalam o dano com DEX (dexDmgPctPerAttr) em vez de STR.")]
-        public int strDamageMaxRange = 4;
+        public int strDamageMaxRange = 12;
         [Tooltip("Mirar: dano extra no próximo ataque = DEX * este fator.")]
         public float aimDexMultiplier = 1f;
 

@@ -18,7 +18,7 @@ namespace PangeaSkirmish
         [HideInInspector] public RoundManager MpRoundManager;
 
         /// <summary>Lado, em células, do mapa padrão da batalha.</summary>
-        public const int DefaultMapSize = 30;
+        public const int DefaultMapSize = 90;
 
         private void Start()
         {

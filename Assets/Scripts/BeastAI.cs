@@ -63,7 +63,7 @@ namespace PangeaSkirmish
         /// alterna com a camada (cada camada comeca num tamanho diferente, garantindo mistura).</summary>
         public static BeastSize SizeFor(int index, int layer) => (BeastSize)((index + layer) % 3);
 
-        public static int FootprintOf(BeastSize s) => s == BeastSize.Small ? 1 : s == BeastSize.Medium ? 2 : 4;
+        public static int FootprintOf(BeastSize s) => s == BeastSize.Small ? 3 : s == BeastSize.Medium ? 6 : 12;
 
         private static string SizeName(BeastSize s) =>
             s == BeastSize.Small ? "Fera Pequena" : s == BeastSize.Medium ? "Fera Média" : "Fera Grande";

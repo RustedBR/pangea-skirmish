@@ -21,7 +21,7 @@ MonoBehaviour:
   unarmedDamage: 1
   unarmedRange: 0
   baseAttackRange: 1
-  strDamageMaxRange: 4
+  strDamageMaxRange: 12
   aimDexMultiplier: 1
   statFormulas:
     hpBase: 30
@@ -58,10 +58,10 @@ MonoBehaviour:
   - id: Hatchet
     displayName: Machado
     damage: 5
-    range: 1
+    range: 3
     shape: 2
-    shapeWidth: 3
-    shapeLength: 1
+    shapeWidth: 9
+    shapeLength: 3
     attackTicks: 1
     blockHardness: 2
     spellPowerMult: 1.0
@@ -70,10 +70,10 @@ MonoBehaviour:
   - id: IronAxe
     displayName: Machado de Ferro
     damage: 4
-    range: 2
+    range: 6
     shape: 2
-    shapeWidth: 3
-    shapeLength: 2
+    shapeWidth: 9
+    shapeLength: 6
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.0
@@ -82,10 +82,10 @@ MonoBehaviour:
   - id: WoodenSword
     displayName: Espada de Madeira
     damage: 7
-    range: 3
+    range: 9
     shape: 1
-    shapeWidth: 1
-    shapeLength: 2
+    shapeWidth: 3
+    shapeLength: 6
     attackTicks: 1
     blockHardness: 3
     spellPowerMult: 1.0
@@ -94,10 +94,10 @@ MonoBehaviour:
   - id: IronSword
     displayName: Espada de Ferro
     damage: 4
-    range: 4
+    range: 12
     shape: 2
-    shapeWidth: 3
-    shapeLength: 1
+    shapeWidth: 9
+    shapeLength: 3
     attackTicks: 1
     blockHardness: 3
     spellPowerMult: 1.0
@@ -106,10 +106,10 @@ MonoBehaviour:
   - id: WoodenStaff
     displayName: Cajado
     damage: 8
-    range: 7
+    range: 21
     shape: 1
-    shapeWidth: 1
-    shapeLength: 3
+    shapeWidth: 3
+    shapeLength: 9
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.1
@@ -118,10 +118,10 @@ MonoBehaviour:
   - id: Scepter
     displayName: Cetro
     damage: 3
-    range: 6
+    range: 18
     shape: 3
-    shapeWidth: 2
-    shapeLength: 2
+    shapeWidth: 6
+    shapeLength: 6
     attackTicks: 1
     blockHardness: 2
     spellPowerMult: 1.15
@@ -130,10 +130,10 @@ MonoBehaviour:
   - id: ShortBow
     displayName: Arco Curto
     damage: 25
-    range: 8
+    range: 24
     shape: 0
-    shapeWidth: 1
-    shapeLength: 1
+    shapeWidth: 3
+    shapeLength: 3
     attackTicks: 2
     blockHardness: 0
     spellPowerMult: 1.0
@@ -142,10 +142,10 @@ MonoBehaviour:
   - id: LongBow
     displayName: Arco Longo
     damage: 28
-    range: 10
+    range: 30
     shape: 0
-    shapeWidth: 1
-    shapeLength: 1
+    shapeWidth: 3
+    shapeLength: 3
     attackTicks: 3
     blockHardness: 0
     spellPowerMult: 1.0
@@ -154,10 +154,10 @@ MonoBehaviour:
   - id: ApprenticeWand
     displayName: Varinha
     damage: 4
-    range: 5
+    range: 15
     shape: 3
-    shapeWidth: 2
-    shapeLength: 2
+    shapeWidth: 6
+    shapeLength: 6
     attackTicks: 1
     blockHardness: 1
     spellPowerMult: 1.0
@@ -166,10 +166,10 @@ MonoBehaviour:
   - id: ArcaneStaff
     displayName: Cajado Arcano
     damage: 5
-    range: 7
+    range: 21
     shape: 1
-    shapeWidth: 1
-    shapeLength: 3
+    shapeWidth: 3
+    shapeLength: 9
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1.3
@@ -178,9 +178,9 @@ MonoBehaviour:
   attributeMin: 1
   attributeMax: 20
   agiMax: 20
-  moveTilesBase: 4
-  moveTilesPerAGI: 0.67
-  maxTilesPerMove: 8
+  moveTilesBase: 12
+  moveTilesPerAGI: 2
+  maxTilesPerMove: 24
   staminaBase: 1
   staminaPerBodyPoint: 0.25
   staminaRegenTicks: 3

@@ -100,7 +100,7 @@ namespace PangeaSkirmish
         public float INT = 1f;
         public float WIS = 1f;
 
-        public const int DefaultFootprint = 3;
+        public const int DefaultFootprint = 9;
         public int Footprint = DefaultFootprint;
 
         public static StatFormulas Formulas = new StatFormulas();
@@ -626,7 +626,7 @@ namespace PangeaSkirmish
             int fp = AttributeStats.DefaultFootprint;
             var anchor = new Vector2Int(10, 10);
             var center = anchor + new Vector2Int(fp / 2, fp / 2);
-            return Mathf.Max(1, TilesOn(Cells(w, center + new Vector2Int(0, -6), center), anchor, fp));
+            return Mathf.Max(1, TilesOn(Cells(w, center + new Vector2Int(0, -2 * fp), center), anchor, fp));
         }
 
         /// <summary>Centro (célula) de um footprint.</summary>
