@@ -512,7 +512,9 @@ namespace PangeaSkirmish
             {
                 _autoFade.Add(_inspectPanel, () => Time.unscaledTime - _inspectShownAt < 3f, 0.30f);
                 _autoFade.Add(_miniLog, null, 0.20f);
-                _autoFade.Add(_ticksBar, () => _actionBarWanted, 0.35f);
+                // GDD-028: a timeline de planejamento NUNCA escurece — reescrever style.opacity
+                // dela todo frame faz o texto dos cards piscar quando a câmera se move.
+                if (_ticksBar != null) _ticksBar.style.opacity = 1f;
                 _autoFadeReady = true;
             }
             // Jogar = clique/toque ou tecla que NÃO é de câmera (a tecla de câmera atualiza LastManualMoveTime no mesmo quadro).
@@ -1229,8 +1231,9 @@ namespace PangeaSkirmish
             if (!string.IsNullOrEmpty(_headCosts)) t += "\n" + _headCosts;
             bool note = !string.IsNullOrEmpty(_planNote) && Time.unscaledTime < _planNoteUntil;
             if (note) t += "\n" + _planNote;
-            _ticksRowsHeader.text = t;
-            _ticksRowsHeader.style.color = note ? new Color(0.95f, 0.71f, 0.27f) : new Color(0.73f, 0.69f, 0.61f);
+            if (_ticksRowsHeader.text != t) _ticksRowsHeader.text = t;
+            var wantColor = note ? new Color(0.95f, 0.71f, 0.27f) : new Color(0.73f, 0.69f, 0.61f);
+            if (_ticksRowsHeader.style.color.value != wantColor) _ticksRowsHeader.style.color = wantColor;
         }
 
         /// <summary>Aviso curto no cabeçalho da barra (ex.: sem tick livre para o incremento).</summary>
@@ -1981,9 +1984,10 @@ namespace PangeaSkirmish
             {
                 float age = Time.unscaledTime - e.time;
                 k = Mathf.Clamp01(1f - age / RowFlashSeconds);   // 1 = acabou de acontecer
-                r.label.text = k > 0f ? e.text : r.defaultText;
+                string want = k > 0f ? e.text : r.defaultText;
+                if (r.label.text != want) r.label.text = want;
             }
-            else r.label.text = r.defaultText;
+            else if (r.label.text != r.defaultText) r.label.text = r.defaultText;
             // Destaque: o bloco clareia e ganha contorno dourado enquanto o evento é recente.
             r.seg.style.backgroundColor = Color.Lerp(r.baseColor, Color.Lerp(r.baseColor, Color.white, 0.38f), k);
             var gold = Color.Lerp(new Color(r.baseColor.r * 0.7f, r.baseColor.g * 0.7f, r.baseColor.b * 0.7f), new Color(1f, 0.9f, 0.5f), k);
