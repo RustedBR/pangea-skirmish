@@ -31,9 +31,9 @@ namespace PangeaSkirmish
         [Tooltip("Contra-atacar só com arma de alcance até este valor (corpo a corpo).")]
         public int counterMaxRange = 4;
         [Tooltip("GDD-021: arma de uma mão dá esta fração do dano por tile (as de duas mãos ficam com 100%).")]
-        public float oneHandDamageMult = 0.8f;
+        public float oneHandDamageMult = 1f;
         [Tooltip("GDD-021: golpe extra da segunda arma (mão esquerda), fração do dano.")]
-        public float offhandDamageMult = 0.5f;
+        public float offhandDamageMult = 1f;
         [Tooltip("Esquivar anda 1 + AGI / este valor tiles.")]
         public float dodgeAgiPerMoveTile = 5f;   // round = 4 ticks, planejado por inteiro (2026-11-13)
         [Tooltip("Tiles por andada = moveTilesBase + AGI × moveTilesPerAGI, até maxTilesPerMove.")]
@@ -45,7 +45,7 @@ namespace PangeaSkirmish
         [Header("═══ ESTÂMINA (GDD-016) ═══")]
         [Tooltip("Stamina máxima = staminaBase + (STR + VIT + DEX) × staminaPerBodyPoint.")]
         public float staminaBase = 1f;
-        public float staminaPerBodyPoint = 0.25f;
+        public float staminaPerBodyPoint = 1f;
         [Tooltip("Recupera 1 de Stamina a cada N ticks.")]
         public int staminaRegenTicks = 3;
         [Tooltip("AGI acima deste valor acelera a regeneração de Stamina (o excedente que a andada já não aproveita).")]
@@ -53,7 +53,7 @@ namespace PangeaSkirmish
         [Tooltip("A cada N pontos de AGI acima de agiRegenFrom, a Stamina volta 1 tick mais cedo.")]
         public int agiRegenStep = 3;
         [Tooltip("Golpe poderoso multiplica o dano base por este valor (e custa +1 tick e Stamina).")]
-        public float powerStrikeMult = 1.5f;
+        public float powerStrikeMult = 1f;
         public int staminaPowerStrike = 2;
         public int staminaAim = 1;
         public int staminaQuickStep = 1;
@@ -80,7 +80,7 @@ namespace PangeaSkirmish
         public int reactCostTrueAim = 1;         // rebalance 2026-11-14: quase não valia (era 2)
         public float trueAimCritBonus = 0.60f;   // era 0.30
         [Tooltip("Mira livre (tile a tile): multiplicador de dano e bônus de acerto.")]
-        public float freeAimDamageMult = 1.25f;
+        public float freeAimDamageMult = 1f;
         public float freeAimHitBonus = 0.15f;
         [Tooltip("Projeção do turno: contorno do alcance de ataque e preenchimento da área de uma andada.")]
         public Color attackOutlineColor = new Color(0.95f, 0.30f, 0.26f, 0.62f);
@@ -121,7 +121,7 @@ namespace PangeaSkirmish
         [Tooltip("Conduíte: desconto de Mana nas magias que usam o elemento do conduíte.")]
         public int conduitManaDiscount = 1;
         [Tooltip("Conduíte: bônus de potência (fração de POT) nas magias do elemento do conduíte.")]
-        public float conduitPotBonus = 0.25f;
+        public float conduitPotBonus = 1f;
         [Tooltip("Potência mágica por ponto de INT. Dano/cura = (base × spellBaseMult + INT × spellPotPerINT × fator da magia) × conduíte da arma × spellValueMult.")]
         public float spellPotPerINT = 1f;
         [Tooltip("Multiplicador do valor base das magias (dano, cura, HP da Muralha).")]
@@ -135,7 +135,7 @@ namespace PangeaSkirmish
         [Tooltip("Células de alcance ganhas por ponto de INT.")]
         public float spellRangePerINT = 1f;
         [Tooltip("Raio da área em células = área da magia × este valor. 2 = uma Explosão pega o alvo e quem está colado nele.")]
-        public float spellAreaMult = 6f;
+        public float spellAreaMult = 1f;
         [Tooltip("Pausa (s) depois que as magias de um tick resolvem, para o projétil e o impacto serem vistos.")]
         public float spellFxPause = 0.28f;
         [Tooltip("Ticks base: andar (1 waypoint).")]
@@ -735,7 +735,7 @@ namespace PangeaSkirmish
         [Tooltip("Legado (não usado): o Bloquear fixo não tem teto percentual.")]
         public float maxBlockReduction    = 0.60f;
         [Tooltip("Multiplicador de dano do Contra-ataque (AoO). 1 = dano normal; 0.5 = metade.")]
-        public float aooDamageMult        = 0.6f;   // rebalance 2026-11-14: contra-ataque forte demais (era 1.0)
+        public float aooDamageMult        = 1f;   // rebalance 2026-11-14: contra-ataque forte demais (era 1.0)
     }
 
     /// <summary>

@@ -29,13 +29,13 @@ MonoBehaviour:
     manaBase: 1
     manaPerWIS: 1
     weaponBase: 1
-    dmgPerSTR: 3.5
-    dmgPerDEXRanged: 3
-    dmgPerINT: 2
+    dmgPerSTR: 1
+    dmgPerDEXRanged: 1
+    dmgPerINT: 1
     iniPerAGI: 1
     iniPerDEX: 1
     movePerAGI: 1
-    apPerAGI: 0.5
+    apPerAGI: 1
     bapPerDEX: 1
     bonusMoveBudget: 1
     incrementAttackDamage: 4
@@ -52,22 +52,27 @@ MonoBehaviour:
     armorPctMax: 0.6
     magicResistBase: 0
     magicResistPerWIS: 1
-    manaRegenBase: 2
-    manaRegenPerWIS: 0.5
+    manaRegenBase: 1
+    manaRegenPerWIS: 1
   spellPotPerINT: 1
   spellBaseMult: 1
   spellValueMult: 1
   spellTickDamageMult: 1
   spellRangeMult: 1
   spellRangePerINT: 1
+  oneHandDamageMult: 1
+  offhandDamageMult: 1
+  freeAimDamageMult: 1
+  spellAreaMult: 1
+  conduitPotBonus: 1
   weapons:
   - id: Hatchet
     displayName: Machado
     damage: 1
     range: 0
     shape: 2
-    shapeWidth: 9
-    shapeLength: 3
+    shapeWidth: 3
+    shapeLength: 1
     attackTicks: 1
     blockHardness: 2
     spellPowerMult: 1
@@ -78,8 +83,8 @@ MonoBehaviour:
     damage: 1
     range: 0
     shape: 2
-    shapeWidth: 9
-    shapeLength: 6
+    shapeWidth: 3
+    shapeLength: 2
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1
@@ -90,8 +95,8 @@ MonoBehaviour:
     damage: 1
     range: 0
     shape: 1
-    shapeWidth: 3
-    shapeLength: 6
+    shapeWidth: 1
+    shapeLength: 2
     attackTicks: 1
     blockHardness: 3
     spellPowerMult: 1
@@ -102,8 +107,8 @@ MonoBehaviour:
     damage: 1
     range: 0
     shape: 2
-    shapeWidth: 9
-    shapeLength: 3
+    shapeWidth: 3
+    shapeLength: 1
     attackTicks: 1
     blockHardness: 3
     spellPowerMult: 1
@@ -114,8 +119,8 @@ MonoBehaviour:
     damage: 1
     range: 4
     shape: 1
-    shapeWidth: 3
-    shapeLength: 9
+    shapeWidth: 1
+    shapeLength: 3
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1
@@ -126,8 +131,8 @@ MonoBehaviour:
     damage: 1
     range: 4
     shape: 3
-    shapeWidth: 6
-    shapeLength: 6
+    shapeWidth: 2
+    shapeLength: 2
     attackTicks: 1
     blockHardness: 2
     spellPowerMult: 1
@@ -138,8 +143,8 @@ MonoBehaviour:
     damage: 1
     range: 4
     shape: 0
-    shapeWidth: 3
-    shapeLength: 3
+    shapeWidth: 1
+    shapeLength: 1
     attackTicks: 2
     blockHardness: 0
     spellPowerMult: 1
@@ -150,8 +155,8 @@ MonoBehaviour:
     damage: 1
     range: 4
     shape: 0
-    shapeWidth: 3
-    shapeLength: 3
+    shapeWidth: 1
+    shapeLength: 1
     attackTicks: 3
     blockHardness: 0
     spellPowerMult: 1
@@ -162,8 +167,8 @@ MonoBehaviour:
     damage: 1
     range: 4
     shape: 3
-    shapeWidth: 6
-    shapeLength: 6
+    shapeWidth: 2
+    shapeLength: 2
     attackTicks: 1
     blockHardness: 1
     spellPowerMult: 1
@@ -174,8 +179,8 @@ MonoBehaviour:
     damage: 1
     range: 4
     shape: 1
-    shapeWidth: 3
-    shapeLength: 9
+    shapeWidth: 1
+    shapeLength: 3
     attackTicks: 2
     blockHardness: 2
     spellPowerMult: 1
@@ -188,11 +193,11 @@ MonoBehaviour:
   moveTilesPerAGI: 1
   maxTilesPerMove: 24
   staminaBase: 1
-  staminaPerBodyPoint: 0.25
+  staminaPerBodyPoint: 1
   staminaRegenTicks: 3
   agiRegenFrom: 6
   agiRegenStep: 3
-  powerStrikeMult: 1.5
+  powerStrikeMult: 1
   ticksUnarmed: 2
   spriteScalePerFootprint: 1.4
   footprintScalePerFootprint: 0.97
@@ -451,4 +456,4 @@ MonoBehaviour:
   blockReductionPerVIT: 0.02
   blockFlatPerVIT: 0.75
   maxBlockReduction: 0.6
-  aooDamageMult: 0.6
+  aooDamageMult: 1

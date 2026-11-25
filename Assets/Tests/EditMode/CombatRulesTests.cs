@@ -30,10 +30,10 @@ public class CombatRulesTests
     }
 
     [Test]
-    public void OneHandedWeapon_Deals80Percent()
+    public void Weapons_1To1_NoHandPenalty()
     {
-        Assert.AreEqual(0.8f, _t.oneHandDamageMult, 1e-4f);
-        Assert.AreEqual(0.5f, _t.offhandDamageMult, 1e-4f);
+        Assert.AreEqual(1f, _t.oneHandDamageMult, 1e-4f, "GDD-028: arma de uma mão sem penalidade");
+        Assert.AreEqual(1f, _t.offhandDamageMult, 1e-4f, "GDD-028: mão esquerda sem penalidade");
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class CombatRulesTests
         Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.Block), "bloquear");
         Assert.AreEqual(3, Unit.ReactionCost(ReactionKind.CounterAttack), "contra-atacar");
         Assert.AreEqual(1, Unit.ReactionCost(ReactionKind.TrueAim), "olho certeiro");
-        Assert.AreEqual(0.6f, _t.aooDamageMult, 1e-4f, "contra-ataque com 60% do dano");
+        Assert.AreEqual(1f, _t.aooDamageMult, 1e-4f, "GDD-028: contra-ataque com 100% do dano");
         Assert.AreEqual(0.60f, _t.trueAimCritBonus, 1e-4f);
     }
 

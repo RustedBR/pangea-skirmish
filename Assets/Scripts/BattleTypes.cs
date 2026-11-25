@@ -27,7 +27,7 @@ namespace PangeaSkirmish
         public float dmgPerSTR  = 1f;
         public float dmgPerINT  = 1f;
         [Tooltip("Legado (antes do dano por tile). O dano agora é dano por tile × (1 + STR × dmgPctPerAttr, ou DEX × dexDmgPctPerAttr à distância).")]
-        public float dmgPerDEXRanged = 3f;
+        public float dmgPerDEXRanged = 1f;
         [Tooltip("GDD-020: cada ponto de STR (corpo a corpo) aumenta o dano por tile nesta fração.")]
         public float dmgPctPerAttr = 1f;
         [Tooltip("GDD-020: DEX (arma de longo alcance) usa esta fração por ponto. Menor que o STR p/ ranged não estourar (balance 2026-11-14).")]
@@ -67,8 +67,8 @@ namespace PangeaSkirmish
 
         [Header("Magia")]
         [Tooltip("Legado: regen por round. A Mana agora volta por tick (GameTuning.manaRegenTicks) e Concentrar dá GameTuning.concentrateMana.")]
-        public float manaRegenBase = 2f;
-        public float manaRegenPerWIS = 0.5f;
+        public float manaRegenBase = 1f;
+        public float manaRegenPerWIS = 1f;
     }
 
     /// <summary>
