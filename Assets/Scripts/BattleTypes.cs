@@ -261,7 +261,7 @@ namespace PangeaSkirmish
         public string id;          // = prefixo do sprite, ex "Hatchet" → HatchetattackNE_0
         public string displayName; // ex "Machado"
         [Tooltip("GDD-020: dano POR TILE que a forma pega no alvo.")]
-        public int    damage = 3;
+        public int    damage = 1;
         public int    range  = 1;  // alcance (tiles)
         [Tooltip("GDD-020: forma do golpe (quais tiles ele pega). Gira na direção do golpe.")]
         public AttackShapeKind shape = AttackShapeKind.Single;

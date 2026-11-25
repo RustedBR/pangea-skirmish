@@ -21,7 +21,7 @@ MonoBehaviour:
   unarmedDamage: 1
   unarmedRange: 0
   baseAttackRange: 1
-  strDamageMaxRange: 12
+  strDamageMaxRange: 0
   aimDexMultiplier: 1
   statFormulas:
     hpBase: 30
@@ -57,8 +57,8 @@ MonoBehaviour:
   weapons:
   - id: Hatchet
     displayName: Machado
-    damage: 5
-    range: 3
+    damage: 1
+    range: 0
     shape: 2
     shapeWidth: 9
     shapeLength: 3
@@ -69,8 +69,8 @@ MonoBehaviour:
     elementAffinity: 1
   - id: IronAxe
     displayName: Machado de Ferro
-    damage: 4
-    range: 6
+    damage: 1
+    range: 0
     shape: 2
     shapeWidth: 9
     shapeLength: 6
@@ -81,8 +81,8 @@ MonoBehaviour:
     elementAffinity: 6
   - id: WoodenSword
     displayName: Espada de Madeira
-    damage: 7
-    range: 9
+    damage: 1
+    range: 0
     shape: 1
     shapeWidth: 3
     shapeLength: 6
@@ -93,8 +93,8 @@ MonoBehaviour:
     elementAffinity: 4
   - id: IronSword
     displayName: Espada de Ferro
-    damage: 4
-    range: 12
+    damage: 1
+    range: 0
     shape: 2
     shapeWidth: 9
     shapeLength: 3
@@ -105,8 +105,8 @@ MonoBehaviour:
     elementAffinity: 3
   - id: WoodenStaff
     displayName: Cajado
-    damage: 8
-    range: 21
+    damage: 1
+    range: 4
     shape: 1
     shapeWidth: 3
     shapeLength: 9
@@ -117,8 +117,8 @@ MonoBehaviour:
     elementAffinity: 2
   - id: Scepter
     displayName: Cetro
-    damage: 3
-    range: 18
+    damage: 1
+    range: 4
     shape: 3
     shapeWidth: 6
     shapeLength: 6
@@ -129,8 +129,8 @@ MonoBehaviour:
     elementAffinity: 3
   - id: ShortBow
     displayName: Arco Curto
-    damage: 25
-    range: 24
+    damage: 1
+    range: 4
     shape: 0
     shapeWidth: 3
     shapeLength: 3
@@ -141,8 +141,8 @@ MonoBehaviour:
     elementAffinity: 5
   - id: LongBow
     displayName: Arco Longo
-    damage: 28
-    range: 30
+    damage: 1
+    range: 4
     shape: 0
     shapeWidth: 3
     shapeLength: 3
@@ -153,8 +153,8 @@ MonoBehaviour:
     elementAffinity: 5
   - id: ApprenticeWand
     displayName: Varinha
-    damage: 4
-    range: 15
+    damage: 1
+    range: 4
     shape: 3
     shapeWidth: 6
     shapeLength: 6
@@ -165,8 +165,8 @@ MonoBehaviour:
     elementAffinity: 4
   - id: ArcaneStaff
     displayName: Cajado Arcano
-    damage: 5
-    range: 21
+    damage: 1
+    range: 4
     shape: 1
     shapeWidth: 3
     shapeLength: 9
